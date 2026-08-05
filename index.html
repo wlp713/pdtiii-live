@@ -41,6 +41,11 @@
   }
   .period-label { font-size: 17px; color: #ffffff; font-weight: 700; letter-spacing: 0; margin-left: 12px; white-space: nowrap; }
   .header-right { display: flex; align-items: center; gap: 8px; }
+  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 3px 10px; }
+  .conn-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d29922; }
+  .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
+  .conn-status.warn .dot { background: #d29922; }
+  .conn-status.err .dot { background: #f85149; box-shadow: 0 0 6px rgba(248,81,73,.6); }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
     70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
@@ -201,6 +206,7 @@
     <h1>生产实时看板 <span id="periodLabel" class="period-label"></span></h1>
   </div>
   <div class="header-right">
+    <span class="conn-status" id="connStatus"><span class="dot"></span> 连接中…</span>
     <button class="btn" id="notifBtn" style="display:none">🔔 开启停滞通知</button>
   </div>
 </div>
@@ -239,11 +245,11 @@
     <div class="panel-head"><h2>📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 固定目标</span><label class="seg-toggle" title="今天上午数据缺失时建议关闭，只看全天累计"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">横线=每小时分段 · 目标=日目标÷8小时</span></div>
+        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><label class="seg-toggle" title="今天上午数据缺失时建议关闭，只看全天累计"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">横线=每小时分段 · 目标=每小时实时目标</span></div>
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
-        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
+        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><span class="hint" style="max-width:46%">UPPH = 产量÷人数÷已工作小时(扣午休)；达成率 = UPPH÷(日目标÷人数÷8h)×100%</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
         <canvas id="chartEff"></canvas>
       </div>
     </div>
@@ -543,7 +549,43 @@ function segsOf(name, curActual) {
   }
   return segs;
 }
-// ---- 目标柱分段: 固定小时目标 = 日目标 ÷ 8 个工作小时, 每段等高不变 ----
+// ---- 目标柱分段: 实时累计目标 = 每小时快照 plan 差值(服务器实时目标); 无快照时回退固定目标(日目标÷8) ----
+function planSegsOf(name, nowH) {
+  const snaps = (state.hourly || {})[name] || [];
+  const ln = state.lines.find(x => x.name === name) || {};
+  const target = ln.target || 0;
+  if (!snaps.length || snaps.length < 2) return planSegs(target, nowH); // 回退固定目标
+  const segs = [];
+  if (snaps[0].h > 8) {
+    // 中途启动: base=首条快照累计目标
+    segs.push({ h: snaps[0].h, lab: null, live: false, base: true, actual: snaps[0].plan || 0, plan: snaps[0].plan || 0 });
+    for (let i = 2; i < snaps.length; i++) {
+      const prev = snaps[i - 1], s = snaps[i];
+      if (prev.h < 13) continue;
+      segs.push({ h: s.h, lab: prev.h, live: false, actual: Math.max(0, (s.plan || 0) - (prev.plan || 0)), plan: Math.max(0, (s.plan || 0) - (prev.plan || 0)) });
+    }
+    const last = snaps[snaps.length - 1];
+    if (last && last.h >= 13 && last.h <= nowH && nowH - last.h < 2) {
+      segs.push({ h: nowH, lab: last.h, live: true, actual: Math.max(0, (last.plan || 0) - (last.actual || 0)), plan: Math.max(0, (last.plan || 0) - (last.actual || 0)) });
+    }
+    return segs;
+  }
+  // 完整天: 从首条快照起逐小时差值
+  let prevP = snaps[0].plan || 0, prevH = snaps[0].h;
+  if (hourNo(prevH) != null) segs.push({ h: prevH, lab: null, base: true, actual: prevP, plan: prevP });
+  for (let i = 1; i < snaps.length; i++) {
+    const s = snaps[i];
+    if (hourNo(prevH) == null) { prevP = s.plan || 0; prevH = s.h; continue; }
+    segs.push({ h: s.h, lab: prevH, live: false, actual: Math.max(0, (s.plan || 0) - prevP), plan: Math.max(0, (s.plan || 0) - prevP) });
+    prevP = s.plan || 0; prevH = s.h;
+  }
+  const last = snaps[snaps.length - 1];
+  if (last && prevH <= nowH && nowH - prevH < 2 && hourNo(prevH) != null) {
+    segs.push({ h: nowH, lab: prevH, live: true, actual: Math.max(0, (last.plan || 0) - (last.actual || 0)), plan: Math.max(0, (last.plan || 0) - (last.actual || 0)) });
+  }
+  return segs;
+}
+// ---- 固定小时目标(回退用): 日目标 ÷ 8 个工作小时, 每段等高不变 ----
 function planSegs(target, nowH) {
   const perH = (target || 0) / 8; // 8 个工作小时(8-9,9-10,10-11,11-12,午休,13-14,14-15,15-16,16-17)
   const segs = [];
@@ -620,10 +662,10 @@ function drawBar(main) {
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
   const padL = 46, padB = 34, padT = 26;
   const cw = W - padL - 12, ch = H - padT - padB;
-  // ★ maxV 基于固定目标累计(到当前小时的日目标÷8段数), 不用实时 plan(实时 plan 会变)
+  // ★ maxV 基于实时目标累计(到当前小时的每小时 plan 差值), 无 hourly 快照时回退固定目标
   const nowH = new Date().getHours();
   const maxV = Math.max(1, ...lines.map(l => {
-    const pc = planSegs(l.target, nowH).reduce((s, x) => s + (x.actual || 0), 0);
+    const pc = planSegsOf(l.name, nowH).reduce((s, x) => s + (x.actual || 0), 0);
     return Math.max(l.actual || 0, pc);
   }));
   const step = Math.ceil(maxV / 4 / 10) * 10;
@@ -642,8 +684,8 @@ function drawBar(main) {
       // 实际柱: 各小时实际产量堆叠(含上午累计段, 统一蓝色, 横线分割)
       const segs = segsOf(l.name, l.actual);
       drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
-      // 计划柱: 固定小时目标 = 日目标÷8, 每段等高, 横线分割; 柱顶 = 到当前小时的累计目标
-      const psegs = planSegs(l.target, nowH);
+      // 计划柱: 实时累计目标 = 每小时快照 plan 差值分段, 柱顶 = 到当前小时的累计目标
+      const psegs = planSegsOf(l.name, nowH);
       const planCum = psegs.reduce((s, x) => s + (x.actual || 0), 0);
       drawStacked(ctx, cx + 1.5, bw, psegs, planCum, maxV, ch, padT, "#d29922");
     } else {
@@ -651,13 +693,14 @@ function drawBar(main) {
       const aH = Math.max(0, (l.actual || 0) / maxV * ch);
       ctx.fillStyle = "#58a6ff";
       ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
-      const pH = Math.max(0, planSegs(l.target, nowH).reduce((s, x) => s + (x.actual || 0), 0) / maxV * ch);
+      const pCum = planSegsOf(l.name, nowH).reduce((s, x) => s + (x.actual || 0), 0);
+      const pH = Math.max(0, pCum / maxV * ch);
       ctx.fillStyle = "#d29922";
       ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
       ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
       if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - aH - 3);
       ctx.fillStyle = "#d29922";
-      if (pH > 0) ctx.fillText(fmt(planSegs(l.target, nowH).reduce((s, x) => s + (x.actual || 0), 0)), cx + 1.5 + bw / 2, padT + ch - pH - 3);
+      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, padT + ch - pH - 3);
     }
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(shortName(l.name), cx, H - 10);
@@ -721,11 +764,14 @@ function drawEff(main) {
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
   const padL = 40, padB = 34, padT = 22;
   const cw = W - padL - 12, ch = H - padT - padB;
-  // ★ UPPH 达成率图表: 100% = 达成; 0-200% 刻度
-  const maxV = 200;
   const now = new Date();
+  // ★ UPPH 达成率图表: 上限 = max(120%, 最高达成率向上取整到20), 达成率低时用 120% 不会太空
+  const maxRate = lines.reduce((m, l) => { const r = upphRateOf(l, now); return Math.max(m, r == null ? 0 : r); }, 0);
+  const maxV = Math.max(120, Math.ceil(Math.max(maxRate, 1) / 20) * 20);
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
-  [0, 50, 100, 150, 200].forEach(v => {
+  // 刻度: 0, 25%, 50%, 75%, 100%(上限); 100% 达成线固定
+  [0, 0.25, 0.5, 0.75, 1].forEach((f, i) => {
+    const v = Math.round(maxV * f);
     const y = padT + ch - (ch * v / maxV);
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
     ctx.fillText(v + "%", 4, y + 3);
@@ -803,13 +849,23 @@ function renderAll() {
 }
 
 async function refresh() {
+  const cs = document.getElementById("connStatus");
   try {
+    if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> 连接中…"; }
     const r = await fetch(DATA_URL + "?t=" + Date.now());
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     state.lines = d.lines || [];
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
+    // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
+    const st = d.source || "";
+    if (cs) {
+      const age = state.updatedAt ? (Date.now() - state.updatedAt) : Infinity;
+      if (age <= 90000) { cs.className = "conn-status ok"; cs.innerHTML = "<span class='dot'></span> 已连接 · 数据实时"; }
+      else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> 数据延迟 " + Math.round(age / 1000) + "s"; }
+      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 数据断线 " + (state.updatedAt ? Math.round(age / 60000) + "min" : "无数据"); }
+    }
     // ★ 标题时段: 班次开始 8:00 → 当前时间
     const pl = document.getElementById("periodLabel");
     if (pl) {
@@ -822,6 +878,7 @@ async function refresh() {
   } catch (e) {
     const pl = document.getElementById("periodLabel");
     if (pl) pl.textContent = "连接失败";
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 连接失败"; }
     document.getElementById("note").textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
   }
 }
