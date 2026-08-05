@@ -891,9 +891,19 @@ function renderAll() {
 
 async function refresh() {
   const cs = document.getElementById("connStatus");
+  // ★ file:// 直接打开会无法 fetch 数据(浏览器拦截) — 给出明确指引而非模糊的"连接失败"
+  if (location.protocol === "file:") {
+    const pl = document.getElementById("periodLabel");
+    if (pl) pl.textContent = "⚠️ 请用 http://localhost:8080 打开";
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> ⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板"; }
+    return;
+  }
+  // ★ fetch 加 8s 超时(AbortController): 服务器卡住时不再无限等待
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 8000);
   try {
     if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> 连接中…"; }
-    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    const r = await fetch(DATA_URL + "?t=" + Date.now(), { signal: ctrl.signal });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     state.lines = d.lines || [];
@@ -923,9 +933,9 @@ async function refresh() {
   } catch (e) {
     const pl = document.getElementById("periodLabel");
     if (pl) pl.textContent = "连接失败";
-    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 连接失败"; }
-    const noteEl = document.getElementById("note");
-    if (noteEl) noteEl.textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 连接失败: " + (e && e.message ? e.message : String(e)); }
+  } finally {
+    clearTimeout(t);
   }
 }
 
