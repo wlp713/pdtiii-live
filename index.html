@@ -249,7 +249,7 @@
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
-        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><span class="hint" style="max-width:46%">UPPH = 产量÷人数÷已工作小时(扣午休)；达成率 = UPPH÷(日目标÷人数÷7.67h)×100%</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
+        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><span class="hint">UPPH = 产量÷人数÷工时</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
         <canvas id="chartEff"></canvas>
       </div>
     </div>
@@ -549,39 +549,23 @@ function segsOf(name, curActual) {
   }
   return segs;
 }
-// ---- 目标柱分段: 实时累计目标 = 每小时快照 plan 差值(服务器实时目标); 无快照时回退固定目标(日目标÷8) ----
+// ---- 目标柱分段: ★ 每段目标 = plan ÷ 已过时段数(均匀相等), 柱顶累计 = plan = 表格Plan列, 完全同步 ----
+//   用户要求: ①每段目标差不多相等 ②图表目标柱与表格Plan列数据一致 ③实时更新(plan随数据刷新)
 function planSegsOf(name, nowH) {
-  const snaps = (state.hourly || {})[name] || [];
   const ln = state.lines.find(x => x.name === name) || {};
-  const target = ln.target || 0;
-  if (!snaps.length || snaps.length < 2) return planSegs(target, nowH); // 回退固定目标
+  const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
+  // 已过时段数: 8-9,9-10,10-11,11-12,13-14,14-15,... 到 nowH(午休12不计数)
+  let n = 0;
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue;
+    n++;
+  }
+  if (!n) return [];
+  const per = plan / n; // 每段目标相等
   const segs = [];
-  if (snaps[0].h > 8) {
-    // 中途启动: base=首条快照累计目标
-    segs.push({ h: snaps[0].h, lab: null, live: false, base: true, actual: snaps[0].plan || 0, plan: snaps[0].plan || 0 });
-    for (let i = 2; i < snaps.length; i++) {
-      const prev = snaps[i - 1], s = snaps[i];
-      if (prev.h < 13) continue;
-      segs.push({ h: s.h, lab: prev.h, live: false, actual: Math.max(0, (s.plan || 0) - (prev.plan || 0)), plan: Math.max(0, (s.plan || 0) - (prev.plan || 0)) });
-    }
-    const last = snaps[snaps.length - 1];
-    if (last && last.h >= 13 && last.h <= nowH && nowH - last.h < 2) {
-      segs.push({ h: nowH, lab: last.h, live: true, actual: Math.max(0, (last.plan || 0) - (last.actual || 0)), plan: Math.max(0, (last.plan || 0) - (last.actual || 0)) });
-    }
-    return segs;
-  }
-  // 完整天: 从首条快照起逐小时差值
-  let prevP = snaps[0].plan || 0, prevH = snaps[0].h;
-  if (hourNo(prevH) != null) segs.push({ h: prevH, lab: null, base: true, actual: prevP, plan: prevP });
-  for (let i = 1; i < snaps.length; i++) {
-    const s = snaps[i];
-    if (hourNo(prevH) == null) { prevP = s.plan || 0; prevH = s.h; continue; }
-    segs.push({ h: s.h, lab: prevH, live: false, actual: Math.max(0, (s.plan || 0) - prevP), plan: Math.max(0, (s.plan || 0) - prevP) });
-    prevP = s.plan || 0; prevH = s.h;
-  }
-  const last = snaps[snaps.length - 1];
-  if (last && prevH <= nowH && nowH - prevH < 2 && hourNo(prevH) != null) {
-    segs.push({ h: nowH, lab: prevH, live: true, actual: Math.max(0, (last.plan || 0) - (last.actual || 0)), plan: Math.max(0, (last.plan || 0) - (last.actual || 0)) });
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue;
+    segs.push({ h: h, lab: h, live: (h === nowH), actual: per });
   }
   return segs;
 }
@@ -614,10 +598,12 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
       if (segH < 0.5) return;
       ctx.fillStyle = color; // ★ 统一颜色, 不再区分底衬
       ctx.fillRect(cx, yAcc, bw, segH);
-      // ★ 分割线: 段与段之间 2.5px 亮色横线(统一大小/宽度/样式, 深色背景上清晰可见)
-      if (idx > 0) {
-        ctx.fillStyle = "#f0f6fc";
-        ctx.fillRect(cx - 1, yAcc, bw + 2, 2.5);
+      // ★ 分割线: 每个时段之间都画深色横线(与背景同色系, 柱子浅色→线用深色清晰), 柱顶也画一条收尾线
+      ctx.fillStyle = "#0d1117";
+      ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
+      if (idx === segs.length - 1) {
+        // 最后一段顶部(柱顶)也画分割线, 保证每个时段边界都清晰
+        ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
       }
       // ★ 时段标签: 目标柱/实际柱都写小时编号(1-8), 8-9=1...16-17=8, 午休无
       //   一律写在段中央(薄段已强制 6px 高有空间), 避免挤在柱顶重叠/被裁切
@@ -859,12 +845,16 @@ async function refresh() {
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
     // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
+    //   ⚠️ data.json 的 updatedAt 是字符串 "YYYY-MM-DD HH:MM:SS", 必须先转时间戳再相减
     const st = d.source || "";
     if (cs) {
-      const age = state.updatedAt ? (Date.now() - state.updatedAt) : Infinity;
+      const ts = (typeof state.updatedAt === "string")
+        ? new Date(state.updatedAt.replace(" ", "T") + "+07:00").getTime()
+        : (state.updatedAt || 0);
+      const age = ts ? (Date.now() - ts) : Infinity;
       if (age <= 90000) { cs.className = "conn-status ok"; cs.innerHTML = "<span class='dot'></span> 已连接 · 数据实时"; }
       else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> 数据延迟 " + Math.round(age / 1000) + "s"; }
-      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 数据断线 " + (state.updatedAt ? Math.round(age / 60000) + "min" : "无数据"); }
+      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 数据断线 " + (ts ? Math.round(age / 60000) + "min" : "无数据"); }
     }
     // ★ 标题时段: 班次开始 8:00 → 当前时间
     const pl = document.getElementById("periodLabel");
