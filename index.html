@@ -39,20 +39,8 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .header .subtitle { font-size: 11px; color: var(--gray); }
+  .period-label { font-size: 17px; color: #ffffff; font-weight: 700; letter-spacing: 0; margin-left: 12px; white-space: nowrap; }
   .header-right { display: flex; align-items: center; gap: 8px; }
-  .update-box {
-    font-size: 12px; color: var(--gray);
-    display: flex; align-items: center; gap: 7px;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 16px; padding: 4px 11px;
-  }
-  .live-dot {
-    width: 9px; height: 9px; border-radius: 50%;
-    background: var(--green); display: inline-block;
-    animation: pulse 2s infinite;
-  }
-  .live-dot.stale { background: var(--red); animation: none; }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
     70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
@@ -102,7 +90,6 @@
     margin-bottom: 6px; flex-shrink: 0;
   }
   .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 600; letter-spacing: .5px; }
-  .period-label { font-size: 15px; color: #e6edf3; font-weight: 700; letter-spacing: 0; margin-left: 8px; }
   .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
@@ -204,16 +191,10 @@
 <body>
 <div class="header">
   <div class="title-wrap">
-    <h1>生产实时看板</h1>
-    <div class="subtitle">Production III · 抓包被动监听 · 每10秒自动刷新</div>
+    <h1>生产实时看板 <span id="periodLabel" class="period-label"></span></h1>
   </div>
   <div class="header-right">
     <button class="btn" id="notifBtn" style="display:none">🔔 开启停滞通知</button>
-    <div class="update-box">
-      <span class="live-dot" id="liveDot"></span>
-      <span id="updateTime">--:--:--</span>
-      <span id="dataMode">示例数据</span>
-    </div>
   </div>
 </div>
 
@@ -232,7 +213,7 @@
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2>📋 主要线体 · 产量对比 <span id="periodLabel" class="period-label"></span></h2>
+      <h2>📋 主要线体 · 产量对比</h2>
       <button class="btn" id="otherBtn">其他线体 (0)</button>
     </div>
     <div class="table-scroll">
@@ -474,20 +455,31 @@ function initNotif() {
 }
 
 // ---- 小时产量: 从 hourly 快照算每段产量/目标 ----
-function segsOf(name) {
+function segsOf(name, curActual) {
   const snaps = (state.hourly || {})[name] || [];
   if (!snaps.length) return [];
-  // ★ 当天中途启动(首条快照 h>8, 如今天 h=11 才上线): 首条快照作基准,
-  //   丢弃启动前的残留段(第一条段不完整, 如 11:47-12:00 仅13分钟),
-  //   从第二条起正常差值分段 → 13:00 起每小时真实产出段
+  const nowH = new Date().getHours();
+  // ★ 今天临时(首条快照 h>8): 上午段全部不显示; 从下午开始显示已完成小时段
+  //   + 当前进行中的小时(实时累积段, 标签=第几小时, 用最新整点快照作基准差值)
   if (snaps[0].h > 8) {
     const segs = [];
     for (let i = 2; i < snaps.length; i++) {
       const prev = snaps[i - 1], s = snaps[i];
+      // 只保留下午段(lab>=13, 即 13 点起的段)
+      if (prev.h < 13) continue;
       segs.push({
-        h: s.h, lab: prev.h, // lab = 该段开始小时
+        h: s.h, lab: prev.h, live: false,
         actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
         plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
+      });
+    }
+    // ★ 当前进行中的小时: 最新整点快照作基准 → 当前 actual 差值 = 正在累积的产量
+    const last = snaps[snaps.length - 1];
+    if (curActual != null && last && last.h <= nowH && nowH - last.h < 2) {
+      segs.push({
+        h: nowH, lab: last.h, live: true, // live=true 标记累积中
+        actual: Math.max(0, (curActual || 0) - (last.actual || 0)),
+        plan: Math.max(0, (last.plan || 0) - (last.actual || 0)) // 该小时计划增量≈基准点计划-实际(近似)
       });
     }
     return segs;
@@ -498,11 +490,19 @@ function segsOf(name) {
   for (let i = 1; i < snaps.length; i++) {
     const s = snaps[i];
     segs.push({
-      h: s.h, lab: prevH, // lab = 该段的开始小时(如 8-9 段标 8)
+      h: s.h, lab: prevH, live: false,
       actual: Math.max(0, (s.actual || 0) - prevA),
       plan: Math.max(0, (s.plan || 0) - prevP)
     });
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
+  }
+  // ★ 完整日也有当前进行中的小时段
+  if (curActual != null && prevH <= nowH && nowH - prevH < 2) {
+    segs.push({
+      h: nowH, lab: prevH, live: true,
+      actual: Math.max(0, (curActual || 0) - prevA),
+      plan: Math.max(0, (prevP || 0) - (prevA || 0))
+    });
   }
   return segs;
 }
@@ -527,7 +527,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
         ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
         // ★ 段标号 = 第几小时(段开始小时-8): 12-13点段=4, 13-14点段=5, 14-15点段=6...; 上午(<1)不显示
         const hNo = s.lab != null ? s.lab - 8 : -1;
-        ctx.fillText(hNo >= 1 ? String(hNo) : "", cx + bw / 2, yAcc + segH / 2 + 3);
+        const lab = hNo >= 1 ? String(hNo) + (s.live ? "~" : "") : "";
+        ctx.fillText(lab, cx + bw / 2, yAcc + segH / 2 + 3);
       }
     });
   }
@@ -562,7 +563,7 @@ function drawBar(main) {
   const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
-    const segs = segsOf(l.name);
+    const segs = segsOf(l.name, l.actual);
     drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
     drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan, lab: s.lab })), l.plan, maxV, ch, padT, "#d29922");
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
@@ -628,7 +629,6 @@ async function refresh() {
     state.lines = d.lines || [];
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
-    document.getElementById("updateTime").textContent = state.updatedAt || new Date().toLocaleTimeString("zh-CN", { hour12: false });
     // ★ 标题时段: 班次开始 8:00 → 当前时间
     const pl = document.getElementById("periodLabel");
     if (pl) {
@@ -637,14 +637,10 @@ async function refresh() {
       const mm = String(now.getMinutes()).padStart(2, "0");
       pl.textContent = "8:00 - " + hh + ":" + mm;
     }
-    const mode = document.getElementById("dataMode");
-    mode.textContent = d.mode === "live" ? "🔴 实时抓包数据" : "示例数据";
-    mode.style.color = d.mode === "live" ? "#3fb950" : "#d29922";
-    document.getElementById("liveDot").classList.remove("stale");
     renderAll();
   } catch (e) {
-    document.getElementById("liveDot").classList.add("stale");
-    document.getElementById("updateTime").textContent = "数据源连接失败";
+    const pl = document.getElementById("periodLabel");
+    if (pl) pl.textContent = "连接失败";
     document.getElementById("note").textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
   }
 }
