@@ -102,6 +102,7 @@
     margin-bottom: 6px; flex-shrink: 0;
   }
   .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 600; letter-spacing: .5px; }
+  .period-label { font-size: 11px; color: #8b949e; font-weight: 500; letter-spacing: 0; margin-left: 6px; }
   .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
@@ -231,7 +232,7 @@
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2>📋 主要线体 · 产量对比</h2>
+      <h2>📋 主要线体 · 产量对比 <span id="periodLabel" class="period-label"></span></h2>
       <button class="btn" id="otherBtn">其他线体 (0)</button>
     </div>
     <div class="table-scroll">
@@ -627,6 +628,14 @@ async function refresh() {
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
     document.getElementById("updateTime").textContent = state.updatedAt || new Date().toLocaleTimeString("zh-CN", { hour12: false });
+    // ★ 标题时段: 班次开始 8:00 → 当前时间
+    const pl = document.getElementById("periodLabel");
+    if (pl) {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, "0");
+      const mm = String(now.getMinutes()).padStart(2, "0");
+      pl.textContent = "8:00 - " + hh + ":" + mm;
+    }
     const mode = document.getElementById("dataMode");
     mode.textContent = d.mode === "live" ? "🔴 实时抓包数据" : "示例数据";
     mode.style.color = d.mode === "live" ? "#3fb950" : "#d29922";
