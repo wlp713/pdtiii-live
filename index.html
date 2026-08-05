@@ -249,7 +249,7 @@
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
-        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><span class="hint" style="max-width:46%">UPPH = 产量÷人数÷已工作小时(扣午休)；达成率 = UPPH÷(日目标÷人数÷8h)×100%</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
+        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><span class="hint" style="max-width:46%">UPPH = 产量÷人数÷已工作小时(扣午休)；达成率 = UPPH÷(日目标÷人数÷7.67h)×100%</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
         <canvas id="chartEff"></canvas>
       </div>
     </div>
@@ -287,7 +287,7 @@
       <button class="modal-close" id="headClose">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint" style="margin:0 0 8px">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标 = 日目标 ÷ 人数 ÷ 8小时。每天人数可改，保存后自动生效。</p>
+      <p class="hint" style="margin:0 0 8px">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标 = 日目标 ÷ 人数 ÷ 7.67小时。每天人数可改，保存后自动生效。</p>
       <div class="head-grid" id="headGrid"></div>
       <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave">💾 保存</button></div>
     </div>
@@ -739,11 +739,11 @@ function upphOf(l, now) {
   if (!n || !w) return null;
   return (Number(l.actual) || 0) / n / w;
 }
-// UPPH目标 = 日目标 ÷ 人数 ÷ 8 工作小时
+// UPPH目标 = 日目标 ÷ 人数 ÷ 7.67 标准工作小时
 function upphTargetOf(l) {
   const n = headOf(l.name);
   if (!n) return null;
-  return (Number(l.target) || 0) / n / 8;
+  return (Number(l.target) || 0) / n / 7.67;
 }
 // 达成率% = 当前UPPH / UPPH目标 × 100
 function upphRateOf(l, now) {
@@ -822,7 +822,7 @@ function openHeadModal() {
     lab.className = "hn"; lab.textContent = name;
     // ★ 修复: 用 name 查找对应 line 对象, 不能再引用未定义的 l
     const ln = state.lines.find(x => x.name === name) || {};
-    lab.title = "UPPH目标 = " + fmt(ln.target) + " ÷ 人数 ÷ 8h";
+    lab.title = "UPPH目标 = " + fmt(ln.target) + " ÷ 人数 ÷ 7.67h";
     const inp = document.createElement("input");
     inp.type = "number"; inp.min = "0"; inp.step = "1";
     inp.value = headOf(name) || "";
