@@ -114,6 +114,7 @@
   tr.miss:hover td { background: rgba(248,81,73,.1); }
   tr.stalled-row td { background: rgba(248,81,73,.1); }
   .line-name { font-weight: 600; color: var(--white); white-space: nowrap; }
+  .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
   .hit-name { color: var(--green); }
   .miss-name { color: var(--red); }
   .stall-dot {
@@ -222,14 +223,14 @@
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2>📋 主要线体 · 产量对比</h2>
+      <h2>📋 主要线体 · 产量对比 · 按 UPH 排序</h2>
       <button class="btn" id="otherBtn">其他线体 (0)</button>
     </div>
     <div class="table-scroll">
       <table id="mainTable">
         <thead>
           <tr>
-            <th>线体</th><th>产量 (蓝=实际 · 橙=计划)</th>
+            <th>#</th><th>线体</th><th>产量 (蓝=实际 · 橙=计划)</th>
             <th>Actual</th><th>Plan</th><th>差异</th><th>达成率%</th><th>UPH</th><th>状态</th>
           </tr>
         </thead>
@@ -257,13 +258,14 @@
   <div class="modal">
     <div class="modal-head">
       <h3 id="modalTitle">其他线体</h3>
+      <span class="hint" style="margin-left:10px">按 UPH 从高到低排序</span>
       <button class="modal-close" id="modalClose">✕</button>
     </div>
     <div class="modal-body">
       <table id="otherTable">
         <thead>
           <tr>
-            <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+            <th>#</th><th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
             <th>差异</th><th>达成率%</th><th>状态</th>
           </tr>
         </thead>
@@ -342,17 +344,19 @@ function stHtml(l) {
   return `<span class="st ${stCls}">${stTxt}</span>`;
 }
 function splitLines() {
+  const now = new Date();
   const main = [], other = [];
   state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
-  // ★ 按产出达成率(eff)从高到低排名; 无 eff 数据排最后; 同分按名称
-  const byEff = (a, b) => {
-    const ea = (a.eff === null || a.eff === undefined || isNaN(a.eff)) ? -Infinity : a.eff;
-    const eb = (b.eff === null || b.eff === undefined || isNaN(b.eff)) ? -Infinity : b.eff;
+  // ★ 按 UPH 从高到低排名; UPH 无效排最后; 同分按名称
+  const byUph = (a, b) => {
+    const ua = uphOf(a, now), ub = uphOf(b, now);
+    const ea = (ua === null || ua === undefined || isNaN(ua)) ? -Infinity : ua;
+    const eb = (ub === null || ub === undefined || isNaN(ub)) ? -Infinity : ub;
     if (eb !== ea) return eb - ea;
     return a.name.localeCompare(b.name);
   };
-  main.sort(byEff);
-  other.sort(byEff);
+  main.sort(byUph);
+  other.sort(byUph);
   return { main, other };
 }
 function lineNameCls(l) {
@@ -377,13 +381,14 @@ function renderTable() {
   const maxV = Math.max(1, ...main.map(l => Math.max(l.actual || 0, l.plan || 0)));
   const tb = document.querySelector("#mainTable tbody");
   tb.innerHTML = "";
-  main.forEach(l => {
+  main.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
     if (isStalled(l)) tr.className = "stalled-row";
     else if (miss) tr.className = "miss";
     const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
     tr.innerHTML =
+      `<td class="rank">${idx + 1}</td>` +
       `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
       `<td class="bar-cell">${hbarHtml(l, maxV)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
@@ -396,13 +401,14 @@ function renderTable() {
   });
   const otb = document.querySelector("#otherTable tbody");
   otb.innerHTML = "";
-  other.forEach(l => {
+  other.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
     if (isStalled(l)) tr.className = "stalled-row";
     else if (miss) tr.className = "miss";
     const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
     tr.innerHTML =
+      `<td class="rank">${idx + 1}</td>` +
       `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
       `<td>${fmt(l.target)}</td>` +
       `<td>${fmt(l.plan)}</td>` +
