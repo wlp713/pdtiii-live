@@ -102,7 +102,7 @@
     margin-bottom: 6px; flex-shrink: 0;
   }
   .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 600; letter-spacing: .5px; }
-  .period-label { font-size: 11px; color: #8b949e; font-weight: 500; letter-spacing: 0; margin-left: 6px; }
+  .period-label { font-size: 15px; color: #e6edf3; font-weight: 700; letter-spacing: 0; margin-left: 8px; }
   .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
@@ -111,7 +111,7 @@
     font-size: 11px; position: sticky; top: 0; background: var(--panel); z-index: 1;
   }
   th:first-child, td:first-child { text-align: left; }
-  td { text-align: right; padding: 5px 6px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  td { text-align: right; padding: 9px 6px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
@@ -525,8 +525,9 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
       if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1); }
       if (segH >= 13) {
         ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-        // ★ 段标号 = 该段开始小时(如 8-9 段标 8); 首条快照作基准时从第二条起分段
-        ctx.fillText(String(s.lab != null ? s.lab : ""), cx + bw / 2, yAcc + segH / 2 + 3);
+        // ★ 段标号 = 第几小时(段开始小时-8): 12-13点段=4, 13-14点段=5, 14-15点段=6...; 上午(<1)不显示
+        const hNo = s.lab != null ? s.lab - 8 : -1;
+        ctx.fillText(hNo >= 1 ? String(hNo) : "", cx + bw / 2, yAcc + segH / 2 + 3);
       }
     });
   }
