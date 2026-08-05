@@ -344,12 +344,15 @@ function stHtml(l) {
 function splitLines() {
   const main = [], other = [];
   state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
-  main.sort((a, b) => {
-    const ia = MAIN_LINES.findIndex(x => normName(x) === normName(a.name));
-    const ib = MAIN_LINES.findIndex(x => normName(x) === normName(b.name));
-    return ia - ib;
-  });
-  other.sort((a, b) => a.name.localeCompare(b.name));
+  // ★ 按产出达成率(eff)从高到低排名; 无 eff 数据排最后; 同分按名称
+  const byEff = (a, b) => {
+    const ea = (a.eff === null || a.eff === undefined || isNaN(a.eff)) ? -Infinity : a.eff;
+    const eb = (b.eff === null || b.eff === undefined || isNaN(b.eff)) ? -Infinity : b.eff;
+    if (eb !== ea) return eb - ea;
+    return a.name.localeCompare(b.name);
+  };
+  main.sort(byEff);
+  other.sort(byEff);
   return { main, other };
 }
 function lineNameCls(l) {
