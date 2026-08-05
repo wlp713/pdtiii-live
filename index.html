@@ -403,9 +403,9 @@ function renderKPIs(main) {
   document.getElementById("kpiMotor").textContent = totalMotor ? fmt(totalMotor) : "-";
 }
 
-// ---- 停滞检测 → 横幅 + 系统通知 ----
+// ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
-  const stalled = state.lines.filter(isStalled);
+  const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)));
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
