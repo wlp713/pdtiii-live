@@ -751,6 +751,17 @@ function setHead(name, v) {
 }
 // 已工作小时(净工时): 8:00 上班, 12:00-13:00 午休(1h), 10:00-10:10 上午休息(10min), 15:05-15:15 下午休息(10min)
 //   ⚠️ 休息时间全部排除 → 与 UPPH 目标分母 7.67h(=8h-午休1h-休息20min) 口径一致
+// ★ 班次判断 (按班次开始小时查名; 当前看板数据从 8:00 开始累计 → 早班; 若以后支持多班次数据, 班次开始时间变化会自动跟随)
+const SHIFT_RANGES = [
+  { s: 8, e: 16, name: "早班" },
+  { s: 16, e: 24, name: "中班" },
+  { s: 0, e: 8, name: "夜班" }
+];
+function shiftNameOfHour(h) {
+  for (const sh of SHIFT_RANGES) if (h >= sh.s && h < sh.e) return sh.name;
+  return "";
+}
+
 function workedHours(now) {
   const mins = now.getHours() * 60 + now.getMinutes();
   const start = 8 * 60, lunchS = 12 * 60, lunchE = 13 * 60, end = 17 * 60;
@@ -922,13 +933,13 @@ async function refresh() {
       else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> 数据延迟 " + Math.round(age / 1000) + "s"; }
       else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 数据断线 " + (ts ? Math.round(age / 60000) + "min" : "无数据"); }
     }
-    // ★ 标题时段: 班次开始 8:00 → 当前时间
+    // ★ 标题: 日期 + 班次 + 时段 (数据班次 8:00 开始 → 早班)
     const pl = document.getElementById("periodLabel");
     if (pl) {
       const now = new Date();
       const hh = String(now.getHours()).padStart(2, "0");
       const mm = String(now.getMinutes()).padStart(2, "0");
-      pl.textContent = "8:00 - " + hh + ":" + mm;
+      pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftNameOfHour(8) + " 8:00 - " + hh + ":" + mm;
     }
     renderAll();
   } catch (e) {
