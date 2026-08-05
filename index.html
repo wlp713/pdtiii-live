@@ -470,6 +470,13 @@ function segsOf(name, curActual) {
   //   丢弃启动前的残留段(第一条段不完整), 从第二条起正常差值分段
   if (snaps[0].h > 8) {
     const segs = [];
+    // ★ 启动前累计段(灰色底衬): 首条快照之前的产量无法按小时细分(今天上午),
+    //   画成浅灰底衬垫底, 不写编号 → 柱子始终是满的, 下午各小时段叠在上面
+    segs.push({
+      h: snaps[0].h, lab: null, live: false, base: true,
+      actual: snaps[0].actual || 0,
+      plan: snaps[0].plan || 0
+    });
     for (let i = 2; i < snaps.length; i++) {
       const prev = snaps[i - 1], s = snaps[i];
       // ★ 今天临时: 上午段(含午休)全部空着, 只显示 13 点起的下午段
@@ -522,23 +529,26 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
     ctx.fillStyle = color;
     ctx.fillRect(cx, base, bw, totalH);
   } else {
-    // ★ 每段高度 = 该小时产量 / 全天累计 × 柱高 → 各段按真实占比堆叠
-    //   (不用段总和做分母: 单段时不会占满整柱, 当前小时累积段只是柱顶的一小截)
+    // ★ 段高 = 该段产量 / 所有段产量总和 × 柱高 → 所有时段累计铺满整根柱
+    //   灰底段=启动前累计(今天上午), 下午各小时段叠在上面, 段间画分割线
+    const sumAll = segs.reduce((s, x) => s + (x.actual || 0), 0) || total || 1;
     let yAcc = padT + ch;
-    const denom = (total || 1);
     segs.forEach((s, idx) => {
-      const segH = Math.max(0, totalH * ((s.actual || 0) / denom));
+      const segH = Math.max(0, totalH * ((s.actual || 0) / sumAll));
       yAcc -= segH;
       if (segH < 0.5) return;
-      ctx.fillStyle = color;
+      // 底衬段(启动前累计)画浅灰, 正常段画主题色
+      ctx.fillStyle = s.base ? "rgba(88,166,255,0.13)" : color;
       ctx.fillRect(cx, yAcc, bw, segH);
-      if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1); }
-      if (segH >= 11) {
+      // ★ 分割线: 段与段之间(灰底与蓝段之间、蓝段与蓝段之间) 1.5px 深色线
+      if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1.5); }
+      // ★ 段标号 = 第几小时(8-9=1...11-12=4, 午休12-13无, 13-14=5...16-17=8)
+      //   灰底段(启动前累计/上午空着)不写编号; 累积中段(live)无论多薄都强制显示
+      if (!s.base && (segH >= 4 || s.live)) {
         ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-        // ★ 段标号 = 第几小时(8-9=1...11-12=4, 午休12-13无, 13-14=5...16-17=8)
         const hNo = hourNo(s.lab);
         const lab = hNo != null ? String(hNo) + (s.live ? "~" : "") : "";
-        ctx.fillText(lab, cx + bw / 2, yAcc + segH / 2 + 3);
+        ctx.fillText(lab, cx + bw / 2, yAcc + Math.max(segH / 2, 5) + 3);
       }
     });
   }
@@ -575,7 +585,8 @@ function drawBar(main) {
     const cx = padL + slot * i + slot / 2;
     const segs = segsOf(l.name, l.actual);
     drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
-    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan, lab: s.lab })), l.plan, maxV, ch, padT, "#d29922");
+    // ★ 计划柱: 保留 base/live 标记(灰底段也按灰色画, 累积段标~)
+    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan, lab: s.lab, live: s.live, base: s.base })), l.plan, maxV, ch, padT, "#d29922");
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(shortName(l.name), cx, H - 10);
   });
