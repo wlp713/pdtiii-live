@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Production III 实时看板</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d333b;
+    --green: #3fb950;
+    --green-dim: #2ea043;
+    --orange: #d29922;
+    --red: #f85149;
+    --gray: #8b949e;
+    --white: #e6edf3;
+    --blue: #58a6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--white);
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    padding: 16px 20px;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
+  }
+  .header h1 { font-size: 22px; letter-spacing: 1px; }
+  .header h1 span { color: var(--blue); }
+  .update-box {
+    font-size: 13px; color: var(--gray);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .live-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  .live-dot.stale { background: var(--red); animation: none; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
+    70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+  }
+  .addr-bar {
+    font-size: 12px; color: var(--blue); background: rgba(88,166,255,.08);
+    border: 1px solid rgba(88,166,255,.25); border-radius: 6px;
+    padding: 6px 10px; margin-bottom: 12px;
+  }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px;
+  }
+  .kpi .label { font-size: 12px; color: var(--gray); }
+  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .kpi .sub { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .kpi .value.green { color: var(--green); }
+  .kpi .value.orange { color: var(--orange); }
+  .kpi .value.red { color: var(--red); }
+  .main-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+  }
+  .panel h2 { font-size: 14px; color: var(--gray); font-weight: 600; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: right; padding: 6px 8px; color: var(--gray);
+    font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; padding: 6px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  tr:hover td { background: var(--panel2); }
+  .line-name { font-weight: 600; color: var(--white); }
+  .st { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .st.run { background: rgba(63,185,80,.15); color: var(--green); }
+  .st.off { background: rgba(139,148,158,.15); color: var(--gray); }
+  .st.err { background: rgba(248,81,73,.15); color: var(--red); }
+  .eff-ok { color: var(--green); }
+  .eff-warn { color: var(--orange); }
+  .eff-bad { color: var(--red); }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .zero { color: var(--gray); }
+  canvas { width: 100%; display: block; }
+  .chart-wrap { margin-bottom: 14px; }
+  .chart-wrap:last-child { margin-bottom: 0; }
+  .note {
+    margin-top: 14px; font-size: 12px; color: var(--gray);
+    text-align: center;
+  }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
+  .legend span::before {
+    content: ""; display: inline-block; width: 10px; height: 10px;
+    border-radius: 2px; margin-right: 5px; vertical-align: -1px;
+  }
+  .legend .lg-actual::before { background: var(--blue); }
+  .legend .lg-target::before { background: var(--orange); }
+  .legend .lg-eff::before { background: var(--green); }
+  details.other {
+    margin-top: 12px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel);
+  }
+  details.other summary {
+    cursor: pointer; padding: 10px 14px; font-size: 13px; color: var(--gray);
+    user-select: none;
+  }
+  details.other summary:hover { color: var(--white); }
+  details.other[open] summary { border-bottom: 1px solid var(--border); }
+  details.other .inner { padding: 4px 14px 12px; }
+  details.other table { font-size: 12px; }
+  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🦞 Production III <span>实时生产看板</span></h1>
+  <div class="update-box">
+    <span class="live-dot" id="liveDot"></span>
+    <span id="updateTime">--:--:--</span>
+    <span id="dataMode">示例数据</span>
+  </div>
+</div>
+
+<div class="addr-bar" id="addrBar">局域网访问地址: 同网段设备浏览器打开 http://&lt;本机IP&gt;:8080</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">运行线体(主要)</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="label">平均效率</div><div class="value" id="kpiEff">-</div><div class="sub">主要线体加权</div></div>
+  <div class="kpi"><div class="label">达成线体</div><div class="value" id="kpiHit">-</div><div class="sub">Eff ≥ 100%</div></div>
+  <div class="kpi"><div class="label">总累计产量</div><div class="value" id="kpiCum">-</div><div class="sub">主要线实时累计</div></div>
+</div>
+
+<div class="main-grid">
+  <div class="panel">
+    <h2>📋 主要线体实时数据</h2>
+    <table id="mainTable">
+      <thead>
+        <tr>
+          <th>线体</th><th>开始</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+          <th>C-B</th><th>累计</th><th>效率%</th><th>状态</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <details class="other">
+      <summary id="otherSummary">其他线体 (展开查看)</summary>
+      <div class="inner">
+        <table id="otherTable">
+          <thead>
+            <tr>
+              <th>线体</th><th>开始</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+              <th>C-B</th><th>效率%</th><th>状态</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+  <div class="panel">
+    <h2>📊 图表 (主要线体)</h2>
+    <div class="chart-wrap">
+      <div class="legend"><span class="lg-actual">Actual</span><span class="lg-target">目标</span></div>
+      <canvas id="chartBar" height="150"></canvas>
+    </div>
+    <div class="chart-wrap">
+      <div class="legend"><span class="lg-eff">效率%</span></div>
+      <canvas id="chartEff" height="130"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="note" id="note">数据来源: Production III 抓包解析 · 被动监听 · 不触碰数据库</div>
+
+<script>
+"use strict";
+// 数据源自动切换: 本机/局域网打开 -> 读本地 data.json; 线上(GitHub Pages https)打开 -> 读 Firebase 云端
+const IS_LOCAL = location.protocol === "file:" ||
+  location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const DATA_URL = IS_LOCAL
+  ? "data.json"
+  : "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
+
+// ⚙️ 主要线体配置（按此顺序显示）
+const MAIN_LINES = [
+  "Final A line", "Final B Line", "Final C line", "Final D line",
+  "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
+];
+function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
+const MAIN_SET = new Set(MAIN_LINES.map(normName));
+
+const state = { lines: [], updatedAt: null, history: {} };
+
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return Number(n).toLocaleString("en-US");
+}
+function fmt1(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return Number(n).toFixed(1);
+}
+
+function effClass(e) {
+  if (e === null || e === undefined || isNaN(e)) return "";
+  if (e >= 100) return "eff-ok";
+  if (e >= 80) return "eff-warn";
+  return "eff-bad";
+}
+function signClass(v) {
+  if (v === null || v === undefined || isNaN(v)) return "zero";
+  if (v > 0) return "pos";
+  if (v < 0) return "neg";
+  return "zero";
+}
+function stHtml(l) {
+  const stCls = l.status === "RUNNING" ? "run" : (l.status === "OFF" || l.status === "-OFF" ? "off" : "err");
+  const stTxt = l.status === "RUNNING" ? "运行" : (l.status === "OFF" || l.status === "-OFF" ? "停机" : (l.status || "未知"));
+  return `<span class="st ${stCls}">${stTxt}</span>`;
+}
+function splitLines() {
+  const main = [], other = [];
+  state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
+  main.sort((a, b) => {
+    const ia = MAIN_LINES.findIndex(x => normName(x) === normName(a.name));
+    const ib = MAIN_LINES.findIndex(x => normName(x) === normName(b.name));
+    return ia - ib;
+  });
+  other.sort((a, b) => a.name.localeCompare(b.name));
+  return { main, other };
+}
+
+function renderTable() {
+  const { main, other } = splitLines();
+  // 主表
+  const tb = document.querySelector("#mainTable tbody");
+  tb.innerHTML = "";
+  main.forEach(l => {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td class="line-name">${l.name.trim()}</td>` +
+      `<td>${l.time || "-"}</td>` +
+      `<td>${fmt(l.target)}</td>` +
+      `<td>${fmt(l.plan)}</td>` +
+      `<td>${fmt(l.actual)}</td>` +
+      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+      `<td>${fmt(l.cum)}</td>` +
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td>${stHtml(l)}</td>`;
+    tb.appendChild(tr);
+  });
+  // 其他表
+  const otb = document.querySelector("#otherTable tbody");
+  otb.innerHTML = "";
+  other.forEach(l => {
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td class="line-name">${l.name.trim()}</td>` +
+      `<td>${l.time || "-"}</td>` +
+      `<td>${fmt(l.target)}</td>` +
+      `<td>${fmt(l.plan)}</td>` +
+      `<td>${fmt(l.actual)}</td>` +
+      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td>${stHtml(l)}</td>`;
+    otb.appendChild(tr);
+  });
+  document.getElementById("otherSummary").textContent = `其他线体 (${other.length}) — 点击展开`;
+  return { main, other };
+}
+
+function renderKPIs(main) {
+  const running = main.filter(l => l.status === "RUNNING" || l.status === "运行");
+  document.getElementById("kpiRun").textContent = running.length;
+  document.getElementById("kpiRunSub").textContent = `主要 ${main.length} 条 · 全部 ${state.lines.length} 条`;
+  const withEff = running.filter(l => l.eff !== null && !isNaN(l.eff));
+  const avgEff = withEff.length ? withEff.reduce((s, l) => s + l.eff, 0) / withEff.length : 0;
+  const el = document.getElementById("kpiEff");
+  el.textContent = avgEff ? avgEff.toFixed(1) + "%" : "-";
+  el.className = "value " + (avgEff >= 100 ? "green" : avgEff >= 80 ? "orange" : avgEff ? "red" : "");
+  const hit = running.filter(l => l.eff >= 100).length;
+  const eh = document.getElementById("kpiHit");
+  eh.textContent = hit;
+  eh.className = "value " + (hit > 0 ? "green" : "orange");
+  const totalCum = main.reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  document.getElementById("kpiCum").textContent = totalCum ? fmt(totalCum) : "-";
+}
+
+function drawBar(main) {
+  const cv = document.getElementById("chartBar");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 150;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const lines = main;
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
+  const padL = 42, padB = 26, padT = 8;
+  const cw = W - padL - 10, ch = H - padT - padB;
+  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.target || 0)));
+  const step = Math.ceil(maxV / 4 / 10) * 10;
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 5, y); ctx.stroke();
+    ctx.fillText(fmt(step * i), 4, y + 3);
+  }
+  const n = lines.length, bw = Math.min(26, (cw / n) * 0.28);
+  lines.forEach((l, i) => {
+    const cx = padL + (cw / n) * i + (cw / n) / 2;
+    const ha = (l.actual || 0) / maxV * ch, ht = (l.target || 0) / maxV * ch;
+    ctx.fillStyle = "#58a6ff"; ctx.fillRect(cx - bw, padT + ch - ha, bw, ha);
+    ctx.fillStyle = "#d29922"; ctx.fillRect(cx, padT + ch - ht, bw, ht);
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+    ctx.save(); ctx.translate(cx, H - 12); ctx.rotate(-0.5);
+    ctx.fillText(l.name.replace(/ line$/i, "").replace("-Series", ""), 0, 0); ctx.restore();
+  });
+}
+
+function drawEff(main) {
+  const cv = document.getElementById("chartEff");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 130;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const lines = main;
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
+  const padL = 38, padB = 26, padT = 8;
+  const cw = W - padL - 10, ch = H - padT - padB;
+  const maxV = 120;
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+  [0, 50, 100, 120].forEach(v => {
+    const y = padT + ch - (ch * v / maxV);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 5, y); ctx.stroke();
+    ctx.fillText(v + "%", 4, y + 3);
+  });
+  const n = lines.length, bw = Math.min(30, (cw / n) * 0.4);
+  lines.forEach((l, i) => {
+    const cx = padL + (cw / n) * i + (cw / n) / 2;
+    const e = l.eff || 0;
+    const h = Math.min(ch, ch * e / maxV);
+    ctx.fillStyle = e >= 100 ? "#3fb950" : e >= 80 ? "#d29922" : "#f85149";
+    ctx.fillRect(cx - bw / 2, padT + ch - h, bw, h);
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+    ctx.save(); ctx.translate(cx, H - 12); ctx.rotate(-0.5);
+    ctx.fillText(l.name.replace(/ line$/i, "").replace("-Series", ""), 0, 0); ctx.restore();
+  });
+}
+
+function renderAll() {
+  const { main } = renderTable();
+  renderKPIs(main);
+  drawBar(main);
+  drawEff(main);
+}
+
+async function refresh() {
+  try {
+    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    state.lines = d.lines || [];
+    state.updatedAt = d.updatedAt || null;
+    document.getElementById("updateTime").textContent = state.updatedAt || new Date().toLocaleTimeString("zh-CN", { hour12: false });
+    const mode = document.getElementById("dataMode");
+    mode.textContent = d.mode === "live" ? "🔴 实时抓包数据" : "示例数据";
+    mode.style.color = d.mode === "live" ? "#3fb950" : "#d29922";
+    document.getElementById("liveDot").classList.remove("stale");
+    renderAll();
+  } catch (e) {
+    document.getElementById("liveDot").classList.add("stale");
+    document.getElementById("updateTime").textContent = "数据源连接失败";
+    document.getElementById("note").textContent = "读取 data.json 失败: " + e.message + " — 请确认解析程序已生成数据文件";
+  }
+}
+
+// 显示当前访问地址
+(function initAddr() {
+  try {
+    const el = document.getElementById("addrBar");
+    const host = location.hostname;
+    if (host && host !== "localhost" && host !== "127.0.0.1") {
+      el.textContent = "🌐 当前访问: http://" + location.host + "  — 同网段设备可直接打开此地址";
+    }
+  } catch (e) { /* ignore */ }
+})();
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>
