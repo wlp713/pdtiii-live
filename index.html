@@ -245,7 +245,7 @@
     <div class="panel-head"><h2>📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><label class="seg-toggle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">段内数字=该时段产量/目标 · 灰段=上午累计</span></div>
+        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><label class="seg-toggle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span></div>
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
@@ -589,68 +589,76 @@ function planSegs(target, nowH) {
   }
   return segs;
 }
-// ★ 统一绘制: 同一份 segs(实际柱/目标柱共用, 段边界完全一致), key 决定画实际值还是目标值
-//   段内写数值: 实际柱写该时段实际产量, 目标柱写该时段目标 → 逐段对比差异
-//   base 段(上午累计)画灰底 #30363d + "上午"标签
+// ★ v5.15 统一绘制: 两柱共用同一份 segs, 段骨架按目标值(plan)定位 → 段边界完全平行
+//   实际柱(key='actual'): 每段 = 蓝色(实际达成, 从段底向上) + 灰色(未达成缺口)
+//   目标柱(key='plan'): 每段 = 橙色(目标达成, 画满整段)
+//   ★ 两柱段边界线 y 位置相同(都由 plan 累计决定) → 完全平行, 逐段对比 = 蓝 vs 橙 + 灰缺口
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
+  // ★ 柱顶 = plan 累计高度(两柱同 y, 数字统一标在柱顶上方)
+  const planTotalPix = segs.reduce((s, x) => s + (x.plan || 0), 0) / maxV * ch;
+  const topY = padT + ch - planTotalPix;
   const totalH = Math.max(0, (total || 0) / maxV * ch);
-  const base = padT + ch - totalH;
   if (!segs.length) {
-    // ★ 无分段数据: 画纯色累计柱
+    // 无分段数据: 纯色累计柱
+    const base = padT + ch - totalH;
     ctx.fillStyle = color;
     ctx.fillRect(cx, base, bw, totalH);
   } else {
     let yAcc = padT + ch;
     segs.forEach((s, idx) => {
-      const v = key === "plan" ? (s.plan || 0) : (s.actual || 0);
-      const rawH = Math.max(0, (v / maxV) * ch);
-      // ★ 薄段最小可见高度 10px: 产量少的时段也必须能看到分段和数值
-      const segH = rawH > 0 && rawH < 10 ? 10 : rawH;
-      yAcc -= segH;
-      if (segH < 0.5) return;
-      // ★ base 段(上午累计)灰色底衬, 其余用柱色
-      ctx.fillStyle = s.base ? "#30363d" : color;
-      ctx.fillRect(cx, yAcc, bw, segH);
-      // ★ 分割线: 每个时段之间都画深色横线(与背景同色系), 柱顶也画一条收尾线
+      const perH = Math.max(0, ((s.plan || 0) / maxV) * ch); // 段高 = 该时段目标(统一骨架)
+      yAcc -= perH;
+      if (perH < 0.5) return;
+      // ★ 灰色底 = 未达成缺口(目标 - 实际), 整段先铺灰
+      ctx.fillStyle = "#30363d";
+      ctx.fillRect(cx, yAcc, bw, perH);
+      // ★ 实际值(蓝)从段底往上画; 目标值(橙)画满整段
+      const v = key === "plan" ? (s.plan || 0) : Math.min(s.actual || 0, s.plan || 0);
+      const vPix = Math.max(0, (v / maxV) * ch);
+      if (vPix > 0.5) {
+        ctx.fillStyle = color;
+        ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
+      }
+      // ★ 分割线: 段边界(plan 定位) → 两柱完全平行; 柱顶也画收尾线
       ctx.fillStyle = "#0d1117";
       ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
       if (idx === segs.length - 1) {
         ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
       }
-      // ★ 段内写数据(用户要求: 编号之外必须写该时段实际达成/目标数值)
+      // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       ctx.textAlign = "center";
       const valTxt = String(Math.round(v));
+      const hNo = hourNo(s.lab);
       if (s.base) {
-        // 上午累计段: 灰底 + "上午"标签 + 累计值(段高够时)
-        if (segH >= 14) {
+        // 上午累计段: 灰底 + "上午"标签 + 数值
+        if (perH >= 14) {
           ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif";
-          ctx.fillText("上午", cx + bw / 2, yAcc + segH / 2 - 2);
+          ctx.fillText("上午", cx + bw / 2, yAcc + perH / 2 - 2);
           ctx.fillStyle = "#e6edf3"; ctx.font = "bold 8px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 8);
-        } else if (segH >= 8) {
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+        } else if (perH >= 8) {
           ctx.fillStyle = "#8b949e"; ctx.font = "bold 8px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 3);
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
         }
       } else {
-        const hNo = hourNo(s.lab);
-        if (segH >= 16 && hNo != null) {
+        if (perH >= 16 && hNo != null) {
           // 段高足够: 两行 — 编号(小) + 数值(大)
           ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif";
-          ctx.fillText(String(hNo), cx + bw / 2, yAcc + segH / 2 - 1);
+          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#ffffff"; ctx.font = "bold 8.5px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 9);
-        } else if (segH >= 8) {
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 9);
+        } else if (perH >= 8) {
           // 段高一般: 只写数值
           ctx.fillStyle = "#ffffff"; ctx.font = "bold 8.5px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 3);
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
         }
       }
     });
   }
   if (totalH > 0) {
+    // ★ 柱顶数字统一标在 plan 累计高度上方(两柱同 y), 实际柱写实际累计, 目标柱写目标累计
     ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    // ★ total 数值画在柱顶上方 14px, 避免与最顶薄段的标签重叠
-    ctx.fillText(fmt(total), cx + bw / 2, base - 14);
+    ctx.fillText(fmt(total), cx + bw / 2, topY - 14);
   }
 }
 
@@ -677,9 +685,10 @@ function drawBar(main) {
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
   const padL = 46, padB = 34, padT = 26;
   const cw = W - padL - 12, ch = H - padT - padB;
-  // ★ maxV 基于实际累计与目标累计取最大(目标=plan÷已过时段数×已过时段数=plan, 与表格一致)
+  // ★ maxV 基于各线 plan 累计(目标柱骨架)取最大 — 两柱共用同一骨架, 柱顶=plan 累计, 完全平行
+  //   (若某线 actual 超额超过 plan, 段内蓝色画满后不再延伸, 柱顶数字仍显示真实实际值)
   const nowH = new Date().getHours();
-  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  const maxV = Math.max(1, ...lines.map(l => Math.max(l.plan || 0, l.actual || 0)));
   const step = Math.ceil(maxV / 4 / 10) * 10;
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
   for (let i = 0; i <= 4; i++) {
