@@ -232,7 +232,7 @@
     <div class="panel-head"><h2>📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><span class="hint">分段数字=小时序号</span></div>
+        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 固定目标</span><span class="hint">横线=每小时分段 · 目标=日目标÷8小时</span></div>
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
@@ -521,35 +521,35 @@ function segsOf(name, curActual) {
   }
   return segs;
 }
+// ---- 目标柱分段: 固定小时目标 = 日目标 ÷ 8 个工作小时, 每段等高不变 ----
+function planSegs(target, nowH) {
+  const perH = (target || 0) / 8; // 8 个工作小时(8-9,9-10,10-11,11-12,午休,13-14,14-15,15-16,16-17)
+  const segs = [];
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue; // 午休不计数
+    segs.push({ actual: perH, live: false });
+  }
+  return segs;
+}
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
   const totalH = Math.max(0, (total || 0) / maxV * ch);
   const base = padT + ch - totalH;
   if (!segs.length) {
-    // ★ 无分段数据(还没有整点快照/无历史): 画纯色累计柱
+    // ★ 无分段数据: 画纯色累计柱
     ctx.fillStyle = color;
     ctx.fillRect(cx, base, bw, totalH);
   } else {
-    // ★ 段高 = 该段产量 / 所有段产量总和 × 柱高 → 所有时段累计铺满整根柱
-    //   灰底段=启动前累计(今天上午), 下午各小时段叠在上面, 段间画分割线
-    const sumAll = segs.reduce((s, x) => s + (x.actual || 0), 0) || total || 1;
+    // ★ 段高 = 该段产量 / maxV × 柱高(统一比例), 从底部往上堆 → 所有段累计铺满
+    //   全部段用统一颜色(上午完成段不用特殊色), 段间只画横线分割
     let yAcc = padT + ch;
     segs.forEach((s, idx) => {
-      const segH = Math.max(0, totalH * ((s.actual || 0) / sumAll));
+      const segH = Math.max(0, ((s.actual || 0) / maxV) * ch);
       yAcc -= segH;
       if (segH < 0.5) return;
-      // 底衬段(启动前累计)画浅灰, 正常段画主题色
-      ctx.fillStyle = s.base ? "rgba(88,166,255,0.13)" : color;
+      ctx.fillStyle = color; // ★ 统一颜色, 不再区分底衬
       ctx.fillRect(cx, yAcc, bw, segH);
-      // ★ 分割线: 段与段之间(灰底与蓝段之间、蓝段与蓝段之间) 1.5px 深色线
+      // ★ 分割线: 段与段之间 1.5px 深色横线
       if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1.5); }
-      // ★ 段标号 = 第几小时(8-9=1...11-12=4, 午休12-13无, 13-14=5...16-17=8)
-      //   灰底段(启动前累计/上午空着)不写编号; 累积中段(live)无论多薄都强制显示
-      if (!s.base && (segH >= 4 || s.live)) {
-        ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-        const hNo = hourNo(s.lab);
-        const lab = hNo != null ? String(hNo) + (s.live ? "~" : "") : "";
-        ctx.fillText(lab, cx + bw / 2, yAcc + Math.max(segH / 2, 5) + 3);
-      }
     });
   }
   if (totalH > 0) {
@@ -571,7 +571,12 @@ function drawBar(main) {
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
   const padL = 46, padB = 34, padT = 26;
   const cw = W - padL - 12, ch = H - padT - padB;
-  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  // ★ maxV 基于固定目标累计(到当前小时的日目标÷8段数), 不用实时 plan(实时 plan 会变)
+  const nowH = new Date().getHours();
+  const maxV = Math.max(1, ...lines.map(l => {
+    const pc = planSegs(l.target, nowH).reduce((s, x) => s + (x.actual || 0), 0);
+    return Math.max(l.actual || 0, pc);
+  }));
   const step = Math.ceil(maxV / 4 / 10) * 10;
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
   for (let i = 0; i <= 4; i++) {
@@ -583,10 +588,13 @@ function drawBar(main) {
   const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
+    // ★ 实际柱: 各小时实际产量堆叠(含上午累计段, 统一蓝色, 横线分割)
     const segs = segsOf(l.name, l.actual);
     drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
-    // ★ 计划柱: 保留 base/live 标记(灰底段也按灰色画, 累积段标~)
-    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan, lab: s.lab, live: s.live, base: s.base })), l.plan, maxV, ch, padT, "#d29922");
+    // ★ 计划柱: 固定小时目标 = 日目标÷8, 每段等高, 横线分割; 柱顶 = 到当前小时的累计目标
+    const psegs = planSegs(l.target, nowH);
+    const planCum = psegs.reduce((s, x) => s + (x.actual || 0), 0);
+    drawStacked(ctx, cx + 1.5, bw, psegs, planCum, maxV, ch, padT, "#d29922");
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(shortName(l.name), cx, H - 10);
   });
