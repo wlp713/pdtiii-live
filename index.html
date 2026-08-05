@@ -368,6 +368,7 @@ function hbarHtml(l, maxV) {
 }
 
 function renderTable() {
+  const now = new Date(); // ★ v5.17.2 修复: uphTxt(l, now) 需要 now — 之前未定义导致渲染抛错, 误报"连接失败"
   const { main, other } = splitLines();
   // 全表最大产量用于条宽比例
   const maxV = Math.max(1, ...main.map(l => Math.max(l.actual || 0, l.plan || 0)));
