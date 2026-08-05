@@ -476,9 +476,21 @@ function initNotif() {
 function segsOf(name) {
   const snaps = (state.hourly || {})[name] || [];
   if (!snaps.length) return [];
-  // ★ 方案B(2026-08-05): 首条快照 h>8 说明当天不是从班次开始记录(如今天 11:47 才上线)
-  //   → 返回空数组, 前端显示"累计至今"单柱, 不展示误导性的不完整小时段
-  if (snaps[0].h > 8) return [];
+  // ★ 当天中途启动(首条快照 h>8, 如今天 h=11 才上线): 首条快照作基准,
+  //   丢弃启动前的残留段(第一条段不完整, 如 11:47-12:00 仅13分钟),
+  //   从第二条起正常差值分段 → 13:00 起每小时真实产出段
+  if (snaps[0].h > 8) {
+    const segs = [];
+    for (let i = 2; i < snaps.length; i++) {
+      const prev = snaps[i - 1], s = snaps[i];
+      segs.push({
+        h: s.h, lab: prev.h, // lab = 该段开始小时
+        actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
+        plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
+      });
+    }
+    return segs;
+  }
   // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
   let prevA = snaps[0].actual || 0, prevP = snaps[0].plan || 0, prevH = snaps[0].h;
   const segs = [];
@@ -496,8 +508,8 @@ function segsOf(name) {
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
   const totalH = Math.max(0, (total || 0) / maxV * ch);
   const base = padT + ch - totalH;
-  if (!segs.length || segs.length === 1) {
-    // ★ 只有一段时画纯色柱(不画"第1小时"序号, 避免误解)
+  if (!segs.length) {
+    // ★ 无分段数据(还没有整点快照/无历史): 画纯色累计柱
     ctx.fillStyle = color;
     ctx.fillRect(cx, base, bw, totalH);
   } else {
