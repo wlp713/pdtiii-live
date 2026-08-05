@@ -11,7 +11,6 @@
     --panel2: #1c2330;
     --border: #2d333b;
     --green: #3fb950;
-    --green-dim: #2ea043;
     --orange: #d29922;
     --red: #f85149;
     --gray: #8b949e;
@@ -19,34 +18,36 @@
     --blue: #58a6ff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-    padding: 18px 22px;
+    padding: 12px 18px;
+    display: flex; flex-direction: column;
     min-height: 100vh;
   }
   .header {
     display: flex; justify-content: space-between; align-items: center;
-    flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 10px; flex-shrink: 0;
   }
-  .header .title-wrap { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .header .title-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
   .header h1 {
-    font-size: 24px; letter-spacing: 2px; font-weight: 700;
+    font-size: 22px; letter-spacing: 2px; font-weight: 700;
     background: linear-gradient(90deg, #e6edf3, #58a6ff);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .header .subtitle { font-size: 12px; color: var(--gray); }
+  .header .subtitle { font-size: 11px; color: var(--gray); }
   .update-box {
-    font-size: 13px; color: var(--gray);
-    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--gray);
+    display: flex; align-items: center; gap: 8px;
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 20px; padding: 6px 14px;
+    border-radius: 18px; padding: 5px 12px;
   }
   .live-dot {
-    width: 10px; height: 10px; border-radius: 50%;
+    width: 9px; height: 9px; border-radius: 50%;
     background: var(--green); display: inline-block;
     animation: pulse 2s infinite;
   }
@@ -57,81 +58,116 @@
     100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
   }
   .addr-bar {
-    font-size: 12px; color: var(--blue); background: rgba(88,166,255,.08);
-    border: 1px solid rgba(88,166,255,.25); border-radius: 8px;
-    padding: 7px 12px; margin-bottom: 14px;
+    font-size: 11px; color: var(--blue); background: rgba(88,166,255,.08);
+    border: 1px solid rgba(88,166,255,.25); border-radius: 6px;
+    padding: 5px 10px; margin-bottom: 10px; flex-shrink: 0;
   }
-  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 10px; flex-shrink: 0; }
   .kpi {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 16px;
+    border-radius: 10px; padding: 9px 14px;
     box-shadow: 0 4px 14px rgba(0,0,0,.25);
     transition: transform .15s, border-color .15s;
+    min-width: 0;
   }
   .kpi:hover { transform: translateY(-2px); border-color: #3d444d; }
-  .kpi .label { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 6px; }
-  .kpi .value { font-size: 28px; font-weight: 700; margin-top: 4px; letter-spacing: .5px; }
-  .kpi .sub { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .kpi .label { font-size: 11px; color: var(--gray); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .kpi .value { font-size: 24px; font-weight: 700; margin-top: 2px; letter-spacing: .5px; }
+  .kpi .sub { font-size: 11px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpi .value.green { color: var(--green); }
   .kpi .value.orange { color: var(--orange); }
   .kpi .value.red { color: var(--red); }
-  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .kpi .value.blue { color: var(--blue); }
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    flex: 1; min-height: 0;
+  }
   .panel {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 14px 16px;
+    border-radius: 10px; padding: 10px 14px;
     box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    display: flex; flex-direction: column; min-height: 0;
   }
-  .panel h2 { font-size: 14px; color: var(--gray); font-weight: 600; margin-bottom: 10px; letter-spacing: .5px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; flex-shrink: 0;
+  }
+  .panel h2 { font-size: 13px; color: var(--gray); font-weight: 600; letter-spacing: .5px; }
+  .btn {
+    background: var(--panel2); color: var(--blue); border: 1px solid rgba(88,166,255,.35);
+    border-radius: 14px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn:hover { background: rgba(88,166,255,.15); }
+  .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
   th {
-    text-align: right; padding: 8px 8px; color: var(--gray);
+    text-align: right; padding: 6px 8px; color: var(--gray);
     font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
-    font-size: 12px;
+    font-size: 11.5px; position: sticky; top: 0; background: var(--panel); z-index: 1;
   }
   th:first-child, td:first-child { text-align: left; }
-  td { text-align: right; padding: 8px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  td { text-align: right; padding: 6px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
   tr:hover td { background: var(--panel2); }
+  tr.miss td { background: rgba(248,81,73,.05); }
+  tr.miss:hover td { background: rgba(248,81,73,.1); }
   .line-name { font-weight: 600; color: var(--white); }
-  .st { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 10px; border-radius: 12px; border: 1px solid transparent; }
+  .hit-name { color: var(--green); }
+  .miss-name { color: var(--red); }
+  .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; padding: 1px 9px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
   .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
   .eff-ok { color: var(--green); font-weight: 600; }
-  .eff-warn { color: var(--orange); font-weight: 600; }
   .eff-bad { color: var(--red); font-weight: 600; }
   .pos { color: var(--green); }
   .neg { color: var(--red); }
   .zero { color: var(--gray); }
   canvas { width: 100%; display: block; }
-  .chart-wrap { margin-bottom: 12px; }
-  .chart-wrap:last-child { margin-bottom: 0; }
-  .note {
-    margin-top: 16px; font-size: 12px; color: var(--gray);
-    text-align: center;
-  }
-  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--gray); margin-bottom: 8px; }
+  .chart-wrap { margin-bottom: 8px; flex-shrink: 0; }
+  .chart-wrap:last-child { margin-bottom: 0; flex: 1; display: flex; flex-direction: column; }
+  .chart-wrap:last-child canvas { flex: 1; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: var(--gray); margin-bottom: 6px; flex-wrap: wrap; }
   .legend span::before {
-    content: ""; display: inline-block; width: 10px; height: 10px;
+    content: ""; display: inline-block; width: 9px; height: 9px;
     border-radius: 2px; margin-right: 5px; vertical-align: -1px;
   }
   .legend .lg-actual::before { background: var(--blue); }
   .legend .lg-plan::before { background: var(--orange); }
   .legend .lg-eff::before { background: var(--green); }
-  details.other {
-    margin-top: 12px; border: 1px solid var(--border); border-radius: 10px;
-    background: var(--panel);
+  .legend .hint { color: #6e7681; font-size: 10.5px; }
+  .note {
+    margin-top: 8px; font-size: 11px; color: var(--gray);
+    text-align: center; flex-shrink: 0;
   }
-  details.other summary {
-    cursor: pointer; padding: 10px 14px; font-size: 13px; color: var(--gray);
-    user-select: none; list-style: none;
+  /* 模态弹窗: 其他线体 */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.65);
+    display: none; align-items: center; justify-content: center; z-index: 100;
   }
-  details.other summary::before { content: "▸ "; color: var(--blue); }
-  details.other[open] summary::before { content: "▾ "; }
-  details.other summary:hover { color: var(--white); }
-  details.other[open] summary { border-bottom: 1px solid var(--border); }
-  details.other .inner { padding: 4px 14px 12px; }
-  details.other table { font-size: 12px; }
-  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } .kpis { grid-template-columns: repeat(2, 1fr); } }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; width: min(920px, 94vw); max-height: 82vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .modal-head h3 { font-size: 14px; color: var(--white); }
+  .modal-close {
+    background: var(--panel2); color: var(--gray); border: 1px solid var(--border);
+    border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--white); border-color: #3d444d; }
+  .modal-body { padding: 10px 16px 14px; overflow-y: auto; }
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
@@ -152,51 +188,64 @@
 <div class="kpis">
   <div class="kpi"><div class="label">🟢 运行线体</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub">主要 8 条</div></div>
   <div class="kpi"><div class="label">⚡ 平均效率</div><div class="value" id="kpiEff">-</div><div class="sub">主要线体加权</div></div>
-  <div class="kpi"><div class="label">🏆 达成线体</div><div class="value" id="kpiHit">-</div><div class="sub">Eff ≥ 100%</div></div>
-  <div class="kpi"><div class="label">📦 总累计产量</div><div class="value" id="kpiCum">-</div><div class="sub">主要线实时累计</div></div>
+  <div class="kpi"><div class="label">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div><div class="sub" id="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="label">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div><div class="sub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="label">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div><div class="sub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
   <div class="panel">
-    <h2>📋 主要线体实时数据</h2>
-    <table id="mainTable">
-      <thead>
-        <tr>
-          <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
-          <th>差异</th><th>累计</th><th>效率%</th><th>状态</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <details class="other">
-      <summary id="otherSummary">其他线体 (展开查看)</summary>
-      <div class="inner">
-        <table id="otherTable">
-          <thead>
-            <tr>
-              <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
-              <th>差异</th><th>效率%</th><th>状态</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </details>
+    <div class="panel-head">
+      <h2>📋 主要线体实时数据</h2>
+      <button class="btn" id="otherBtn">其他线体 (0)</button>
+    </div>
+    <div class="table-scroll">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+            <th>差异</th><th>累计</th><th>效率%</th><th>状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </div>
   <div class="panel">
-    <h2>📊 产量与效率 (主要线体)</h2>
+    <div class="panel-head"><h2>📊 产量与效率 (主要线体)</h2></div>
     <div class="chart-wrap">
-      <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span></div>
-      <canvas id="chartBar" height="210"></canvas>
+      <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><span class="hint">柱内数字 = 小时序号</span></div>
+      <canvas id="chartBar" height="230"></canvas>
     </div>
     <div class="chart-wrap">
-      <div class="legend"><span class="lg-eff">效率%</span></div>
-      <canvas id="chartEff" height="190"></canvas>
+      <div class="legend"><span class="lg-eff">效率% (≥90 达成)</span></div>
+      <canvas id="chartEff" height="180"></canvas>
     </div>
   </div>
 </div>
 
 <div class="note" id="note">数据来源: Production III 抓包解析 · 被动监听 · 不触碰数据库</div>
+
+<!-- 其他线体模态 -->
+<div class="modal-overlay" id="otherModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">其他线体</h3>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <table id="otherTable">
+        <thead>
+          <tr>
+            <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+            <th>差异</th><th>效率%</th><th>状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -212,10 +261,12 @@ const MAIN_LINES = [
   "Final A line", "Final B Line", "Final C line", "Final D line",
   "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
 ];
+const FINAL_SET = new Set(["final a line", "final b line", "final c line", "final d line"]);
+const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"]);
 function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
 const MAIN_SET = new Set(MAIN_LINES.map(normName));
 
-const state = { lines: [], updatedAt: null, history: {} };
+const state = { lines: [], updatedAt: null, hourly: {} };
 
 function fmt(n) {
   if (n === null || n === undefined || isNaN(n)) return "-";
@@ -228,12 +279,11 @@ function fmt1(n) {
 function shortName(name) {
   return String(name || "").replace(/ line$/i, "").replace(/-Series$/i, "").trim();
 }
+function hitEff(e) { return e !== null && e !== undefined && !isNaN(e) && e >= 90; }
 
 function effClass(e) {
   if (e === null || e === undefined || isNaN(e)) return "";
-  if (e >= 100) return "eff-ok";
-  if (e >= 80) return "eff-warn";
-  return "eff-bad";
+  return e >= 90 ? "eff-ok" : "eff-bad";
 }
 function signClass(v) {
   if (v === null || v === undefined || isNaN(v)) return "zero";
@@ -257,6 +307,10 @@ function splitLines() {
   other.sort((a, b) => a.name.localeCompare(b.name));
   return { main, other };
 }
+function lineNameCls(l) {
+  if (l.eff === null || l.eff === undefined || isNaN(l.eff)) return "";
+  return hitEff(l.eff) ? "hit-name" : "miss-name";
+}
 
 function renderTable() {
   const { main, other } = splitLines();
@@ -265,8 +319,9 @@ function renderTable() {
   tb.innerHTML = "";
   main.forEach(l => {
     const tr = document.createElement("tr");
+    if (l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff)) tr.className = "miss";
     tr.innerHTML =
-      `<td class="line-name">${l.name.trim()}</td>` +
+      `<td class="line-name ${lineNameCls(l)}">${l.name.trim()}</td>` +
       `<td>${fmt(l.target)}</td>` +
       `<td>${fmt(l.plan)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
@@ -276,13 +331,14 @@ function renderTable() {
       `<td>${stHtml(l)}</td>`;
     tb.appendChild(tr);
   });
-  // 其他表
+  // 其他表（模态）
   const otb = document.querySelector("#otherTable tbody");
   otb.innerHTML = "";
   other.forEach(l => {
     const tr = document.createElement("tr");
+    if (l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff)) tr.className = "miss";
     tr.innerHTML =
-      `<td class="line-name">${l.name.trim()}</td>` +
+      `<td class="line-name ${lineNameCls(l)}">${l.name.trim()}</td>` +
       `<td>${fmt(l.target)}</td>` +
       `<td>${fmt(l.plan)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
@@ -291,7 +347,8 @@ function renderTable() {
       `<td>${stHtml(l)}</td>`;
     otb.appendChild(tr);
   });
-  document.getElementById("otherSummary").textContent = `其他线体 (${other.length}) — 点击展开`;
+  document.getElementById("otherBtn").textContent = `其他线体 (${other.length})`;
+  document.getElementById("modalTitle").textContent = `其他线体 (${other.length})`;
   return { main, other };
 }
 
@@ -303,26 +360,74 @@ function renderKPIs(main) {
   const avgEff = withEff.length ? withEff.reduce((s, l) => s + l.eff, 0) / withEff.length : 0;
   const el = document.getElementById("kpiEff");
   el.textContent = avgEff ? avgEff.toFixed(1) + "%" : "-";
-  el.className = "value " + (avgEff >= 100 ? "green" : avgEff >= 80 ? "orange" : avgEff ? "red" : "");
-  const hit = running.filter(l => l.eff >= 100).length;
+  el.className = "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : "");
+  const hit = running.filter(l => hitEff(l.eff));
   const eh = document.getElementById("kpiHit");
-  eh.textContent = hit;
-  eh.className = "value " + (hit > 0 ? "green" : "orange");
-  const totalCum = main.reduce((s, l) => s + (Number(l.cum) || 0), 0);
-  document.getElementById("kpiCum").textContent = totalCum ? fmt(totalCum) : "-";
+  eh.textContent = hit.length;
+  eh.className = "value " + (hit.length > 0 ? "green" : "orange");
+  const hitNames = hit.map(l => shortName(l.name)).join("、");
+  document.getElementById("kpiHitSub").textContent = hitNames || "暂无达成线体";
+  const totalFinal = main.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  const totalMotor = main.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  document.getElementById("kpiFinal").textContent = totalFinal ? fmt(totalFinal) : "-";
+  document.getElementById("kpiMotor").textContent = totalMotor ? fmt(totalMotor) : "-";
+}
+
+// ---- 小时产量: 从 hourly 快照算每段产量/目标 ----
+function segsOf(name) {
+  const snaps = (state.hourly || {})[name] || [];
+  if (!snaps.length) return [];
+  let prevA = 0, prevP = 0;
+  return snaps.map(s => {
+    const seg = {
+      h: s.h,
+      actual: Math.max(0, (s.actual || 0) - prevA),
+      plan: Math.max(0, (s.plan || 0) - prevP)
+    };
+    prevA = s.actual || 0; prevP = s.plan || 0;
+    return seg;
+  });
+}
+function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
+  const totalH = Math.max(0, (total || 0) / maxV * ch);
+  const base = padT + ch - totalH;
+  if (!segs.length) {
+    ctx.fillStyle = color;
+    ctx.fillRect(cx, base, bw, totalH);
+  } else {
+    let yAcc = padT + ch;
+    const sum = segs.reduce((s, x) => s + x.actual, 0) || total || 1;
+    segs.forEach((s, idx) => {
+      const segH = Math.max(0, totalH * (s.actual / sum));
+      yAcc -= segH;
+      if (segH < 0.5) return;
+      ctx.fillStyle = color;
+      ctx.fillRect(cx, yAcc, bw, segH);
+      if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1); }
+      if (segH >= 13) {
+        ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(String(idx + 1), cx + bw / 2, yAcc + segH / 2 + 3);
+      }
+    });
+  }
+  // 柱顶累计标签
+  if (totalH > 0) {
+    ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt(total), cx + bw / 2, base - 3);
+  }
 }
 
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
   const dpr = window.devicePixelRatio || 1;
-  const W = cv.clientWidth, H = cv.clientHeight || 210;
+  const W = cv.clientWidth, H = cv.clientHeight || 230;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
-  const padL = 46, padB = 34, padT = 22;
+  const padL = 46, padB = 34, padT = 26;
   const cw = W - padL - 12, ch = H - padT - padB;
   const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.plan || 0)));
   const step = Math.ceil(maxV / 4 / 10) * 10;
@@ -336,19 +441,10 @@ function drawBar(main) {
   const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
-    const ha = Math.max(0, (l.actual || 0) / maxV * ch), hp = Math.max(0, (l.plan || 0) / maxV * ch);
-    // Actual 柱 (蓝)
-    ctx.fillStyle = "#58a6ff";
-    ctx.fillRect(cx - bw - 1.5, padT + ch - ha, bw, ha);
-    ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - ha - 3);
-    // Plan 柱 (橙)
-    ctx.fillStyle = "#d29922";
-    ctx.fillRect(cx + 1.5, padT + ch - hp, bw, hp);
-    ctx.fillStyle = "#d29922"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(fmt(l.plan), cx + 1.5 + bw / 2, padT + ch - hp - 3);
-    // 横排 x 标签
-    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+    const segs = segsOf(l.name);
+    drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
+    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan })), l.plan, maxV, ch, padT, "#d29922");
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(shortName(l.name), cx, H - 10);
   });
   ctx.textAlign = "left";
@@ -357,7 +453,7 @@ function drawBar(main) {
 function drawEff(main) {
   const cv = document.getElementById("chartEff");
   const dpr = window.devicePixelRatio || 1;
-  const W = cv.clientWidth, H = cv.clientHeight || 190;
+  const W = cv.clientWidth, H = cv.clientHeight || 180;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
@@ -368,24 +464,27 @@ function drawEff(main) {
   const cw = W - padL - 12, ch = H - padT - padB;
   const maxV = 120;
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
-  [0, 50, 100, 120].forEach(v => {
+  [0, 50, 90, 120].forEach(v => {
     const y = padT + ch - (ch * v / maxV);
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
     ctx.fillText(v + "%", 4, y + 3);
   });
+  // 90% 达成线
+  const y90 = padT + ch - (ch * 90 / maxV);
+  ctx.strokeStyle = "rgba(63,185,80,.4)"; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(padL, y90); ctx.lineTo(W - 8, y90); ctx.stroke();
+  ctx.setLineDash([]);
   const n = lines.length, slot = cw / n;
   const bw = Math.min(28, slot * 0.4);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
     const e = l.eff || 0;
     const h = Math.max(0, Math.min(ch, ch * e / maxV));
-    ctx.fillStyle = e >= 100 ? "#3fb950" : e >= 80 ? "#d29922" : "#f85149";
+    ctx.fillStyle = hitEff(l.eff) ? "#3fb950" : "#f85149";
     ctx.fillRect(cx - bw / 2, padT + ch - h, bw, h);
-    // 柱顶数据标签
-    ctx.fillStyle = e >= 100 ? "#3fb950" : e >= 80 ? "#d29922" : "#f85149";
+    ctx.fillStyle = hitEff(l.eff) ? "#3fb950" : "#f85149";
     ctx.font = "9px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(fmt1(e), cx, padT + ch - h - 3);
-    // 横排 x 标签
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
     ctx.fillText(shortName(l.name), cx, H - 10);
   });
@@ -405,6 +504,7 @@ async function refresh() {
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
     state.lines = d.lines || [];
+    state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
     document.getElementById("updateTime").textContent = state.updatedAt || new Date().toLocaleTimeString("zh-CN", { hour12: false });
     const mode = document.getElementById("dataMode");
@@ -418,6 +518,14 @@ async function refresh() {
     document.getElementById("note").textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
   }
 }
+
+// 模态开关
+(function initModal() {
+  const overlay = document.getElementById("otherModal");
+  document.getElementById("otherBtn").addEventListener("click", () => overlay.classList.add("open"));
+  document.getElementById("modalClose").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+})();
 
 // 显示当前访问地址
 (function initAddr() {
