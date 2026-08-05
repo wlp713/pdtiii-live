@@ -283,7 +283,7 @@
       <button class="modal-close" id="headClose">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint" style="margin:0 0 8px">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标 = 日目标 ÷ 人数 ÷ 10.67小时(8:00-20:20 减 100 分钟休息)。每天人数可改，保存后自动生效。</p>
+      <p class="hint" style="margin:0 0 8px">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。</p>
       <div class="head-grid" id="headGrid"></div>
       <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave">💾 保存</button></div>
     </div>
@@ -807,15 +807,35 @@ function upphOf(l, now) {
   if (!n || !w) return null;
   return (Number(l.actual) || 0) / n / w;
 }
-// UPPH目标 = 日目标 ÷ 人数 ÷ 10.67 标准工作小时 (8:00-20:20 减 100min 休息)
-function upphTargetOf(l) {
-  const n = headOf(l.name);
-  if (!n) return null;
-  return (Number(l.target) || 0) / n / (640 / 60);
+// 当前小时累计计划产量 (来自 hourly 快照); 无 hourly 数据 → null (调用方 fallback)
+function planNowOf(l, now) {
+  const hourly = state.hourly || {};
+  const arr = hourly[l.name.trim()];
+  if (!Array.isArray(arr) || !arr.length) return null;
+  const h = now.getHours();
+  let best = null, bestH = -1;
+  for (const s of arr) {
+    const sh = Number(s.h) || 0;
+    if (sh <= h && sh > bestH) { best = s; bestH = sh; }
+  }
+  return best ? (Number(best.plan) || 0) : null;
 }
-// 达成率% = 当前UPPH / UPPH目标 × 100
+// UPPH目标(实时) = 当前小时累计计划 ÷ 实时累计工作小时 ÷ 人数
+//   与实际 UPPH 同一时间口径, 达成率 = 实时累计产出/实时累计目标 (人数、工时约掉)
+//   无 hourly 快照的线 fallback: 日目标按已工作小时线性分摊 (= 日目标 ÷ 人数 ÷ 10.67h)
+function upphTargetOf(l, now) {
+  const n = headOf(l.name);
+  const w = workedHours(now);
+  if (!n || !w) return null;
+  const planNow = planNowOf(l, now);
+  if (planNow) return planNow / w / n;
+  const target = Number(l.target) || 0;
+  if (!target) return null;
+  return target / n / (640 / 60);
+}
+// 达成率% = 当前UPPH / UPPH目标(实时) × 100
 function upphRateOf(l, now) {
-  const u = upphOf(l, now), t = upphTargetOf(l);
+  const u = upphOf(l, now), t = upphTargetOf(l, now);
   if (u == null || t == null || t <= 0) return null;
   return u / t * 100;
 }
@@ -890,7 +910,7 @@ function openHeadModal() {
     lab.className = "hn"; lab.textContent = name;
     // ★ 修复: 用 name 查找对应 line 对象, 不能再引用未定义的 l
     const ln = state.lines.find(x => x.name === name) || {};
-    lab.title = "UPPH目标 = " + fmt(ln.target) + " ÷ 人数 ÷ 10.67h";
+    lab.title = name + " — UPPH目标(实时) = 当前小时累计计划(" + fmt(planNowOf(ln, new Date()) || 0) + ") ÷ 工时 ÷ 人数";
     const inp = document.createElement("input");
     inp.type = "number"; inp.min = "0"; inp.step = "1";
     inp.value = headOf(name) || "";
