@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生产实时看板</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d333b;
+    --green: #3fb950;
+    --orange: #d29922;
+    --red: #f85149;
+    --gray: #8b949e;
+    --white: #e6edf3;
+    --blue: #58a6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
+    background-attachment: fixed;
+    color: var(--white);
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    padding: 10px 16px;
+    display: flex; flex-direction: column;
+    height: 100vh; overflow: hidden;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 6px; margin-bottom: 8px; flex-shrink: 0;
+  }
+  .header .title-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .header h1 {
+    font-size: 21px; letter-spacing: 2px; font-weight: 700;
+    background: linear-gradient(90deg, #e6edf3, #58a6ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .subtitle { font-size: 11px; color: var(--gray); }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .update-box {
+    font-size: 12px; color: var(--gray);
+    display: flex; align-items: center; gap: 7px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 16px; padding: 4px 11px;
+  }
+  .live-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--green); display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  .live-dot.stale { background: var(--red); animation: none; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
+    70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+  }
+  .btn {
+    background: var(--panel2); color: var(--blue); border: 1px solid rgba(88,166,255,.35);
+    border-radius: 14px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+    transition: background .15s; white-space: nowrap;
+  }
+  .btn:hover { background: rgba(88,166,255,.15); }
+  .stall-banner {
+    display: none; align-items: center; gap: 8px;
+    background: rgba(248,81,73,.14); border: 1px solid rgba(248,81,73,.45);
+    border-radius: 8px; padding: 6px 12px; margin-bottom: 8px;
+    font-size: 13px; color: var(--red); font-weight: 600; flex-shrink: 0;
+    animation: blink 1.5s infinite;
+  }
+  .stall-banner .slist { font-weight: 400; color: var(--white); }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 7px 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    min-width: 0;
+  }
+  .kpi .label { font-size: 11px; color: var(--gray); display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .kpi .value { font-size: 22px; font-weight: 700; margin-top: 1px; letter-spacing: .5px; }
+  .kpi .sub { font-size: 11px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi .value.green { color: var(--green); }
+  .kpi .value.orange { color: var(--orange); }
+  .kpi .value.red { color: var(--red); }
+  .kpi .value.blue { color: var(--blue); }
+  .main-grid {
+    display: grid; grid-template-columns: 1.25fr 1fr; gap: 10px;
+    flex: 1; min-height: 0;
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px; flex-shrink: 0;
+  }
+  .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 600; letter-spacing: .5px; }
+  .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th {
+    text-align: right; padding: 4px 6px; color: var(--gray);
+    font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
+    font-size: 11px; position: sticky; top: 0; background: var(--panel); z-index: 1;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; padding: 5px 6px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  tr:hover td { background: var(--panel2); }
+  tr.miss td { background: rgba(248,81,73,.05); }
+  tr.miss:hover td { background: rgba(248,81,73,.1); }
+  tr.stalled-row td { background: rgba(248,81,73,.1); }
+  .line-name { font-weight: 600; color: var(--white); white-space: nowrap; }
+  .hit-name { color: var(--green); }
+  .miss-name { color: var(--red); }
+  .stall-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+    display: inline-block; margin-right: 6px; vertical-align: 1px;
+    animation: blink 1s infinite;
+  }
+  /* ---- 横向条形图列（列表×图表融合） ---- */
+  td.bar-cell { padding: 3px 8px; min-width: 170px; }
+  .hbar { position: relative; height: 12px; background: #1a1f27; border-radius: 6px; overflow: hidden; }
+  .hbar .act {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: linear-gradient(90deg, #58a6ff, #79c0ff);
+    border-radius: 6px; min-width: 3px;
+  }
+  .hbar .plan {
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    height: 5px; background: rgba(210,153,34,.9);
+    border-radius: 3px; min-width: 2px;
+  }
+  .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
+  .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
+  .hbar-leg i { font-style: normal; }
+  .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
+  .hbar-leg .p::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--orange); margin-right: 3px; vertical-align: -1px; }
+  .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
+  .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
+  .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
+  .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
+  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 1.2s infinite; }
+  .eff-ok { color: var(--green); font-weight: 600; }
+  .eff-bad { color: var(--red); font-weight: 600; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .zero { color: var(--gray); }
+  /* 右侧图表: 上下叠 */
+  .chart-col { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 8px; }
+  .chart-box { flex: 1.5; min-height: 0; display: flex; flex-direction: column; }
+  .chart-box.small { flex: 1; }
+  .chart-box canvas { flex: 1; width: 100%; height: 0; min-height: 80px; }
+  .legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--gray); margin-bottom: 4px; flex-wrap: wrap; flex-shrink: 0; }
+  .legend span::before {
+    content: ""; display: inline-block; width: 9px; height: 9px;
+    border-radius: 2px; margin-right: 5px; vertical-align: -1px;
+  }
+  .legend .lg-actual::before { background: var(--blue); }
+  .legend .lg-plan::before { background: var(--orange); }
+  .legend .lg-eff::before { background: var(--green); }
+  .legend .hint { color: #6e7681; font-size: 10px; }
+  .note {
+    margin-top: 6px; font-size: 10.5px; color: var(--gray);
+    text-align: center; flex-shrink: 0;
+  }
+  /* 模态弹窗: 其他线体 */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.65);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; width: min(900px, 94vw); max-height: 82vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .modal-head h3 { font-size: 14px; color: var(--white); }
+  .modal-close {
+    background: var(--panel2); color: var(--gray); border: 1px solid var(--border);
+    border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--white); border-color: #3d444d; }
+  .modal-body { padding: 10px 16px 14px; overflow-y: auto; }
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr; overflow-y: auto; }
+    body { overflow-y: auto; }
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title-wrap">
+    <h1>生产实时看板</h1>
+    <div class="subtitle">Production III · 抓包被动监听 · 每10秒自动刷新</div>
+  </div>
+  <div class="header-right">
+    <button class="btn" id="notifBtn" style="display:none">🔔 开启停滞通知</button>
+    <div class="update-box">
+      <span class="live-dot" id="liveDot"></span>
+      <span id="updateTime">--:--:--</span>
+      <span id="dataMode">示例数据</span>
+    </div>
+  </div>
+</div>
+
+<div class="stall-banner" id="stallBanner">
+  ⚠️ 停滞线体: <span class="slist" id="stallList"></span>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">🟢 运行线体</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="label">⚡ 平均效率</div><div class="value" id="kpiEff">-</div><div class="sub">主要线体加权</div></div>
+  <div class="kpi"><div class="label">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div><div class="sub" id="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="label">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div><div class="sub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="label">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div><div class="sub">Motor H/S/F/WL 合计</div></div>
+</div>
+
+<div class="main-grid">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>📋 主要线体 · 产量对比</h2>
+      <button class="btn" id="otherBtn">其他线体 (0)</button>
+    </div>
+    <div class="table-scroll">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th>线体</th><th>产量 (蓝=实际 · 橙=计划)</th>
+            <th>Actual</th><th>Plan</th><th>差异</th><th>效率%</th><th>状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h2>📊 每小时产量 / 效率 (主要线体)</h2></div>
+    <div class="chart-col">
+      <div class="chart-box">
+        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><span class="hint">分段数字=小时序号</span></div>
+        <canvas id="chartBar"></canvas>
+      </div>
+      <div class="chart-box small">
+        <div class="legend"><span class="lg-eff">效率% (≥90 达成)</span></div>
+        <canvas id="chartEff"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note" id="note">数据来源: Production III 抓包解析 · 被动监听 · 不触碰数据库 · 小时数据自记录起累积</div>
+
+<!-- 其他线体模态 -->
+<div class="modal-overlay" id="otherModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">其他线体</h3>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <table id="otherTable">
+        <thead>
+          <tr>
+            <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+            <th>差异</th><th>效率%</th><th>状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// 数据源自动切换: 本机/局域网打开 -> 读本地 data.json; 线上(GitHub Pages https)打开 -> 读 Firebase 云端
+const IS_LOCAL = location.protocol === "file:" ||
+  location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const DATA_URL = IS_LOCAL
+  ? "data.json"
+  : "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
+
+// ⚙️ 主要线体配置（按此顺序显示）
+const MAIN_LINES = [
+  "Final A line", "Final B Line", "Final C line", "Final D line",
+  "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
+];
+function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
+// ★ Set 内容也过 normName, 否则带空格永远匹配不上
+const FINAL_SET = new Set(["final a line", "final b line", "final c line", "final d line"].map(normName));
+const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"].map(normName));
+const MAIN_SET = new Set(MAIN_LINES.map(normName));
+
+const state = { lines: [], updatedAt: null, hourly: {} };
+
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return Number(n).toLocaleString("en-US");
+}
+function fmt1(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return Number(n).toFixed(1);
+}
+function shortName(name) {
+  return String(name || "").replace(/ line$/i, "").replace(/-Series$/i, "").trim();
+}
+function hitEff(e) { return e !== null && e !== undefined && !isNaN(e) && e >= 90; }
+function effClass(e) {
+  if (e === null || e === undefined || isNaN(e)) return "";
+  return e >= 90 ? "eff-ok" : "eff-bad";
+}
+function signClass(v) {
+  if (v === null || v === undefined || isNaN(v)) return "zero";
+  if (v > 0) return "pos";
+  if (v < 0) return "neg";
+  return "zero";
+}
+function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+function stHtml(l) {
+  let stCls, stTxt;
+  if (isStalled(l)) { stCls = "stall"; stTxt = "停滞"; }
+  else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = "运行"; }
+  else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = "停机"; }
+  else { stCls = "err"; stTxt = l.status || "未知"; }
+  return `<span class="st ${stCls}">${stTxt}</span>`;
+}
+function splitLines() {
+  const main = [], other = [];
+  state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
+  main.sort((a, b) => {
+    const ia = MAIN_LINES.findIndex(x => normName(x) === normName(a.name));
+    const ib = MAIN_LINES.findIndex(x => normName(x) === normName(b.name));
+    return ia - ib;
+  });
+  other.sort((a, b) => a.name.localeCompare(b.name));
+  return { main, other };
+}
+function lineNameCls(l) {
+  if (l.eff === null || l.eff === undefined || isNaN(l.eff)) return "";
+  return hitEff(l.eff) ? "hit-name" : "miss-name";
+}
+
+// ---- 主表: 每行横向条形图 (Actual vs Plan) ----
+function hbarHtml(l, maxV) {
+  const aw = maxV > 0 ? Math.max(0, (Number(l.actual) || 0) / maxV * 100) : 0;
+  const pw = maxV > 0 ? Math.max(0, (Number(l.plan) || 0) / maxV * 100) : 0;
+  const stalledCls = isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "";
+  return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
+    `<div class="plan" style="width:${pw}%"></div>` +
+    `<div class="act" style="width:${aw}%"></div></div>`;
+}
+
+function renderTable() {
+  const { main, other } = splitLines();
+  // 全表最大产量用于条宽比例
+  const maxV = Math.max(1, ...main.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  const tb = document.querySelector("#mainTable tbody");
+  tb.innerHTML = "";
+  main.forEach(l => {
+    const tr = document.createElement("tr");
+    const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+    if (isStalled(l)) tr.className = "stalled-row";
+    else if (miss) tr.className = "miss";
+    const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
+    tr.innerHTML =
+      `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+      `<td class="bar-cell">${hbarHtml(l, maxV)}</td>` +
+      `<td>${fmt(l.actual)}</td>` +
+      `<td>${fmt(l.plan)}</td>` +
+      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td>${stHtml(l)}</td>`;
+    tb.appendChild(tr);
+  });
+  const otb = document.querySelector("#otherTable tbody");
+  otb.innerHTML = "";
+  other.forEach(l => {
+    const tr = document.createElement("tr");
+    const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+    if (isStalled(l)) tr.className = "stalled-row";
+    else if (miss) tr.className = "miss";
+    const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
+    tr.innerHTML =
+      `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+      `<td>${fmt(l.target)}</td>` +
+      `<td>${fmt(l.plan)}</td>` +
+      `<td>${fmt(l.actual)}</td>` +
+      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td>${stHtml(l)}</td>`;
+    otb.appendChild(tr);
+  });
+  document.getElementById("otherBtn").textContent = `其他线体 (${other.length})`;
+  document.getElementById("modalTitle").textContent = `其他线体 (${other.length})`;
+  return { main, other };
+}
+
+function renderKPIs(main) {
+  const running = main.filter(l => l.status === "RUNNING" || l.status === "运行");
+  document.getElementById("kpiRun").textContent = running.length;
+  document.getElementById("kpiRunSub").textContent = `主要 ${main.length} 条 · 全部 ${state.lines.length} 条`;
+  const withEff = running.filter(l => l.eff !== null && !isNaN(l.eff));
+  const avgEff = withEff.length ? withEff.reduce((s, l) => s + l.eff, 0) / withEff.length : 0;
+  const el = document.getElementById("kpiEff");
+  el.textContent = avgEff ? avgEff.toFixed(1) + "%" : "-";
+  el.className = "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : "");
+  const hit = running.filter(l => hitEff(l.eff));
+  const eh = document.getElementById("kpiHit");
+  eh.textContent = hit.length;
+  eh.className = "value " + (hit.length > 0 ? "green" : "orange");
+  const hitNames = hit.map(l => shortName(l.name)).join("、");
+  document.getElementById("kpiHitSub").textContent = hitNames || "暂无达成线体";
+  const totalFinal = main.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  const totalMotor = main.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  document.getElementById("kpiFinal").textContent = totalFinal ? fmt(totalFinal) : "-";
+  document.getElementById("kpiMotor").textContent = totalMotor ? fmt(totalMotor) : "-";
+}
+
+// ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
+function checkStalls() {
+  const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)));
+  const banner = document.getElementById("stallBanner");
+  if (stalled.length) {
+    banner.style.display = "flex";
+    document.getElementById("stallList").textContent = stalled.map(l => shortName(l.name)).join("、");
+  } else {
+    banner.style.display = "none";
+  }
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const nowTs = Date.now();
+  let notified = {};
+  try { notified = JSON.parse(localStorage.getItem("pdtiii_notified") || "{}"); } catch (e) { notified = {}; }
+  let changed = false;
+  stalled.forEach(l => {
+    const key = normName(l.name);
+    const last = notified[key] || 0;
+    if (nowTs - last > 10 * 60 * 1000) {
+      notified[key] = nowTs;
+      changed = true;
+      try {
+        new Notification("⚠️ 线体停滞: " + shortName(l.name), {
+          body: "产量约5分钟无变化，请检查产线 · " + new Date().toLocaleTimeString("zh-CN", { hour12: false })
+        });
+      } catch (e) { /* ignore */ }
+    }
+  });
+  Object.keys(notified).forEach(k => { if (nowTs - notified[k] > 24 * 3600 * 1000) delete notified[k]; });
+  if (changed) { try { localStorage.setItem("pdtiii_notified", JSON.stringify(notified)); } catch (e) { /* ignore */ } }
+}
+function initNotif() {
+  const btn = document.getElementById("notifBtn");
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") return;
+  if (Notification.permission === "default") btn.style.display = "inline-block";
+  btn.addEventListener("click", () => {
+    Notification.requestPermission().then(p => {
+      if (p === "granted") btn.style.display = "none";
+    });
+  });
+}
+
+// ---- 小时产量: 从 hourly 快照算每段产量/目标 ----
+function segsOf(name) {
+  const snaps = (state.hourly || {})[name] || [];
+  if (!snaps.length) return [];
+  // ★ 当天中途启动(首条快照 h>8, 如今天 h=11 才上线): 首条快照作基准,
+  //   丢弃启动前的残留段(第一条段不完整, 如 11:47-12:00 仅13分钟),
+  //   从第二条起正常差值分段 → 13:00 起每小时真实产出段
+  if (snaps[0].h > 8) {
+    const segs = [];
+    for (let i = 2; i < snaps.length; i++) {
+      const prev = snaps[i - 1], s = snaps[i];
+      segs.push({
+        h: s.h, lab: prev.h, // lab = 该段开始小时
+        actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
+        plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
+      });
+    }
+    return segs;
+  }
+  // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
+  let prevA = snaps[0].actual || 0, prevP = snaps[0].plan || 0, prevH = snaps[0].h;
+  const segs = [];
+  for (let i = 1; i < snaps.length; i++) {
+    const s = snaps[i];
+    segs.push({
+      h: s.h, lab: prevH, // lab = 该段的开始小时(如 8-9 段标 8)
+      actual: Math.max(0, (s.actual || 0) - prevA),
+      plan: Math.max(0, (s.plan || 0) - prevP)
+    });
+    prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
+  }
+  return segs;
+}
+function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
+  const totalH = Math.max(0, (total || 0) / maxV * ch);
+  const base = padT + ch - totalH;
+  if (!segs.length) {
+    // ★ 无分段数据(还没有整点快照/无历史): 画纯色累计柱
+    ctx.fillStyle = color;
+    ctx.fillRect(cx, base, bw, totalH);
+  } else {
+    let yAcc = padT + ch;
+    const sum = segs.reduce((s, x) => s + x.actual, 0) || total || 1;
+    segs.forEach((s, idx) => {
+      const segH = Math.max(0, totalH * (s.actual / sum));
+      yAcc -= segH;
+      if (segH < 0.5) return;
+      ctx.fillStyle = color;
+      ctx.fillRect(cx, yAcc, bw, segH);
+      if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1); }
+      if (segH >= 13) {
+        ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
+        // ★ 段标号 = 该段开始小时(如 8-9 段标 8); 首条快照作基准时从第二条起分段
+        ctx.fillText(String(s.lab != null ? s.lab : ""), cx + bw / 2, yAcc + segH / 2 + 3);
+      }
+    });
+  }
+  if (totalH > 0) {
+    ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt(total), cx + bw / 2, base - 3);
+  }
+}
+
+function drawBar(main) {
+  const cv = document.getElementById("chartBar");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 230;
+  if (W < 20) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const lines = main;
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
+  const padL = 46, padB = 34, padT = 26;
+  const cw = W - padL - 12, ch = H - padT - padB;
+  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  const step = Math.ceil(maxV / 4 / 10) * 10;
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
+    ctx.fillText(fmt(step * i), 4, y + 3);
+  }
+  const n = lines.length, slot = cw / n;
+  const bw = Math.min(20, slot * 0.3);
+  lines.forEach((l, i) => {
+    const cx = padL + slot * i + slot / 2;
+    const segs = segsOf(l.name);
+    drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
+    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan, lab: s.lab })), l.plan, maxV, ch, padT, "#d29922");
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(shortName(l.name), cx, H - 10);
+  });
+  ctx.textAlign = "left";
+}
+
+function drawEff(main) {
+  const cv = document.getElementById("chartEff");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 180;
+  if (W < 20) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const lines = main;
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
+  const padL = 40, padB = 34, padT = 22;
+  const cw = W - padL - 12, ch = H - padT - padB;
+  const maxV = 120;
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+  [0, 50, 90, 120].forEach(v => {
+    const y = padT + ch - (ch * v / maxV);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
+    ctx.fillText(v + "%", 4, y + 3);
+  });
+  const y90 = padT + ch - (ch * 90 / maxV);
+  ctx.strokeStyle = "rgba(63,185,80,.4)"; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(padL, y90); ctx.lineTo(W - 8, y90); ctx.stroke();
+  ctx.setLineDash([]);
+  const n = lines.length, slot = cw / n;
+  const bw = Math.min(28, slot * 0.4);
+  lines.forEach((l, i) => {
+    const cx = padL + slot * i + slot / 2;
+    const e = l.eff || 0;
+    const h = Math.max(0, Math.min(ch, ch * e / maxV));
+    ctx.fillStyle = hitEff(l.eff) ? "#3fb950" : "#f85149";
+    ctx.fillRect(cx - bw / 2, padT + ch - h, bw, h);
+    ctx.fillStyle = hitEff(l.eff) ? "#3fb950" : "#f85149";
+    ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt1(e), cx, padT + ch - h - 3);
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+    ctx.fillText(shortName(l.name), cx, H - 10);
+  });
+  ctx.textAlign = "left";
+}
+
+function renderAll() {
+  const { main } = renderTable();
+  renderKPIs(main);
+  drawBar(main);
+  drawEff(main);
+  checkStalls();
+}
+
+async function refresh() {
+  try {
+    const r = await fetch(DATA_URL + "?t=" + Date.now());
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    state.lines = d.lines || [];
+    state.hourly = d.hourly || {};
+    state.updatedAt = d.updatedAt || null;
+    document.getElementById("updateTime").textContent = state.updatedAt || new Date().toLocaleTimeString("zh-CN", { hour12: false });
+    const mode = document.getElementById("dataMode");
+    mode.textContent = d.mode === "live" ? "🔴 实时抓包数据" : "示例数据";
+    mode.style.color = d.mode === "live" ? "#3fb950" : "#d29922";
+    document.getElementById("liveDot").classList.remove("stale");
+    renderAll();
+  } catch (e) {
+    document.getElementById("liveDot").classList.add("stale");
+    document.getElementById("updateTime").textContent = "数据源连接失败";
+    document.getElementById("note").textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
+  }
+}
+
+// 模态开关
+(function initModal() {
+  const overlay = document.getElementById("otherModal");
+  document.getElementById("otherBtn").addEventListener("click", () => overlay.classList.add("open"));
+  document.getElementById("modalClose").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+})();
+
+initNotif();
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>
