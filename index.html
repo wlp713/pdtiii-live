@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Production III 实时看板</title>
+<title>生产实时看板</title>
 <style>
   :root {
     --bg: #0d1117;
@@ -20,19 +20,30 @@
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    background: var(--bg); color: var(--white);
+    background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
+    background-attachment: fixed;
+    color: var(--white);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
-    padding: 16px 20px;
+    padding: 18px 22px;
+    min-height: 100vh;
   }
   .header {
     display: flex; justify-content: space-between; align-items: center;
-    flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
+    flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
   }
-  .header h1 { font-size: 22px; letter-spacing: 1px; }
-  .header h1 span { color: var(--blue); }
+  .header .title-wrap { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .header h1 {
+    font-size: 24px; letter-spacing: 2px; font-weight: 700;
+    background: linear-gradient(90deg, #e6edf3, #58a6ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .subtitle { font-size: 12px; color: var(--gray); }
   .update-box {
     font-size: 13px; color: var(--gray);
     display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 14px;
   }
   .live-dot {
     width: 10px; height: 10px; border-radius: 50%;
@@ -47,68 +58,75 @@
   }
   .addr-bar {
     font-size: 12px; color: var(--blue); background: rgba(88,166,255,.08);
-    border: 1px solid rgba(88,166,255,.25); border-radius: 6px;
-    padding: 6px 10px; margin-bottom: 12px;
+    border: 1px solid rgba(88,166,255,.25); border-radius: 8px;
+    padding: 7px 12px; margin-bottom: 14px;
   }
   .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
   .kpi {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 16px;
+    border-radius: 10px; padding: 12px 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    transition: transform .15s, border-color .15s;
   }
-  .kpi .label { font-size: 12px; color: var(--gray); }
-  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 4px; }
+  .kpi:hover { transform: translateY(-2px); border-color: #3d444d; }
+  .kpi .label { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 6px; }
+  .kpi .value { font-size: 28px; font-weight: 700; margin-top: 4px; letter-spacing: .5px; }
   .kpi .sub { font-size: 12px; color: var(--gray); margin-top: 2px; }
   .kpi .value.green { color: var(--green); }
   .kpi .value.orange { color: var(--orange); }
   .kpi .value.red { color: var(--red); }
-  .main-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px; }
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .panel {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 8px; padding: 12px 14px;
+    border-radius: 10px; padding: 14px 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
   }
-  .panel h2 { font-size: 14px; color: var(--gray); font-weight: 600; margin-bottom: 10px; }
+  .panel h2 { font-size: 14px; color: var(--gray); font-weight: 600; margin-bottom: 10px; letter-spacing: .5px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th {
-    text-align: right; padding: 6px 8px; color: var(--gray);
+    text-align: right; padding: 8px 8px; color: var(--gray);
     font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
+    font-size: 12px;
   }
   th:first-child, td:first-child { text-align: left; }
-  td { text-align: right; padding: 6px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  td { text-align: right; padding: 8px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
   tr:hover td { background: var(--panel2); }
   .line-name { font-weight: 600; color: var(--white); }
-  .st { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
-  .st.run { background: rgba(63,185,80,.15); color: var(--green); }
-  .st.off { background: rgba(139,148,158,.15); color: var(--gray); }
-  .st.err { background: rgba(248,81,73,.15); color: var(--red); }
-  .eff-ok { color: var(--green); }
-  .eff-warn { color: var(--orange); }
-  .eff-bad { color: var(--red); }
+  .st { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 2px 10px; border-radius: 12px; border: 1px solid transparent; }
+  .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
+  .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
+  .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
+  .eff-ok { color: var(--green); font-weight: 600; }
+  .eff-warn { color: var(--orange); font-weight: 600; }
+  .eff-bad { color: var(--red); font-weight: 600; }
   .pos { color: var(--green); }
   .neg { color: var(--red); }
   .zero { color: var(--gray); }
   canvas { width: 100%; display: block; }
-  .chart-wrap { margin-bottom: 14px; }
+  .chart-wrap { margin-bottom: 12px; }
   .chart-wrap:last-child { margin-bottom: 0; }
   .note {
-    margin-top: 14px; font-size: 12px; color: var(--gray);
+    margin-top: 16px; font-size: 12px; color: var(--gray);
     text-align: center;
   }
-  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--gray); margin-bottom: 6px; }
+  .legend { display: flex; gap: 16px; font-size: 12px; color: var(--gray); margin-bottom: 8px; }
   .legend span::before {
     content: ""; display: inline-block; width: 10px; height: 10px;
     border-radius: 2px; margin-right: 5px; vertical-align: -1px;
   }
   .legend .lg-actual::before { background: var(--blue); }
-  .legend .lg-target::before { background: var(--orange); }
+  .legend .lg-plan::before { background: var(--orange); }
   .legend .lg-eff::before { background: var(--green); }
   details.other {
-    margin-top: 12px; border: 1px solid var(--border); border-radius: 8px;
+    margin-top: 12px; border: 1px solid var(--border); border-radius: 10px;
     background: var(--panel);
   }
   details.other summary {
     cursor: pointer; padding: 10px 14px; font-size: 13px; color: var(--gray);
-    user-select: none;
+    user-select: none; list-style: none;
   }
+  details.other summary::before { content: "▸ "; color: var(--blue); }
+  details.other[open] summary::before { content: "▾ "; }
   details.other summary:hover { color: var(--white); }
   details.other[open] summary { border-bottom: 1px solid var(--border); }
   details.other .inner { padding: 4px 14px 12px; }
@@ -118,7 +136,10 @@
 </head>
 <body>
 <div class="header">
-  <h1>🦞 Production III <span>实时生产看板</span></h1>
+  <div class="title-wrap">
+    <h1>生产实时看板</h1>
+    <div class="subtitle">Production III · 抓包被动监听 · 每10秒自动刷新</div>
+  </div>
   <div class="update-box">
     <span class="live-dot" id="liveDot"></span>
     <span id="updateTime">--:--:--</span>
@@ -129,10 +150,10 @@
 <div class="addr-bar" id="addrBar">局域网访问地址: 同网段设备浏览器打开 http://&lt;本机IP&gt;:8080</div>
 
 <div class="kpis">
-  <div class="kpi"><div class="label">运行线体(主要)</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="label">平均效率</div><div class="value" id="kpiEff">-</div><div class="sub">主要线体加权</div></div>
-  <div class="kpi"><div class="label">达成线体</div><div class="value" id="kpiHit">-</div><div class="sub">Eff ≥ 100%</div></div>
-  <div class="kpi"><div class="label">总累计产量</div><div class="value" id="kpiCum">-</div><div class="sub">主要线实时累计</div></div>
+  <div class="kpi"><div class="label">🟢 运行线体</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="label">⚡ 平均效率</div><div class="value" id="kpiEff">-</div><div class="sub">主要线体加权</div></div>
+  <div class="kpi"><div class="label">🏆 达成线体</div><div class="value" id="kpiHit">-</div><div class="sub">Eff ≥ 100%</div></div>
+  <div class="kpi"><div class="label">📦 总累计产量</div><div class="value" id="kpiCum">-</div><div class="sub">主要线实时累计</div></div>
 </div>
 
 <div class="main-grid">
@@ -141,8 +162,8 @@
     <table id="mainTable">
       <thead>
         <tr>
-          <th>线体</th><th>开始</th><th>目标/日</th><th>Plan</th><th>Actual</th>
-          <th>C-B</th><th>累计</th><th>效率%</th><th>状态</th>
+          <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+          <th>差异</th><th>累计</th><th>效率%</th><th>状态</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -153,8 +174,8 @@
         <table id="otherTable">
           <thead>
             <tr>
-              <th>线体</th><th>开始</th><th>目标/日</th><th>Plan</th><th>Actual</th>
-              <th>C-B</th><th>效率%</th><th>状态</th>
+              <th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
+              <th>差异</th><th>效率%</th><th>状态</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -163,14 +184,14 @@
     </details>
   </div>
   <div class="panel">
-    <h2>📊 图表 (主要线体)</h2>
+    <h2>📊 产量与效率 (主要线体)</h2>
     <div class="chart-wrap">
-      <div class="legend"><span class="lg-actual">Actual</span><span class="lg-target">目标</span></div>
-      <canvas id="chartBar" height="150"></canvas>
+      <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span></div>
+      <canvas id="chartBar" height="210"></canvas>
     </div>
     <div class="chart-wrap">
       <div class="legend"><span class="lg-eff">效率%</span></div>
-      <canvas id="chartEff" height="130"></canvas>
+      <canvas id="chartEff" height="190"></canvas>
     </div>
   </div>
 </div>
@@ -203,6 +224,9 @@ function fmt(n) {
 function fmt1(n) {
   if (n === null || n === undefined || isNaN(n)) return "-";
   return Number(n).toFixed(1);
+}
+function shortName(name) {
+  return String(name || "").replace(/ line$/i, "").replace(/-Series$/i, "").trim();
 }
 
 function effClass(e) {
@@ -243,7 +267,6 @@ function renderTable() {
     const tr = document.createElement("tr");
     tr.innerHTML =
       `<td class="line-name">${l.name.trim()}</td>` +
-      `<td>${l.time || "-"}</td>` +
       `<td>${fmt(l.target)}</td>` +
       `<td>${fmt(l.plan)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
@@ -260,7 +283,6 @@ function renderTable() {
     const tr = document.createElement("tr");
     tr.innerHTML =
       `<td class="line-name">${l.name.trim()}</td>` +
-      `<td>${l.time || "-"}</td>` +
       `<td>${fmt(l.target)}</td>` +
       `<td>${fmt(l.plan)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
@@ -293,65 +315,81 @@ function renderKPIs(main) {
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
   const dpr = window.devicePixelRatio || 1;
-  const W = cv.clientWidth, H = cv.clientHeight || 150;
+  const W = cv.clientWidth, H = cv.clientHeight || 210;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
-  const padL = 42, padB = 26, padT = 8;
-  const cw = W - padL - 10, ch = H - padT - padB;
-  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.target || 0)));
+  const padL = 46, padB = 34, padT = 22;
+  const cw = W - padL - 12, ch = H - padT - padB;
+  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.plan || 0)));
   const step = Math.ceil(maxV / 4 / 10) * 10;
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
   for (let i = 0; i <= 4; i++) {
     const y = padT + ch - (ch * i / 4);
-    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 5, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
     ctx.fillText(fmt(step * i), 4, y + 3);
   }
-  const n = lines.length, bw = Math.min(26, (cw / n) * 0.28);
+  const n = lines.length, slot = cw / n;
+  const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
-    const cx = padL + (cw / n) * i + (cw / n) / 2;
-    const ha = (l.actual || 0) / maxV * ch, ht = (l.target || 0) / maxV * ch;
-    ctx.fillStyle = "#58a6ff"; ctx.fillRect(cx - bw, padT + ch - ha, bw, ha);
-    ctx.fillStyle = "#d29922"; ctx.fillRect(cx, padT + ch - ht, bw, ht);
+    const cx = padL + slot * i + slot / 2;
+    const ha = Math.max(0, (l.actual || 0) / maxV * ch), hp = Math.max(0, (l.plan || 0) / maxV * ch);
+    // Actual 柱 (蓝)
+    ctx.fillStyle = "#58a6ff";
+    ctx.fillRect(cx - bw - 1.5, padT + ch - ha, bw, ha);
+    ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - ha - 3);
+    // Plan 柱 (橙)
+    ctx.fillStyle = "#d29922";
+    ctx.fillRect(cx + 1.5, padT + ch - hp, bw, hp);
+    ctx.fillStyle = "#d29922"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt(l.plan), cx + 1.5 + bw / 2, padT + ch - hp - 3);
+    // 横排 x 标签
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
-    ctx.save(); ctx.translate(cx, H - 12); ctx.rotate(-0.5);
-    ctx.fillText(l.name.replace(/ line$/i, "").replace("-Series", ""), 0, 0); ctx.restore();
+    ctx.fillText(shortName(l.name), cx, H - 10);
   });
+  ctx.textAlign = "left";
 }
 
 function drawEff(main) {
   const cv = document.getElementById("chartEff");
   const dpr = window.devicePixelRatio || 1;
-  const W = cv.clientWidth, H = cv.clientHeight || 130;
+  const W = cv.clientWidth, H = cv.clientHeight || 190;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
-  const padL = 38, padB = 26, padT = 8;
-  const cw = W - padL - 10, ch = H - padT - padB;
+  const padL = 40, padB = 34, padT = 22;
+  const cw = W - padL - 12, ch = H - padT - padB;
   const maxV = 120;
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
   [0, 50, 100, 120].forEach(v => {
     const y = padT + ch - (ch * v / maxV);
-    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 5, y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
     ctx.fillText(v + "%", 4, y + 3);
   });
-  const n = lines.length, bw = Math.min(30, (cw / n) * 0.4);
+  const n = lines.length, slot = cw / n;
+  const bw = Math.min(28, slot * 0.4);
   lines.forEach((l, i) => {
-    const cx = padL + (cw / n) * i + (cw / n) / 2;
+    const cx = padL + slot * i + slot / 2;
     const e = l.eff || 0;
-    const h = Math.min(ch, ch * e / maxV);
+    const h = Math.max(0, Math.min(ch, ch * e / maxV));
     ctx.fillStyle = e >= 100 ? "#3fb950" : e >= 80 ? "#d29922" : "#f85149";
     ctx.fillRect(cx - bw / 2, padT + ch - h, bw, h);
+    // 柱顶数据标签
+    ctx.fillStyle = e >= 100 ? "#3fb950" : e >= 80 ? "#d29922" : "#f85149";
+    ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt1(e), cx, padT + ch - h - 3);
+    // 横排 x 标签
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
-    ctx.save(); ctx.translate(cx, H - 12); ctx.rotate(-0.5);
-    ctx.fillText(l.name.replace(/ line$/i, "").replace("-Series", ""), 0, 0); ctx.restore();
+    ctx.fillText(shortName(l.name), cx, H - 10);
   });
+  ctx.textAlign = "left";
 }
 
 function renderAll() {
@@ -377,7 +415,7 @@ async function refresh() {
   } catch (e) {
     document.getElementById("liveDot").classList.add("stale");
     document.getElementById("updateTime").textContent = "数据源连接失败";
-    document.getElementById("note").textContent = "读取 data.json 失败: " + e.message + " — 请确认解析程序已生成数据文件";
+    document.getElementById("note").textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
   }
 }
 
