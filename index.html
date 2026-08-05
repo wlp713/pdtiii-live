@@ -626,30 +626,42 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
       }
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
+      //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
       const valTxt = String(Math.round(v));
       const hNo = hourNo(s.lab);
       if (s.base) {
         // 上午累计段: 灰底 + "上午"标签 + 数值
-        if (perH >= 14) {
-          ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif";
-          ctx.fillText("上午", cx + bw / 2, yAcc + perH / 2 - 2);
-          ctx.fillStyle = "#e6edf3"; ctx.font = "bold 8px sans-serif";
+        if (perH >= 16) {
+          ctx.fillStyle = "#8b949e"; ctx.font = "9.5px sans-serif";
+          ctx.fillText("上午", cx + bw / 2, yAcc + perH / 2 - 3);
+          ctx.fillStyle = "#e6edf3"; ctx.font = "bold 10px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 10);
+        } else if (perH >= 8) {
+          ctx.fillStyle = "#8b949e"; ctx.font = "bold 9.5px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+        }
+      } else if (s.live) {
+        // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
+        if (perH >= 16 && hNo != null) {
+          ctx.fillStyle = "#8b949e"; ctx.font = "7.5px sans-serif";
+          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
+          ctx.fillStyle = "#c9d1d9"; ctx.font = "8.5px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
         } else if (perH >= 8) {
-          ctx.fillStyle = "#8b949e"; ctx.font = "bold 8px sans-serif";
+          ctx.fillStyle = "#c9d1d9"; ctx.font = "8.5px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
         }
       } else {
-        if (perH >= 16 && hNo != null) {
-          // 段高足够: 两行 — 编号(小) + 数值(大)
-          ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif";
+        if (perH >= 18 && hNo != null) {
+          // 段高足够: 两行 — 编号(大) + 数值(大)
+          ctx.fillStyle = "#8b949e"; ctx.font = "9.5px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold 8.5px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 9);
-        } else if (perH >= 8) {
-          // 段高一般: 只写数值
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold 8.5px sans-serif";
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold 10px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 10);
+        } else if (perH >= 10) {
+          // 段高一般: 只写数值(大一点)
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold 9.5px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
         }
       }
