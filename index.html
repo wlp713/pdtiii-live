@@ -901,12 +901,23 @@ function renderAll() {
   checkStalls();
 }
 
+// ★ 标题: 日期 + 班次 + 时段(精确到秒) — 由每秒 timer 刷新, 不依赖 refresh 周期
+function updatePeriodLabel() {
+  const pl = document.getElementById("periodLabel");
+  if (!pl || pl.dataset.frozen === "1") return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftNameOfHour(8) + " 8:00 - " + hh + ":" + mm + ":" + ss;
+}
+
 async function refresh() {
   const cs = document.getElementById("connStatus");
   // ★ file:// 直接打开会无法 fetch 数据(浏览器拦截) — 给出明确指引而非模糊的"连接失败"
   if (location.protocol === "file:") {
     const pl = document.getElementById("periodLabel");
-    if (pl) pl.textContent = "⚠️ 请用 http://localhost:8080 打开";
+    if (pl) { pl.dataset.frozen = "1"; pl.textContent = "⚠️ 请用 http://localhost:8080 打开"; }
     if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> ⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板"; }
     return;
   }
@@ -933,18 +944,13 @@ async function refresh() {
       else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> 数据延迟 " + Math.round(age / 1000) + "s"; }
       else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 数据断线 " + (ts ? Math.round(age / 60000) + "min" : "无数据"); }
     }
-    // ★ 标题: 日期 + 班次 + 时段 (数据班次 8:00 开始 → 早班)
+    // ★ 标题: 日期 + 班次 + 时段(含秒) — 正常状态解冻并更新
     const pl = document.getElementById("periodLabel");
-    if (pl) {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, "0");
-      const mm = String(now.getMinutes()).padStart(2, "0");
-      pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftNameOfHour(8) + " 8:00 - " + hh + ":" + mm;
-    }
+    if (pl) { pl.dataset.frozen = "0"; updatePeriodLabel(); }
     renderAll();
   } catch (e) {
     const pl = document.getElementById("periodLabel");
-    if (pl) pl.textContent = "连接失败";
+    if (pl) { pl.dataset.frozen = "1"; pl.textContent = "连接失败"; }
     if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 连接失败: " + (e && e.message ? e.message : String(e)); }
   } finally {
     clearTimeout(t);
@@ -975,6 +981,8 @@ async function refresh() {
 initNotif();
 refresh();
 setInterval(refresh, 10000);
+// ★ 标题秒表: 每秒刷新日期/班次/时段(精确到秒)
+setInterval(updatePeriodLabel, 1000);
 </script>
 </body>
 </html>
