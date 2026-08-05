@@ -476,16 +476,22 @@ function initNotif() {
 function segsOf(name) {
   const snaps = (state.hourly || {})[name] || [];
   if (!snaps.length) return [];
-  let prevA = 0, prevP = 0;
-  return snaps.map(s => {
-    const seg = {
-      h: s.h,
+  // ★ 方案B(2026-08-05): 首条快照 h>8 说明当天不是从班次开始记录(如今天 11:47 才上线)
+  //   → 返回空数组, 前端显示"累计至今"单柱, 不展示误导性的不完整小时段
+  if (snaps[0].h > 8) return [];
+  // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
+  let prevA = snaps[0].actual || 0, prevP = snaps[0].plan || 0, prevH = snaps[0].h;
+  const segs = [];
+  for (let i = 1; i < snaps.length; i++) {
+    const s = snaps[i];
+    segs.push({
+      h: s.h, lab: prevH, // lab = 该段的开始小时(如 8-9 段标 8)
       actual: Math.max(0, (s.actual || 0) - prevA),
       plan: Math.max(0, (s.plan || 0) - prevP)
-    };
-    prevA = s.actual || 0; prevP = s.plan || 0;
-    return seg;
-  });
+    });
+    prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
+  }
+  return segs;
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
   const totalH = Math.max(0, (total || 0) / maxV * ch);
@@ -506,7 +512,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
       if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1); }
       if (segH >= 13) {
         ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-        ctx.fillText(String(idx + 1), cx + bw / 2, yAcc + segH / 2 + 3);
+        // ★ 段标号 = 该段开始小时(如 8-9 段标 8); 首条快照作基准时从第二条起分段
+        ctx.fillText(String(s.lab != null ? s.lab : ""), cx + bw / 2, yAcc + segH / 2 + 3);
       }
     });
   }
@@ -543,7 +550,7 @@ function drawBar(main) {
     const cx = padL + slot * i + slot / 2;
     const segs = segsOf(l.name);
     drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
-    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan })), l.plan, maxV, ch, padT, "#d29922");
+    drawStacked(ctx, cx + 1.5, bw, segs.map(s => ({ actual: s.plan, lab: s.lab })), l.plan, maxV, ch, padT, "#d29922");
     ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(shortName(l.name), cx, H - 10);
   });
