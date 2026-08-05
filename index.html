@@ -71,10 +71,10 @@
   }
   .stall-banner .slist { font-weight: 400; color: var(--white); }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
-  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 5px; flex-shrink: 0; }
   .kpi {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 7px 12px;
+    border-radius: 10px; padding: 6px 12px;
     box-shadow: 0 4px 14px rgba(0,0,0,.25);
     min-width: 0;
   }
@@ -122,7 +122,7 @@
     animation: blink 1s infinite;
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
-  td.bar-cell { padding: 3px 8px; min-width: 170px; }
+  td.bar-cell { padding: 3px 8px; min-width: 130px; }
   .hbar { position: relative; height: 12px; background: #1a1f27; border-radius: 6px; overflow: hidden; }
   .hbar .act {
     position: absolute; left: 0; top: 0; height: 100%;
@@ -165,10 +165,6 @@
   .legend .hint { color: #6e7681; font-size: 10px; }
   .legend .seg-toggle { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #8b949e; cursor: pointer; user-select: none; }
   .legend .seg-toggle input { width: 12px; height: 12px; accent-color: var(--blue); cursor: pointer; }
-  .note {
-    margin-top: 6px; font-size: 10.5px; color: var(--gray);
-    text-align: center; flex-shrink: 0;
-  }
   /* 模态弹窗: 其他线体 */
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.65);
@@ -234,7 +230,7 @@
         <thead>
           <tr>
             <th>线体</th><th>产量 (蓝=实际 · 橙=计划)</th>
-            <th>Actual</th><th>Plan</th><th>差异</th><th>达成率%</th><th>状态</th>
+            <th>Actual</th><th>Plan</th><th>差异</th><th>达成率%</th><th>UPH</th><th>状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -255,8 +251,6 @@
     </div>
   </div>
 </div>
-
-<div class="note" id="note">数据来源: Production III 抓包解析 · 被动监听 · 不触碰数据库 · 小时数据自记录起累积</div>
 
 <!-- 其他线体模态 -->
 <div class="modal-overlay" id="otherModal">
@@ -392,6 +386,7 @@ function renderTable() {
       `<td>${fmt(l.plan)}</td>` +
       `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
       `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td class="uph-cell">${uphTxt(l, now)}</td>` +
       `<td>${stHtml(l)}</td>`;
     tb.appendChild(tr);
   });
@@ -753,15 +748,30 @@ function setHead(name, v) {
   headMap[normName(name)] = Number(v) || 0;
   try { localStorage.setItem(HEADS_KEY, JSON.stringify(headMap)); } catch (e) { /* ignore */ }
 }
-// 已工作小时: 8:00 上班, 12:00-13:00 午休; 用当前时刻(分钟)换算
+// 已工作小时(净工时): 8:00 上班, 12:00-13:00 午休(1h), 10:00-10:10 上午休息(10min), 15:05-15:15 下午休息(10min)
+//   ⚠️ 休息时间全部排除 → 与 UPPH 目标分母 7.67h(=8h-午休1h-休息20min) 口径一致
 function workedHours(now) {
   const mins = now.getHours() * 60 + now.getMinutes();
   const start = 8 * 60, lunchS = 12 * 60, lunchE = 13 * 60, end = 17 * 60;
+  const brkAMS = 10 * 60, brkAME = 10 * 60 + 10;      // 上午休息 10:00-10:10
+  const brkPMS = 15 * 60 + 5, brkPME = 15 * 60 + 15;  // 下午休息 15:05-15:15
   if (mins <= start) return 0;
   let w = mins - start;
-  if (mins > lunchS) w -= Math.min(60, Math.max(0, mins - lunchS)); // 扣除午休
-  if (mins > end) w = end - start - 60; // 封顶 8 小时
+  if (mins > lunchS) w -= Math.min(60, Math.max(0, mins - lunchS));  // 扣午休
+  if (mins > brkAMS) w -= Math.min(10, Math.max(0, mins - brkAMS));  // 扣上午休息
+  if (mins > brkPMS) w -= Math.min(10, Math.max(0, mins - brkPMS));  // 扣下午休息
+  if (mins > end) w = end - start - 60 - 20; // 封顶 7.67h (17:00 后不再累计)
   return Math.max(0, w) / 60;
+}
+// UPH = 实际产量 ÷ 实际工作小时(净工时, 不含人数)
+function uphOf(l, now) {
+  const w = workedHours(now);
+  if (!w) return null;
+  return (Number(l.actual) || 0) / w;
+}
+function uphTxt(l, now) {
+  const u = uphOf(l, now);
+  return u == null ? "-" : fmt1(u);
 }
 // UPPH = 产量 ÷ 人数 ÷ 已工作小时
 function upphOf(l, now) {
@@ -914,7 +924,8 @@ async function refresh() {
     const pl = document.getElementById("periodLabel");
     if (pl) pl.textContent = "连接失败";
     if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 连接失败"; }
-    document.getElementById("note").textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
+    const noteEl = document.getElementById("note");
+    if (noteEl) noteEl.textContent = "读取数据失败: " + e.message + " — 请确认解析程序已生成数据/云端可访问";
   }
 }
 
