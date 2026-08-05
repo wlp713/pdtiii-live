@@ -1,0 +1,5 @@
+# 这些是工作区运行时文件, 绝不能进 git 仓库 (live_loop 依赖它们)
+live_parse.py
+index.html.tmp
+__pycache__/
+*.pyc
