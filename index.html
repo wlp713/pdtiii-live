@@ -455,17 +455,24 @@ function initNotif() {
 }
 
 // ---- 小时产量: 从 hourly 快照算每段产量/目标 ----
+// ★ 编号规则: 工作时间 8-17点, 12-13点午休忽略
+//   8-9=1, 9-10=2, 10-11=3, 11-12=4, (12-13午休), 13-14=5, 14-15=6, 15-16=7, 16-17=8
+function hourNo(lab) {
+  if (lab >= 8 && lab <= 11) return lab - 7;   // 8→1, 9→2, 10→3, 11→4
+  if (lab >= 13 && lab <= 16) return lab - 8;  // 13→5, 14→6, 15→7, 16→8
+  return null; // 12午休 / 其他不统计
+}
 function segsOf(name, curActual) {
   const snaps = (state.hourly || {})[name] || [];
   if (!snaps.length) return [];
   const nowH = new Date().getHours();
-  // ★ 今天临时(首条快照 h>8): 上午段全部不显示; 从下午开始显示已完成小时段
-  //   + 当前进行中的小时(实时累积段, 标签=第几小时, 用最新整点快照作基准差值)
+  // ★ 当天中途启动(首条快照 h>8, 如今天 h=11 才上线): 首条快照作基准,
+  //   丢弃启动前的残留段(第一条段不完整), 从第二条起正常差值分段
   if (snaps[0].h > 8) {
     const segs = [];
     for (let i = 2; i < snaps.length; i++) {
       const prev = snaps[i - 1], s = snaps[i];
-      // 只保留下午段(lab>=13, 即 13 点起的段)
+      // ★ 今天临时: 上午段(含午休)全部空着, 只显示 13 点起的下午段
       if (prev.h < 13) continue;
       segs.push({
         h: s.h, lab: prev.h, live: false,
@@ -475,11 +482,11 @@ function segsOf(name, curActual) {
     }
     // ★ 当前进行中的小时: 最新整点快照作基准 → 当前 actual 差值 = 正在累积的产量
     const last = snaps[snaps.length - 1];
-    if (curActual != null && last && last.h <= nowH && nowH - last.h < 2) {
+    if (curActual != null && last && last.h >= 13 && last.h <= nowH && nowH - last.h < 2) {
       segs.push({
-        h: nowH, lab: last.h, live: true, // live=true 标记累积中
+        h: nowH, lab: last.h, live: true,
         actual: Math.max(0, (curActual || 0) - (last.actual || 0)),
-        plan: Math.max(0, (last.plan || 0) - (last.actual || 0)) // 该小时计划增量≈基准点计划-实际(近似)
+        plan: Math.max(0, (last.plan || 0) - (last.actual || 0))
       });
     }
     return segs;
@@ -489,6 +496,7 @@ function segsOf(name, curActual) {
   const segs = [];
   for (let i = 1; i < snaps.length; i++) {
     const s = snaps[i];
+    if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
     segs.push({
       h: s.h, lab: prevH, live: false,
       actual: Math.max(0, (s.actual || 0) - prevA),
@@ -497,7 +505,7 @@ function segsOf(name, curActual) {
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
   }
   // ★ 完整日也有当前进行中的小时段
-  if (curActual != null && prevH <= nowH && nowH - prevH < 2) {
+  if (curActual != null && prevH <= nowH && nowH - prevH < 2 && hourNo(prevH) != null) {
     segs.push({
       h: nowH, lab: prevH, live: true,
       actual: Math.max(0, (curActual || 0) - prevA),
@@ -514,20 +522,22 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
     ctx.fillStyle = color;
     ctx.fillRect(cx, base, bw, totalH);
   } else {
+    // ★ 每段高度 = 该小时产量 / 全天累计 × 柱高 → 各段按真实占比堆叠
+    //   (不用段总和做分母: 单段时不会占满整柱, 当前小时累积段只是柱顶的一小截)
     let yAcc = padT + ch;
-    const sum = segs.reduce((s, x) => s + x.actual, 0) || total || 1;
+    const denom = (total || 1);
     segs.forEach((s, idx) => {
-      const segH = Math.max(0, totalH * (s.actual / sum));
+      const segH = Math.max(0, totalH * ((s.actual || 0) / denom));
       yAcc -= segH;
       if (segH < 0.5) return;
       ctx.fillStyle = color;
       ctx.fillRect(cx, yAcc, bw, segH);
       if (idx > 0) { ctx.fillStyle = "#0d1117"; ctx.fillRect(cx, yAcc, bw, 1); }
-      if (segH >= 13) {
+      if (segH >= 11) {
         ctx.fillStyle = "#e6edf3"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-        // ★ 段标号 = 第几小时(段开始小时-8): 12-13点段=4, 13-14点段=5, 14-15点段=6...; 上午(<1)不显示
-        const hNo = s.lab != null ? s.lab - 8 : -1;
-        const lab = hNo >= 1 ? String(hNo) + (s.live ? "~" : "") : "";
+        // ★ 段标号 = 第几小时(8-9=1...11-12=4, 午休12-13无, 13-14=5...16-17=8)
+        const hNo = hourNo(s.lab);
+        const lab = hNo != null ? String(hNo) + (s.live ? "~" : "") : "";
         ctx.fillText(lab, cx + bw / 2, yAcc + segH / 2 + 3);
       }
     });
