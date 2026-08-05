@@ -245,7 +245,7 @@
     <div class="panel-head"><h2>📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><label class="seg-toggle" title="今天上午数据缺失时建议关闭，只看全天累计"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">横线=每小时分段 · 目标=每小时实时目标</span></div>
+        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><label class="seg-toggle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">段内数字=该时段产量/目标 · 灰段=上午累计</span></div>
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
@@ -482,37 +482,50 @@ function initNotif() {
   });
 }
 
-// ---- 小时产量: 从 hourly 快照算每段产量/目标 ----
-// ★ 编号规则: 工作时间 8-17点, 12-13点午休忽略
+// ---- 小时产量分段: 实际柱与目标柱共用同一时段骨架(逐段对齐, 直接对比每时段实际 vs 目标差异) ----
+// 编号规则: 工作时间 8-17点, 12-13点午休忽略
 //   8-9=1, 9-10=2, 10-11=3, 11-12=4, (12-13午休), 13-14=5, 14-15=6, 15-16=7, 16-17=8
 function hourNo(lab) {
   if (lab >= 8 && lab <= 11) return lab - 7;   // 8→1, 9→2, 10→3, 11→4
   if (lab >= 13 && lab <= 16) return lab - 8;  // 13→5, 14→6, 15→7, 16→8
   return null; // 12午休 / 其他不统计
 }
+// ★ 统一骨架: 每段同时含 actual(该时段实际产量) 与 plan(该时段目标=plan÷已过时段数, 均匀相等)
+//   base 段 = 启动前累计(今天上午缺小时数据): 实际柱/目标柱都画灰底, 段内写"上午"+累计值
+//   ★ 目的: 同一时段的实际段与目标段在两根柱子上位置完全一致 → 逐段比高度 = 直接看差异
 function segsOf(name, curActual) {
   const snaps = (state.hourly || {})[name] || [];
+  const ln = state.lines.find(x => x.name === name) || {};
+  const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
   if (!snaps.length) return [];
   const nowH = new Date().getHours();
-  // ★ 当天中途启动(首条快照 h>8, 如今天 h=11 才上线): 首条快照作基准,
-  //   丢弃启动前的残留段(第一条段不完整), 从第二条起正常差值分段
+  // 已过时段数(8..nowH, 跳过午休12) → 每段均匀目标(用户拍板: 每段目标差不多相等)
+  let nTotal = 0;
+  for (let h = 8; h <= nowH && h <= 16; h++) if (h !== 12) nTotal++;
+  const per = nTotal ? plan / nTotal : 0;
+  const segs = [];
   if (snaps[0].h > 8) {
-    const segs = [];
-    // ★ 启动前累计段(灰色底衬): 首条快照之前的产量无法按小时细分(今天上午),
-    //   画成浅灰底衬垫底, 不写编号 → 柱子始终是满的, 下午各小时段叠在上面
+    // ★ 当天中途启动(今天上午缺小时数据):
+    //   base 段 = 启动前累计, 截止到第一个下午快照(h>=13) → 包含上午全部产量+午休段产量
+    //   ⚠️ 必须用第一个下午快照的 actual, 不能用首条快照: 否则 h11→h13 之间(含午休)的产量会丢,
+    //      实际柱累计 ≠ 表格 Actual 列(今天实测: 丢 303 件)
+    //   base 段目标 = per × 上午已过段数(如首条 h=11 → 4段: 8-9,9-10,10-11,11-12)
+    let baseIdx = snaps.length - 1;
+    for (let i = 0; i < snaps.length; i++) {
+      if (snaps[i].h >= 13) { baseIdx = i; break; }
+    }
+    const mSegs = hourNo(snaps[0].h) || 0; // 首条快照所在时段编号 = 上午已过段数
     segs.push({
-      h: snaps[0].h, lab: null, live: false, base: true,
-      actual: snaps[0].actual || 0,
-      plan: snaps[0].plan || 0
+      h: snaps[baseIdx].h, lab: null, live: false, base: true,
+      actual: snaps[baseIdx].actual || 0,
+      plan: per * mSegs
     });
-    for (let i = 2; i < snaps.length; i++) {
+    for (let i = baseIdx + 1; i < snaps.length; i++) {
       const prev = snaps[i - 1], s = snaps[i];
-      // ★ 今天临时: 上午段(含午休)全部空着, 只显示 13 点起的下午段
-      if (prev.h < 13) continue;
       segs.push({
         h: s.h, lab: prev.h, live: false,
         actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
-        plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
+        plan: per
       });
     }
     // ★ 当前进行中的小时: 最新整点快照作基准 → 当前 actual 差值 = 正在累积的产量
@@ -521,21 +534,20 @@ function segsOf(name, curActual) {
       segs.push({
         h: nowH, lab: last.h, live: true,
         actual: Math.max(0, (curActual || 0) - (last.actual || 0)),
-        plan: Math.max(0, (last.plan || 0) - (last.actual || 0))
+        plan: per
       });
     }
     return segs;
   }
   // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
   let prevA = snaps[0].actual || 0, prevP = snaps[0].plan || 0, prevH = snaps[0].h;
-  const segs = [];
   for (let i = 1; i < snaps.length; i++) {
     const s = snaps[i];
     if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
     segs.push({
       h: s.h, lab: prevH, live: false,
       actual: Math.max(0, (s.actual || 0) - prevA),
-      plan: Math.max(0, (s.plan || 0) - prevP)
+      plan: per
     });
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
   }
@@ -544,24 +556,22 @@ function segsOf(name, curActual) {
     segs.push({
       h: nowH, lab: prevH, live: true,
       actual: Math.max(0, (curActual || 0) - prevA),
-      plan: Math.max(0, (prevP || 0) - (prevA || 0))
+      plan: per
     });
   }
   return segs;
 }
-// ---- 目标柱分段: ★ 每段目标 = plan ÷ 已过时段数(均匀相等), 柱顶累计 = plan = 表格Plan列, 完全同步 ----
-//   用户要求: ①每段目标差不多相等 ②图表目标柱与表格Plan列数据一致 ③实时更新(plan随数据刷新)
+// ---- 目标柱分段(回退/关闭分段时用): 每段目标 = plan ÷ 已过时段数(均匀相等), 柱顶累计 = plan ----
 function planSegsOf(name, nowH) {
   const ln = state.lines.find(x => x.name === name) || {};
   const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
-  // 已过时段数: 8-9,9-10,10-11,11-12,13-14,14-15,... 到 nowH(午休12不计数)
   let n = 0;
   for (let h = 8; h <= nowH && h <= 16; h++) {
     if (h === 12) continue;
     n++;
   }
   if (!n) return [];
-  const per = plan / n; // 每段目标相等
+  const per = plan / n;
   const segs = [];
   for (let h = 8; h <= nowH && h <= 16; h++) {
     if (h === 12) continue;
@@ -579,7 +589,10 @@ function planSegs(target, nowH) {
   }
   return segs;
 }
-function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
+// ★ 统一绘制: 同一份 segs(实际柱/目标柱共用, 段边界完全一致), key 决定画实际值还是目标值
+//   段内写数值: 实际柱写该时段实际产量, 目标柱写该时段目标 → 逐段对比差异
+//   base 段(上午累计)画灰底 #30363d + "上午"标签
+function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   const totalH = Math.max(0, (total || 0) / maxV * ch);
   const base = padT + ch - totalH;
   if (!segs.length) {
@@ -587,33 +600,49 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
     ctx.fillStyle = color;
     ctx.fillRect(cx, base, bw, totalH);
   } else {
-    // ★ 段高 = 该段产量 / maxV × 柱高(统一比例), 从底部往上堆 → 所有段累计铺满
-    //   全部段用统一颜色(上午完成段不用特殊色), 段间只画横线分割
     let yAcc = padT + ch;
     segs.forEach((s, idx) => {
-      const rawH = Math.max(0, ((s.actual || 0) / maxV) * ch);
-      // ★ 薄段最小可见高度 6px: 下午产量少的时段(如 14-15 段只产 15 件)也必须能看到分段+标签
-      const segH = rawH > 0 && rawH < 6 ? 6 : rawH;
+      const v = key === "plan" ? (s.plan || 0) : (s.actual || 0);
+      const rawH = Math.max(0, (v / maxV) * ch);
+      // ★ 薄段最小可见高度 10px: 产量少的时段也必须能看到分段和数值
+      const segH = rawH > 0 && rawH < 10 ? 10 : rawH;
       yAcc -= segH;
       if (segH < 0.5) return;
-      ctx.fillStyle = color; // ★ 统一颜色, 不再区分底衬
+      // ★ base 段(上午累计)灰色底衬, 其余用柱色
+      ctx.fillStyle = s.base ? "#30363d" : color;
       ctx.fillRect(cx, yAcc, bw, segH);
-      // ★ 分割线: 每个时段之间都画深色横线(与背景同色系, 柱子浅色→线用深色清晰), 柱顶也画一条收尾线
+      // ★ 分割线: 每个时段之间都画深色横线(与背景同色系), 柱顶也画一条收尾线
       ctx.fillStyle = "#0d1117";
       ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
       if (idx === segs.length - 1) {
-        // 最后一段顶部(柱顶)也画分割线, 保证每个时段边界都清晰
         ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
       }
-      // ★ 时段标签: 目标柱/实际柱都写小时编号(1-8), 8-9=1...16-17=8, 午休无
-      //   一律写在段中央(薄段已强制 6px 高有空间), 避免挤在柱顶重叠/被裁切
-      if (s.lab != null) {
+      // ★ 段内写数据(用户要求: 编号之外必须写该时段实际达成/目标数值)
+      ctx.textAlign = "center";
+      const valTxt = String(Math.round(v));
+      if (s.base) {
+        // 上午累计段: 灰底 + "上午"标签 + 累计值(段高够时)
+        if (segH >= 14) {
+          ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif";
+          ctx.fillText("上午", cx + bw / 2, yAcc + segH / 2 - 2);
+          ctx.fillStyle = "#e6edf3"; ctx.font = "bold 8px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 8);
+        } else if (segH >= 8) {
+          ctx.fillStyle = "#8b949e"; ctx.font = "bold 8px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 3);
+        }
+      } else {
         const hNo = hourNo(s.lab);
-        if (hNo != null) {
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 10px sans-serif";
-          ctx.textAlign = "center";
-          ctx.fillText(String(hNo), cx + bw / 2, yAcc + segH / 2 + 3.5);
+        if (segH >= 16 && hNo != null) {
+          // 段高足够: 两行 — 编号(小) + 数值(大)
+          ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif";
+          ctx.fillText(String(hNo), cx + bw / 2, yAcc + segH / 2 - 1);
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold 8.5px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 9);
+        } else if (segH >= 8) {
+          // 段高一般: 只写数值
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold 8.5px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + segH / 2 + 3);
         }
       }
     });
@@ -625,8 +654,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color) {
   }
 }
 
-// ★ 小时产出分段开关: 默认关闭(只显示全天累计)。今天上午数据缺失时显示分段不统一, 勾选后才画每小时分段+分割线
-const SEG_KEY = "pdtiii_seg_show";
+// ★ 小时产出分段开关: 默认关闭(只显示全天累计)。勾选后实际柱/目标柱共用统一骨架逐段对齐对比
+const SEG_KEY = "pdtiii_seg_v1";
 let segShow = false;
 try { segShow = localStorage.getItem(SEG_KEY) === "1"; } catch (e) { segShow = false; }
 function toggleSeg() {
@@ -648,12 +677,9 @@ function drawBar(main) {
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
   const padL = 46, padB = 34, padT = 26;
   const cw = W - padL - 12, ch = H - padT - padB;
-  // ★ maxV 基于实时目标累计(到当前小时的每小时 plan 差值), 无 hourly 快照时回退固定目标
+  // ★ maxV 基于实际累计与目标累计取最大(目标=plan÷已过时段数×已过时段数=plan, 与表格一致)
   const nowH = new Date().getHours();
-  const maxV = Math.max(1, ...lines.map(l => {
-    const pc = planSegsOf(l.name, nowH).reduce((s, x) => s + (x.actual || 0), 0);
-    return Math.max(l.actual || 0, pc);
-  }));
+  const maxV = Math.max(1, ...lines.map(l => Math.max(l.actual || 0, l.plan || 0)));
   const step = Math.ceil(maxV / 4 / 10) * 10;
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
   for (let i = 0; i <= 4; i++) {
@@ -665,21 +691,19 @@ function drawBar(main) {
   const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
-    // ★ 小时产出开关: 开启才画每小时分段+分割线+时段编号; 关闭时画全天累计纯色柱(统一好看)
+    // ★ 小时产出开关: 开启后实际柱/目标柱共用同一份 segs(统一骨架) → 段边界完全一致, 逐段对比差异
     if (segShow) {
-      // 实际柱: 各小时实际产量堆叠(含上午累计段, 统一蓝色, 横线分割)
       const segs = segsOf(l.name, l.actual);
-      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff");
-      // 计划柱: 实时累计目标 = 每小时快照 plan 差值分段, 柱顶 = 到当前小时的累计目标
-      const psegs = planSegsOf(l.name, nowH);
-      const planCum = psegs.reduce((s, x) => s + (x.actual || 0), 0);
-      drawStacked(ctx, cx + 1.5, bw, psegs, planCum, maxV, ch, padT, "#d29922");
+      // 实际柱(蓝): 每段画实际产量, 段内写该时段实际达成数
+      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff", "actual");
+      // 目标柱(橙): 同一份 segs, 每段画目标产量(均匀), 段内写该时段目标数 → 与实际柱逐段对齐
+      drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxV, ch, padT, "#d29922", "plan");
     } else {
       // 关闭分段: 全天累计纯色柱(柱顶=累计值), 不画横线不画编号 → 上午缺数据时显示统一
       const aH = Math.max(0, (l.actual || 0) / maxV * ch);
       ctx.fillStyle = "#58a6ff";
       ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
-      const pCum = planSegsOf(l.name, nowH).reduce((s, x) => s + (x.actual || 0), 0);
+      const pCum = l.plan || 0;
       const pH = Math.max(0, pCum / maxV * ch);
       ctx.fillStyle = "#d29922";
       ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
