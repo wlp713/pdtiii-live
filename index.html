@@ -114,6 +114,23 @@
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
   tr.stalled-row td { background: rgba(248,81,73,.1); }
+  /* ---- 停滞分级: 黄 <15min / 橙 15-30min / 红 >=30min(闪烁) ---- */
+  tr.stalled-row.lv1 td { background: rgba(210,153,34,.12); }
+  tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
+  tr.stalled-row.lv3 td { background: rgba(248,81,73,.28); animation: stallRowBlink 1.2s infinite; }
+  tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
+  tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
+  tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
+  @keyframes stallRowBlink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
+  .stall-time {
+    display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
+    font-size: 10px; font-weight: 600; padding: 0 6px; border-radius: 8px;
+    background: rgba(139,148,158,.15); color: var(--gray);
+  }
+  .st.stall .stall-time { margin-left: 4px; }
+  .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
+  .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
+  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 1s infinite; }
   .line-name { font-weight: 600; color: var(--white); white-space: nowrap; }
   .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
   .hit-name { color: var(--green); }
@@ -141,6 +158,7 @@
   .hbar-leg i { font-style: normal; }
   .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
   .hbar-leg .p::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--orange); margin-right: 3px; vertical-align: -1px; }
+  .forecast-cell { white-space: nowrap; min-width: 58px; }
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
@@ -190,6 +208,19 @@
   }
   .modal-close:hover { color: var(--white); border-color: #3d444d; }
   .modal-body { padding: 10px 16px 14px; overflow-y: auto; }
+  .modal-lg { width: min(1100px, 96vw); }
+  .hist-section { margin-bottom: 14px; }
+  .hist-section h4 { font-size: 13px; color: var(--white); font-weight: 700; margin-bottom: 6px; }
+  .hist-scroll { overflow-y: auto; max-height: 30vh; border: 1px solid var(--border); border-radius: 8px; }
+  .hist-table { font-size: 11.5px; }
+  .hist-table th { background: var(--panel2); }
+  .hist-table td, .hist-table th { padding: 6px 8px; }
+  .hist-table tr:hover td { background: var(--panel2); }
+  .hist-table .champ { color: var(--orange); font-weight: 700; }
+  .hist-table .lastp { color: var(--red); font-weight: 700; }
+  .vs-up { color: var(--green); font-weight: 600; }
+  .vs-down { color: var(--red); font-weight: 600; }
+  .vs-flat { color: var(--gray); }
   @media (max-width: 1100px) {
     .main-grid { grid-template-columns: 1fr; overflow-y: auto; }
     body { overflow-y: auto; }
@@ -207,6 +238,7 @@
     <button class="btn" id="langBtn" title="Switch language">EN</button>
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
+    <button class="btn" id="histBtn" data-i18n="histBtn">📊 历史统计</button>
   </div>
 </div>
 
@@ -233,7 +265,7 @@
         <thead>
           <tr>
             <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
-            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thStatus">状态</th>
+            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thForecast">预测收盘</th><th data-i18n="thStatus">状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -277,6 +309,45 @@
   </div>
 </div>
 
+<!-- 历史统计模态 -->
+<div class="modal-overlay" id="histModal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 data-i18n="histTitle">📊 历史统计 · 周/月对比 · 站擂排名</h3>
+      <button class="modal-close" id="histClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hist-section">
+        <h4 data-i18n="histToday">📌 今日实时</h4>
+        <div class="hist-scroll">
+          <table class="hist-table" id="histTodayTbl">
+            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thUpphRate">UPPH达成%</th><th data-i18n="thScore">综合分</th><th data-i18n="thRank">今日排名</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="hist-section">
+        <h4 id="histWeekTitle">🗓 本周 vs 上周</h4>
+        <div class="hist-scroll">
+          <table class="hist-table" id="histWeekTbl">
+            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thWeekRate">周均达成%</th><th data-i18n="thWeekUpph">周均UPPH%</th><th data-i18n="thWeekVsPrev">vs 上周</th><th data-i18n="thChamp">🏆 站擂第一</th><th data-i18n="thLast">🔻 末位</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="hist-section">
+        <h4 id="histMonthTitle">📅 本月 vs 上月</h4>
+        <div class="hist-scroll">
+          <table class="hist-table" id="histMonthTbl">
+            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thMonthRate">月均达成%</th><th data-i18n="thMonthUpph">月均UPPH%</th><th data-i18n="thMonthVsPrev">vs 上月</th><th data-i18n="thChamp">🏆 站擂第一</th><th data-i18n="thLast">🔻 末位</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 编辑人数模态 -->
 <div class="modal-overlay" id="headModal">
   <div class="modal">
@@ -303,7 +374,7 @@ const I18N = {
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
     panelMainTitle: "📋 主要线体 · 产量对比 · 按 UPH 排序", otherLines: "其他线体",
-    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
+    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thForecast: "预测收盘", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
@@ -322,7 +393,13 @@ const I18N = {
     useHttp: "⚠️ 请用 http://localhost:8080 打开",
     fileErr: "⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板",
     connOk: "已连接 · 数据实时", connDelay: "数据延迟 {s}s", connDown: "数据断线 {m}min", connNoData: "无数据",
-    connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})"
+    connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})",
+    histBtn: "📊 历史统计", histTitle: "📊 历史统计 · 周/月对比 · 站擂排名",
+    histToday: "📌 今日实时", histWeekTitle: "🗓 本周 vs 上周", histMonthTitle: "📅 本月 vs 上月",
+    thUpphRate: "UPPH达成%", thScore: "综合分", thRank: "今日排名",
+    thWeekRate: "周均达成%", thWeekUpph: "周均UPPH%", thWeekVsPrev: "vs 上周",
+    thMonthRate: "月均达成%", thMonthUpph: "月均UPPH%", thMonthVsPrev: "vs 上月",
+    thChamp: "🏆 站擂第一", thLast: "🔻 末位"
   },
   en: {
     docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
@@ -331,7 +408,7 @@ const I18N = {
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
     panelMainTitle: "📋 Main Lines · Output vs Plan · by UPH", otherLines: "Other Lines",
-    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
+    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thForecast: "EOD Forecast", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
@@ -350,7 +427,13 @@ const I18N = {
     useHttp: "⚠️ Open via http://localhost:8080",
     fileErr: "⚠️ file:// cannot load data — open via http://localhost:8080",
     connOk: "Connected · Live", connDelay: "Data delay {s}s", connDown: "Data offline {m}min", connNoData: "No data",
-    connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})"
+    connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})",
+    histBtn: "📊 History", histTitle: "📊 History · Weekly/Monthly · Rankings",
+    histToday: "📌 Today (Live)", histWeekTitle: "🗓 This Week vs Last Week", histMonthTitle: "📅 This Month vs Last Month",
+    thUpphRate: "UPPH Rate%", thScore: "Score", thRank: "Today Rank",
+    thWeekRate: "Week Rate%", thWeekUpph: "Week UPPH%", thWeekVsPrev: "vs Last Wk",
+    thMonthRate: "Month Rate%", thMonthUpph: "Month UPPH%", thMonthVsPrev: "vs Last Mo",
+    thChamp: "🏆 1st", thLast: "🔻 Last"
   }
 };
 const LANG_KEY = "pdtiii_lang";
@@ -424,7 +507,7 @@ function signClass(v) {
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
 function stHtml(l) {
   let stCls, stTxt;
-  if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall"); }
+  if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
   else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = t("stRun"); }
   else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = t("stOff"); }
   else { stCls = "err"; stTxt = l.status || t("stUnknown"); }
@@ -471,7 +554,7 @@ function renderTable() {
   main.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-    if (isStalled(l)) tr.className = "stalled-row";
+    if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
     else if (miss) tr.className = "miss";
     const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
     tr.innerHTML =
@@ -483,6 +566,7 @@ function renderTable() {
       `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
       `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
       `<td class="uph-cell">${uphTxt(l, now)}</td>` +
+      `<td class="forecast-cell">${forecastHtml(l, now)}</td>` +
       `<td>${stHtml(l)}</td>`;
     tb.appendChild(tr);
   });
@@ -491,7 +575,7 @@ function renderTable() {
   other.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-    if (isStalled(l)) tr.className = "stalled-row";
+    if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
     else if (miss) tr.className = "miss";
     const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
     tr.innerHTML =
@@ -531,13 +615,169 @@ function renderKPIs(main) {
   document.getElementById("kpiMotor").textContent = totalMotor ? fmt(totalMotor) : "-";
 }
 
+// ---- 停滞分级告警 v5.18: 追踪每条主要线 actual 最后变化时刻 → 停滞时长 + 分级 ----
+//   时长依据: 前端记录 actual 每次变化的时间戳(localStorage 持久化, 刷新不丢),
+//   停滞时长 = now - 最后变化时刻。分级: <15min 黄 / 15-30min 橙 / >=30min 红(闪烁)
+const STALL_START_KEY = "pdtiii_stall_start_v1";
+const STALL_LAST_KEY = "pdtiii_stall_last_v1";
+let stallStartMap = {};
+let lastActualMap = {};
+try { stallStartMap = JSON.parse(localStorage.getItem(STALL_START_KEY) || "{}") || {}; } catch (e) { stallStartMap = {}; }
+try { lastActualMap = JSON.parse(localStorage.getItem(STALL_LAST_KEY) || "{}") || {}; } catch (e) { lastActualMap = {}; }
+function stallMinutesOf(l) {
+  const ts = stallStartMap[normName(l.name)];
+  if (!ts) return 0;
+  return Math.max(0, Math.floor((Date.now() - ts) / 60000));
+}
+function stallLevelOf(l) {
+  if (!isStalled(l)) return 0;
+  const m = stallMinutesOf(l);
+  if (m >= 30) return 3;
+  if (m >= 15) return 2;
+  return 1;
+}
+function stallTimeHtml(l) {
+  const lv = stallLevelOf(l);
+  if (!lv) return "";
+  return `<span class="stall-time lv${lv}">${stallMinutesOf(l)}m</span>`;
+}
+// ★ 每次 refresh 数据到位后调用: 更新 actual 最后变化时间戳(localStorage 持久化, 刷新不丢)
+//   actual 变化 >=0.5 → 记为新起点; 未变 → 沿用旧时间戳, 停滞时长持续累积
+function trackStallStart() {
+  const nowTs = Date.now();
+  let changed = false;
+  state.lines.forEach(l => {
+    const k = normName(l.name);
+    if (!MAIN_SET.has(k)) return;  // ★ 只追踪主要线体
+    const a = Number(l.actual) || 0;
+    const prev = lastActualMap[k];
+    if (prev === undefined || Math.abs(a - prev) >= 0.5) {
+      lastActualMap[k] = a;
+      stallStartMap[k] = nowTs;
+      changed = true;
+    }
+  });
+  // 清理已消失的线(只清 lastActual, 时间戳保留避免误判)
+  Object.keys(lastActualMap).forEach(k => {
+    if (!state.lines.some(l => normName(l.name) === k)) delete lastActualMap[k];
+  });
+  if (changed) {
+    try {
+      localStorage.setItem(STALL_START_KEY, JSON.stringify(stallStartMap));
+      localStorage.setItem(STALL_LAST_KEY, JSON.stringify(lastActualMap));
+    } catch (e) { /* ignore */ }
+  }
+}
+
+// ---- 历史统计 v5.18: 每日快照(localStorage) → 周/月对比 + 站擂排名 ----
+//   每天每次 refresh 更新当天记录(覆盖); 跨天后保留 → 自然形成历史
+//   记录字段(每条主要线): rate=达成率% eff, uph, upph=UPPH达成率%
+const HIST_KEY = "pdtiii_hist_v1";
+let histStore = {};
+try { histStore = JSON.parse(localStorage.getItem(HIST_KEY) || "{}") || {}; } catch (e) { histStore = {}; }
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function dayKeyOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function recordToday() {
+  const now = new Date();
+  const k = todayKey();
+  const rec = {};
+  state.lines.forEach(l => {
+    const nk = normName(l.name);
+    if (!MAIN_SET.has(nk)) return;
+    const uph = uphOf(l, now);
+    const upph = upphRateOf(l, now);
+    rec[nk] = {
+      rate: (l.eff !== null && !isNaN(l.eff)) ? l.eff : null,
+      uph: uph == null ? null : Number(uph.toFixed(2)),
+      upph: upph == null ? null : Number(upph.toFixed(1)),
+      ts: Date.now()
+    };
+  });
+  histStore[k] = rec;
+  try { localStorage.setItem(HIST_KEY, JSON.stringify(histStore)); } catch (e) { /* ignore */ }
+}
+// 综合得分: 达成率(0-100)、UPPH达成率(%) 两指标平均; 缺任一用另一个; 全缺 null
+function compScore(rec) {
+  if (!rec) return null;
+  const vals = [rec.rate, rec.upph].filter(v => v != null && !isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((s, v) => s + v, 0) / vals.length;
+}
+// 一天内各线排名: 返回 { name: rank(1=第一) }, 按 compScore 降序; 同分按 uph 次排
+function rankOfDay(dayRec) {
+  const entries = Object.entries(dayRec || {}).map(([k, r]) => ({ k, score: compScore(r), r }));
+  entries.sort((a, b) => (b.score || -Infinity) - (a.score || -Infinity) ||
+    ((b.r.uph || -Infinity) - (a.r.uph || -Infinity)));
+  const map = {};
+  entries.forEach((e, i) => { map[e.k] = i + 1; });
+  return map;
+}
+// 汇总 N 天: 平均 rate/upph/uph + 站擂次数(冠军=当天第一, 末位=当天最后且>=3条线有得分)
+function aggregate(days) {
+  const agg = {};
+  days.forEach(dayRec => {
+    if (!dayRec) return;
+    const ranks = rankOfDay(dayRec);
+    const scored = Object.keys(ranks).length;
+    Object.entries(dayRec).forEach(([k, r]) => {
+      const a = agg[k] || (agg[k] = { rate: [], uph: [], upph: [], first: 0, last: 0, days: 0 });
+      if (r.rate != null) a.rate.push(r.rate);
+      if (r.uph != null) a.uph.push(r.uph);
+      if (r.upph != null) a.upph.push(r.upph);
+      a.days++;
+      if (scored >= 3) {
+        if (ranks[k] === 1) a.first++;
+        if (ranks[k] === scored) a.last++;
+      }
+    });
+  });
+  const out = {};
+  Object.entries(agg).forEach(([k, a]) => {
+    const avg = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null;
+    out[k] = { rate: avg(a.rate), uph: avg(a.uph), upph: avg(a.upph), first: a.first, last: a.last, days: a.days };
+  });
+  return out;
+}
+function weekStartOf(d) { const x = new Date(d); const w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); x.setHours(0,0,0,0); return x; }
+function monthStartOf(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+// 取某范围的天记录: [{key, rec}]
+function rangeDays(from, to) {
+  const out = [];
+  for (let t = new Date(from); t <= to; t.setDate(t.getDate() + 1)) {
+    const k = dayKeyOf(t);
+    if (histStore[k]) out.push(histStore[k]);
+  }
+  return out;
+}
+function weekAgg(offsetWeeks) {
+  const now = new Date();
+  const ws = weekStartOf(now);
+  ws.setDate(ws.getDate() + offsetWeeks * 7);
+  const we = new Date(ws); we.setDate(we.getDate() + 6); we.setHours(23, 59, 59, 999);
+  return aggregate(rangeDays(ws, we));
+}
+function monthAgg(offsetMonths) {
+  const now = new Date();
+  const ms = new Date(now.getFullYear(), now.getMonth() + offsetMonths, 1);
+  const me = new Date(ms.getFullYear(), ms.getMonth() + 1, 0); me.setHours(23, 59, 59, 999);
+  return aggregate(rangeDays(ms, me));
+}
 // ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
   const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)));
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
-    document.getElementById("stallList").textContent = stalled.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
+    // ★ 横幅按最严重级别着色 + 每条附停滞时长
+    const maxLv = stalled.reduce((m, l) => Math.max(m, stallLevelOf(l)), 0);
+    banner.style.borderColor = maxLv >= 3 ? "rgba(248,81,73,.8)" : (maxLv === 2 ? "rgba(248,81,73,.5)" : "rgba(210,153,34,.5)");
+    banner.style.background = maxLv >= 2 ? "rgba(248,81,73,.18)" : "rgba(210,153,34,.12)";
+    document.getElementById("stallList").innerHTML = stalled
+      .map(l => `${shortName(l.name)} ${stallTimeHtml(l)}`)
+      .join(lang === "zh" ? "、" : ", ");
   } else {
     banner.style.display = "none";
   }
@@ -900,6 +1140,50 @@ function upphOf(l, now) {
   if (!n || !w) return null;
   return (Number(l.actual) || 0) / n / w;
 }
+// ---- 今日收盘预测 v5.18: 按最近快照段的实际速率外推剩余净工时 ----
+//   速率 = (最新快照actual − 上一条快照actual) ÷ (两快照时刻的净工时差) → 自动排除休息时段
+//   预测收盘 = 当前累计actual + 速率 × 剩余净工时(今天总净工时10.67h − 已工作净工时)
+//   预测达成率 = 预测收盘 ÷ 日目标target × 100
+//   ⚠️ 无快照/无target时返回 null(不显示预测), 不猜测
+function forecastOf(l, now) {
+  const target = Number(l.target) || 0;
+  const cur = Number(l.actual) || 0;
+  if (!target) return null;
+  const totalH = 640 / 60;                // 总净工时 10.67h (与 workedHours 封顶口径一致)
+  const wNow = workedHours(now);
+  const remainH = Math.max(0, totalH - wNow);
+  const hourly = state.hourly || {};
+  const arr = hourly[l.name.trim()];
+  let rate = null;
+  // ★ 找最近两个净工时不同的快照差分(跳过午休 12-13 等净工时差为0的无效对)
+  if (Array.isArray(arr) && arr.length >= 2) {
+    for (let i = arr.length - 1; i >= 1; i--) {
+      const s1 = arr[i - 1], s2 = arr[i];
+      const w1 = workedHours(snapTimeOf(s1.h)), w2 = workedHours(snapTimeOf(s2.h));
+      const dw = w2 - w1;
+      const dA = (Number(s2.actual) || 0) - (Number(s1.actual) || 0);
+      if (dw > 0.05 && dA >= 0) { rate = dA / dw; break; }
+    }
+  }
+  if (rate == null) return null;
+  const eod = cur + rate * remainH;
+  const ratePct = target > 0 ? eod / target * 100 : null;
+  return { eod: Math.round(eod), ratePct };
+}
+// 快照整点时刻(如 h=13 → 13:00): workedHours 用分钟窗口, 整点即可
+function snapTimeOf(h) {
+  const d = new Date();
+  d.setHours(h, 0, 0, 0);
+  return d;
+}
+// 预测列 HTML: 主表每行加一列(预测收盘 + 预测达成率%)
+function forecastHtml(l, now) {
+  const f = forecastOf(l, now);
+  if (!f) return `<span class="zero">-</span>`;
+  const cls = f.ratePct == null ? "zero" : (f.ratePct >= 100 ? "pos" : "neg");
+  const pctTxt = f.ratePct == null ? "-" : fmt1(f.ratePct) + "%";
+  return `<span class="${cls}" style="font-weight:600">${fmt(f.eod)}</span><span class="zero" style="display:block;font-size:10px">${pctTxt}</span>`;
+}
 // 当前小时累计计划产量: ★ 优先用实时累计计划(工厂实时推送, 与表格 Plan 列一致)
 //   ⚠️ 2026-08-06 修复: 原逻辑只取 hourly 定格快照的 plan, 但快照在每小时首次出现时定格后不再更新
 //      (如 08:10 定格 plan=42, 实时已 105) → UPPH 目标严重滞后 → 达成率虚高(169% 实为 68%)
@@ -1079,6 +1363,8 @@ async function refresh() {
     // ★ 标题: 日期 + 班次 + 时段(含秒) — 正常状态解冻并更新
     const pl = document.getElementById("periodLabel");
     if (pl) { pl.dataset.frozen = "0"; updatePeriodLabel(); }
+    trackStallStart();   // ★ v5.18 停滞时长追踪(需在 renderAll 前: renderTable 要用 stallLevelOf)
+    recordToday();       // ★ v5.18 历史统计: 记录今日快照(覆盖当天, 跨天保留)
     renderAll();
   } catch (e) {
     const pl = document.getElementById("periodLabel");
@@ -1089,12 +1375,102 @@ async function refresh() {
   }
 }
 
+// ---- 历史统计面板渲染 ----
+function vsHtml(cur, prev) {
+  if (cur == null) return `<span class="vs-flat">-</span>`;
+  if (prev == null || prev <= 0) return `<span class="vs-flat">${fmt1(cur)}%</span>`;
+  const d = cur - prev;
+  const cls = Math.abs(d) < 0.5 ? "vs-flat" : (d > 0 ? "vs-up" : "vs-down");
+  const arrow = Math.abs(d) < 0.5 ? "→" : (d > 0 ? "↑" : "↓");
+  return `<span class="${cls}">${arrow} ${fmt1(Math.abs(d))}%</span>`;
+}
+function renderHist() {
+  const now = new Date();
+  // --- 今日 ---
+  const todayRec = histStore[todayKey()] || {};
+  const todayTbody = document.querySelector("#histTodayTbl tbody");
+  todayTbody.innerHTML = "";
+  const ranks = rankOfDay(todayRec);
+  MAIN_LINES.forEach(name => {
+    const nk = normName(name);
+    const r = todayRec[nk];
+    if (!r) {
+      todayTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
+      return;
+    }
+    const score = compScore(r);
+    const rank = ranks[nk] || "-";
+    const rankHtml = rank === 1 ? `<span class="champ">🥇 ${rank}</span>` : (rank === Object.keys(ranks).length ? `<span class="lastp">🔻 ${rank}</span>` : `${rank}`);
+    todayTbody.innerHTML +=
+      `<tr><td class="line-name">${name.trim()}</td>` +
+      `<td class="${effClass(r.rate)}">${r.rate == null ? '-' : fmt1(r.rate)}</td>` +
+      `<td>${r.uph == null ? '-' : fmt1(r.uph)}</td>` +
+      `<td>${r.upph == null ? '-' : fmt1(r.upph)}</td>` +
+      `<td class="${score != null && score >= 90 ? 'pos' : score != null ? '' : 'zero'}">${score == null ? '-' : fmt1(score)}</td>` +
+      `<td>${rankHtml}</td></tr>`;
+  });
+  // --- 本周 vs 上周 ---
+  const wk = weekAgg(0), pw = weekAgg(-1);
+  const wkTbody = document.querySelector("#histWeekTbl tbody");
+  wkTbody.innerHTML = "";
+  document.getElementById("histWeekTitle").textContent =
+    t("histWeekTitle") + ` (${fmt1(wkAvg(wk))}% vs ${fmt1(wkAvg(pw))}%)`;
+  MAIN_LINES.forEach(name => {
+    const nk = normName(name);
+    const a = wk[nk], p = pw[nk];
+    if (!a) {
+      wkTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
+      return;
+    }
+    wkTbody.innerHTML +=
+      `<tr><td class="line-name">${name.trim()}</td>` +
+      `<td class="${effClass(a.rate)}">${a.rate == null ? '-' : fmt1(a.rate)}</td>` +
+      `<td>${a.upph == null ? '-' : fmt1(a.upph)}</td>` +
+      `<td>${vsHtml(a.rate, p ? p.rate : null)}</td>` +
+      `<td class="champ">${a.first ? '🏆 ' + a.first : '-'}</td>` +
+      `<td class="lastp">${a.last ? '🔻 ' + a.last : '-'}</td></tr>`;
+  });
+  // --- 本月 vs 上月 ---
+  const mk = monthAgg(0), pm = monthAgg(-1);
+  const mkTbody = document.querySelector("#histMonthTbl tbody");
+  mkTbody.innerHTML = "";
+  document.getElementById("histMonthTitle").textContent =
+    t("histMonthTitle") + ` (${fmt1(mkAvg(mk))}% vs ${fmt1(mkAvg(pm))}%)`;
+  MAIN_LINES.forEach(name => {
+    const nk = normName(name);
+    const a = mk[nk], p = pm[nk];
+    if (!a) {
+      mkTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
+      return;
+    }
+    mkTbody.innerHTML +=
+      `<tr><td class="line-name">${name.trim()}</td>` +
+      `<td class="${effClass(a.rate)}">${a.rate == null ? '-' : fmt1(a.rate)}</td>` +
+      `<td>${a.upph == null ? '-' : fmt1(a.upph)}</td>` +
+      `<td>${vsHtml(a.rate, p ? p.rate : null)}</td>` +
+      `<td class="champ">${a.first ? '🏆 ' + a.first : '-'}</td>` +
+      `<td class="lastp">${a.last ? '🔻 ' + a.last : '-'}</td></tr>`;
+  });
+}
+// 聚合集平均达成率(表头摘要用)
+function wkAvg(agg) {
+  const vals = Object.values(agg).map(a => a.rate).filter(v => v != null);
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+}
+function mkAvg(agg) { return wkAvg(agg); }
+
 // 模态开关
 (function initModal() {
   const overlay = document.getElementById("otherModal");
   document.getElementById("otherBtn").addEventListener("click", () => overlay.classList.add("open"));
   document.getElementById("modalClose").addEventListener("click", () => overlay.classList.remove("open"));
   overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+  // 历史统计弹窗
+  const hmod = document.getElementById("histModal");
+  const hbtn = document.getElementById("histBtn");
+  if (hbtn) hbtn.addEventListener("click", () => { renderHist(); hmod.classList.add("open"); });
+  document.getElementById("histClose").addEventListener("click", () => hmod.classList.remove("open"));
+  hmod.addEventListener("click", e => { if (e.target === hmod) hmod.classList.remove("open"); });
   // 编辑人数弹窗
   const hov = document.getElementById("headModal");
   const hb = document.getElementById("headBtn");
