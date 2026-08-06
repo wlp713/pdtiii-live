@@ -101,7 +101,7 @@
     margin-bottom: 6px; flex-shrink: 0;
   }
   .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 700; letter-spacing: .5px; }
-  .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+  .table-scroll { overflow-y: hidden; flex: 1; min-height: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
     text-align: right; padding: 4px 6px; color: var(--gray);
@@ -158,7 +158,6 @@
   .hbar-leg i { font-style: normal; }
   .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
   .hbar-leg .p::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--orange); margin-right: 3px; vertical-align: -1px; }
-  .forecast-cell { white-space: nowrap; min-width: 58px; }
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
@@ -265,7 +264,7 @@
         <thead>
           <tr>
             <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
-            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thForecast">预测收盘</th><th data-i18n="thStatus">状态</th>
+            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thStatus">状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -374,7 +373,7 @@ const I18N = {
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
     panelMainTitle: "📋 主要线体 · 产量对比 · 按 UPH 排序", otherLines: "其他线体",
-    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thForecast: "预测收盘", thStatus: "状态",
+    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
@@ -408,7 +407,7 @@ const I18N = {
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
     panelMainTitle: "📋 Main Lines · Output vs Plan · by UPH", otherLines: "Other Lines",
-    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thForecast: "EOD Forecast", thStatus: "Status",
+    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
@@ -566,7 +565,6 @@ function renderTable() {
       `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
       `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
       `<td class="uph-cell">${uphTxt(l, now)}</td>` +
-      `<td class="forecast-cell">${forecastHtml(l, now)}</td>` +
       `<td>${stHtml(l)}</td>`;
     tb.appendChild(tr);
   });
@@ -1139,50 +1137,6 @@ function upphOf(l, now) {
   const w = workedHours(now);
   if (!n || !w) return null;
   return (Number(l.actual) || 0) / n / w;
-}
-// ---- 今日收盘预测 v5.18: 按最近快照段的实际速率外推剩余净工时 ----
-//   速率 = (最新快照actual − 上一条快照actual) ÷ (两快照时刻的净工时差) → 自动排除休息时段
-//   预测收盘 = 当前累计actual + 速率 × 剩余净工时(今天总净工时10.67h − 已工作净工时)
-//   预测达成率 = 预测收盘 ÷ 日目标target × 100
-//   ⚠️ 无快照/无target时返回 null(不显示预测), 不猜测
-function forecastOf(l, now) {
-  const target = Number(l.target) || 0;
-  const cur = Number(l.actual) || 0;
-  if (!target) return null;
-  const totalH = 640 / 60;                // 总净工时 10.67h (与 workedHours 封顶口径一致)
-  const wNow = workedHours(now);
-  const remainH = Math.max(0, totalH - wNow);
-  const hourly = state.hourly || {};
-  const arr = hourly[l.name.trim()];
-  let rate = null;
-  // ★ 找最近两个净工时不同的快照差分(跳过午休 12-13 等净工时差为0的无效对)
-  if (Array.isArray(arr) && arr.length >= 2) {
-    for (let i = arr.length - 1; i >= 1; i--) {
-      const s1 = arr[i - 1], s2 = arr[i];
-      const w1 = workedHours(snapTimeOf(s1.h)), w2 = workedHours(snapTimeOf(s2.h));
-      const dw = w2 - w1;
-      const dA = (Number(s2.actual) || 0) - (Number(s1.actual) || 0);
-      if (dw > 0.05 && dA >= 0) { rate = dA / dw; break; }
-    }
-  }
-  if (rate == null) return null;
-  const eod = cur + rate * remainH;
-  const ratePct = target > 0 ? eod / target * 100 : null;
-  return { eod: Math.round(eod), ratePct };
-}
-// 快照整点时刻(如 h=13 → 13:00): workedHours 用分钟窗口, 整点即可
-function snapTimeOf(h) {
-  const d = new Date();
-  d.setHours(h, 0, 0, 0);
-  return d;
-}
-// 预测列 HTML: 主表每行加一列(预测收盘 + 预测达成率%)
-function forecastHtml(l, now) {
-  const f = forecastOf(l, now);
-  if (!f) return `<span class="zero">-</span>`;
-  const cls = f.ratePct == null ? "zero" : (f.ratePct >= 100 ? "pos" : "neg");
-  const pctTxt = f.ratePct == null ? "-" : fmt1(f.ratePct) + "%";
-  return `<span class="${cls}" style="font-weight:600">${fmt(f.eod)}</span><span class="zero" style="display:block;font-size:10px">${pctTxt}</span>`;
 }
 // 当前小时累计计划产量: ★ 优先用实时累计计划(工厂实时推送, 与表格 Plan 列一致)
 //   ⚠️ 2026-08-06 修复: 原逻辑只取 hourly 定格快照的 plan, 但快照在每小时首次出现时定格后不再更新
