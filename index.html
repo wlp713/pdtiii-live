@@ -74,13 +74,14 @@
   .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 2px; flex-shrink: 0; }
   .kpi {
     background: var(--panel); border: 1px solid var(--border);
-    border-radius: 10px; padding: 3px 12px;
+    border-radius: 10px; padding: 4px 12px;
     box-shadow: 0 4px 14px rgba(0,0,0,.25);
-    min-width: 0;
+    min-width: 0; display: flex; flex-direction: column; justify-content: center;
   }
-  .kpi .label { font-size: 10.5px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; }
-  .kpi .value { font-size: 18px; font-weight: 700; margin-top: 0; letter-spacing: .5px; line-height: 1.1; }
-  .kpi .sub { font-size: 10.5px; color: var(--gray); margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.15; }
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0; }
+  .kpi .label { font-size: 11px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
+  .kpi .value { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: .5px; flex-shrink: 0; }
+  .kpi .sub { font-size: 11px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpi .value.green { color: var(--green); }
   .kpi .value.orange { color: var(--orange); }
   .kpi .value.red { color: var(--red); }
@@ -214,11 +215,11 @@
 </div>
 
 <div class="kpis">
-  <div class="kpi"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div><div class="sub" data-i18n="kpiEffSub">主要线体加权</div></div>
-  <div class="kpi"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
-  <div class="kpi"><div class="label" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div><div class="sub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
-  <div class="kpi"><div class="label" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div><div class="sub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" data-i18n="kpiEffSub">主要线体加权</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
