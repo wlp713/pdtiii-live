@@ -1054,7 +1054,7 @@ async function refresh() {
   }
   // ★ fetch 加 8s 超时(AbortController): 服务器卡住时不再无限等待
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 8000);
+  const timer = setTimeout(() => ctrl.abort(), 8000);
   try {
     if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> " + t("connConnecting"); }
     const r = await fetch(DATA_URL + "?t=" + Date.now(), { signal: ctrl.signal });
@@ -1084,7 +1084,7 @@ async function refresh() {
     if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("connFailed"); }
     if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("connFailedMsg").replace("{m}", (e && e.message ? e.message : String(e))); }
   } finally {
-    clearTimeout(t);
+    clearTimeout(timer);
   }
 }
 
