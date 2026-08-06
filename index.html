@@ -200,38 +200,39 @@
 <body>
 <div class="header">
   <div class="title-wrap">
-    <h1>生产实时看板 <span id="periodLabel" class="period-label"></span></h1>
+    <h1><span data-i18n="boardTitle">生产实时看板</span> <span id="periodLabel" class="period-label"></span></h1>
   </div>
   <div class="header-right">
-    <span class="conn-status" id="connStatus"><span class="dot"></span> 连接中…</span>
-    <button class="btn" id="notifBtn" style="display:none">🔔 开启停滞通知</button>
+    <button class="btn" id="langBtn" title="Switch language">EN</button>
+    <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
+    <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
   </div>
 </div>
 
 <div class="stall-banner" id="stallBanner">
-  ⚠️ 停滞线体: <span class="slist" id="stallList"></span>
+  <span data-i18n="stallBanner">⚠️ 停滞线体: </span><span class="slist" id="stallList"></span>
 </div>
 
 <div class="kpis">
-  <div class="kpi"><div class="label">🟢 运行线体</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="label">⚡ 平均效率</div><div class="value" id="kpiEff">-</div><div class="sub">主要线体加权</div></div>
-  <div class="kpi"><div class="label">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div><div class="sub" id="kpiHitSub">达成线体</div></div>
-  <div class="kpi"><div class="label">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div><div class="sub">Final A-D 合计</div></div>
-  <div class="kpi"><div class="label">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div><div class="sub">Motor H/S/F/WL 合计</div></div>
+  <div class="kpi"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div><div class="sub" data-i18n="kpiEffSub">主要线体加权</div></div>
+  <div class="kpi"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="label" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div><div class="sub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="label" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div><div class="sub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2>📋 主要线体 · 产量对比 · 按 UPH 排序</h2>
-      <button class="btn" id="otherBtn">其他线体 (0)</button>
+      <h2 data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 按 UPH 排序</h2>
+      <button class="btn" id="otherBtn" data-i18n="otherLines">其他线体 (0)</button>
     </div>
     <div class="table-scroll">
       <table id="mainTable">
         <thead>
           <tr>
-            <th>#</th><th>线体</th><th>产量 (蓝=实际 · 橙=计划)</th>
-            <th>Actual</th><th>Plan</th><th>差异</th><th>达成率%</th><th>UPH</th><th>状态</th>
+            <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
+            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thStatus">状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -239,14 +240,14 @@
     </div>
   </div>
   <div class="panel">
-    <div class="panel-head"><h2>📊 每小时产量 / 效率 (主要线体)</h2></div>
+    <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual">Actual 实际</span><span class="lg-plan">Plan 实时目标</span><label class="seg-toggle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> 小时产出</label><span class="hint">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span></div>
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span></div>
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
-        <div class="legend"><span class="lg-eff">UPPH 达成率 (效率)</span><span class="hint">UPPH = 产量÷人数÷工时</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto">✏️ 编辑人数</button></div>
+        <div class="legend"><span class="lg-eff" data-i18n="lgEff">UPPH 达成率 (效率)</span><span class="hint" data-i18n="hintUpph">UPPH = 产量÷人数÷工时</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
         <canvas id="chartEff"></canvas>
       </div>
     </div>
@@ -257,16 +258,16 @@
 <div class="modal-overlay" id="otherModal">
   <div class="modal">
     <div class="modal-head">
-      <h3 id="modalTitle">其他线体</h3>
-      <span class="hint" style="margin-left:10px">按 UPH 从高到低排序</span>
+      <h3 id="modalTitle" data-i18n="otherLines">其他线体</h3>
+      <span class="hint" style="margin-left:10px" data-i18n="sortByUph">按 UPH 从高到低排序</span>
       <button class="modal-close" id="modalClose">✕</button>
     </div>
     <div class="modal-body">
       <table id="otherTable">
         <thead>
           <tr>
-            <th>#</th><th>线体</th><th>目标/日</th><th>Plan</th><th>Actual</th>
-            <th>差异</th><th>达成率%</th><th>状态</th>
+            <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thTargetDay">目标/日</th><th>Plan</th><th>Actual</th>
+            <th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th data-i18n="thStatus">状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -279,19 +280,104 @@
 <div class="modal-overlay" id="headModal">
   <div class="modal">
     <div class="modal-head">
-      <h3>✏️ 编辑各线出勤人数</h3>
+      <h3 data-i18n="editHeadTitle">✏️ 编辑各线出勤人数</h3>
       <button class="modal-close" id="headClose">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint" style="margin:0 0 8px">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。</p>
+      <p class="hint" style="margin:0 0 8px" data-i18n="headHint">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。</p>
       <div class="head-grid" id="headGrid"></div>
-      <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave">💾 保存</button></div>
+      <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave" data-i18n="save">💾 保存</button></div>
     </div>
   </div>
 </div>
 
 <script>
 "use strict";
+// ============ i18n 中英切换 ============
+const I18N = {
+  zh: {
+    docTitle: "生产实时看板", boardTitle: "生产实时看板",
+    connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
+    kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体加权",
+    kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
+    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
+    panelMainTitle: "📋 主要线体 · 产量对比 · 按 UPH 排序", otherLines: "其他线体",
+    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
+    panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
+    lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
+    segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
+    hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
+    lgEff: "UPPH 达成率 (效率)", hintUpph: "UPPH = 产量÷人数÷工时", editHead: "✏️ 编辑人数",
+    sortByUph: "按 UPH 从高到低排序", thTargetDay: "目标/日",
+    editHeadTitle: "✏️ 编辑各线出勤人数",
+    headHint: "UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。",
+    save: "💾 保存",
+    stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
+    kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
+    notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
+    noData: "暂无数据", am: "上午", setPeople: "设人数",
+    headTitleFmt: "{name} — UPPH目标(实时) = 当前小时累计计划({p}) ÷ 工时 ÷ 人数",
+    shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
+    useHttp: "⚠️ 请用 http://localhost:8080 打开",
+    fileErr: "⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板",
+    connOk: "已连接 · 数据实时", connDelay: "数据延迟 {s}s", connDown: "数据断线 {m}min", connNoData: "无数据",
+    connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})"
+  },
+  en: {
+    docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
+    connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Stalled lines: ",
+    kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted",
+    kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
+    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
+    panelMainTitle: "📋 Main Lines · Output vs Plan · by UPH", otherLines: "Other Lines",
+    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
+    panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
+    lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
+    segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
+    hintSeg: "Bars aligned · Blue=met · Gray=gap",
+    lgEff: "UPPH Rate (Efficiency)", hintUpph: "UPPH = Output÷People÷Hours", editHead: "✏️ Edit People",
+    sortByUph: "Sorted by UPH desc", thTargetDay: "Target/Day",
+    editHeadTitle: "✏️ Edit Line Headcount",
+    headHint: "UPPH = Output ÷ People ÷ Worked hrs; UPPH target (live) = cumulative plan ÷ worked hrs ÷ people. Editable daily, applied automatically.",
+    save: "💾 Save",
+    stStall: "Stalled", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
+    kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
+    notifTitle: "⚠️ Line stalled: ", notifBody: "No output change ~5min, check line · ",
+    noData: "No data", am: "AM", setPeople: "Set HC",
+    headTitleFmt: "{name} — UPPH target (live) = cumulative plan ({p}) ÷ hrs ÷ people",
+    shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
+    useHttp: "⚠️ Open via http://localhost:8080",
+    fileErr: "⚠️ file:// cannot load data — open via http://localhost:8080",
+    connOk: "Connected · Live", connDelay: "Data delay {s}s", connDown: "Data offline {m}min", connNoData: "No data",
+    connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})"
+  }
+};
+const LANG_KEY = "pdtiii_lang";
+let lang = "zh";
+try { lang = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { lang = "zh"; }
+function t(k) { const d = I18N[lang] || I18N.zh; return d[k] !== undefined ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
+function applyStaticI18n() {
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  document.title = t("docTitle");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
+  const lb = document.getElementById("langBtn");
+  if (lb) lb.textContent = lang === "zh" ? "EN" : "中文";
+}
+function toggleLang() {
+  lang = lang === "zh" ? "en" : "zh";
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  applyStaticI18n();
+  updatePeriodLabel();
+  renderAll();
+  refresh();
+}
+// script 在 body 底部同步执行，DOM 已就绪，直接绑定
+(function () {
+  const lb = document.getElementById("langBtn");
+  if (lb) lb.addEventListener("click", toggleLang);
+  applyStaticI18n();
+})();
 // 数据源自动切换: 本机/局域网打开 -> 读本地 data.json; 线上(GitHub Pages https)打开 -> 读 Firebase 云端
 const IS_LOCAL = location.protocol === "file:" ||
   location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -337,10 +423,10 @@ function signClass(v) {
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
 function stHtml(l) {
   let stCls, stTxt;
-  if (isStalled(l)) { stCls = "stall"; stTxt = "停滞"; }
-  else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = "运行"; }
-  else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = "停机"; }
-  else { stCls = "err"; stTxt = l.status || "未知"; }
+  if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall"); }
+  else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = t("stRun"); }
+  else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = t("stOff"); }
+  else { stCls = "err"; stTxt = l.status || t("stUnknown"); }
   return `<span class="st ${stCls}">${stTxt}</span>`;
 }
 function splitLines() {
@@ -418,15 +504,15 @@ function renderTable() {
       `<td>${stHtml(l)}</td>`;
     otb.appendChild(tr);
   });
-  document.getElementById("otherBtn").textContent = `其他线体 (${other.length})`;
-  document.getElementById("modalTitle").textContent = `其他线体 (${other.length})`;
+  document.getElementById("otherBtn").textContent = t("otherLinesFmt").replace("{n}", other.length);
+  document.getElementById("modalTitle").textContent = t("otherLinesFmt").replace("{n}", other.length);
   return { main, other };
 }
 
 function renderKPIs(main) {
   const running = main.filter(l => l.status === "RUNNING" || l.status === "运行");
   document.getElementById("kpiRun").textContent = running.length;
-  document.getElementById("kpiRunSub").textContent = `主要 ${main.length} 条 · 全部 ${state.lines.length} 条`;
+  document.getElementById("kpiRunSub").textContent = t("kpiRunSubFmt").replace("{m}", main.length).replace("{a}", state.lines.length);
   const withEff = running.filter(l => l.eff !== null && !isNaN(l.eff));
   const avgEff = withEff.length ? withEff.reduce((s, l) => s + l.eff, 0) / withEff.length : 0;
   const el = document.getElementById("kpiEff");
@@ -436,8 +522,8 @@ function renderKPIs(main) {
   const eh = document.getElementById("kpiHit");
   eh.textContent = hit.length;
   eh.className = "value " + (hit.length > 0 ? "green" : "orange");
-  const hitNames = hit.map(l => shortName(l.name)).join("、");
-  document.getElementById("kpiHitSub").textContent = hitNames || "暂无达成线体";
+  const hitNames = hit.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
+  document.getElementById("kpiHitSub").textContent = hitNames || t("noHit");
   const totalFinal = main.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
   const totalMotor = main.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
   document.getElementById("kpiFinal").textContent = totalFinal ? fmt(totalFinal) : "-";
@@ -450,7 +536,7 @@ function checkStalls() {
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
-    document.getElementById("stallList").textContent = stalled.map(l => shortName(l.name)).join("、");
+    document.getElementById("stallList").textContent = stalled.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
   } else {
     banner.style.display = "none";
   }
@@ -466,8 +552,8 @@ function checkStalls() {
       notified[key] = nowTs;
       changed = true;
       try {
-        new Notification("⚠️ 线体停滞: " + shortName(l.name), {
-          body: "产量约5分钟无变化，请检查产线 · " + new Date().toLocaleTimeString("zh-CN", { hour12: false })
+        new Notification(t("notifTitle") + shortName(l.name), {
+          body: t("notifBody") + new Date().toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour12: false })
         });
       } catch (e) { /* ignore */ }
     }
@@ -645,7 +731,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         // 上午累计段: 灰底 + "上午"标签 + 数值
         if (perH >= 16) {
           ctx.fillStyle = "#8b949e"; ctx.font = "9.5px sans-serif";
-          ctx.fillText("上午", cx + bw / 2, yAcc + perH / 2 - 3);
+          ctx.fillText(t("am"), cx + bw / 2, yAcc + perH / 2 - 3);
           ctx.fillStyle = "#e6edf3"; ctx.font = "bold 10px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 10);
         } else if (perH >= 8) {
@@ -705,7 +791,7 @@ function drawBar(main) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
-  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
   const padL = 46, padB = 34, padT = 26;
   const cw = W - padL - 12, ch = H - padT - padB;
   // ★ maxV 基于各线 plan 累计(目标柱骨架)取最大 — 两柱共用同一骨架, 柱顶=plan 累计, 完全平行
@@ -768,12 +854,12 @@ function setHead(name, v) {
 //   封顶净工时 = (20:20-8:00=12h20m) - 100min休息 = 10h40m = 10.67h; 与 UPPH 目标分母 10.67h 口径一致
 // ★ 班次判断 (按班次开始小时查名; 当前看板数据从 8:00 开始累计 → 早班; 若以后支持多班次数据, 班次开始时间变化会自动跟随)
 const SHIFT_RANGES = [
-  { s: 8, e: 16, name: "白班（Day shift）" },
-  { s: 16, e: 24, name: "中班" },
-  { s: 0, e: 8, name: "夜班" }
+  { s: 8, e: 16, key: "shiftDay" },
+  { s: 16, e: 24, key: "shiftSwing" },
+  { s: 0, e: 8, key: "shiftNight" }
 ];
 function shiftNameOfHour(h) {
-  for (const sh of SHIFT_RANGES) if (h >= sh.s && h < sh.e) return sh.name;
+  for (const sh of SHIFT_RANGES) if (h >= sh.s && h < sh.e) return t(sh.key);
   return "";
 }
 
@@ -859,7 +945,7 @@ function drawEff(main) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
-  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText("暂无数据", W/2-24, H/2); return; }
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
   const padL = 40, padB = 34, padT = 22;
   const cw = W - padL - 12, ch = H - padT - padB;
   const now = new Date();
@@ -890,7 +976,7 @@ function drawEff(main) {
       ctx.fillStyle = "#3d444d";
       ctx.fillRect(cx - bw / 2, padT + ch - 4, bw, 4);
       ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("设人数", cx, padT + ch - 7);
+      ctx.fillText(t("setPeople"), cx, padT + ch - 7);
     } else {
       const e = Math.max(0, Math.min(rate, maxV));
       const h = ch * e / maxV;
@@ -920,7 +1006,7 @@ function openHeadModal() {
     lab.className = "hn"; lab.textContent = name;
     // ★ 修复: 用 name 查找对应 line 对象, 不能再引用未定义的 l
     const ln = state.lines.find(x => x.name === name) || {};
-    lab.title = name + " — UPPH目标(实时) = 当前小时累计计划(" + fmt(planNowOf(ln, new Date()) || 0) + ") ÷ 工时 ÷ 人数";
+    lab.title = t("headTitleFmt").replace("{name}", name).replace("{p}", fmt(planNowOf(ln, new Date()) || 0));
     const inp = document.createElement("input");
     inp.type = "number"; inp.min = "0"; inp.step = "1";
     inp.value = headOf(name) || "";
@@ -962,15 +1048,15 @@ async function refresh() {
   // ★ file:// 直接打开会无法 fetch 数据(浏览器拦截) — 给出明确指引而非模糊的"连接失败"
   if (location.protocol === "file:") {
     const pl = document.getElementById("periodLabel");
-    if (pl) { pl.dataset.frozen = "1"; pl.textContent = "⚠️ 请用 http://localhost:8080 打开"; }
-    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> ⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板"; }
+    if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("useHttp"); }
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("fileErr"); }
     return;
   }
   // ★ fetch 加 8s 超时(AbortController): 服务器卡住时不再无限等待
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 8000);
   try {
-    if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> 连接中…"; }
+    if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> " + t("connConnecting"); }
     const r = await fetch(DATA_URL + "?t=" + Date.now(), { signal: ctrl.signal });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
@@ -985,9 +1071,9 @@ async function refresh() {
         ? new Date(state.updatedAt.replace(" ", "T") + "+07:00").getTime()
         : (state.updatedAt || 0);
       const age = ts ? (Date.now() - ts) : Infinity;
-      if (age <= 90000) { cs.className = "conn-status ok"; cs.innerHTML = "<span class='dot'></span> 已连接 · 数据实时"; }
-      else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> 数据延迟 " + Math.round(age / 1000) + "s"; }
-      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 数据断线 " + (ts ? Math.round(age / 60000) + "min" : "无数据"); }
+      if (age <= 90000) { cs.className = "conn-status ok"; cs.innerHTML = "<span class='dot'></span> " + t("connOk"); }
+      else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> " + t("connDelay").replace("{s}", Math.round(age / 1000)); }
+      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + (ts ? t("connDown").replace("{m}", Math.round(age / 60000)) : t("connNoData")); }
     }
     // ★ 标题: 日期 + 班次 + 时段(含秒) — 正常状态解冻并更新
     const pl = document.getElementById("periodLabel");
@@ -995,8 +1081,8 @@ async function refresh() {
     renderAll();
   } catch (e) {
     const pl = document.getElementById("periodLabel");
-    if (pl) { pl.dataset.frozen = "1"; pl.textContent = "连接失败"; }
-    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> 连接失败: " + (e && e.message ? e.message : String(e)); }
+    if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("connFailed"); }
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("connFailedMsg").replace("{m}", (e && e.message ? e.message : String(e))); }
   } finally {
     clearTimeout(t);
   }
