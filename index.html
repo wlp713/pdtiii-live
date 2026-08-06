@@ -358,7 +358,7 @@
       <button class="modal-close" id="headClose">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint" style="margin:0 0 8px" data-i18n="headHint">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。</p>
+      <p class="hint" style="margin:0 0 8px" data-i18n="headHint">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(固定) = 日目标 ÷ 标准工时(10.67h) ÷ 人数。每天人数可改，保存后自动生效。</p>
       <div class="head-grid" id="headGrid"></div>
       <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave" data-i18n="save">💾 保存</button></div>
     </div>
@@ -384,7 +384,7 @@ const I18N = {
     lgEff: "UPPH 达成率 (效率)", hintUpph: "UPPH = 产量÷人数÷工时", editHead: "✏️ 编辑人数",
     sortByUph: "按 UPH 从高到低排序", thTargetDay: "目标/日",
     editHeadTitle: "✏️ 编辑各线出勤人数",
-    headHint: "UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。",
+    headHint: "UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(固定) = 日目标 ÷ 标准工时(10.67h) ÷ 人数。每天人数可改，保存后自动生效。",
     save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
@@ -418,7 +418,7 @@ const I18N = {
     lgEff: "UPPH Rate (Efficiency)", hintUpph: "UPPH = Output÷Manpower÷Hours", editHead: "✏️ Edit Manpower",
     sortByUph: "Sorted by UPH desc", thTargetDay: "Target/Day",
     editHeadTitle: "✏️ Edit Line Headcount",
-    headHint: "UPPH = Output ÷ Manpower ÷ Worked hrs; UPPH target (live) = cumulative plan ÷ worked hrs ÷ manpower. Editable daily, applied automatically.",
+    headHint: "UPPH = Output ÷ Manpower ÷ Worked hrs; UPPH target (fixed) = daily target ÷ std hours (10.67h) ÷ manpower. Editable daily, applied automatically.",
     save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
     kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
@@ -1158,18 +1158,22 @@ function planNowOf(l, now) {
   }
   return best ? (Number(best.plan) || 0) : null;
 }
-// UPPH目标(实时) = 当前小时累计计划 ÷ 实时累计工作小时 ÷ 人数
-//   与实际 UPPH 同一时间口径, 达成率 = 实时累计产出/实时累计目标 (人数、工时约掉)
-//   无 hourly 快照的线 fallback: 日目标按已工作小时线性分摊 (= 日目标 ÷ 人数 ÷ 10.67h)
+// UPPH目标(固定) = 日目标 ÷ 标准工时(10.67h) ÷ 人数
+//   ★ 2026-08-06 v5.18.4 修复: 原来用"实时计划 ÷ 当前工时 ÷ 人数"反推,
+//     导致 UPPH达成率 ≡ 产出达成率(actual/plan), 两个维度完全重合, 综合分失去意义。
+//   现在固定目标口径: 达成率 = (actual÷n÷w) ÷ (target÷n÷10.67) = actual×10.67/(target×w)
+//     与产出达成率(actual/plan)相互独立 → 综合分 = 两维度平均才有意义。
+//   无日目标的线 fallback: 实时计划反推(仅兜底, 不参与主要线排名)
 function upphTargetOf(l, now) {
   const n = headOf(l.name);
+  if (!n) return null;
+  const target = Number(l.target) || 0;
+  if (target > 0) return target / n / (640 / 60);
   const w = workedHours(now);
-  if (!n || !w) return null;
+  if (!w) return null;
   const planNow = planNowOf(l, now);
   if (planNow) return planNow / w / n;
-  const target = Number(l.target) || 0;
-  if (!target) return null;
-  return target / n / (640 / 60);
+  return null;
 }
 // 达成率% = 当前UPPH / UPPH目标(实时) × 100
 function upphRateOf(l, now) {
