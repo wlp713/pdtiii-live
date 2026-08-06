@@ -1341,6 +1341,12 @@ function vsHtml(cur, prev) {
   const arrow = Math.abs(d) < 0.5 ? "→" : (d > 0 ? "↑" : "↓");
   return `<span class="${cls}">${arrow} ${fmt1(Math.abs(d))}%</span>`;
 }
+// 聚合记录的得分(与 compScore 同口径: rate/upph 平均)
+function aggScoreOf(a) {
+  if (!a) return null;
+  const vals = [a.rate, a.upph].filter(v => v != null && !isNaN(v));
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+}
 function renderHist() {
   const now = new Date();
   // --- 今日 ---
@@ -1348,7 +1354,9 @@ function renderHist() {
   const todayTbody = document.querySelector("#histTodayTbl tbody");
   todayTbody.innerHTML = "";
   const ranks = rankOfDay(todayRec);
-  MAIN_LINES.forEach(name => {
+  // ★ 按排名先后顺序渲染(第1名在最上)
+  const todayNames = MAIN_LINES.slice().sort((a, b) => (ranks[normName(a)] || 999) - (ranks[normName(b)] || 999));
+  todayNames.forEach(name => {
     const nk = normName(name);
     const r = todayRec[nk];
     if (!r) {
@@ -1372,7 +1380,9 @@ function renderHist() {
   wkTbody.innerHTML = "";
   document.getElementById("histWeekTitle").textContent =
     t("histWeekTitle") + ` (${fmt1(wkAvg(wk))}% vs ${fmt1(wkAvg(pw))}%)`;
-  MAIN_LINES.forEach(name => {
+  // ★ 按本周综合得分降序(第1名在最上)
+  const wkNames = MAIN_LINES.slice().sort((a, b) => (aggScoreOf(wk[normName(b)]) ?? -1e9) - (aggScoreOf(wk[normName(a)]) ?? -1e9));
+  wkNames.forEach(name => {
     const nk = normName(name);
     const a = wk[nk], p = pw[nk];
     if (!a) {
@@ -1393,7 +1403,9 @@ function renderHist() {
   mkTbody.innerHTML = "";
   document.getElementById("histMonthTitle").textContent =
     t("histMonthTitle") + ` (${fmt1(mkAvg(mk))}% vs ${fmt1(mkAvg(pm))}%)`;
-  MAIN_LINES.forEach(name => {
+  // ★ 按本月综合得分降序(第1名在最上)
+  const mkNames = MAIN_LINES.slice().sort((a, b) => (aggScoreOf(mk[normName(b)]) ?? -1e9) - (aggScoreOf(mk[normName(a)]) ?? -1e9));
+  mkNames.forEach(name => {
     const nk = normName(name);
     const a = mk[nk], p = pm[nk];
     if (!a) {
