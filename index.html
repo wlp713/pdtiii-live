@@ -581,42 +581,39 @@ function hourNo(lab) {
   if (lab >= 13 && lab <= 16) return lab - 8;  // 13→5, 14→6, 15→7, 16→8
   return null; // 12午休 / 其他不统计
 }
-// ★ 统一骨架: 每段同时含 actual(该时段实际产量) 与 plan(该时段目标=plan÷已过时段数, 均匀相等)
+// ★ 统一骨架: 每段同时含 actual(该时段实际产量) 与 plan(该时段目标)
+//   plan/actual 均来自 hourly 快照的定格累计值差分 → 时段一过即定格, 不再随实时数据变化
+//   live 段(当前进行中的小时) = 实时累计 − 上一快照定格 → 继续累计变化
 //   base 段 = 启动前累计(今天上午缺小时数据): 实际柱/目标柱都画灰底, 段内写"上午"+累计值
 //   ★ 目的: 同一时段的实际段与目标段在两根柱子上位置完全一致 → 逐段比高度 = 直接看差异
 function segsOf(name, curActual) {
   const snaps = (state.hourly || {})[name] || [];
   const ln = state.lines.find(x => x.name === name) || {};
-  const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
+  const livePlan = Number(ln.plan) || 0; // 实时累计目标(与表格 Plan 列一致, 仅 live 段用)
   if (!snaps.length) return [];
   const nowH = new Date().getHours();
-  // 已过时段数(8..nowH, 跳过午休12) → 每段均匀目标(用户拍板: 每段目标差不多相等)
-  let nTotal = 0;
-  for (let h = 8; h <= nowH && h <= 16; h++) if (h !== 12) nTotal++;
-  const per = nTotal ? plan / nTotal : 0;
   const segs = [];
   if (snaps[0].h > 8) {
     // ★ 当天中途启动(今天上午缺小时数据):
     //   base 段 = 启动前累计, 截止到第一个下午快照(h>=13) → 包含上午全部产量+午休段产量
     //   ⚠️ 必须用第一个下午快照的 actual, 不能用首条快照: 否则 h11→h13 之间(含午休)的产量会丢,
     //      实际柱累计 ≠ 表格 Actual 列(今天实测: 丢 303 件)
-    //   base 段目标 = per × 上午已过段数(如首条 h=11 → 4段: 8-9,9-10,10-11,11-12)
+    //   base 段目标 = 第一个有效快照的定格累计 plan(定格, 不再变)
     let baseIdx = snaps.length - 1;
     for (let i = 0; i < snaps.length; i++) {
       if (snaps[i].h >= 13) { baseIdx = i; break; }
     }
-    const mSegs = hourNo(snaps[0].h) || 0; // 首条快照所在时段编号 = 上午已过段数
     segs.push({
       h: snaps[baseIdx].h, lab: null, live: false, base: true,
       actual: snaps[baseIdx].actual || 0,
-      plan: per * mSegs
+      plan: snaps[baseIdx].plan || 0
     });
     for (let i = baseIdx + 1; i < snaps.length; i++) {
       const prev = snaps[i - 1], s = snaps[i];
       segs.push({
         h: s.h, lab: prev.h, live: false,
         actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
-        plan: per
+        plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
       });
     }
     // ★ 当前进行中的小时: 最新整点快照作基准 → 当前 actual 差值 = 正在累积的产量
@@ -625,7 +622,7 @@ function segsOf(name, curActual) {
       segs.push({
         h: nowH, lab: last.h, live: true,
         actual: Math.max(0, (curActual || 0) - (last.actual || 0)),
-        plan: per
+        plan: Math.max(0, livePlan - (last.plan || 0))
       });
     }
     return segs;
@@ -644,7 +641,7 @@ function segsOf(name, curActual) {
     segs.push({
       h: s.h, lab: prevH, live: false,
       actual: Math.max(0, (s.actual || 0) - prevA),
-      plan: per
+      plan: Math.max(0, (s.plan || 0) - prevP)
     });
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
   }
@@ -653,7 +650,7 @@ function segsOf(name, curActual) {
     segs.push({
       h: nowH, lab: prevH, live: true,
       actual: Math.max(0, (curActual || 0) - prevA),
-      plan: per
+      plan: Math.max(0, livePlan - prevP)
     });
   }
   return segs;
