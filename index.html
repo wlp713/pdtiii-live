@@ -545,7 +545,13 @@ function segsOf(name, curActual) {
     return segs;
   }
   // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
-  let prevA = snaps[0].actual || 0, prevP = snaps[0].plan || 0, prevH = snaps[0].h;
+  // ★ 2026-08-06 修复: 首条快照是 h8(当天第一小时)时, 基准应为 8:00 整的 0,
+  //   而非首条快照值 — 首条快照可能在 08:10 才定格(如抓包空窗), 直接把它的
+  //   actual 当基准会吞掉 8:00-8:10 的产量, 与表格 Actual 列对不上
+  const isFirstHour = snaps[0].h === 8;
+  let prevA = isFirstHour ? 0 : (snaps[0].actual || 0);
+  let prevP = isFirstHour ? 0 : (snaps[0].plan || 0);
+  let prevH = snaps[0].h;
   for (let i = 1; i < snaps.length; i++) {
     const s = snaps[i];
     if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
@@ -807,8 +813,12 @@ function upphOf(l, now) {
   if (!n || !w) return null;
   return (Number(l.actual) || 0) / n / w;
 }
-// 当前小时累计计划产量 (来自 hourly 快照); 无 hourly 数据 → null (调用方 fallback)
+// 当前小时累计计划产量: ★ 优先用实时累计计划(工厂实时推送, 与表格 Plan 列一致)
+//   ⚠️ 2026-08-06 修复: 原逻辑只取 hourly 定格快照的 plan, 但快照在每小时首次出现时定格后不再更新
+//      (如 08:10 定格 plan=42, 实时已 105) → UPPH 目标严重滞后 → 达成率虚高(169% 实为 68%)
 function planNowOf(l, now) {
+  const live = Number(l.plan) || 0;
+  if (live > 0) return live;
   const hourly = state.hourly || {};
   const arr = hourly[l.name.trim()];
   if (!Array.isArray(arr) || !arr.length) return null;
