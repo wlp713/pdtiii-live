@@ -280,7 +280,7 @@
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
-        <div class="legend"><span class="lg-eff" data-i18n="lgEff">UPPH 达成率 (效率)</span><span class="hint" data-i18n="hintUpph">UPPH = 产量÷人数÷工时</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
+        <div class="legend"><span class="lg-eff" data-i18n="lgEff">UPPH 达成率 (vs 日目标)</span><span class="hint" data-i18n="hintUpph">UPPH = 产量÷人数÷工时</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
         <canvas id="chartEff"></canvas>
       </div>
     </div>
@@ -358,7 +358,7 @@
       <button class="modal-close" id="headClose">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint" style="margin:0 0 8px" data-i18n="headHint">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(固定) = 日目标 ÷ 标准工时(10.67h) ÷ 人数。每天人数可改，保存后自动生效。</p>
+      <p class="hint" style="margin:0 0 8px" data-i18n="headHint">UPPH达成率 = 实际产量 ÷ 日目标产量；UPH = 产量 ÷ 人数 ÷ 工时。每天人数可改，保存后自动生效。</p>
       <div class="head-grid" id="headGrid"></div>
       <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave" data-i18n="save">💾 保存</button></div>
     </div>
@@ -381,16 +381,16 @@ const I18N = {
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
     hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
-    lgEff: "UPPH 达成率 (效率)", hintUpph: "UPPH = 产量÷人数÷工时", editHead: "✏️ 编辑人数",
+    lgEff: "UPPH 达成率 (vs 日目标)", hintUpph: "UPPH = 产量÷人数÷工时", editHead: "✏️ 编辑人数",
     sortByUph: "按 UPH 从高到低排序", thTargetDay: "目标/日",
     editHeadTitle: "✏️ 编辑各线出勤人数",
-    headHint: "UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(固定) = 日目标 ÷ 标准工时(10.67h) ÷ 人数。每天人数可改，保存后自动生效。",
+    headHint: "UPPH达成率 = 实际产量 ÷ 日目标产量；UPH = 产量 ÷ 人数 ÷ 工时。每天人数可改，保存后自动生效。",
     save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", am: "上午", setPeople: "设人数",
-    headTitleFmt: "{name} — UPPH目标(实时) = 当前小时累计计划({p}) ÷ 工时 ÷ 人数",
+    headTitleFmt: "{name} — UPPH达成率 = 实际产量 ÷ 日目标({p})",
     shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
     useHttp: "⚠️ 请用 http://localhost:8080 打开",
     fileErr: "⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板",
@@ -415,16 +415,16 @@ const I18N = {
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
     hintSeg: "Bars aligned · Blue=met · Gray=gap",
-    lgEff: "UPPH Rate (Efficiency)", hintUpph: "UPPH = Output÷Manpower÷Hours", editHead: "✏️ Edit Manpower",
+    lgEff: "UPPH Rate (vs Daily Target)", hintUpph: "UPPH = Output÷Manpower÷Hours", editHead: "✏️ Edit Manpower",
     sortByUph: "Sorted by UPH desc", thTargetDay: "Target/Day",
     editHeadTitle: "✏️ Edit Line Headcount",
-    headHint: "UPPH = Output ÷ Manpower ÷ Worked hrs; UPPH target (fixed) = daily target ÷ std hours (10.67h) ÷ manpower. Editable daily, applied automatically.",
+    headHint: "UPPH rate = Actual ÷ Daily target; UPH = Output ÷ Manpower ÷ Worked hrs. Manpower editable daily, applied automatically.",
     save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
     kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", am: "AM", setPeople: "Set HC",
-    headTitleFmt: "{name} — UPPH target (live) = cumulative plan ({p}) ÷ hrs ÷ manpower",
+    headTitleFmt: "{name} — UPPH rate = Actual ÷ Daily target ({p})",
     shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
     useHttp: "⚠️ Open via http://localhost:8080",
     fileErr: "⚠️ file:// cannot load data — open via http://localhost:8080",
@@ -1134,13 +1134,6 @@ function uphTxt(l, now) {
   const u = uphOf(l, now);
   return u == null ? "-" : fmt1(u);
 }
-// UPPH = 产量 ÷ 人数 ÷ 已工作小时
-function upphOf(l, now) {
-  const n = headOf(l.name);
-  const w = workedHours(now);
-  if (!n || !w) return null;
-  return (Number(l.actual) || 0) / n / w;
-}
 // 当前小时累计计划产量: ★ 优先用实时累计计划(工厂实时推送, 与表格 Plan 列一致)
 //   ⚠️ 2026-08-06 修复: 原逻辑只取 hourly 定格快照的 plan, 但快照在每小时首次出现时定格后不再更新
 //      (如 08:10 定格 plan=42, 实时已 105) → UPPH 目标严重滞后 → 达成率虚高(169% 实为 68%)
@@ -1158,28 +1151,15 @@ function planNowOf(l, now) {
   }
   return best ? (Number(best.plan) || 0) : null;
 }
-// UPPH目标(固定) = 日目标 ÷ 标准工时(10.67h) ÷ 人数
-//   ★ 2026-08-06 v5.18.4 修复: 原来用"实时计划 ÷ 当前工时 ÷ 人数"反推,
-//     导致 UPPH达成率 ≡ 产出达成率(actual/plan), 两个维度完全重合, 综合分失去意义。
-//   现在固定目标口径: 达成率 = (actual÷n÷w) ÷ (target÷n÷10.67) = actual×10.67/(target×w)
-//     与产出达成率(actual/plan)相互独立 → 综合分 = 两维度平均才有意义。
-//   无日目标的线 fallback: 实时计划反推(仅兜底, 不参与主要线排名)
-function upphTargetOf(l, now) {
-  const n = headOf(l.name);
-  if (!n) return null;
-  const target = Number(l.target) || 0;
-  if (target > 0) return target / n / (640 / 60);
-  const w = workedHours(now);
-  if (!w) return null;
-  const planNow = planNowOf(l, now);
-  if (planNow) return planNow / w / n;
-  return null;
-}
-// 达成率% = 当前UPPH / UPPH目标(实时) × 100
+// UPPH达成率(日目标口径) = 实际产量 ÷ 日目标产量 × 100
+//   ★ 2026-08-06 v5.18.5 修复: v5.18.4 用 (actual÷n÷w) ÷ (target÷n÷10.67) = actual×10.67/(target×w),
+//     分母含"已工作小时 w" → 时间越早达成率越虚高(产量仅完成日目标63%却显示118%, 用户否掉)。
+//   现改为日目标达成率: actual/target, 与人数/工时无关, **永不虚高**(产量没达成必 <100%);
+//     与产出达成率(actual/planNow)分母不同(target vs planNow) → 两维度独立, 综合分才有意义。
 function upphRateOf(l, now) {
-  const u = upphOf(l, now), t = upphTargetOf(l, now);
-  if (u == null || t == null || t <= 0) return null;
-  return u / t * 100;
+  const target = Number(l.target) || 0;
+  if (!target) return null;
+  return (Number(l.actual) || 0) / target * 100;
 }
 function drawEff(main) {
   const cv = document.getElementById("chartEff");
@@ -1252,7 +1232,7 @@ function openHeadModal() {
     lab.className = "hn"; lab.textContent = name;
     // ★ 修复: 用 name 查找对应 line 对象, 不能再引用未定义的 l
     const ln = state.lines.find(x => x.name === name) || {};
-    lab.title = t("headTitleFmt").replace("{name}", name).replace("{p}", fmt(planNowOf(ln, new Date()) || 0));
+    lab.title = t("headTitleFmt").replace("{name}", name).replace("{p}", fmt(Number(ln.target) || 0));
     const inp = document.createElement("input");
     inp.type = "number"; inp.min = "0"; inp.step = "1";
     inp.value = headOf(name) || "";
