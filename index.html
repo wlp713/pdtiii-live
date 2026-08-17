@@ -109,6 +109,11 @@
     font-size: 11px; position: sticky; top: 0; background: var(--panel); z-index: 1;
   }
   th:first-child, td:first-child { text-align: left; }
+  th[data-sort] { cursor: pointer; user-select: none; }
+  th[data-sort]:hover { color: var(--white); }
+  th[data-sort].sorted { color: var(--blue); }
+  th[data-sort].sorted.desc::after { content: " ▼"; font-size: 9px; }
+  th[data-sort].sorted.asc::after { content: " ▲"; font-size: 9px; }
   td { text-align: right; padding: 12px 6px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
@@ -257,15 +262,15 @@
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2 data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 按 UPH 排序</h2>
+      <h2 data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 点击列头排序</h2>
       <button class="btn" id="otherBtn" data-i18n="otherLines">其他线体 (0)</button>
     </div>
     <div class="table-scroll">
       <table id="mainTable">
         <thead>
           <tr>
-            <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
-            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thStatus">状态</th>
+            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
+            <th data-sort="actual">Actual</th><th data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th><th data-sort="status" data-i18n="thStatus">状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -292,15 +297,15 @@
   <div class="modal">
     <div class="modal-head">
       <h3 id="modalTitle" data-i18n="otherLines">其他线体</h3>
-      <span class="hint" style="margin-left:10px" data-i18n="sortByUph">按 UPH 从高到低排序</span>
+      <span class="hint" style="margin-left:10px" data-i18n="sortByUph">点击列头排序</span>
       <button class="modal-close" id="modalClose">✕</button>
     </div>
     <div class="modal-body">
       <table id="otherTable">
         <thead>
           <tr>
-            <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thTargetDay">目标/日</th><th>Plan</th><th>Actual</th>
-            <th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th data-i18n="thStatus">状态</th>
+            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="target" data-i18n="thTargetDay">目标/日</th><th data-sort="plan">Plan</th><th data-sort="actual">Actual</th>
+            <th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="status" data-i18n="thStatus">状态</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -375,21 +380,21 @@ const I18N = {
     kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体加权",
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
-    panelMainTitle: "📋 主要线体 · 产量对比 · 按 UPH 排序", otherLines: "其他线体",
+    panelMainTitle: "📋 主要线体 · 产量对比 · 点击列头排序", otherLines: "其他线体",
     thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
     hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
     lgEff: "UPPH 达成率 (实际÷目标)", hintUpph: "UPPH = 产量÷工时÷人数", editHead: "✏️ 编辑人数",
-    sortByUph: "按 UPH 从高到低排序", thTargetDay: "目标/日",
+    sortByUph: "点击列头排序", thTargetDay: "目标/日",
     editHeadTitle: "✏️ 编辑各线出勤人数",
     headHint: "UPPH达成率 = 实际UPPH÷目标UPPH；实际UPPH = 累计产出÷累计工时÷人数；目标UPPH = 累计目标(实时计划)÷累计工时÷人数。每天人数可改，保存后自动生效。",
     save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
-    noData: "暂无数据", am: "上午", setPeople: "设人数",
+    noData: "暂无数据", am: "上午", pm: "下午", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
     shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
     useHttp: "⚠️ 请用 http://localhost:8080 打开",
@@ -409,21 +414,21 @@ const I18N = {
     kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted",
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
-    panelMainTitle: "📋 Main Lines · Output vs Plan · by UPH", otherLines: "Other Lines",
+    panelMainTitle: "📋 Main Lines · Output vs Plan · Click to sort", otherLines: "Other Lines",
     thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
     hintSeg: "Bars aligned · Blue=met · Gray=gap",
     lgEff: "UPPH Rate (Actual÷Target)", hintUpph: "UPPH = Output÷Hours÷Manpower", editHead: "✏️ Edit Manpower",
-    sortByUph: "Sorted by UPH desc", thTargetDay: "Target/Day",
+    sortByUph: "Click header to sort", thTargetDay: "Target/Day",
     editHeadTitle: "✏️ Edit Line Headcount",
     headHint: "UPPH rate = Actual UPPH ÷ Target UPPH; Actual UPPH = Output ÷ Worked hrs ÷ Manpower; Target UPPH = Plan output ÷ Worked hrs ÷ Manpower. Manpower editable daily, applied automatically.",
     save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
     kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
-    noData: "No data", am: "AM", setPeople: "Set HC",
+    noData: "No data", am: "AM", pm: "PM", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
     shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
     useHttp: "⚠️ Open via http://localhost:8080",
@@ -515,6 +520,41 @@ function stHtml(l) {
   else { stCls = "err"; stTxt = l.status || t("stUnknown"); }
   return `<span class="st ${stCls}">${stTxt}</span>`;
 }
+// ---- 可点击列排序 ----------------
+const SORT_KEY = "pdtiii_sort_v1";
+let sortState = { key: "uph", dir: -1 };   // -1=降序 1=升序; 默认按 UPH 从高到低(与旧版一致)
+try {
+  const _s = JSON.parse(localStorage.getItem(SORT_KEY) || "null");
+  if (_s && _s.key && (_s.dir === 1 || _s.dir === -1)) sortState = _s;
+} catch (e) { /* ignore */ }
+function sortVal(l, key) {
+  switch (key) {
+    case "name":   return String(l.name || "");
+    case "target": return Number(l.target) || 0;
+    case "actual": return Number(l.actual) || 0;
+    case "plan":   return Number(l.plan) || 0;
+    case "cb":     return Number(l.cb) || 0;
+    case "eff":    return (l.eff === null || l.eff === undefined || isNaN(l.eff)) ? -Infinity : Number(l.eff);
+    case "uph": { const u = uphOf(l, new Date()); return (u === null || u === undefined || isNaN(u)) ? -Infinity : u; }
+    case "status": return String(l.status || "");
+    default:       return 0;
+  }
+}
+function sortLines(arr) {
+  const a = arr.slice();
+  a.sort((x, y) => {
+    const vx = sortVal(x, sortState.key), vy = sortVal(y, sortState.key);
+    const ix = vx === -Infinity, iy = vy === -Infinity;
+    if (ix || iy) {
+      if (ix && iy) return x.name.localeCompare(y.name);
+      return ix ? 1 : -1;   // 无效值始终排最后
+    }
+    let r = (typeof vx === "string") ? vx.localeCompare(vy) : (vx - vy);
+    if (r === 0) r = x.name.localeCompare(y.name);
+    return r * sortState.dir;
+  });
+  return a;
+}
 function splitLines() {
   const now = new Date();
   const main = [], other = [];
@@ -549,11 +589,14 @@ function hbarHtml(l, maxV) {
 function renderTable() {
   const now = new Date(); // ★ v5.17.2 修复: uphTxt(l, now) 需要 now — 之前未定义导致渲染抛错, 误报"连接失败"
   const { main, other } = splitLines();
+  // ★ 表格按用户所选列排序(副本), 图表仍用 splitLines 的 UPH 顺序
+  const mainSorted = sortLines(main);
+  const otherSorted = sortLines(other);
   // 全表最大产量用于条宽比例
-  const maxV = Math.max(1, ...main.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  const maxV = Math.max(1, ...mainSorted.map(l => Math.max(l.actual || 0, l.plan || 0)));
   const tb = document.querySelector("#mainTable tbody");
   tb.innerHTML = "";
-  main.forEach((l, idx) => {
+  mainSorted.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
     if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
@@ -573,7 +616,7 @@ function renderTable() {
   });
   const otb = document.querySelector("#otherTable tbody");
   otb.innerHTML = "";
-  other.forEach((l, idx) => {
+  otherSorted.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
     if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
@@ -593,6 +636,29 @@ function renderTable() {
   document.getElementById("otherBtn").textContent = t("otherLinesFmt").replace("{n}", other.length);
   document.getElementById("modalTitle").textContent = t("otherLinesFmt").replace("{n}", other.length);
   return { main, other };
+}
+
+// ---- 列头排序交互: 点列头切换排序键/方向, 箭头用 CSS ::after 渲染(不占 textContent, 语言切换不丢) ----
+function renderSortArrows() {
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    const active = th.dataset.sort === sortState.key;
+    th.classList.toggle("sorted", active);
+    th.classList.toggle("desc", active && sortState.dir < 0);
+    th.classList.toggle("asc", active && sortState.dir > 0);
+  });
+}
+function setSort(key) {
+  if (sortState.key === key) sortState.dir = -sortState.dir;  // 同列再点 → 翻转方向
+  else { sortState.key = key; sortState.dir = -1; }           // 新列默认降序
+  try { localStorage.setItem(SORT_KEY, JSON.stringify(sortState)); } catch (e) { /* ignore */ }
+  renderSortArrows();
+  renderTable();   // 只重排表格, 图表不动
+}
+function setupSort() {
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => setSort(th.dataset.sort));
+  });
+  renderSortArrows();
 }
 
 function renderKPIs(main) {
@@ -837,34 +903,28 @@ function segsOf(name, curActual) {
   const segs = [];
   if (snaps[0].h > 8) {
     // ★ 当天中途启动(今天上午缺小时数据):
-    //   base 段 = 启动前累计, 截止到第一个下午快照(h>=13) → 包含上午全部产量+午休段产量
-    //   ⚠️ 必须用第一个下午快照的 actual, 不能用首条快照: 否则 h11→h13 之间(含午休)的产量会丢,
-    //      实际柱累计 ≠ 表格 Actual 列(今天实测: 丢 303 件)
-    //   base 段目标 = 第一个有效快照的定格累计 plan(定格, 不再变)
+    //   统一简化为 上午/下午 两段 (2026-08-07 用户要求: 快照缺失时逐段拆太乱)
+    //   - 上午段(base): 第一个下午快照(h>=13)的定格累计 → 含上午全部产量+午休
+    //   - 下午段(pm): 当前累计 − 上午累计 → 含 13 点至今全部产量
+    //   ⚠️ 不再逐段差分: 快照链不完整(如 Final C [11,12,13,15] 缺 h14)时
+    //      合并段 + live 段叠加难看, 两段式更直观且总量精确对上
     let baseIdx = snaps.length - 1;
     for (let i = 0; i < snaps.length; i++) {
       if (snaps[i].h >= 13) { baseIdx = i; break; }
     }
+    const baseSnap = snaps[baseIdx];
     segs.push({
-      h: snaps[baseIdx].h, lab: null, live: false, base: true,
-      actual: snaps[baseIdx].actual || 0,
-      plan: snaps[baseIdx].plan || 0
+      h: baseSnap.h, lab: null, live: false, base: true,
+      actual: baseSnap.actual || 0,
+      plan: baseSnap.plan || 0
     });
-    for (let i = baseIdx + 1; i < snaps.length; i++) {
-      const prev = snaps[i - 1], s = snaps[i];
-      segs.push({
-        h: s.h, lab: prev.h, live: false,
-        actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
-        plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
-      });
-    }
-    // ★ 当前进行中的小时: 最新整点快照作基准 → 当前 actual 差值 = 正在累积的产量
+    // ★ 下午段: 当前累计 − 上午累计 (只要最后快照不晚于当前小时就画)
     const last = snaps[snaps.length - 1];
-    if (curActual != null && last && last.h >= 13 && last.h <= nowH && nowH - last.h < 2) {
+    if (curActual != null && last && last.h >= 8 && last.h <= nowH && hourNo(last.h) != null) {
       segs.push({
-        h: nowH, lab: last.h, live: true,
-        actual: Math.max(0, (curActual || 0) - (last.actual || 0)),
-        plan: Math.max(0, livePlan - (last.plan || 0))
+        h: nowH, lab: null, live: false, pm: true,
+        actual: Math.max(0, (curActual || 0) - (baseSnap.actual || 0)),
+        plan: Math.max(0, livePlan - (baseSnap.plan || 0))
       });
     }
     return segs;
@@ -887,8 +947,8 @@ function segsOf(name, curActual) {
     });
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
   }
-  // ★ 完整日也有当前进行中的小时段
-  if (curActual != null && prevH <= nowH && nowH - prevH < 2 && hourNo(prevH) != null) {
+  // ★ 完整日也有当前进行中的小时段 (2026-08-07 修复: 去掉 nowH-prevH<2, 防快照缺失时 live 段消失)
+  if (curActual != null && prevH <= nowH && hourNo(prevH) != null) {
     segs.push({
       h: nowH, lab: prevH, live: true,
       actual: Math.max(0, (curActual || 0) - prevA),
@@ -969,11 +1029,12 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       // ★ 字体随段高自适应: 段越矮字越小, 避免第8段后文字放不下
       const fBig = perH >= 26 ? 10 : perH >= 20 ? 9 : perH >= 15 ? 8 : perH >= 11 ? 7.5 : 7;
       const fSml = Math.max(6.5, fBig - 1);
-      if (s.base) {
-        // 上午累计段: 灰底 + "上午"标签 + 数值
+      if (s.base || s.pm) {
+        // 上午/下午累计段: 灰底 + "上午"/"下午"标签 + 数值
+        const lbl = s.pm ? t("pm") : t("am");
         if (perH >= 14) {
           ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(t("am"), cx + bw / 2, yAcc + perH / 2 - 3);
+          ctx.fillText(lbl, cx + bw / 2, yAcc + perH / 2 - 3);
           ctx.fillStyle = "#e6edf3"; ctx.font = "bold " + fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
         } else if (perH >= 8) {
@@ -1444,6 +1505,7 @@ function mkAvg(agg) { return wkAvg(agg); }
     segT.checked = segShow;
     segT.addEventListener("change", toggleSeg);
   }
+  setupSort();   // 列头点击排序
 })();
 
 initNotif();
