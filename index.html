@@ -901,18 +901,43 @@ function segsOf(name, curActual) {
   if (!snaps.length) return [];
   const nowH = new Date().getHours();
   const segs = [];
-  // ★ 当天中途启动(snaps[0].h > 8): 首条快照前的产量(上午)无法逐时拆分 → 记为 base 段(灰底"上午")
   if (snaps[0].h > 8) {
+    // ★ 当天中途启动: 上午(13点前)合成一个 base 段, 下午(13点起)逐时差分(整点分段)
+    let baseIdx = snaps.length - 1;
+    for (let i = 0; i < snaps.length; i++) {
+      if (snaps[i].h >= 13) { baseIdx = i; break; }
+    }
+    const baseSnap = snaps[baseIdx];
     segs.push({
-      h: snaps[0].h, lab: null, live: false, base: true,
-      actual: snaps[0].actual || 0,
-      plan: snaps[0].plan || 0
+      h: baseSnap.h, lab: null, live: false, base: true,
+      actual: baseSnap.actual || 0,
+      plan: baseSnap.plan || 0
     });
+    let prevA = baseSnap.actual || 0;
+    let prevP = baseSnap.plan || 0;
+    let prevH = baseSnap.h;
+    for (let i = baseIdx + 1; i < snaps.length; i++) {
+      const s = snaps[i];
+      if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
+      segs.push({
+        h: s.h, lab: prevH, live: false,
+        actual: Math.max(0, (s.actual || 0) - prevA),
+        plan: Math.max(0, (s.plan || 0) - prevP)
+      });
+      prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
+    }
+    if (curActual != null && prevH <= nowH && hourNo(prevH) != null) {
+      segs.push({
+        h: nowH, lab: prevH, live: true,
+        actual: Math.max(0, (curActual || 0) - prevA),
+        plan: Math.max(0, livePlan - prevP)
+      });
+    }
+    return segs;
   }
-  // 逐时差分: 每条快照 − 上一条 = 该小时产量/目标
-  // 首条 h==8 时基准为 0(当天第一小时, 08:10 才定格可能吞产量); 否则基准=首条快照值(已计入 base 段)
-  let prevA = (snaps[0].h === 8) ? 0 : (snaps[0].actual || 0);
-  let prevP = (snaps[0].h === 8) ? 0 : (snaps[0].plan || 0);
+  // 完整日(8点起): 全天逐时差分
+  let prevA = 0;
+  let prevP = 0;
   let prevH = snaps[0].h;
   for (let i = 1; i < snaps.length; i++) {
     const s = snaps[i];
@@ -924,7 +949,6 @@ function segsOf(name, curActual) {
     });
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
   }
-  // ★ 当前进行中的小时(live 段)
   if (curActual != null && prevH <= nowH && hourNo(prevH) != null) {
     segs.push({
       h: nowH, lab: prevH, live: true,
