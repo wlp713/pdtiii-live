@@ -901,41 +901,18 @@ function segsOf(name, curActual) {
   if (!snaps.length) return [];
   const nowH = new Date().getHours();
   const segs = [];
+  // ★ 当天中途启动(snaps[0].h > 8): 首条快照前的产量(上午)无法逐时拆分 → 记为 base 段(灰底"上午")
   if (snaps[0].h > 8) {
-    // ★ 当天中途启动(今天上午缺小时数据):
-    //   统一简化为 上午/下午 两段 (2026-08-07 用户要求: 快照缺失时逐段拆太乱)
-    //   - 上午段(base): 第一个下午快照(h>=13)的定格累计 → 含上午全部产量+午休
-    //   - 下午段(pm): 当前累计 − 上午累计 → 含 13 点至今全部产量
-    //   ⚠️ 不再逐段差分: 快照链不完整(如 Final C [11,12,13,15] 缺 h14)时
-    //      合并段 + live 段叠加难看, 两段式更直观且总量精确对上
-    let baseIdx = snaps.length - 1;
-    for (let i = 0; i < snaps.length; i++) {
-      if (snaps[i].h >= 13) { baseIdx = i; break; }
-    }
-    const baseSnap = snaps[baseIdx];
     segs.push({
-      h: baseSnap.h, lab: null, live: false, base: true,
-      actual: baseSnap.actual || 0,
-      plan: baseSnap.plan || 0
+      h: snaps[0].h, lab: null, live: false, base: true,
+      actual: snaps[0].actual || 0,
+      plan: snaps[0].plan || 0
     });
-    // ★ 下午段: 当前累计 − 上午累计 (只要最后快照不晚于当前小时就画)
-    const last = snaps[snaps.length - 1];
-    if (curActual != null && last && last.h >= 8 && last.h <= nowH && hourNo(last.h) != null) {
-      segs.push({
-        h: nowH, lab: null, live: false, pm: true,
-        actual: Math.max(0, (curActual || 0) - (baseSnap.actual || 0)),
-        plan: Math.max(0, livePlan - (baseSnap.plan || 0))
-      });
-    }
-    return segs;
   }
-  // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
-  // ★ 2026-08-06 修复: 首条快照是 h8(当天第一小时)时, 基准应为 8:00 整的 0,
-  //   而非首条快照值 — 首条快照可能在 08:10 才定格(如抓包空窗), 直接把它的
-  //   actual 当基准会吞掉 8:00-8:10 的产量, 与表格 Actual 列对不上
-  const isFirstHour = snaps[0].h === 8;
-  let prevA = isFirstHour ? 0 : (snaps[0].actual || 0);
-  let prevP = isFirstHour ? 0 : (snaps[0].plan || 0);
+  // 逐时差分: 每条快照 − 上一条 = 该小时产量/目标
+  // 首条 h==8 时基准为 0(当天第一小时, 08:10 才定格可能吞产量); 否则基准=首条快照值(已计入 base 段)
+  let prevA = (snaps[0].h === 8) ? 0 : (snaps[0].actual || 0);
+  let prevP = (snaps[0].h === 8) ? 0 : (snaps[0].plan || 0);
   let prevH = snaps[0].h;
   for (let i = 1; i < snaps.length; i++) {
     const s = snaps[i];
@@ -947,7 +924,7 @@ function segsOf(name, curActual) {
     });
     prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
   }
-  // ★ 完整日也有当前进行中的小时段 (2026-08-07 修复: 去掉 nowH-prevH<2, 防快照缺失时 live 段消失)
+  // ★ 当前进行中的小时(live 段)
   if (curActual != null && prevH <= nowH && hourNo(prevH) != null) {
     segs.push({
       h: nowH, lab: prevH, live: true,
