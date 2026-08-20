@@ -140,6 +140,8 @@
   .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
   .hit-name { color: var(--green); }
   .miss-name { color: var(--red); }
+  .schedoff-name { color: #8b949e; }  /* 计划停产线体: 线名灰色 */
+  .hbar-sched .act, .hbar-sched .plan { background: #4b5563; opacity: .55; }  /* 进度条灰色 */
   .stall-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--red);
     display: inline-block; margin-right: 6px; vertical-align: 1px;
@@ -380,7 +382,7 @@ const I18N = {
     connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
     kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体加权",
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
-    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F 合计 (WL 计划停产)",
+    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计 (WL 计划停产)",
     panelMainTitle: "📋 主要线体 · 产量对比 · 点击列头排序", otherLines: "其他线体",
     thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
@@ -414,7 +416,7 @@ const I18N = {
     connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
     kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted",
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
-    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F total (WL scheduled stop)",
+    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total (WL scheduled stop)",
     panelMainTitle: "📋 Main Lines · Output vs Plan · Click to sort", otherLines: "Other Lines",
     thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
@@ -480,14 +482,14 @@ const DATA_URL = IS_LOCAL
 // ⚙️ 主要线体配置（按此顺序显示）
 const MAIN_LINES = [
   "Final A line", "Final B Line", "Final C line", "Final D line",
-  "Motor H-Series", "Motor S-Series", "Motor F-Series"
+  "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
 ];
-// ★ 计划停产线体 (2026-08-20 ~ 08-29 WL 线停产): 不进入主要线体, 单独标记状态
+// ★ 计划停产线体 (2026-08-20 ~ 08-29 WL 线停产): 保留在主要线体, 灰色标记
 const PLANNED_OFF_LINES = ["Motor WL"];
 function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
 // ★ Set 内容也过 normName, 否则带空格永远匹配不上
 const FINAL_SET = new Set(["final a line", "final b line", "final c line", "final d line"].map(normName));
-const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series"].map(normName));
+const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"].map(normName));
 const MAIN_SET = new Set(MAIN_LINES.map(normName));
 
 const state = { lines: [], updatedAt: null, hourly: {} };
@@ -565,10 +567,7 @@ function sortLines(arr) {
 function splitLines() {
   const now = new Date();
   const main = [], other = [];
-  state.lines.forEach(l => {
-    if (isPlannedOff(l)) { other.push(l); return; }
-    (MAIN_SET.has(normName(l.name)) ? main : other).push(l);
-  });
+  state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
   // ★ 按 UPH 从高到低排名; UPH 无效排最后; 同分按名称
   const byUph = (a, b) => {
     const ua = uphOf(a, now), ub = uphOf(b, now);
@@ -582,6 +581,7 @@ function splitLines() {
   return { main, other };
 }
 function lineNameCls(l) {
+  if (isPlannedOff(l)) return "schedoff-name";
   if (l.eff === null || l.eff === undefined || isNaN(l.eff)) return "";
   return hitEff(l.eff) ? "hit-name" : "miss-name";
 }
@@ -591,7 +591,8 @@ function hbarHtml(l, maxV) {
   const aw = maxV > 0 ? Math.max(0, (Number(l.actual) || 0) / maxV * 100) : 0;
   const pw = maxV > 0 ? Math.max(0, (Number(l.plan) || 0) / maxV * 100) : 0;
   const stalledCls = isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "";
-  return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
+  const schedCls = isPlannedOff(l) ? " hbar-sched" : "";
+  return `<div class="hbar${schedCls}"${stalledCls}><div class="p100"></div>` +
     `<div class="plan" style="width:${pw}%"></div>` +
     `<div class="act" style="width:${aw}%"></div></div>`;
 }
@@ -845,7 +846,7 @@ function monthAgg(offsetMonths) {
 }
 // ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
-  const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)));
+  const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)) && !isPlannedOff(l));
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
