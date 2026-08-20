@@ -166,6 +166,7 @@
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
+  .st.schedoff { background: rgba(139,148,158,.2); color: #b6bdc8; border-color: rgba(139,148,158,.45); font-weight: 600; }
   .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
   .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 1.2s infinite; }
   .eff-ok { color: var(--green); font-weight: 600; }
@@ -379,7 +380,7 @@ const I18N = {
     connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
     kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体加权",
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
-    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
+    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F 合计 (WL 计划停产)",
     panelMainTitle: "📋 主要线体 · 产量对比 · 点击列头排序", otherLines: "其他线体",
     thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
@@ -391,7 +392,7 @@ const I18N = {
     editHeadTitle: "✏️ 编辑各线出勤人数",
     headHint: "UPPH达成率 = 实际UPPH÷目标UPPH；实际UPPH = 累计产出÷累计工时÷人数；目标UPPH = 累计目标(实时计划)÷累计工时÷人数。每天人数可改，保存后自动生效。",
     save: "💾 保存",
-    stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
+    stStall: "停滞", stRun: "运行", stOff: "停机", stSchedOff: "计划停产", stUnknown: "未知",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", am: "上午", pm: "下午", setPeople: "设人数",
@@ -413,7 +414,7 @@ const I18N = {
     connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
     kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted",
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
-    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
+    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F total (WL scheduled stop)",
     panelMainTitle: "📋 Main Lines · Output vs Plan · Click to sort", otherLines: "Other Lines",
     thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
@@ -425,7 +426,7 @@ const I18N = {
     editHeadTitle: "✏️ Edit Line Headcount",
     headHint: "UPPH rate = Actual UPPH ÷ Target UPPH; Actual UPPH = Output ÷ Worked hrs ÷ Manpower; Target UPPH = Plan output ÷ Worked hrs ÷ Manpower. Manpower editable daily, applied automatically.",
     save: "💾 Save",
-    stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
+    stStall: "Breakdown", stRun: "Running", stOff: "Off", stSchedOff: "Scheduled Stop", stUnknown: "Unknown",
     kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", am: "AM", pm: "PM", setPeople: "Set HC",
@@ -479,12 +480,14 @@ const DATA_URL = IS_LOCAL
 // ⚙️ 主要线体配置（按此顺序显示）
 const MAIN_LINES = [
   "Final A line", "Final B Line", "Final C line", "Final D line",
-  "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
+  "Motor H-Series", "Motor S-Series", "Motor F-Series"
 ];
+// ★ 计划停产线体 (2026-08-20 ~ 08-29 WL 线停产): 不进入主要线体, 单独标记状态
+const PLANNED_OFF_LINES = ["Motor WL"];
 function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
 // ★ Set 内容也过 normName, 否则带空格永远匹配不上
 const FINAL_SET = new Set(["final a line", "final b line", "final c line", "final d line"].map(normName));
-const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"].map(normName));
+const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series"].map(normName));
 const MAIN_SET = new Set(MAIN_LINES.map(normName));
 
 const state = { lines: [], updatedAt: null, hourly: {} };
@@ -512,9 +515,13 @@ function signClass(v) {
   return "zero";
 }
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+function isPlannedOff(l) {
+  return PLANNED_OFF_LINES.some(p => normName(p) === normName(l.name));
+}
 function stHtml(l) {
   let stCls, stTxt;
-  if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
+  if (isPlannedOff(l)) { stCls = "schedoff"; stTxt = t("stSchedOff"); }
+  else if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
   else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = t("stRun"); }
   else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = t("stOff"); }
   else { stCls = "err"; stTxt = l.status || t("stUnknown"); }
@@ -558,7 +565,10 @@ function sortLines(arr) {
 function splitLines() {
   const now = new Date();
   const main = [], other = [];
-  state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
+  state.lines.forEach(l => {
+    if (isPlannedOff(l)) { other.push(l); return; }
+    (MAIN_SET.has(normName(l.name)) ? main : other).push(l);
+  });
   // ★ 按 UPH 从高到低排名; UPH 无效排最后; 同分按名称
   const byUph = (a, b) => {
     const ua = uphOf(a, now), ub = uphOf(b, now);
@@ -716,6 +726,7 @@ function trackStallStart() {
   state.lines.forEach(l => {
     const k = normName(l.name);
     if (!MAIN_SET.has(k)) return;  // ★ 只追踪主要线体
+    if (isPlannedOff(l)) return;   // 计划停产线不追踪停滞
     const a = Number(l.actual) || 0;
     const prev = lastActualMap[k];
     if (prev === undefined || Math.abs(a - prev) >= 0.5) {
