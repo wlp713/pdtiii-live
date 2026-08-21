@@ -185,10 +185,15 @@
   .prob-summary { font-size: 10.5px; color: var(--white); background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; margin-bottom: 6px; line-height: 1.5; }
   .prob-line { font-weight: 700; color: var(--white); font-size: 11px; }
   .prob-lineimp { font-size: 9px; color: var(--gray); font-weight: 400; margin-top: 2px; }
-  .prob-top { display: flex; align-items: baseline; gap: 5px; padding: 2px 0; font-size: 10.5px; line-height: 1.5; }
-  .prob-rank { font-size: 11px; font-weight: 700; flex-shrink: 0; }
-  /* 2026-08-20 14:05 字体自适应: prob-txt 过长时自动缩小, 不换行不溢出 */
-  .prob-cell .prob-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1 1 auto; min-width: 0; }
+  .prob-top { display: flex; align-items: flex-start; gap: 5px; padding: 3px 0; font-size: 10.5px; line-height: 1.45; }
+  .prob-rank { font-size: 11px; font-weight: 700; flex-shrink: 0; line-height: 1.45; }
+  /* 2026-08-21 13:45: prob-main 包裹问题名+影响+次数, prob-times 独立一行时段 (不再用 <br> 挤在 flex 里) */
+  .prob-main { flex: 1 1 auto; min-width: 0; display: block; }
+  .prob-cnt { color: var(--orange); font-weight: 700; margin-left: 4px; }
+  .prob-imp { color: var(--red); font-weight: 700; margin-left: 4px; }
+  .prob-times { font-size: 9px; color: var(--gray); margin-top: 2px; line-height: 1.4; }
+  /* 2026-08-21 13:45 fix: 长问题名完整换行显示(不再 nowrap 截断省略), 由 fitProbFont 自动缩字号防溢出 */
+  .prob-cell .prob-txt { white-space: normal; word-break: break-all; overflow-wrap: anywhere; flex: 1 1 auto; min-width: 0; }
   #prob-body .prob-summary { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .prob-rank.r1 { color: var(--red); }
   .prob-rank.r2 { color: var(--orange); }
@@ -2503,6 +2508,9 @@ function mapProbLineToBoard(line, problemTxt) {
 }
 
 // ★ 渲染问题点: ① 嵌入主表格每条线体行下方 ② 汇总表(extra模块内)
+function escapeHtml(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
 function renderProblems() {
   // ── ① 嵌入主表格: 已按用户要求移除 (2026-08-20 14:0x) ──
   const ed = getExtraData();
@@ -2514,25 +2522,25 @@ function renderProblems() {
   const src = document.getElementById("prob-src");
   if (body) {
     if (top3.length) {
-      // ★ AI 聚合结果渲染: 每条 = 主要问题名 + 累计影响 + 跨时段次数 + 涉及线体
+      // ★ AI 分组结果渲染 (2026-08-21 13:45 重构): 线体徽标 + 完整问题名(自动换行) + 累计影响 + 跨时段次数 + 涉及时段
       const totalImpact = problems.reduce((s, p) => s + (Number(p.impact) || 0), 0);
       const times = problems.map(p => Number(p.time)).filter(t => !isNaN(t)).sort((a, b) => a - b);
       const period = times.length ? (fmtTime(times[0]) + " ~ " + fmtTime(times[times.length - 1])) : "全天";
       const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
       const absImp = Math.abs(totalImpact);
-      const summary = "<div class='prob-summary'>📋 <b>" + period + "</b> · 共" + problems.length + "条问题 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b></div>";
-      if (src) src.textContent = "SRC: TOP3 / " + problems.length + "条";
+      const summary = "<div class='prob-summary'>📋 <b>" + period + "</b> · 共" + problems.length + "条 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b></div>";
+      if (src) src.textContent = "SRC: AI分组 " + top3.length + " / " + problems.length + "条";
       const rows = top3.map((item, bi) => {
-        const bname = (item.lines && item.lines[0]) ? item.lines[0] : "-";
-        const imp = (item.total_impact != null) ? " <span style='color:var(--red);font-weight:700'>" + (Number(item.total_impact) <= 0 ? "" : "+") + Number(item.total_impact) + "台</span>" : "";
-        const timesStr = (item.times && item.times.length) ? "<span style='color:var(--gray);font-size:9px'>" + item.times.slice(0, 3).join(", ") + (item.times.length > 3 ? "…" : "") + "</span> " : "";
-        const cnt = item.count > 1 ? " <span style='color:var(--orange);font-weight:700'>×" + item.count + "时段</span>" : "";
+        const bname = (item.lines && item.lines[0]) ? String(item.lines[0]) : "-";
+        const imp = (item.total_impact != null) ? " <b class='prob-imp'>" + (Number(item.total_impact) <= 0 ? "" : "+") + Number(item.total_impact) + "台</b>" : "";
+        const cnt = item.count > 1 ? " <span class='prob-cnt'>×" + item.count + "时段</span>" : "";
+        const timesStr = (item.times && item.times.length) ? "<div class='prob-times'>" + item.times.map(escapeHtml).join(" · ") + "</div>" : "";
         const rankCls = bi === 0 ? "r1" : (bi === 1 ? "r2" : "r3");
         const itemHtml = "<div class='prob-top'><span class='prob-rank " + rankCls + "'>" + (bi + 1) + ".</span>" +
-          "<span class='prob-txt'>" + String(item.name || "").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</span>" + cnt + imp + "<br>" + timesStr + "</div>";
-        return "<tr><td class='prob-line'>" + bname + "</td><td class='prob-cell'>" + itemHtml + "</td></tr>";
+          "<div class='prob-main'><div class='prob-txt'>" + escapeHtml(String(item.name || "")) + cnt + imp + "</div>" + timesStr + "</div></div>";
+        return "<tr><td class='prob-line'>" + escapeHtml(bname) + "</td><td class='prob-cell'>" + itemHtml + "</td></tr>";
       }).join("");
-      body.innerHTML = summary + "<table class='prob-table'><tbody>" + rows + "</tbody></table>";
+      body.innerHTML = summary + "<table class='mod-table'><thead><tr><th style='width:100px'>" + (zh ? "线体" : "Line") + "</th><th>" + (zh ? "主要问题点" : "Key issues") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
       fitProbFont(body);
       return;
     }
