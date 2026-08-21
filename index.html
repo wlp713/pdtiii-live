@@ -2328,10 +2328,11 @@ function renderTrend() {
   const avail = [];
   MAIN_TREND_LINES.forEach(n => { if (lineNames.indexOf(n) >= 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
   rest.forEach(n => { if (avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
-  // 首次(无任何保存选择): 默认全选主要8条
-  let anyOn = false;
-  lineNames.forEach(n => { if (trendSel[n]) anyOn = true; });
-  if (!anyOn) { avail.forEach(n => { trendSel[n] = true; }); }
+  // 2026-08-21 12:01 用户要求: 点击卡片=展开放大(不再删除) → 趋势选择只增不减, 始终补齐主要8条
+  // 清理旧状态: 删除之前点击遗留的隐藏选择, 保证主要线体全部恢复显示
+  try { localStorage.removeItem(TREND_SEL_KEY); } catch (e) {}
+  trendSel = {};
+  avail.forEach(n => { trendSel[n] = true; });
   try { localStorage.setItem(TREND_SEL_KEY, JSON.stringify(trendSel)); } catch (e) {}
   // 顶部按钮行已移除 (2026-08-21): 卡片自身可点击切换, 省出高度给卡片放大
   if (wrap) wrap.innerHTML = "";
@@ -2340,10 +2341,18 @@ function renderTrend() {
 function toggleTrendLine(el) {
   const n = el.getAttribute("data-line");
   if (!n) return;
-  trendSel[n] = !trendSel[n];
-  el.classList.toggle("on", trendSel[n]);
-  try { localStorage.setItem(TREND_SEL_KEY, JSON.stringify(trendSel)); } catch (e) {}
-  drawTrend();
+  // 2026-08-21 12:01 用户要求: 点击卡片=展开放大查看, 不再是删除/隐藏
+  openLineDetail(n);
+}
+// ★ 2026-08-21 12:01: 点击趋势卡片 → 弹窗放大显示该线体大图 (复用 detailModal)
+function openLineDetail(n) {
+  detailLineName = n;
+  document.getElementById("detailModal").classList.add("open");
+  renderDetail("line");
+}
+function closeLineDetail() {
+  detailLineName = null;
+  closeDetail();
 }
 // 折线图绘制: 改为 sparkline 卡片网格 (2026-08-21 用户要求: 线太多靠颜色区分吃力 → 每条线独立小卡, 标题+最新值+升降箭头+迷你折线, 趋势一目了然)
 function drawTrend() {
@@ -2571,6 +2580,7 @@ function fitProbFont() {
 
 // ── 2026-08-20 15:35 模块扩展详情弹窗 (趋势大图/全部问题点/完整出勤表) ──
 let detailType = null;
+let detailLineName = null; // 2026-08-21: 点击趋势卡片放大的目标线体
 let trendDetailMode = "all"; // all | sel | over100
 function openDetail(type) {
   detailType = type;
@@ -2587,9 +2597,87 @@ function renderDetail(type) {
   const src = document.getElementById("detailSrc");
   const body = document.getElementById("detailBody");
   const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
-  if (type === "trend") renderDetailTrend(title, modes, src, body, zh);
+  if (type === "line") renderDetailLine(title, modes, src, body, zh);
+  else if (type === "trend") renderDetailTrend(title, modes, src, body, zh);
   else if (type === "problems") renderDetailProblems(title, modes, src, body, zh);
   else if (type === "attendance") renderDetailAttendance(title, modes, src, body, zh);
+}
+
+// ★ 2026-08-21 12:01: 单线体趋势放大图 (点击趋势卡片触发)
+function renderDetailLine(title, modes, src, body, zh) {
+  const n = detailLineName;
+  const hist = getTrendHist();
+  if (!n || !hist.length) {
+    body.innerHTML = "<div style='color:var(--gray);padding:30px;text-align:center'>" + (zh ? "暂无历史数据" : "No history") + "</div>";
+    modes.innerHTML = ""; src.textContent = "SRC: -";
+    return;
+  }
+  title.textContent = "📈 " + n + (zh ? " · 趋势放大图" : " · Trend Detail");
+  modes.innerHTML = "";
+  src.textContent = hist.length + " 天快照";
+  body.innerHTML = "<canvas id='chartTrendDetail' style='flex:1;min-height:0;width:100%'></canvas>";
+  requestAnimationFrame(drawTrendDetailLine);
+}
+function drawTrendDetailLine() {
+  const cv = document.getElementById("chartTrendDetail");
+  const hist = getTrendHist();
+  if (!cv || !hist.length || !detailLineName) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 300;
+  if (W < 60 || H < 60) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const n = detailLineName;
+  const days = hist.slice(-30);
+  const padL = 46, padB = 24, padT = 22;
+  const cw = W - padL - 16, ch = H - padT - padB;
+  const yMin = 60, yMax = 120; // 与主页卡片一致, 目标线100%固定
+  // Y轴刻度
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "11px sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const v = yMin + (yMax - yMin) * i / 4;
+    const y = padT + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 12, y); ctx.stroke();
+    ctx.fillText(Math.round(v) + "%", 4, y + 4);
+  }
+  const y100 = padT + ch - (ch * 100 / (yMax - yMin)) + (ch * yMin / (yMax - yMin));
+  const y100f = padT + ch - (ch * (100 - yMin) / (yMax - yMin));
+  ctx.strokeStyle = "rgba(63,185,80,.4)"; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(padL, y100f); ctx.lineTo(W - 12, y100f); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#3fb950"; ctx.fillText("100% 目标", W - 64, y100f - 5);
+  // X轴日期
+  ctx.fillStyle = "#8b949e";
+  const xStep = cw / Math.max(days.length - 1, 1);
+  const xIx = [];
+  [0, Math.floor((days.length - 1) / 2), days.length - 1].forEach(ix => { if (xIx.indexOf(ix) < 0) xIx.push(ix); });
+  xIx.forEach(ix => ctx.fillText(String(days[ix].date || "").slice(5), padL + ix * xStep - 12, H - 7));
+  // 数据线 + 数据标签
+  const color = TREND_COLORS[0];
+  const vals = days.map(d => { const v = Number(d.lines && d.lines[n]); return isNaN(v) ? null : v; });
+  const pts = [];
+  vals.forEach((v, ix) => {
+    if (v == null) return;
+    const x = padL + ix * xStep;
+    const y = padT + ch - (ch * (Math.min(Math.max(v, yMin), yMax) - yMin) / (yMax - yMin));
+    pts.push([x, y, v]);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+    ctx.strokeStyle = "#0d1117"; ctx.lineWidth = 2; ctx.stroke();
+    // 数据标签(带%): 点上方, halo 防压线
+    ctx.font = "bold 12px sans-serif"; ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    const txtY = y < padT + 16 ? y + 20 : y - 12;
+    ctx.strokeStyle = "rgba(13,17,23,.9)"; ctx.lineWidth = 4;
+    ctx.strokeText(Math.round(v) + "%", x, txtY);
+    ctx.fillText(Math.round(v) + "%", x, txtY);
+    ctx.textAlign = "left";
+  });
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+  ctx.beginPath();
+  pts.forEach((p, i) => { if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); });
+  ctx.stroke();
 }
 
 // ── 趋势详情: 大图 + 形态切换 (全部线/仅选中/仅≥100%) ──
