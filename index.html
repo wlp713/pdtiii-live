@@ -511,6 +511,7 @@
       </div>
       <button class="ex-expand" onclick="openDetail('attendance')" title="⛶ 查看完整出勤表" data-i18n-title="expandAtt">⛶</button>
       <div class="ex-body" id="att-body"></div>
+      <div class="ex-tools"><button class="ex-btn" onclick="openAttModal()">✏️ 录入</button><span class="ex-hint" data-i18n="attExHint">当日出勤 · 填写</span></div>
     </section>
 
     <!-- ── 中: 未达成原因 · Top3 汇总 (每条线影响最大的前3条, 与嵌入明细差异化) ── -->
@@ -522,7 +523,7 @@
       </div>
       <button class="ex-expand" onclick="openDetail('problems')" title="⛶ 查看全部问题点" data-i18n-title="expandProb">⛶</button>
       <div class="ex-body" id="prob-body"></div>
-      <div class="ex-tools"><button class="ex-btn" onclick="openProbModal()" data-i18n="addManual">＋ 手动录入</button><span class="ex-hint" data-i18n="probExHint">Top3 未达成原因 · 每小时自动同步</span></div>
+      <div class="ex-tools"><button class="ex-btn" onclick="openProbModal()" data-i18n="addManual">＋ 录入</button><span class="ex-hint" data-i18n="probExHint">Top3 未达成原因 · 每小时自动同步</span></div>
     </section>
 
     <!-- 拖拽手柄: 左右拉伸趋势图宽度, 其他模块自动让位 -->
@@ -544,10 +545,27 @@
   </div>
 </div><!-- /scale-stage -->
 
-<!-- 问题点手动录入弹窗 -->
+<!-- 出勤录入弹窗 -->
+<div class="ex-modal" id="attModal">
+  <div class="ex-modal-box">
+    <h3 data-i18n="attModalTitle">👥 录入当日出勤</h3>
+    <div class="ex-form">
+      <div class="ex-form-row">
+        <div><label data-i18n="fDate">日期</label><input id="attF-date" style="width:120px"></div>
+      </div>
+      <div id="attF-rows"></div>
+      <div class="ex-form-actions">
+        <button class="ex-btn" onclick="closeAttModal()" data-i18n="cancel">取消</button>
+        <button class="ex-btn" onclick="saveAttModal()" data-i18n="save">💾 保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 问题点录入弹窗 -->
 <div class="ex-modal" id="probModal">
   <div class="ex-modal-box">
-    <h3 data-i18n="probModalTitle">🚨 手动录入问题点</h3>
+    <h3 data-i18n="probModalTitle">🚨 录入问题点</h3>
     <div class="ex-form">
       <div class="ex-form-row">
         <div><label data-i18n="fLine">线体（必填）</label><input id="probF-line" placeholder="如 A线 / Motor H-Series"></div>
@@ -703,12 +721,12 @@ const I18N = {
     histBtn: "📊 历史统计", histTitle: "📊 历史统计 · 周/月对比 · 站擂排名",
     histReplayTitle: "📅 历史日期回看", histLoad: "加载", histReplayHint: "快照每日17:00自动归档 → history/日期.json",
     modeDaily: "基础", modeDetail: "详情", modeTitle: "切换 基础/详情 模式",
-    collapseTitle: "隐藏此模块", addManual: "＋ 手动录入", probExHint: "Top3 未达成原因 · 每小时自动同步",
-    cancel: "取消", probModalTitle: "🚨 手动录入问题点", fLine: "线体（必填）", fTime: "时间",
+    collapseTitle: "隐藏此模块", addManual: "＋ 录入", probExHint: "Top3 未达成原因 · 每小时自动同步",
+    cancel: "取消", probModalTitle: "🚨 录入问题点", fLine: "线体（必填）", fTime: "时间",
     fProblem: "问题点 / 未达成原因（必填）", fPlan: "计划", fActual: "实际",
     attTitle: "👥 出勤", probTitle: "🚨 未达成原因 · Top3", trendTitle: "📈 达成率趋势分析",
     probLineTh: "线体", probNoData: "暂无问题点 — 每小时自动从桌面Excel同步", srcSnapshot: "SRC: 每日17:00快照",
-    probSrcFmt: "SRC: 共{n}条 / {m}线体",
+    probSrcFmt: "SRC: 共{n}条 / {m}线体", attModalTitle: "👥 录入当日出勤", attExHint: "当日出勤 · 填写", fDate: "日期",
     expandAtt: "查看完整出勤表", expandProb: "查看全部问题点", expandTrend: "查看详细趋势图",
     detailClose: "关闭", trendModeAll: "全部线体", trendModeSel: "仅选中", trendModeOver: "仅≥100%",
     histToday: "📌 今日实时", histWeekTitle: "🗓 本周 vs 上周", histMonthTitle: "📅 本月 vs 上月",
@@ -747,12 +765,12 @@ const I18N = {
     histBtn: "📊 History", histTitle: "📊 History · Weekly/Monthly · Rankings",
     histReplayTitle: "📅 Date Replay", histLoad: "Load", histReplayHint: "Snapshots archived daily 17:00 → history/date.json",
     modeDaily: "Basic", modeDetail: "Detail", modeTitle: "Toggle Basic/Detail mode",
-    collapseTitle: "Hide module", addManual: "＋ Manual Entry", probExHint: "Top3 reasons · Auto-sync hourly",
-    cancel: "Cancel", probModalTitle: "🚨 Manual Problem Entry", fLine: "Line (required)", fTime: "Time",
+    collapseTitle: "Hide module", addManual: "＋ Add", probExHint: "Top3 reasons · Auto-sync hourly",
+    cancel: "Cancel", probModalTitle: "🚨 Add Problem", fLine: "Line (required)", fTime: "Time",
     fProblem: "Problem / Reason (required)", fPlan: "Plan", fActual: "Actual",
     attTitle: "👥 Attendance", probTitle: "🚨 Reasons · Top3", trendTitle: "📈 Rate Trend",
     probLineTh: "Line", probNoData: "No problems — auto-sync from Excel hourly", srcSnapshot: "SRC: Daily 17:00 snapshot",
-    probSrcFmt: "SRC: {n} items / {m} lines",
+    probSrcFmt: "SRC: {n} items / {m} lines", attModalTitle: "👥 Enter Attendance", attExHint: "Today · Manual entry", fDate: "Date",
     expandAtt: "Full attendance table", expandProb: "All problem details", expandTrend: "Detailed trend chart",
     detailClose: "Close", trendModeAll: "All lines", trendModeSel: "Selected", trendModeOver: "Over 100%",
     histToday: "📌 Today (Live)", histWeekTitle: "🗓 This Week vs Last Week", histMonthTitle: "📅 This Month vs Last Month",
@@ -2066,19 +2084,18 @@ function resetModuleLayout() {
 // ── 数据读取: live-data.js (window.__LIVE_DATA__) + 手动覆盖 ──
 function getExtraData() {
   const ld = (typeof window.__LIVE_DATA__ !== "undefined" && window.__LIVE_DATA__) || { attendance: null, problems: [] };
-  const att = ld.attendance || null;
   const probs = (ld.problems || []).slice();
   // 合并手动录入的问题点
   try {
     const mp = JSON.parse(localStorage.getItem(EXTRA_MANUAL_PROB) || "[]") || [];
     mp.forEach(p => { if (!probs.some(x => x._mid && x._mid === p._mid)) probs.push(p); });
   } catch (e) {}
-  // 合并手动出勤
+  // 出勤率 = 纯手动录入 (2026-08-21 起不再读 live attendance)
   try {
     const ma = JSON.parse(localStorage.getItem(EXTRA_MANUAL_ATT) || "null");
     if (ma && ma.rows && ma.rows.length) return { attendance: ma, problems: probs, manual: true };
   } catch (e) {}
-  return { attendance: att, problems: probs, manual: false };
+  return { attendance: null, problems: probs, manual: false };
 }
 
 function renderExtra() {
@@ -2294,13 +2311,13 @@ function renderAttendance() {
   if (!body) return;
   const { attendance } = getExtraData();
   if (!attendance || !attendance.rows || !attendance.rows.length) {
-    body.innerHTML = "<div style='color:var(--gray);font-size:10px;padding:6px 2px'>暂无数据 — 等待同步</div>";
-    if (src) src.textContent = "SRC: -";
+    body.innerHTML = "<div style='color:var(--gray);font-size:10px;padding:6px 2px'>暂无数据 — 点「✏️ 录入」填写</div>";
+    if (src) src.textContent = "SRC: 无数据";
     return;
   }
   const rows = attendance.rows;
   const dateTxt = attendance.date || "";
-  if (src) src.textContent = dateTxt ? dateTxt : "SRC: 自动";
+  if (src) src.textContent = dateTxt ? dateTxt + " · 已录入" : "SRC: 已录入";
   body.innerHTML = rows.map(r => {
     const rate = parseFloat(r.rate);
     const rc = rateCls(rate);
@@ -2593,8 +2610,8 @@ function renderDetailAttendance(title, modes, src, body, zh) {
   modes.innerHTML = "";
   const { attendance } = getExtraData();
   if (!attendance || !attendance.rows || !attendance.rows.length) {
-    body.innerHTML = "<div style='color:var(--gray);padding:30px;text-align:center'>" + (zh ? "暂无出勤数据 — 等待同步" : "No attendance data — waiting for sync") + "</div>";
-    src.textContent = "SRC: -";
+    body.innerHTML = "<div style='color:var(--gray);padding:30px;text-align:center'>" + (zh ? "暂无出勤数据 — 点「✏️ 录入」填写当日出勤" : "No attendance — click ✏️ to enter today") + "</div>";
+    src.textContent = "SRC: 无数据";
     return;
   }
   const rows = attendance.rows;
@@ -2613,6 +2630,46 @@ function renderDetailAttendance(title, modes, src, body, zh) {
 document.addEventListener("keydown", function(e) { if (e.key === "Escape") closeDetail(); });
 // 点击遮罩关闭
 document.addEventListener("click", function(e) { if (e.target && e.target.id === "detailModal") closeDetail(); });
+
+// ── 出勤录入 ──
+const ATT_LINES = ["PRO1","PRO2","PRO3","PRO4","PRO5","PRO6"];
+function openAttModal() {
+  const d = document.getElementById("attF-date");
+  if (d) {
+    const now = new Date();
+    d.value = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+  }
+  let rows = [];
+  try {
+    const ma = JSON.parse(localStorage.getItem(EXTRA_MANUAL_ATT) || "null");
+    if (ma && ma.rows) rows = ma.rows;
+  } catch (e) {}
+  const box = document.getElementById("attF-rows");
+  if (box) {
+    box.innerHTML = "<table class='mod-table' style='max-width:520px;margin:0 auto'><thead><tr><th>" + (typeof lang !== "undefined" && lang === "en" ? "WS" : "车间") + "</th><th>" + (typeof lang !== "undefined" && lang === "en" ? "Staff" : "在编") + "</th><th>" + (typeof lang !== "undefined" && lang === "en" ? "Attend" : "出勤") + "</th></tr></thead><tbody>" +
+      ATT_LINES.map(ws => {
+        const r = rows.find(x => x.ws === ws) || {};
+        return "<tr><td style='text-align:center;font-weight:700'>" + ws + "</td>" +
+          "<td style='text-align:center'><input class='ex-input num' id='attF-staff-" + ws + "' value='" + (r.staff != null ? r.staff : "") + "' style='width:70px;text-align:center'></td>" +
+          "<td style='text-align:center'><input class='ex-input num' id='attF-attend-" + ws + "' value='" + (r.attend != null ? r.attend : "") + "' style='width:70px;text-align:center'></td></tr>";
+      }).join("") + "</tbody></table>";
+  }
+  document.getElementById("attModal").classList.add("open");
+}
+function closeAttModal() { document.getElementById("attModal").classList.remove("open"); }
+function saveAttModal() {
+  const date = (document.getElementById("attF-date").value || "").trim();
+  const rows = ATT_LINES.map(ws => {
+    const staff = parseFloat(document.getElementById("attF-staff-" + ws).value) || 0;
+    const attend = parseFloat(document.getElementById("attF-attend-" + ws).value) || 0;
+    const rate = staff > 0 ? Math.round(attend / staff * 1000) / 10 : null;
+    return { ws: ws, staff: staff || null, attend: attend || null, rate: rate };
+  }).filter(r => r.staff !== null || r.attend !== null);
+  if (!rows.length) { alert("至少填一个车间"); return; }
+  try { localStorage.setItem(EXTRA_MANUAL_ATT, JSON.stringify({ date: date, rows: rows })); } catch (e) {}
+  closeAttModal();
+  renderAttendance();
+}
 
 // ── 手动录入问题点 ──
 function openProbModal() { document.getElementById("probModal").classList.add("open"); }
