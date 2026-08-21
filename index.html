@@ -2390,7 +2390,7 @@ function drawTrend() {
       const pctX = ((x / W) * 100).toFixed(1);
       const pctY = ((y / H) * 100).toFixed(1);
       const below = y < 9; // 点靠近顶部时标签放下方, 避免溢出
-      return "<span class='spark-label' style='left:" + pctX + "%;top:" + pctY + "%;transform:translate(-50%," + (below ? "40%" : "-130%") + ");color:" + color + "'>" + v.toFixed(0) + "</span>";
+      return "<span class='spark-label' style='left:" + pctX + "%;top:" + pctY + "%;transform:translate(-50%," + (below ? "40%" : "-130%") + ");color:" + color + "'>" + v.toFixed(0) + "%</span>";
     }).join("");
     const lastCls = lastV >= 100 ? "sp-ok" : (lastV >= 90 ? "sp-warn" : "sp-bad");
     return "<div class='spark-card' title='" + n + "' onclick='toggleTrendLine(this)' data-line='" + n.replace(/'/g, "") + "' style='cursor:pointer'>" +
