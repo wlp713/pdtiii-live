@@ -401,6 +401,8 @@
   .chart-box { flex: 2.2; min-height: 0; display: flex; flex-direction: column; }
   .chart-box.small { flex: 0.8; }
   .chart-box canvas { flex: 1; width: 100%; height: 0; min-height: 60px; }
+  /* 2026-08-21 14:20 fix: 首帧 flex 未撑开时 clientHeight=0, 给 canvas 显式最小高度保证可见 */
+  .chart-box canvas { min-height: 140px; }
   .legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--gray); margin-bottom: 4px; flex-wrap: wrap; flex-shrink: 0; }
   .legend span::before {
     content: ""; display: inline-block; width: 9px; height: 9px;
@@ -1434,9 +1436,21 @@ function toggleSeg() {
 
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
+  if (!cv) return;
   const dpr = window.devicePixelRatio || 1;
   const W = cv.clientWidth, H = cv.clientHeight || 230;
-  if (W < 20) return;
+  // ★ 2026-08-21 14:20 修复: 刚打开页面时 canvas 尚未完成首轮布局(clientWidth=0),
+  //   旧逻辑直接 return 导致图表空白, 只能等 10s 后定时刷新才恢复。改为 rAF 延迟重试,
+  //   最多重试 20 帧(约 330ms), 期间不放弃绘制。
+  if (W < 20) {
+    if ((drawBar._retry = (drawBar._retry || 0) + 1) <= 20) {
+      requestAnimationFrame(() => drawBar(main));
+    } else {
+      drawBar._retry = 0;
+    }
+    return;
+  }
+  drawBar._retry = 0;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
@@ -1579,9 +1593,19 @@ function upphRateOf(l, now) {
 }
 function drawEff(main) {
   const cv = document.getElementById("chartEff");
+  if (!cv) return;
   const dpr = window.devicePixelRatio || 1;
   const W = cv.clientWidth, H = cv.clientHeight || 180;
-  if (W < 20) return;
+  // ★ 2026-08-21 14:20 修复: 与 drawBar 相同, 首帧布局未完成时 rAF 重试 (最多20帧)
+  if (W < 20) {
+    if ((drawEff._retry = (drawEff._retry || 0) + 1) <= 20) {
+      requestAnimationFrame(() => drawEff(main));
+    } else {
+      drawEff._retry = 0;
+    }
+    return;
+  }
+  drawEff._retry = 0;
   cv.width = W * dpr; cv.height = H * dpr;
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
