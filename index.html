@@ -428,6 +428,12 @@
   .vs-up { color: var(--green); font-weight: 600; }
   .vs-down { color: var(--red); font-weight: 600; }
   .vs-flat { color: var(--gray); }
+  .rep-badge { font-size: 9px; padding: 1px 6px; border-radius: 8px; font-weight: 600; white-space: nowrap; }
+  .rep-day { background: #f8514922; color: #f85149; border: 1px solid #f8514955; }
+  .rep-week { background: #d2992222; color: #d29922; border: 1px solid #d2992255; }
+  .trend-arrow.up { color: #f85149; font-weight: 700; }
+  .trend-arrow.down { color: #3fb950; font-weight: 700; }
+  .trend-arrow.flat { color: var(--gray); }
   @media (max-width: 1100px) {
     .main-grid { grid-template-columns: 1fr; overflow-y: auto; }
     body { overflow-y: auto; }
@@ -1771,7 +1777,25 @@ async function loadHistDate(date) {
     const r = await fetch("history/" + date + ".json?t=" + Date.now());
     if (!r.ok) throw new Error(r.status);
     const snap = await r.json();
-    renderHistReplay(snap);
+    // 加载近7天归档(含所选日)用于重复识别与趋势统计
+    let histDays = [];
+    try {
+      const ir = await fetch("history/index.json?t=" + Date.now());
+      if (ir.ok) {
+        const dates = await ir.json();
+        const idx = dates.indexOf(date);
+        const need = (idx >= 0 ? dates.slice(idx, idx + 7) : [date]);
+        histDays = (await Promise.all(need.map(async d => {
+          try {
+            const rr = await fetch("history/" + d + ".json?t=" + Date.now());
+            if (!rr.ok) return null;
+            const s = await rr.json();
+            return { date: d, problems: s.problems || [] };
+          } catch (e) { return null; }
+        }))).filter(Boolean);
+      }
+    } catch (e) {}
+    renderHistReplay(snap, histDays);
     status.textContent = "✅ " + (snap.snapAt || date);
     body.style.display = "";
   } catch (e) {
@@ -1793,12 +1817,91 @@ function histMainLines(snap) {
   rest.forEach(n => { if (avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
   return avail;
 }
-function renderHistReplay(snap) {
+// ── 问题点语义分类库（AI 语义识别，非死板字符串匹配）──
+// 每个类别用同义词族覆盖中/泰/英常见描述，如“S Coil断电停机”≈“设备故障”
+const PROB_CATS = [
+  { key: "equip", zh: "设备故障", en: "Equipment", color: "#f85149",
+    words: ["停机","故障","断电","报警","断裂","卡轨","传感器","不转","不热","损坏","烧","漏油","渗油","异响","抖动","脱落","维修","修复","停线","เครื่อง","เสีย","พัง","ไฟไม่เข้า","เบรก","ชำรุด","ซ่อม","alert","alarm"] },
+  { key: "changeover", zh: "换型/换线", en: "Changeover", color: "#d29922",
+    words: ["换线","换型","换模","换刀","换料","更换","线绳","拧紧头","盖帽","เชือก","เปลี่ยน"] },
+  { key: "material", zh: "来料/供应", en: "Supply", color: "#bc8cff",
+    words: ["来料","缺料","无库存","供应","物料","不连续","GAP","库存","积压","วัสดุ","ขาด","สต๊อก","ชิ้นส่วน"] },
+  { key: "quality", zh: "品质不良", en: "Quality", color: "#f778ba",
+    words: ["不良","滑牙","尺寸","不合格","变形","毛刺","歪","คุณภาพ","ไม่ได้ขนาด"] },
+  { key: "wait", zh: "等待/待机", en: "Waiting", color: "#58a6ff",
+    words: ["等待","待料","等料","รอ"] },
+  { key: "other", zh: "其他", en: "Other", color: "#8b949e", words: [] }
+];
+function classifyProblem(p) {
+  const t = String(p.problem_zh || "") + " " + String(p.problem_th || "") + " " + String(p.problem || "");
+  let best = "other", bestScore = 0;
+  PROB_CATS.forEach(c => {
+    if (c.key === "other") return;
+    let s = 0;
+    c.words.forEach(w => { if (t.indexOf(w) >= 0) s++; });
+    if (s > bestScore) { bestScore = s; best = c.key; }
+  });
+  return best;
+}
+function buildRepeatInfo(dayProbs, histDays) {
+  // histDays[0]=所选日(当天), 其余为更早归档; 同类+同车间 → 重复
+  const out = [];
+  (dayProbs || []).forEach(p => {
+    const cat = classifyProblem(p);
+    const ws = p.ws || "";
+    let prevDay = false, prevWeek = false;
+    for (let i = 1; i < (histDays || []).length; i++) {
+      const d = histDays[i];
+      const hit = (d.problems || []).some(q => classifyProblem(q) === cat && (q.ws || "") === ws);
+      if (hit) { if (i === 1) prevDay = true; prevWeek = true; }
+    }
+    out.push({ p: p, cat: cat, prevDay: prevDay, prevWeek: prevWeek });
+  });
+  return out;
+}
+function trendArrow(counts) {
+  const n = counts.length;
+  if (n < 2) return { dir: "flat", html: "➡️" };
+  const last = counts[n - 1], prev = counts[n - 2];
+  if (last > prev) return { dir: "up", html: "🔺 上升" };
+  if (last < prev) return { dir: "down", html: "🔻 下降" };
+  return { dir: "flat", html: "➡️ 持平" };
+}
+function buildTrendHtml(histDays, zh) {
+  if (!histDays || histDays.length < 2) return "<div style='color:var(--gray);font-size:11px;padding:10px 2px'>" + (zh ? "暂无跨日数据 — 明日起显示重复趋势" : "No trend yet — available from tomorrow") + "</div>";
+  const days = histDays.slice().reverse(); // 旧→新
+  const labels = days.map(d => String(d.date).slice(5));
+  const catCounts = {};
+  days.forEach(d => {
+    const cc = {};
+    (d.problems || []).forEach(p => { const c = classifyProblem(p); cc[c] = (cc[c] || 0) + 1; });
+    Object.keys(cc).forEach(c => { if (!catCounts[c]) catCounts[c] = []; catCounts[c].push(cc[c]); });
+  });
+  const keys = Object.keys(catCounts).filter(k => catCounts[k].some(v => v > 0));
+  if (!keys.length) return "<div style='color:var(--gray);font-size:11px;padding:10px 2px'>" + (zh ? "近7日无问题记录" : "No problems in last 7 days") + "</div>";
+  const maxV = Math.max.apply(null, keys.map(k => Math.max.apply(null, catCounts[k]))) || 1;
+  const rows = keys.map(k => {
+    const c = PROB_CATS.find(x => x.key === k) || PROB_CATS[PROB_CATS.length - 1];
+    const counts = catCounts[k];
+    const arrow = trendArrow(counts);
+    const bars = counts.map((v, i) => "<div style='width:14px;height:" + Math.max(2, Math.round(v / maxV * 46)) + "px;background:" + (v > 0 ? c.color : "#30363d") + ";border-radius:2px 2px 0 0' title='" + labels[i] + ": " + v + "'></div>").join("");
+    return "<div style='padding:6px 2px;border-bottom:1px solid var(--border)'>" +
+      "<div style='display:flex;align-items:center;gap:6px;font-size:10.5px'>" +
+        "<span style='color:" + c.color + ";font-weight:700'>" + (zh ? c.zh : c.en) + "</span>" +
+        "<span class='trend-arrow " + arrow.dir + "'>" + arrow.html + "</span>" +
+        "<span style='color:var(--gray);font-size:10px'>" + counts[counts.length - 1] + (zh ? "次/今日" : " today") + "</span>" +
+      "</div>" +
+      "<div style='display:flex;align-items:flex-end;gap:4px;height:50px;margin-top:4px'>" + bars + "</div>" +
+      "<div style='display:flex;gap:4px;font-size:8.5px;color:var(--gray)'>" + labels.map(l => "<span style='width:14px;text-align:center'>" + l + "</span>").join("") + "</div>" +
+    "</div>";
+  }).join("");
+  return rows;
+}
+function renderHistReplay(snap, histDays) {
   const body = document.getElementById("histReplayBody");
   const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
   const lines = snap.lines || [];
   const eff = snap.eff || {};
-  const hourly = snap.hourly || {};
   const problems = snap.problems || [];
   const att = snap.attendance;
   // 默认展示主要 8 条线体 (与主页一致)
@@ -1818,15 +1921,24 @@ function renderHistReplay(snap) {
     const c = v >= 100 ? "#3fb950" : (v >= 90 ? "#d29922" : "#f85149");
     return "<div style='display:flex;align-items:center;gap:6px;margin:2px 0'><span style='width:110px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>" + n + "</span><div style='flex:1;height:10px;background:var(--panel);border-radius:5px;overflow:hidden'><div style='height:100%;width:" + Math.min(v, 150) + "%;background:" + c + "'></div></div><span style='width:44px;text-align:right;font-size:10px'>" + v.toFixed(0) + "%</span></div>";
   }).join("");
-  // ③ UPH 趋势 (每小时, 主要8条线体)
-  const hNames = main8.filter(n => hourly[n]);
-  const uphCanvas = "<canvas id='histUphCanvas' style='width:100%;height:140px'></canvas>";
-  // ④ 问题点 (Top5)
-  const probsTop = problems.slice().sort((a, b) => Math.abs(Number(b.impact) || 0) - Math.abs(Number(a.impact) || 0)).slice(0, 5);
-  const probHtml = probsTop.length ? probsTop.map(p => {
+  // ③ 问题点 — AI语义分类 + 重复识别 (前日/前周) + 全部展示
+  const repeatInfo = buildRepeatInfo(problems, histDays);
+  const catOf = {};
+  PROB_CATS.forEach(c => catOf[c.key] = c);
+  const probList = repeatInfo.length ? repeatInfo.map((it, i) => {
+    const p = it.p;
     const raw = String(p.problem_zh || p.problem_th || p.problem || "").replace(/\s+/g, " ").trim();
-    return "<div style='font-size:10.5px;padding:2px 0;border-bottom:1px solid var(--border)'><b>" + (p.line || p.ws || "-") + "</b> " + (p.time || "") + " <span style='color:var(--red);font-weight:700'>" + (Number(p.impact) <= 0 ? "" : "+") + (p.impact || 0) + "台</span><br><span style='color:var(--gray)'>" + raw + "</span></div>";
-  }).join("") : "<div style='color:var(--gray);font-size:11px'>" + (zh ? "当日无问题点" : "No problems") + "</div>";
+    const c = catOf[it.cat] || catOf.other;
+    const badge = it.prevDay ? "<span class='rep-badge rep-day'>🔁 " + (zh ? "前日" : "yday") + "</span>" : (it.prevWeek ? "<span class='rep-badge rep-week'>🔁 " + (zh ? "前周" : "week") + "</span>" : "");
+    return "<div class='prob-row' style='padding:6px 2px;border-bottom:1px solid var(--border)'>" +
+      "<div style='display:flex;align-items:center;gap:5px;flex-wrap:wrap'><b style='font-size:10.5px'>" + (p.line || p.ws || "-") + "</b>" +
+      "<span style='color:var(--gray);font-size:9.5px'>" + (p.time || "") + "</span>" +
+      "<span style='color:var(--red);font-weight:700;font-size:10.5px'>" + (Number(p.impact) <= 0 ? "" : "+") + (p.impact || 0) + "台</span>" +
+      "<span class='cat-tag' style='font-size:9px;padding:1px 6px;border-radius:8px;background:" + c.color + "22;color:" + c.color + ";border:1px solid " + c.color + "55'>" + (zh ? c.zh : c.en) + "</span>" + badge + "</div>" +
+      "<div style='color:var(--gray);font-size:10px;margin-top:2px;line-height:1.45'>" + raw + "</div></div>";
+  }).join("") : "<div style='color:var(--gray);font-size:11px;padding:10px 2px'>" + (zh ? "当日无问题点" : "No problems") + "</div>";
+  // ④ 重复趋势 (近7天柱状图 + 升降箭头)
+  const trendHtml = buildTrendHtml(histDays, zh);
   // ⑤ 出勤
   const attHtml = (att && att.rows && att.rows.length) ? "<table class='hist-table' style='width:100%'><thead><tr><th>#</th><th>" + (zh ? "车间" : "WS") + "</th><th>" + (zh ? "应到" : "Staff") + "</th><th>" + (zh ? "实到" : "Att") + "</th><th>" + (zh ? "出勤率" : "Rate") + "</th></tr></thead><tbody>" + att.rows.map((r, i) => {
     const rate = parseFloat(r.rate);
@@ -1839,44 +1951,13 @@ function renderHistReplay(snap) {
         "<div style='max-height:220px;overflow-y:auto;margin-top:4px'><table class='hist-table' style='width:100%;font-size:10.5px'><thead><tr><th>" + (zh ? "线体" : "Line") + "</th><th>" + (zh ? "计划" : "Plan") + "</th><th>" + (zh ? "实际" : "Actual") + "</th><th>" + (zh ? "差异" : "Gap") + "</th><th>" + (zh ? "达成率" : "Rate") + "</th></tr></thead><tbody>" + trs + "</tbody></table></div></div>" +
       "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "📈 达成率 (主要8条)" : "📈 Rate (main 8)") + "</b><div style='margin-top:4px'>" + effBars + "</div></div>" +
     "</div>" +
-    "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px'>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "⏱ UPH 趋势 (每小时) · 主要8条" : "⏱ UPH Trend (hourly) · main 8") + "</b>" + uphCanvas + "</div>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "🚨 未达成原因 Top5" : "🚨 Reasons Top5") + "</b><div style='margin-top:4px'>" + probHtml + "</div></div>" +
+    "<div style='display:grid;grid-template-columns:1.6fr 1fr;gap:10px;margin-top:10px'>" +
+      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "🚨 未达成原因 (AI语义识别 · " + repeatInfo.length + "条)" : "🚨 Reasons (AI · " + repeatInfo.length + ")") + "</b>" +
+        "<div style='margin-top:4px;max-height:300px;overflow-y:auto'>" + probList + "</div></div>" +
+      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "📊 问题重复趋势 (近7日)" : "📊 Repeat Trend (7d)") + "</b>" +
+        "<div style='margin-top:4px;max-height:300px;overflow-y:auto'>" + trendHtml + "</div></div>" +
     "</div>" +
     "<div style='background:var(--panel);border-radius:8px;padding:8px;margin-top:10px'><b style='font-size:11px'>" + (zh ? "👥 出勤表" : "👥 Attendance") + "</b><div style='margin-top:4px;max-height:180px;overflow-y:auto'>" + attHtml + "</div></div>";
-  // UPH 折线 (rAF 等 canvas 布局完成)
-  requestAnimationFrame(() => {
-    const cv = document.getElementById("histUphCanvas");
-    if (!cv || !hNames.length) return;
-    const dpr = window.devicePixelRatio || 1;
-    const W = cv.clientWidth, H = 140;
-    if (W < 40) return;
-    cv.width = W * dpr; cv.height = H * dpr;
-    const ctx = cv.getContext("2d");
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, W, H);
-    const padL = 34, padB = 18, padT = 10;
-    const cw = W - padL - 8, ch = H - padT - padB;
-    let maxV = 1;
-    hNames.forEach(n => (hourly[n] || []).forEach(p => { const v = Number(p.actual) || 0; if (v > maxV) maxV = v; }));
-    maxV = Math.ceil(maxV / 200) * 200;
-    ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "9px sans-serif";
-    for (let i = 0; i <= 4; i++) {
-      const y = padT + ch - (ch * i / 4);
-      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 4, y); ctx.stroke();
-      ctx.fillText(Math.round(maxV * i / 4), 3, y + 3);
-    }
-    const colors = TREND_COLORS || ["#58a6ff", "#f78166", "#3fb950", "#d29922", "#bc8cff", "#f778ba"];
-    hNames.forEach((n, li) => {
-      const pts = (hourly[n] || []).filter(p => p.h != null).map(p => ({ x: padL + (p.h - 8) / (17 - 8) * cw, y: padT + ch - (ch * (Number(p.actual) || 0) / maxV) }));
-      ctx.strokeStyle = colors[li % colors.length]; ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      pts.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
-      ctx.stroke();
-      ctx.fillStyle = colors[li % colors.length];
-      ctx.fillText(tinyName(n), padL + 2, padT + 8 + li * 11);
-    });
-  });
 }
 function renderHist() {
   const now = new Date();
