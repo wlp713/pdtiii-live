@@ -2532,12 +2532,14 @@ function renderProblems() {
       if (src) src.textContent = "SRC: AI分组 " + top3.length + " / " + problems.length + "条";
       const rows = top3.map((item, bi) => {
         const bname = (item.lines && item.lines[0]) ? String(item.lines[0]) : "-";
+        // 2026-08-21 13:57: 英文界面显示泰语原文, 中文界面显示中文翻译 (保持AI分组方法不变)
+        const dispName = (!zh && item.name_th) ? item.name_th : (item.name || "");
         const imp = (item.total_impact != null) ? " <b class='prob-imp'>" + (Number(item.total_impact) <= 0 ? "" : "+") + Number(item.total_impact) + "台</b>" : "";
         const cnt = item.count > 1 ? " <span class='prob-cnt'>×" + item.count + "时段</span>" : "";
         const timesStr = (item.times && item.times.length) ? "<div class='prob-times'>" + item.times.map(escapeHtml).join(" · ") + "</div>" : "";
         const rankCls = bi === 0 ? "r1" : (bi === 1 ? "r2" : "r3");
         const itemHtml = "<div class='prob-top'><span class='prob-rank " + rankCls + "'>" + (bi + 1) + ".</span>" +
-          "<div class='prob-main'><div class='prob-txt'>" + escapeHtml(String(item.name || "")) + cnt + imp + "</div>" + timesStr + "</div></div>";
+          "<div class='prob-main'><div class='prob-txt'>" + escapeHtml(dispName) + cnt + imp + "</div>" + timesStr + "</div></div>";
         return "<tr><td class='prob-line'>" + escapeHtml(bname) + "</td><td class='prob-cell'>" + itemHtml + "</td></tr>";
       }).join("");
       body.innerHTML = summary + "<table class='mod-table'><thead><tr><th style='width:100px'>" + (zh ? "线体" : "Line") + "</th><th>" + (zh ? "主要问题点" : "Key issues") + "</th></tr></thead><tbody>" + rows + "</tbody></table>";
