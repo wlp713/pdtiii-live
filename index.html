@@ -1807,17 +1807,11 @@ async function loadHistDate(date) {
   }
 }
 function histMainLines(snap) {
-  // 与主页趋势一致: 默认展示主要 8 条 (MAIN_TREND_LINES 名单顺序筛, 不足按实际产出降序补)
+  // 与主页趋势一致: 固定 MAIN_TREND_LINES 名单前7条(排除TREND_EXCLUDE), 不补位 (2026-08-21 13:02)
   const lines = snap.lines || [];
-  const eff = snap.eff || {};
   const names = lines.map(l => l && l.name).filter(Boolean);
   const avail = [];
-  MAIN_TREND_LINES.forEach(n => { if (names.indexOf(n) >= 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
-  const rest = names.slice().sort((a, b) => {
-    const la = lines.find(l => l.name === a), lb = lines.find(l => l.name === b);
-    return (Number(lb && lb.actual) || 0) - (Number(la && la.actual) || 0);
-  });
-  rest.forEach(n => { if (avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
+  MAIN_TREND_LINES.forEach(n => { if (names.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 7) avail.push(n); });
   return avail;
 }
 // ── 问题点语义分类库（AI 语义识别，非死板字符串匹配）──
