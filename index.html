@@ -539,13 +539,13 @@
     <!-- ── 中: 未达成原因 · Top3 汇总 (每条线影响最大的前3条, 与嵌入明细差异化) ── -->
     <section id="mod-problems" class="ex-card prob-wide">
       <div class="ex-card-head">
-        <h2 data-i18n="probTitle">🚨 未达成原因 · 全部问题</h2>
+        <h2 data-i18n="probTitle">🚨 未达成原因 · 实时 Top3</h2>
         <div class="ex-src" id="prob-src">SRC: -</div>
         <button class="ex-collapse" onclick="toggleModule('mod-problems')" data-i18n-title="collapseTitle">—</button>
       </div>
       <button class="ex-expand" onclick="openDetail('problems')" title="⛶ 查看全部问题点" data-i18n-title="expandProb">⛶</button>
       <div class="ex-body" id="prob-body"></div>
-      <div class="ex-tools"><span class="ex-hint" data-i18n="probExHint">未达成原因 · 每小时自动同步</span></div>
+      <div class="ex-tools"><span class="ex-hint" data-i18n="probExHint">实时 Top3 影响问题 · 每小时自动同步</span></div>
     </section>
 
     <!-- 拖拽手柄: 左右拉伸趋势图宽度, 其他模块自动让位 -->
@@ -722,9 +722,9 @@ const I18N = {
     histBtn: "📊 历史统计", histTitle: "📊 历史统计 · 周/月对比 · 站擂排名",
     histReplayTitle: "📅 历史日期回看", histLoad: "加载", histReplayHint: "快照每日17:00自动归档 → history/日期.json",
     modeDaily: "基础", modeDetail: "详情", modeTitle: "切换 基础/详情 模式",
-    collapseTitle: "隐藏此模块", probExHint: "未达成原因 · 每小时自动同步",
+    collapseTitle: "隐藏此模块", probExHint: "实时 Top3 影响问题 · 每小时自动同步",
     cancel: "取消",
-    attTitle: "👥 出勤", probTitle: "🚨 未达成原因 · 全部问题", trendTitle: "📈 达成率趋势分析",
+    attTitle: "👥 出勤", probTitle: "🚨 未达成原因 · 实时 Top3", trendTitle: "📈 达成率趋势分析",
     probLineTh: "线体", probNoData: "暂无问题点 — 每小时自动从桌面Excel同步", srcSnapshot: "SRC: 每日17:00快照",
     probSrcFmt: "SRC: 共{n}条 / {m}线体", attModalTitle: "👥 录入当日出勤", attExHint: "当日出勤 · 填写", fDate: "日期",
     expandAtt: "查看完整出勤表", expandProb: "查看全部问题点", expandTrend: "查看详细趋势图",
@@ -765,9 +765,9 @@ const I18N = {
     histBtn: "📊 History", histTitle: "📊 History · Weekly/Monthly · Rankings",
     histReplayTitle: "📅 Date Replay", histLoad: "Load", histReplayHint: "Snapshots archived daily 17:00 → history/date.json",
     modeDaily: "Basic", modeDetail: "Detail", modeTitle: "Toggle Basic/Detail mode",
-    collapseTitle: "Hide module", probExHint: "Reasons · Auto-sync hourly",
+    collapseTitle: "Hide module", probExHint: "Top3 impact · Auto-sync hourly",
     cancel: "Cancel",
-    attTitle: "👥 Attendance", probTitle: "🚨 Reasons · All Problems", trendTitle: "📈 Rate Trend",
+    attTitle: "👥 Attendance", probTitle: "🚨 Reasons · Real-time Top3", trendTitle: "📈 Rate Trend",
     probLineTh: "Line", probNoData: "No problems — auto-sync from Excel hourly", srcSnapshot: "SRC: Daily 17:00 snapshot",
     probSrcFmt: "SRC: {n} items / {m} lines", attModalTitle: "👥 Enter Attendance", attExHint: "Today · Manual entry", fDate: "Date",
     expandAtt: "Full attendance table", expandProb: "All problem details", expandTrend: "Detailed trend chart",
@@ -2503,8 +2503,8 @@ function mapProbLineToBoard(line, problemTxt) {
 function renderProblems() {
   // ── ① 嵌入主表格: 已按用户要求移除 (2026-08-20 14:0x) ──
   const { problems } = getExtraData();
-  // ── ② 未达成原因汇总 (extra模块内): 2026-08-21 13:10 用户要求显示全部问题, 不再压缩成3条
-  //    全部问题按影响绝对值降序, 每行一条
+  // ── ② 实时 Top3 汇总 (extra模块内): 2026-08-21 13:14 用户要求 — 从全部问题里智能筛选影响最大的TOP3, 每小时自动更新
+  //    不再按线体分组压缩, 直接全局按影响绝对值降序取前3条
   const body = document.getElementById("prob-body");
   const src = document.getElementById("prob-src");
   if (body) {
@@ -2513,7 +2513,7 @@ function renderProblems() {
       if (src) src.textContent = "SRC: 无数据";
     } else {
       const sorted = problems.slice().sort((a, b) => Math.abs(Number(b.impact) || 0) - Math.abs(Number(a.impact) || 0));
-      const perLine = sorted.map(p => ({
+      const perLine = sorted.slice(0, 3).map(p => ({
         bname: mapProbLineToBoard(p.line, p.problem) || p.line || p.ws || "其他",
         best: p, n: 1,
         lineImp: Number(p.impact) || 0
