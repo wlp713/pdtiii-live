@@ -1676,6 +1676,8 @@ function renderAll() {
   checkStalls();
   // ★ 扩展模块: 问题点嵌入线体行下方 (每次数据刷新后重新嵌入)
   try { if (typeof renderProblems === "function") renderProblems(); } catch (e) {}
+  // ★ 趋势图: 数据刷新时同步重绘 (2026-08-21 修复: 不点线体按钮不刷新) — 只重绘canvas, 不重建按钮DOM
+  try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
 }
 
 // ★ 标题: 日期 + 班次 + 时段(精确到秒) — 由每秒 timer 刷新, 不依赖 refresh 周期
