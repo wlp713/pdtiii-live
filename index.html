@@ -61,10 +61,10 @@
   .att-row .att-ws { color: var(--gray); font-weight: 600; }
   .att-row .att-rate { font-weight: 700; }
   /* 趋势分析: 最右, 占底部行宽 2/5 (40%), 可左右拖拽拉伸 */
-  .trend-wide { flex: 0 0 40%; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  .trend-wide { flex: 0 0 50%; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
   .trend-wide .ex-body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 4px; }
-  /* 问题点汇总: 中间, 占底部行宽 2/5 (40%), 弹性吸收拖拽后剩余 */
-  #mod-problems { flex: 1 1 40%; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  /* 问题点汇总: 中间, 弹性吸收拖拽后剩余 */
+  #mod-problems { flex: 1 1 30%; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
   #mod-problems .ex-body { flex: 1; min-height: 0; overflow: hidden; } /* 2026-08-20 14:05 去滚轮: 内容自动缩放适配 */
   /* ── 上下模块字体统一 v2: 除标题外全部同一字号 10.5px (2026-08-20 11:57) ── */
   #extra-modules .ex-card, #extra-modules .ex-card .ex-body, #extra-modules .ex-card .mod-table,
@@ -549,7 +549,7 @@
     <!-- ── 最右: 产出达成率趋势分析 (折线图, 多线体可切换选择, 历史数据=每日17:00快照) ── -->
     <section id="mod-trend" class="ex-card trend-wide">
       <div class="ex-card-head">
-        <h2 data-i18n="trendTitle">📈 达成率趋势分析</h2>
+        <h2><span id="trendTitleText">📈 达成率趋势分析</span></h2>
         <div class="ex-src" id="trend-src" data-i18n="srcSnapshot">SRC: 每日17:00快照</div>
         <button class="ex-collapse" onclick="toggleModule('mod-trend')" data-i18n-title="collapseTitle">—</button>
       </div>
@@ -2293,28 +2293,31 @@ function renderTrend() {
   const hist = getTrendHist();
   const lineNames = [];
   hist.forEach(d => { (Object.keys(d.lines || {})).forEach(n => { if (lineNames.indexOf(n) < 0) lineNames.push(n); }); });
+  // ★ 标题: 动态时间范围 (2026-08-21 用户要求: 写清楚哪天到哪天的趋势, 每天自动更新)
+  const ttl = document.getElementById("trendTitleText");
+  if (ttl) {
+    const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
+    if (hist.length) {
+      const d0 = String(hist[0].date || "").slice(5);
+      const d1 = String(hist[hist.length - 1].date || "").slice(5);
+      ttl.textContent = (zh ? "📈 达成率趋势" : "📈 Rate Trend") + " · " + d0 + " → " + d1 + (zh ? " 每日更新" : " · daily");
+    } else {
+      ttl.textContent = zh ? "📈 达成率趋势分析" : "📈 Rate Trend";
+    }
+  }
   // 默认展示主要 8 条: 先按 MAIN_TREND_LINES 名单顺序筛 (只取前8), 不足8条按最新达成率降序补
   const last = hist[hist.length - 1] || {};
   const rest = lineNames.slice().sort((a, b) => (Number(last.lines && last.lines[b]) || 0) - (Number(last.lines && last.lines[a]) || 0));
   const avail = [];
   MAIN_TREND_LINES.forEach(n => { if (lineNames.indexOf(n) >= 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
   rest.forEach(n => { if (avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
-  if (wrap) {
-    if (!avail.length) {
-      wrap.innerHTML = "<span style='color:var(--gray);font-size:10px'>暂无历史数据 — 每日17:00自动快照后出现</span>";
-    } else {
-      // 首次(无任何保存选择): 默认全选主要8条
-      let anyOn = false;
-      lineNames.forEach(n => { if (trendSel[n]) anyOn = true; });
-      if (!anyOn) { avail.forEach(n => { trendSel[n] = true; }); }
-      wrap.innerHTML = avail.map((n, i) => {
-        const c = TREND_COLORS[i % TREND_COLORS.length];
-        const on = trendSel[n] ? "on" : "";
-        return "<span class='trend-line-pick " + on + "' data-line='" + n.replace(/'/g, "") + "' title='" + n + "' style='cursor:pointer' onclick='toggleTrendLine(this)'><span class='dot' style='background:" + c + "'></span>" + tinyName(n) + "</span>";
-      }).join("");
-      try { localStorage.setItem(TREND_SEL_KEY, JSON.stringify(trendSel)); } catch (e) {}
-    }
-  }
+  // 首次(无任何保存选择): 默认全选主要8条
+  let anyOn = false;
+  lineNames.forEach(n => { if (trendSel[n]) anyOn = true; });
+  if (!anyOn) { avail.forEach(n => { trendSel[n] = true; }); }
+  try { localStorage.setItem(TREND_SEL_KEY, JSON.stringify(trendSel)); } catch (e) {}
+  // 顶部按钮行已移除 (2026-08-21): 卡片自身可点击切换, 省出高度给卡片放大
+  if (wrap) wrap.innerHTML = "";
   drawTrend();
 }
 function toggleTrendLine(el) {
@@ -2352,8 +2355,8 @@ function drawTrend() {
       else if (lastV < prevV - 0.4) { arrow = "▼ " + (lastV - prevV).toFixed(1); arrowCls = "sp-down"; }
       else { arrow = "— 持平"; arrowCls = "sp-flat"; }
     }
-    // 迷你折线 SVG: 60~120 区间映射
-    const W = 100, H = 34, pad = 3;
+    // 迷你折线 SVG: 60~120 区间映射 (2026-08-21 放大: 视口加高让趋势更清晰)
+    const W = 100, H = 44, pad = 3;
     const pts = vals.map((v, ix) => {
       if (v == null) return null;
       const x = pad + (ix / Math.max(days.length - 1, 1)) * (W - pad * 2);
@@ -2369,8 +2372,8 @@ function drawTrend() {
       "<span class='spark-arrow " + arrowCls + "'>" + arrow + "</span></div>" +
       "<svg viewBox='0 0 " + W + " " + H + "' preserveAspectRatio='none' class='spark-svg'>" +
         "<line x1='0' y1='" + y100.toFixed(1) + "' x2='" + W + "' y2='" + y100.toFixed(1) + "' class='spark-target'/>" +
-        (poly ? "<polyline points='" + poly + "' fill='none' stroke='" + color + "' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'/>" : "") +
-        (lastV != null ? "<circle cx='" + pts[pts.length - 1].split(",")[0] + "' cy='" + pts[pts.length - 1].split(",")[1] + "' r='2.2' fill='" + color + "'/>" : "") +
+        (poly ? "<polyline points='" + poly + "' fill='none' stroke='" + color + "' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'/>" : "") +
+        (lastV != null ? "<circle cx='" + pts[pts.length - 1].split(",")[0] + "' cy='" + pts[pts.length - 1].split(",")[1] + "' r='2.6' fill='" + color + "'/>" : "") +
       "</svg></div>";
   }).join("");
   wrap.innerHTML = cards;
