@@ -3,7 +3,8 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-21 11:05:09
+   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
+   最后写入: 2026-08-21 11:28:56
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -46,49 +47,88 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
-
 window.__HISTORY__ = [
+  {
+    "date": "2026-08-20",
+    "lines": {
+      "C-Shaft Body A": 79.0,
+      "Cylinder Honing": 61.6,
+      "C-Shft Pin B": 87.9,
+      "Welding A line": 50.4,
+      "Motor H-Series": 99.2,
+      "Motor S-Series": 91.1,
+      "Motor F-Series": 76.4,
+      "Motor WL": 0.0,
+      "Rod Pispin": 30.2,
+      "Frame Honing FL": 96.3,
+      "Press C-Shaft": 77.0,
+      "Piston honing FL": 91.8,
+      "Welding B line": 94.6,
+      "Piston Grinding": 89.5,
+      "C-Shaft Pin C": 0.0,
+      "Motor AC": 95.5,
+      "Rotor B Line": 88.8,
+      "Rotor D  Line": 100.1,
+      "Final B Line": 97.1,
+      "Rotor A line": 66.7,
+      "Final D line": 96.3,
+      "Water Line": 65.0,
+      "Final A line": 68.6,
+      "Rotor C  line": 94.4,
+      "C-Shaft Body C": 0.0,
+      "Final C line": 92.3,
+      "Welding C line": 98.2,
+      "Inspection B": 71.1,
+      "Inspection D": 0.2,
+      "C-Shaft Body B": 48.6,
+      "Motor CL": 1.1,
+      "Inspection A": 70.1,
+      "Inspection C": 70.9,
+      "C-Shaft Pin A": 58.7,
+      "Welding D line": 87.8,
+      "True B": 27.7
+    }
+  },
   {
     "date": "2026-08-21",
     "lines": {
-      "C-Shaft Body A": 90.7,
-      "Cylinder Honing": 97.6,
-      "C-Shft Pin B": 91.2,
-      "Welding A line": 81.6,
-      "Motor H-Series": 71.8,
-      "Motor S-Series": 95.3,
-      "Motor F-Series": 28.5,
+      "C-Shaft Body A": 88.7,
+      "Cylinder Honing": 84.9,
+      "C-Shft Pin B": 91.6,
+      "Welding A line": 92.6,
+      "Motor H-Series": 55.0,
+      "Motor S-Series": 93.0,
+      "Motor F-Series": 16.7,
       "Motor WL": 0.0,
-      "Rod Pispin": 21.2,
-      "Frame Honing FL": 69.3,
-      "Press C-Shaft": 53.9,
-      "Piston honing FL": 81.0,
-      "Welding B line": 77.6,
-      "Piston Grinding": 84.6,
+      "Rod Pispin": 27.2,
+      "Frame Honing FL": 101.8,
+      "Press C-Shaft": 82.8,
+      "Piston honing FL": 87.9,
+      "Welding B line": 89.6,
+      "Piston Grinding": 86.3,
       "C-Shaft Pin C": 0.0,
-      "Motor AC": 23.2,
-      "Rotor B Line": 90.2,
-      "Rotor D  Line": 92.3,
-      "Final B Line": 88.5,
-      "Rotor A line": 83.0,
-      "Final D line": 86.6,
-      "Water Line": 56.4,
-      "Final A line": 86.6,
-      "Rotor C  line": 94.2,
+      "Motor AC": 46.4,
+      "Rotor B Line": 89.0,
+      "Rotor D  Line": 87.6,
+      "Final B Line": 90.8,
+      "Rotor A line": 65.7,
+      "Final D line": 86.0,
+      "Water Line": 67.4,
+      "Final A line": 59.9,
+      "Rotor C  line": 96.0,
       "C-Shaft Body C": 0.0,
-      "Final C line": 94.7,
-      "Welding C line": 90.6,
-      "Inspection B": 71.9,
+      "Final C line": 96.2,
+      "Welding C line": 88.7,
+      "Inspection B": 71.7,
       "Inspection D": 0.0,
-      "C-Shaft Body B": 40.3,
+      "C-Shaft Body B": 43.9,
       "Motor CL": 0.0,
-      "Inspection A": 61.8,
-      "Inspection C": 60.5,
-      "C-Shaft Pin A": 44.8,
-      "Welding D line": 29.8,
+      "Inspection A": 53.7,
+      "Inspection C": 58.3,
+      "C-Shaft Pin A": 55.9,
+      "Welding D line": 19.3,
       "True B": 27.7,
-      "Final D  Line": 88.3,
-      "Final B LinShaft Pin A": 44.8
+      "Final D  Line": 88.3
     }
   }
 ];
