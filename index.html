@@ -1779,6 +1779,20 @@ async function loadHistDate(date) {
     body.style.display = "none";
   }
 }
+function histMainLines(snap) {
+  // 与主页趋势一致: 默认展示主要 8 条 (MAIN_TREND_LINES 名单顺序筛, 不足按实际产出降序补)
+  const lines = snap.lines || [];
+  const eff = snap.eff || {};
+  const names = lines.map(l => l && l.name).filter(Boolean);
+  const avail = [];
+  MAIN_TREND_LINES.forEach(n => { if (names.indexOf(n) >= 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
+  const rest = names.slice().sort((a, b) => {
+    const la = lines.find(l => l.name === a), lb = lines.find(l => l.name === b);
+    return (Number(lb && lb.actual) || 0) - (Number(la && la.actual) || 0);
+  });
+  rest.forEach(n => { if (avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
+  return avail;
+}
 function renderHistReplay(snap) {
   const body = document.getElementById("histReplayBody");
   const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
@@ -1787,23 +1801,25 @@ function renderHistReplay(snap) {
   const hourly = snap.hourly || {};
   const problems = snap.problems || [];
   const att = snap.attendance;
-  // ① 产量对比表
-  const sorted = lines.slice().sort((a, b) => (Number(b.actual) || 0) - (Number(a.actual) || 0));
+  // 默认展示主要 8 条线体 (与主页一致)
+  const main8 = histMainLines(snap);
+  // ① 产量对比表 (只显示主要8条, 按实际产出降序)
+  const sorted = main8.map(n => lines.find(l => l.name === n)).filter(Boolean).sort((a, b) => (Number(b.actual) || 0) - (Number(a.actual) || 0));
   const trs = sorted.map(l => {
     const effV = (l.eff != null) ? l.eff : (eff[l.name] != null ? eff[l.name] : null);
     const effTxt = effV != null ? Number(effV).toFixed(1) + "%" : "-";
     const effCls = effV >= 100 ? "ok" : (effV < 90 ? "bad" : "");
     return "<tr><td>" + (l.name || "-") + "</td><td style='text-align:center'>" + (l.plan || 0) + "</td><td style='text-align:center'>" + (l.actual || 0) + "</td><td style='text-align:center'>" + (l.cb != null ? l.cb : (Number(l.actual) - Number(l.plan))) + "</td><td style='text-align:center' class='" + effCls + "'>" + effTxt + "</td></tr>";
   }).join("");
-  // ② 达成率分布 (按 eff 降序前12)
-  const effNames = Object.keys(eff).sort((a, b) => (Number(eff[b]) || 0) - (Number(eff[a]) || 0)).slice(0, 12);
+  // ② 达成率分布 (主要8条, 按 eff 降序)
+  const effNames = main8.filter(n => eff[n] != null).sort((a, b) => (Number(eff[b]) || 0) - (Number(eff[a]) || 0));
   const effBars = effNames.map(n => {
     const v = Number(eff[n]) || 0;
     const c = v >= 100 ? "#3fb950" : (v >= 90 ? "#d29922" : "#f85149");
     return "<div style='display:flex;align-items:center;gap:6px;margin:2px 0'><span style='width:110px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>" + n + "</span><div style='flex:1;height:10px;background:var(--panel);border-radius:5px;overflow:hidden'><div style='height:100%;width:" + Math.min(v, 150) + "%;background:" + c + "'></div></div><span style='width:44px;text-align:right;font-size:10px'>" + v.toFixed(0) + "%</span></div>";
   }).join("");
-  // ③ UPH 趋势 (每小时, 前6线体)
-  const hNames = Object.keys(hourly).slice(0, 6);
+  // ③ UPH 趋势 (每小时, 主要8条线体)
+  const hNames = main8.filter(n => hourly[n]);
   const uphCanvas = "<canvas id='histUphCanvas' style='width:100%;height:140px'></canvas>";
   // ④ 问题点 (Top5)
   const probsTop = problems.slice().sort((a, b) => Math.abs(Number(b.impact) || 0) - Math.abs(Number(a.impact) || 0)).slice(0, 5);
@@ -1821,10 +1837,10 @@ function renderHistReplay(snap) {
     "<div style='display:grid;grid-template-columns:1.2fr 1fr;gap:10px'>" +
       "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "🏭 产量对比" : "🏭 Output") + "</b>" +
         "<div style='max-height:220px;overflow-y:auto;margin-top:4px'><table class='hist-table' style='width:100%;font-size:10.5px'><thead><tr><th>" + (zh ? "线体" : "Line") + "</th><th>" + (zh ? "计划" : "Plan") + "</th><th>" + (zh ? "实际" : "Actual") + "</th><th>" + (zh ? "差异" : "Gap") + "</th><th>" + (zh ? "达成率" : "Rate") + "</th></tr></thead><tbody>" + trs + "</tbody></table></div></div>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "📈 达成率 TOP12" : "📈 Rate TOP12") + "</b><div style='margin-top:4px'>" + effBars + "</div></div>" +
+      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "📈 达成率 (主要8条)" : "📈 Rate (main 8)") + "</b><div style='margin-top:4px'>" + effBars + "</div></div>" +
     "</div>" +
     "<div style='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px'>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "⏱ UPH 趋势 (每小时) 前6线体" : "⏱ UPH Trend (hourly)") + "</b>" + uphCanvas + "</div>" +
+      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "⏱ UPH 趋势 (每小时) · 主要8条" : "⏱ UPH Trend (hourly) · main 8") + "</b>" + uphCanvas + "</div>" +
       "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "🚨 未达成原因 Top5" : "🚨 Reasons Top5") + "</b><div style='margin-top:4px'>" + probHtml + "</div></div>" +
     "</div>" +
     "<div style='background:var(--panel);border-radius:8px;padding:8px;margin-top:10px'><b style='font-size:11px'>" + (zh ? "👥 出勤表" : "👥 Attendance") + "</b><div style='margin-top:4px;max-height:180px;overflow-y:auto'>" + attHtml + "</div></div>";
