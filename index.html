@@ -1696,7 +1696,15 @@ async function refresh() {
     const r = await fetch(DATA_URL + "?t=" + Date.now(), { signal: ctrl.signal });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
-    state.lines = d.lines || [];
+    // ★ 2026-08-21 防御: 按规范化名(去空格/大小写)去重, 同 key 保留 pushed 最新 — 上游data.json偶发残留旧行(如 Final D 双空格旧快照)
+    const rawLines = d.lines || [];
+    const dedupMap = new Map();
+    rawLines.forEach(l => {
+      const k = normName(l.name);
+      const prev = dedupMap.get(k);
+      if (!prev || String(l.pushed || "") >= String(prev.pushed || "")) dedupMap.set(k, l);
+    });
+    state.lines = [...dedupMap.values()];
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
     // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
@@ -2854,7 +2862,7 @@ initTrendResize();
 window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); });
 setInterval(renderExtra, 60000);
 attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同步)
-setInterval(attSyncFromRemote, 60000); // 每60s同步一次, 其他端录入自动出现
+setInterval(attSyncFromRemote, 7200000); // 每2小时同步一次 (2026-08-21 11:46 用户要求: 60s太浪费资源)
 // ★ 每日17:00自动快照 (页面开着时): 检查是否到17:00且今天未快照过
 setInterval(function () {
   const now = new Date();
