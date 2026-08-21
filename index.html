@@ -1451,9 +1451,12 @@ function drawBar(main) {
     return;
   }
   drawBar._retry = 0;
-  cv.width = W * dpr; cv.height = H * dpr;
+  // ★ 2026-08-21 14:35 修复: 尺寸未变化时禁止重置 canvas — canvas width/height 赋值会强制清空画布并重建 GPU 缓冲,
+  //   即使尺寸相同也会闪烁。仅在真实尺寸变化时才重置, 否则直接复用现有缓冲重绘。
+  const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+  if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
   const ctx = cv.getContext("2d");
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
@@ -1606,9 +1609,11 @@ function drawEff(main) {
     return;
   }
   drawEff._retry = 0;
-  cv.width = W * dpr; cv.height = H * dpr;
+  // ★ 2026-08-21 14:35 修复: 尺寸未变化时禁止重置 canvas (同 drawBar, 消除闪烁)
+  const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+  if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
   const ctx = cv.getContext("2d");
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
@@ -1691,15 +1696,57 @@ function saveHeads() {
 }
 
 function renderAll() {
-  const { main } = renderTable();
-  renderKPIs(main);
-  drawBar(main);
-  drawEff(main);
-  checkStalls();
-  // ★ 扩展模块: 问题点嵌入线体行下方 (每次数据刷新后重新嵌入)
-  try { if (typeof renderProblems === "function") renderProblems(); } catch (e) {}
-  // ★ 趋势图: 数据刷新时同步重绘 (2026-08-21 修复: 不点线体按钮不刷新) — 只重绘canvas, 不重建按钮DOM
-  try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
+  try {
+    const { main } = renderTable();
+    renderKPIs(main);
+    // ★ 2026-08-21 14:35 修复: 图表绘制包 try/catch — 数据异常时不至于中断整个刷新链
+    //   (旧: drawBar 内 clearRect 后抛异常 → canvas 空白 + 后续模块全不执行 = 图表"消失")
+    try { drawBar(main); } catch (e) { drawBarSafe(main); }
+    try { drawEff(main); } catch (e) { drawEffSafe(main); }
+    checkStalls();
+    // ★ 扩展模块: 问题点嵌入线体行下方 (每次数据刷新后重新嵌入)
+    try { if (typeof renderProblems === "function") renderProblems(); } catch (e) {}
+    // ★ 趋势图: 数据刷新时同步重绘 (2026-08-21 修复: 不点线体按钮不刷新) — 只重绘canvas, 不重建按钮DOM
+    try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
+  } catch (e) {
+    console.warn("renderAll error:", e);
+  }
+}
+
+// ★ 2026-08-21 14:35 兜底: drawBar/drawEff 抛异常时画占位文本(避免空白"消失"), 不中断刷新链
+function drawBarSafe(main) {
+  try {
+    const cv = document.getElementById("chartBar");
+    if (!cv) return;
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight || 230;
+    if (W < 20 || !H) return;
+    const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+    if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#8b949e"; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(t("noData"), W / 2, H / 2);
+    ctx.textAlign = "left";
+  } catch (e) { /* ignore */ }
+}
+function drawEffSafe(main) {
+  try {
+    const cv = document.getElementById("chartEff");
+    if (!cv) return;
+    const dpr = window.devicePixelRatio || 1;
+    const W = cv.clientWidth, H = cv.clientHeight || 180;
+    if (W < 20 || !H) return;
+    const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
+    if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#8b949e"; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(t("noData"), W / 2, H / 2);
+    ctx.textAlign = "left";
+  } catch (e) { /* ignore */ }
 }
 
 // ★ 标题: 日期 + 班次 + 时段(精确到秒) — 由每秒 timer 刷新, 不依赖 refresh 周期
@@ -2154,8 +2201,11 @@ function applyScale() {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       syncHandlePos();
-      try { if (typeof drawBar === "function") drawBar(); } catch (e) {}
-      try { if (typeof drawEff === "function") drawEff(); } catch (e) {}
+      // ★ 2026-08-21 14:35 修复: 无参 drawBar() → main=undefined → lines.length 抛异常被吞,
+      //   模式切换/折叠时图表不重绘(可能空白)。必须传 splitLines().main
+      const _main = splitLines().main;
+      try { if (typeof drawBar === "function") drawBar(_main); } catch (e) { try { drawBarSafe(_main); } catch (e2) {} }
+      try { if (typeof drawEff === "function") drawEff(_main); } catch (e) { try { drawEffSafe(_main); } catch (e2) {} }
       try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
     });
   });
