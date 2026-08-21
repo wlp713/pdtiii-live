@@ -2168,13 +2168,45 @@ function resetModuleLayout() {
 }
 
 // ── 数据读取: live-data.js (window.__LIVE_DATA__) + 手动覆盖 ──
+// ═══ 出勤率跨端同步 (2026-08-21): 本地 localStorage + Firebase 云端双写 ═══
+// 保存: 写 localStorage 后 PUT 到 Firebase (pdtiii_att 节点)
+// 读取: localStorage 优先即时渲染, 同时异步拉 Firebase, 按 savedAt 取较新, 更新本地后重渲染
+const ATT_FB_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii_att.json";
+function attReadLocal() {
+  try { return JSON.parse(localStorage.getItem(EXTRA_MANUAL_ATT) || "null"); } catch (e) { return null; }
+}
+function attWriteLocal(ma) {
+  try { localStorage.setItem(EXTRA_MANUAL_ATT, JSON.stringify(ma)); } catch (e) {}
+}
+function attReadRemote() {
+  return fetch(ATT_FB_URL + "?t=" + Date.now(), { signal: AbortSignal.timeout(8000) })
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .catch(() => null);
+}
+function attWriteRemote(ma) {
+  return fetch(ATT_FB_URL, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(ma),
+    signal: AbortSignal.timeout(8000)
+  }).catch(() => null);
+}
+function attSyncFromRemote() {
+  attReadRemote().then(remote => {
+    if (!remote || !remote.rows || !remote.rows.length) return;
+    const local = attReadLocal();
+    const rT = Number(remote.savedAt || 0);
+    const lT = Number((local && local.savedAt) || 0);
+    if (rT > lT) { attWriteLocal(remote); renderAttendance(); }
+  });
+}
 function getExtraData() {
   const ld = (typeof window.__LIVE_DATA__ !== "undefined" && window.__LIVE_DATA__) || { attendance: null, problems: [] };
   const probs = (ld.problems || []).slice();
   // 2026-08-21: 问题点手动录入功能已取消 (数据全部来自每小时自动同步)
-  // 出勤率 = 纯手动录入 (2026-08-21 起不再读 live attendance)
+  // 出勤率 = 纯手动录入 (2026-08-21 起不再读 live attendance), localStorage + Firebase 跨端同步
   try {
-    const ma = JSON.parse(localStorage.getItem(EXTRA_MANUAL_ATT) || "null");
+    const ma = attReadLocal();
     if (ma && ma.rows && ma.rows.length) return { attendance: ma, problems: probs, manual: true };
   } catch (e) {}
   return { attendance: null, problems: probs, manual: false };
@@ -2721,7 +2753,7 @@ function openAttModal() {
   }
   let rows = [];
   try {
-    const ma = JSON.parse(localStorage.getItem(EXTRA_MANUAL_ATT) || "null");
+    const ma = attReadLocal();
     if (ma && ma.rows) rows = ma.rows;
   } catch (e) {}
   const box = document.getElementById("attF-rows");
@@ -2746,7 +2778,9 @@ function saveAttModal() {
     return { ws: ws, staff: staff || null, attend: attend || null, rate: rate };
   }).filter(r => r.staff !== null || r.attend !== null);
   if (!rows.length) { alert("至少填一个车间"); return; }
-  try { localStorage.setItem(EXTRA_MANUAL_ATT, JSON.stringify({ date: date, rows: rows })); } catch (e) {}
+  const rec = { date: date, rows: rows, savedAt: Date.now() };
+  attWriteLocal(rec);
+  attWriteRemote(rec); // 2026-08-21: 同步到 Firebase → 其他端自动拉取
   closeAttModal();
   renderAttendance();
 }
@@ -2819,6 +2853,8 @@ setViewMode(viewMode);
 initTrendResize();
 window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); });
 setInterval(renderExtra, 60000);
+attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同步)
+setInterval(attSyncFromRemote, 60000); // 每60s同步一次, 其他端录入自动出现
 // ★ 每日17:00自动快照 (页面开着时): 检查是否到17:00且今天未快照过
 setInterval(function () {
   const now = new Date();
