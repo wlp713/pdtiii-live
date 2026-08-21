@@ -2324,13 +2324,11 @@ function renderTrend() {
       ttl.textContent = zh ? "📈 达成率趋势分析" : "📈 Rate Trend";
     }
   }
-  // 默认展示主要 8 条: 先按 MAIN_TREND_LINES 名单顺序筛 (只取前8), 不足8条按最新达成率降序补
+  // 默认展示: 按 MAIN_TREND_LINES 名单顺序筛(排除TREND_EXCLUDE), 2026-08-21 13:02 用户要求: 不补位, 固定就显示名单里前7条(现为 Final A/B/C/D + Motor H/S/F)
   const last = hist[hist.length - 1] || {};
   const lineNamesAll = Object.keys(last.lines || {});
-  const rest = lineNamesAll.slice().sort((a, b) => (Number(last.lines && last.lines[b]) || 0) - (Number(last.lines && last.lines[a]) || 0)).filter(n => TREND_EXCLUDE.indexOf(n) < 0);
   const avail = [];
-  MAIN_TREND_LINES.forEach(n => { if (lineNamesAll.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
-  rest.forEach(n => { if (avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
+  MAIN_TREND_LINES.forEach(n => { if (lineNamesAll.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 7) avail.push(n); });
   // 2026-08-21 12:01 用户要求: 点击卡片=展开放大(不再删除) → 趋势选择只增不减, 始终补齐主要8条
   // 清理旧状态: 删除之前点击遗留的隐藏选择, 保证主要线体全部恢复显示
   try { localStorage.removeItem(TREND_SEL_KEY); } catch (e) {}
