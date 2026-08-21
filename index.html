@@ -115,6 +115,11 @@
   .sp-ok { color: var(--green); } .sp-warn { color: var(--orange); } .sp-bad { color: var(--red); }
   .sp-up { color: var(--green); font-weight: 700; } .sp-down { color: var(--red); font-weight: 700; } .sp-flat { color: var(--gray); }
   .spark-svg { flex: 1; width: 100%; min-height: 0; display: block; }
+  .spark-svg-wrap { position: relative; flex: 1; min-height: 0; }
+  .spark-svg-wrap .spark-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* 2026-08-21 数据标签: 绝对定位跟随数据点, text-shadow halo 防压线/重叠不清 */
+  .spark-label { position: absolute; font-size: 8.5px; font-weight: 800; line-height: 1; white-space: nowrap;
+    text-shadow: 0 0 2px var(--bg), 0 0 3px var(--bg), 0 0 4px var(--bg), 0 0 5px var(--bg); pointer-events: none; }
   .spark-target { stroke: rgba(63,185,80,.4); stroke-width: 1; stroke-dasharray: 3 2; }
   /* 问题点嵌入线体行下方 */
   tr.prob-subrow td {
@@ -2377,16 +2382,27 @@ function drawTrend() {
     }).filter(Boolean);
     const poly = pts.join(" ");
     const y100 = H - pad - ((100 - yMin) / (yMax - yMin)) * (H - pad * 2);
+    // ★ 2026-08-21 11:53 用户要求: 图表加数据标签 — 用HTML覆盖层(百分比定位) + text-shadow halo, 避免SVG拉伸变形/压线
+    const labels = vals.map((v, ix) => {
+      if (v == null) return "";
+      const x = pad + (ix / Math.max(days.length - 1, 1)) * (W - pad * 2);
+      const y = H - pad - ((Math.min(Math.max(v, yMin), yMax) - yMin) / (yMax - yMin)) * (H - pad * 2);
+      const pctX = ((x / W) * 100).toFixed(1);
+      const pctY = ((y / H) * 100).toFixed(1);
+      const below = y < 9; // 点靠近顶部时标签放下方, 避免溢出
+      return "<span class='spark-label' style='left:" + pctX + "%;top:" + pctY + "%;transform:translate(-50%," + (below ? "40%" : "-130%") + ");color:" + color + "'>" + v.toFixed(0) + "</span>";
+    }).join("");
     const lastCls = lastV >= 100 ? "sp-ok" : (lastV >= 90 ? "sp-warn" : "sp-bad");
     return "<div class='spark-card' title='" + n + "' onclick='toggleTrendLine(this)' data-line='" + n.replace(/'/g, "") + "' style='cursor:pointer'>" +
       "<div class='spark-head'><span class='spark-name' style='color:" + color + "'>" + tinyName(n) + "</span><span class='spark-full' title='" + n + "'>" + n + "</span>" +
       "<span class='spark-val " + lastCls + "'>" + (lastV != null ? lastV.toFixed(0) + "%" : "-") + "</span>" +
       "<span class='spark-arrow " + arrowCls + "'>" + arrow + "</span></div>" +
+      "<div class='spark-svg-wrap'>" +
       "<svg viewBox='0 0 " + W + " " + H + "' preserveAspectRatio='none' class='spark-svg'>" +
         "<line x1='0' y1='" + y100.toFixed(1) + "' x2='" + W + "' y2='" + y100.toFixed(1) + "' class='spark-target'/>" +
         (poly ? "<polyline points='" + poly + "' fill='none' stroke='" + color + "' stroke-width='2.2' stroke-linejoin='round' stroke-linecap='round'/>" : "") +
         (lastV != null ? "<circle cx='" + pts[pts.length - 1].split(",")[0] + "' cy='" + pts[pts.length - 1].split(",")[1] + "' r='2.6' fill='" + color + "'/>" : "") +
-      "</svg></div>";
+      "</svg>" + labels + "</div></div>";
   }).join("");
   wrap.innerHTML = cards;
 }
