@@ -3,8 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
-   最后写入: 2026-08-23 17:10:12
+   最后写入: 2026-08-23 17:10:13
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -192,6 +191,7 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": null
 };
+
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
