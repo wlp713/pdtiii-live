@@ -1,0 +1,2496 @@
+{
+  "date": "2026-08-24",
+  "snapAt": "2026-08-24 17:10:02",
+  "source": "save_daily_history v2",
+  "lines": [
+    {
+      "name": "C-Shaft Body A",
+      "time": "24-Aug-2",
+      "target": 2500.0,
+      "plan": 1840.0,
+      "actual": 1302.0,
+      "cb": -538.0,
+      "cum": 1302.0,
+      "eff": 70.7,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Cylinder Honing",
+      "time": "24-Aug-2",
+      "target": 1500.0,
+      "plan": 1499.0,
+      "actual": 1168.0,
+      "cb": -331.0,
+      "cum": 1168.0,
+      "eff": 77.9,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "C-Shft Pin B",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 1226.0,
+      "actual": 1077.0,
+      "cb": -149.0,
+      "cum": 1077.0,
+      "eff": 87.8,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Welding A line",
+      "time": "24-Aug-2",
+      "target": 3000.0,
+      "plan": 3000.0,
+      "actual": 3000.0,
+      "cb": 0.0,
+      "cum": 3000.0,
+      "eff": 100.0,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Motor H-Series",
+      "time": "24-Aug-2",
+      "target": 1800.0,
+      "plan": 1291.0,
+      "actual": 1247.0,
+      "cb": -44.0,
+      "cum": 1247.0,
+      "eff": 96.5,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Motor S-Series",
+      "time": "24-Aug-2",
+      "target": 2000.0,
+      "plan": 1436.0,
+      "actual": 966.0,
+      "cb": -470.0,
+      "cum": 966.0,
+      "eff": 67.2,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Motor F-Series",
+      "time": "24-Aug-2",
+      "target": 1500.0,
+      "plan": 1077.0,
+      "actual": 593.0,
+      "cb": -484.0,
+      "cum": 593.0,
+      "eff": 55.0,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Motor WL",
+      "time": "24-Aug-2",
+      "target": 1600.0,
+      "plan": 1142.0,
+      "actual": 12.0,
+      "cb": -1130.0,
+      "cum": 12.0,
+      "eff": 1.0,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Rod Pispin",
+      "time": "12:00:00",
+      "target": 3500.0,
+      "plan": 1750.0,
+      "actual": 510.0,
+      "cb": -1240.0,
+      "cum": 510.0,
+      "eff": 29.1,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Frame Honing FL",
+      "time": "24-Aug-2",
+      "target": 1500.0,
+      "plan": 1499.0,
+      "actual": 958.0,
+      "cb": -541.0,
+      "cum": 958.0,
+      "eff": 63.9,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Press C-Shaft",
+      "time": "24-Aug-2",
+      "target": 22000.0,
+      "plan": 8453.0,
+      "actual": 6578.0,
+      "cb": -1875.0,
+      "cum": 6578.0,
+      "eff": 77.8,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Piston honing FL",
+      "time": "24-Aug-2",
+      "target": 1500.0,
+      "plan": 1498.0,
+      "actual": 1266.0,
+      "cb": -232.0,
+      "cum": 1266.0,
+      "eff": 84.5,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Welding B line",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 3305.0,
+      "actual": 2067.0,
+      "cb": -1238.0,
+      "cum": 2067.0,
+      "eff": 62.5,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Piston Grinding",
+      "time": "24-Aug-2",
+      "target": 10000.0,
+      "plan": 10000.0,
+      "actual": 7849.0,
+      "cb": -2151.0,
+      "cum": 7849.0,
+      "eff": 78.4,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "C-Shaft Pin C",
+      "time": "11-Aug-2",
+      "target": 6800.0,
+      "plan": 0,
+      "actual": 0,
+      "cb": 0.0,
+      "cum": 0,
+      "eff": 0.0,
+      "status": "-OFF",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Rotor B Line",
+      "time": "24-Aug-2",
+      "target": 3600.0,
+      "plan": 3598.0,
+      "actual": 2328.0,
+      "cb": -1270.0,
+      "cum": 2328.0,
+      "eff": 64.7,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Rotor D  Line",
+      "time": "24-Aug-2",
+      "target": 1600.0,
+      "plan": 1599.0,
+      "actual": 1642.0,
+      "cb": 43.0,
+      "cum": 1642.0,
+      "eff": 102.6,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Final B Line",
+      "time": "24-Aug-2",
+      "target": 3600.0,
+      "plan": 3598.0,
+      "actual": 2935.0,
+      "cb": -663.0,
+      "cum": 2935.0,
+      "eff": 81.5,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Final D line",
+      "time": "24-Aug-2",
+      "target": 1600.0,
+      "plan": 1599.0,
+      "actual": 1559.0,
+      "cb": -40.0,
+      "cum": 1559.0,
+      "eff": 97.4,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Water Line",
+      "time": "31-May-2",
+      "target": 8400.0,
+      "plan": 3598.0,
+      "actual": 2852.0,
+      "cb": -746.0,
+      "cum": 2852.0,
+      "eff": 79.2,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Final A line",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 3297.0,
+      "actual": 2919.0,
+      "cb": -378.0,
+      "cum": 2919.0,
+      "eff": 88.5,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "C-Shaft Body C",
+      "time": "14-Aug-2",
+      "target": 2500.0,
+      "plan": 638.0,
+      "actual": 0,
+      "cb": -638.0,
+      "cum": 0,
+      "eff": 0.0,
+      "status": "-OFF",
+      "stalled": false,
+      "pushed": "2026-08-18 13:53:11"
+    },
+    {
+      "name": "Final C line",
+      "time": "24-Aug-2",
+      "target": 3400.0,
+      "plan": 3498.0,
+      "actual": 3404.0,
+      "cb": -94.0,
+      "cum": 3404.0,
+      "eff": 97.3,
+      "status": "STALLED",
+      "stalled": true,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Welding C line",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 314.0,
+      "actual": 184.0,
+      "cb": -130.0,
+      "cum": 184.0,
+      "eff": 58.5,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 08:44:03"
+    },
+    {
+      "name": "Inspection B",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 3325.0,
+      "actual": 2089.0,
+      "cb": -1236.0,
+      "cum": 2089.0,
+      "eff": 62.8,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Inspection D",
+      "time": "23-Aug-2",
+      "target": 1150.0,
+      "plan": 1763.0,
+      "actual": 0,
+      "cb": -1763.0,
+      "cum": 0,
+      "eff": 0.0,
+      "status": "-OFF",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "C-Shaft Body B",
+      "time": "24-Aug-2",
+      "target": 2500.0,
+      "plan": 1840.0,
+      "actual": 1174.0,
+      "cb": -666.0,
+      "cum": 1174.0,
+      "eff": 63.8,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Motor CL",
+      "time": "24-Aug-2",
+      "target": 600.0,
+      "plan": 593.0,
+      "actual": 145.0,
+      "cb": -448.0,
+      "cum": 145.0,
+      "eff": 24.4,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Inspection A",
+      "time": "24-Aug-2",
+      "target": 7200.0,
+      "plan": 3598.0,
+      "actual": 2209.0,
+      "cb": -1389.0,
+      "cum": 2209.0,
+      "eff": 61.3,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Inspection C",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 3325.0,
+      "actual": 2134.0,
+      "cb": -1191.0,
+      "cum": 2134.0,
+      "eff": 64.1,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "C-Shaft Pin A",
+      "time": "24-Aug-2",
+      "target": 6800.0,
+      "plan": 2442.0,
+      "actual": 1009.0,
+      "cb": -1433.0,
+      "cum": 1009.0,
+      "eff": 41.3,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Welding D line",
+      "time": "24-Aug-2",
+      "target": 1200.0,
+      "plan": 1199.0,
+      "actual": 1579.0,
+      "cb": 380.0,
+      "cum": 1579.0,
+      "eff": 131.6,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "True B",
+      "time": "20-Aug-2",
+      "target": 2500.0,
+      "plan": 155.0,
+      "actual": 43.0,
+      "cb": -112.0,
+      "cum": 43.0,
+      "eff": 27.7,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-20 08:39:04"
+    },
+    {
+      "name": "Final D  Line",
+      "time": "21-Aug-2",
+      "target": 1600.0,
+      "plan": 172.0,
+      "actual": 152.0,
+      "cb": -20.0,
+      "cum": 152.0,
+      "eff": 88.3,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-21 08:49:42"
+    },
+    {
+      "name": "Rotor C  line",
+      "time": "24-Aug-2",
+      "target": 3400.0,
+      "plan": 3498.0,
+      "actual": 3254.0,
+      "cb": -244.0,
+      "cum": 3254.0,
+      "eff": 93.0,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Motor AC",
+      "time": "24-Aug-2",
+      "target": 1400.0,
+      "plan": 1005.0,
+      "actual": 1028.0,
+      "cb": 23.0,
+      "cum": 1028.0,
+      "eff": 102.2,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    },
+    {
+      "name": "Rotor A line",
+      "time": "24-Aug-2",
+      "target": 3300.0,
+      "plan": 3297.0,
+      "actual": 3097.0,
+      "cb": -200.0,
+      "cum": 3097.0,
+      "eff": 93.9,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-24 17:09:21"
+    }
+  ],
+  "hourly": {
+    "C-Shaft Body A": [
+      {
+        "h": 8,
+        "actual": 44.0,
+        "plan": 69.0
+      },
+      {
+        "h": 9,
+        "actual": 167.0,
+        "plan": 240.0
+      },
+      {
+        "h": 10,
+        "actual": 339.0,
+        "plan": 440.0
+      },
+      {
+        "h": 11,
+        "actual": 534.0,
+        "plan": 679.0
+      },
+      {
+        "h": 12,
+        "actual": 671.0,
+        "plan": 920.0
+      },
+      {
+        "h": 13,
+        "actual": 671.0,
+        "plan": 921.0
+      },
+      {
+        "h": 14,
+        "actual": 877.0,
+        "plan": 1160.0
+      },
+      {
+        "h": 15,
+        "actual": 1044.0,
+        "plan": 1360.0
+      },
+      {
+        "h": 16,
+        "actual": 1248.0,
+        "plan": 1600.0
+      },
+      {
+        "h": 17,
+        "actual": 1302.0,
+        "plan": 1840.0
+      }
+    ],
+    "Cylinder Honing": [
+      {
+        "h": 8,
+        "actual": 14.0,
+        "plan": 56.0
+      },
+      {
+        "h": 9,
+        "actual": 121.0,
+        "plan": 195.0
+      },
+      {
+        "h": 10,
+        "actual": 362.0,
+        "plan": 358.0
+      },
+      {
+        "h": 11,
+        "actual": 410.0,
+        "plan": 553.0
+      },
+      {
+        "h": 12,
+        "actual": 630.0,
+        "plan": 749.0
+      },
+      {
+        "h": 13,
+        "actual": 630.0,
+        "plan": 750.0
+      },
+      {
+        "h": 14,
+        "actual": 761.0,
+        "plan": 945.0
+      },
+      {
+        "h": 15,
+        "actual": 885.0,
+        "plan": 1108.0
+      },
+      {
+        "h": 16,
+        "actual": 976.0,
+        "plan": 1303.0
+      },
+      {
+        "h": 17,
+        "actual": 1168.0,
+        "plan": 1499.0
+      }
+    ],
+    "C-Shft Pin B": [
+      {
+        "h": 8,
+        "actual": 56.0,
+        "plan": 46.0
+      },
+      {
+        "h": 9,
+        "actual": 164.0,
+        "plan": 160.0
+      },
+      {
+        "h": 10,
+        "actual": 300.0,
+        "plan": 293.0
+      },
+      {
+        "h": 11,
+        "actual": 456.0,
+        "plan": 453.0
+      },
+      {
+        "h": 12,
+        "actual": 600.0,
+        "plan": 613.0
+      },
+      {
+        "h": 13,
+        "actual": 600.0,
+        "plan": 614.0
+      },
+      {
+        "h": 14,
+        "actual": 757.0,
+        "plan": 773.0
+      },
+      {
+        "h": 15,
+        "actual": 885.0,
+        "plan": 906.0
+      },
+      {
+        "h": 16,
+        "actual": 1071.0,
+        "plan": 1066.0
+      },
+      {
+        "h": 17,
+        "actual": 1077.0,
+        "plan": 1225.0
+      }
+    ],
+    "Welding C line": [
+      {
+        "h": 8,
+        "actual": 44.0,
+        "plan": 124.0
+      }
+    ],
+    "Welding A line": [
+      {
+        "h": 8,
+        "actual": 59.0,
+        "plan": 113.0
+      },
+      {
+        "h": 9,
+        "actual": 385.0,
+        "plan": 390.0
+      },
+      {
+        "h": 10,
+        "actual": 775.0,
+        "plan": 782.0
+      },
+      {
+        "h": 11,
+        "actual": 1116.0,
+        "plan": 1108.0
+      },
+      {
+        "h": 12,
+        "actual": 1432.0,
+        "plan": 1500.0
+      },
+      {
+        "h": 13,
+        "actual": 1432.0,
+        "plan": 1501.0
+      },
+      {
+        "h": 14,
+        "actual": 1777.0,
+        "plan": 1892.0
+      },
+      {
+        "h": 15,
+        "actual": 2240.0,
+        "plan": 2281.0
+      },
+      {
+        "h": 16,
+        "actual": 2559.0,
+        "plan": 2609.0
+      },
+      {
+        "h": 17,
+        "actual": 3000.0,
+        "plan": 2999.0
+      }
+    ],
+    "C-Shaft Body B": [
+      {
+        "h": 8,
+        "actual": 50.0,
+        "plan": 69.0
+      },
+      {
+        "h": 9,
+        "actual": 195.0,
+        "plan": 239.0
+      },
+      {
+        "h": 10,
+        "actual": 358.0,
+        "plan": 440.0
+      },
+      {
+        "h": 11,
+        "actual": 530.0,
+        "plan": 680.0
+      },
+      {
+        "h": 12,
+        "actual": 680.0,
+        "plan": 920.0
+      },
+      {
+        "h": 13,
+        "actual": 680.0,
+        "plan": 921.0
+      },
+      {
+        "h": 14,
+        "actual": 846.0,
+        "plan": 1160.0
+      },
+      {
+        "h": 15,
+        "actual": 991.0,
+        "plan": 1360.0
+      },
+      {
+        "h": 16,
+        "actual": 1141.0,
+        "plan": 1600.0
+      },
+      {
+        "h": 17,
+        "actual": 1174.0,
+        "plan": 1839.0
+      }
+    ],
+    "Motor H-Series": [
+      {
+        "h": 8,
+        "actual": 0,
+        "plan": 48.0
+      },
+      {
+        "h": 9,
+        "actual": 0,
+        "plan": 168.0
+      },
+      {
+        "h": 10,
+        "actual": 11.0,
+        "plan": 306.0
+      },
+      {
+        "h": 11,
+        "actual": 202.0,
+        "plan": 475.0
+      },
+      {
+        "h": 12,
+        "actual": 327.0,
+        "plan": 644.0
+      },
+      {
+        "h": 13,
+        "actual": 504.0,
+        "plan": 645.0
+      },
+      {
+        "h": 14,
+        "actual": 710.0,
+        "plan": 812.0
+      },
+      {
+        "h": 15,
+        "actual": 888.0,
+        "plan": 953.0
+      },
+      {
+        "h": 16,
+        "actual": 1086.0,
+        "plan": 1122.0
+      },
+      {
+        "h": 17,
+        "actual": 1247.0,
+        "plan": 1290.0
+      }
+    ],
+    "Motor S-Series": [
+      {
+        "h": 8,
+        "actual": 17.0,
+        "plan": 54.0
+      },
+      {
+        "h": 9,
+        "actual": 115.0,
+        "plan": 187.0
+      },
+      {
+        "h": 10,
+        "actual": 238.0,
+        "plan": 343.0
+      },
+      {
+        "h": 11,
+        "actual": 346.0,
+        "plan": 531.0
+      },
+      {
+        "h": 12,
+        "actual": 415.0,
+        "plan": 718.0
+      },
+      {
+        "h": 13,
+        "actual": 415.0,
+        "plan": 719.0
+      },
+      {
+        "h": 14,
+        "actual": 549.0,
+        "plan": 905.0
+      },
+      {
+        "h": 15,
+        "actual": 672.0,
+        "plan": 1062.0
+      },
+      {
+        "h": 16,
+        "actual": 826.0,
+        "plan": 1249.0
+      },
+      {
+        "h": 17,
+        "actual": 966.0,
+        "plan": 1436.0
+      }
+    ],
+    "Motor F-Series": [
+      {
+        "h": 8,
+        "actual": 12.0,
+        "plan": 40.0
+      },
+      {
+        "h": 9,
+        "actual": 39.0,
+        "plan": 140.0
+      },
+      {
+        "h": 10,
+        "actual": 123.0,
+        "plan": 257.0
+      },
+      {
+        "h": 11,
+        "actual": 203.0,
+        "plan": 398.0
+      },
+      {
+        "h": 12,
+        "actual": 313.0,
+        "plan": 538.0
+      },
+      {
+        "h": 13,
+        "actual": 313.0,
+        "plan": 539.0
+      },
+      {
+        "h": 14,
+        "actual": 420.0,
+        "plan": 679.0
+      },
+      {
+        "h": 15,
+        "actual": 487.0,
+        "plan": 797.0
+      },
+      {
+        "h": 16,
+        "actual": 555.0,
+        "plan": 937.0
+      },
+      {
+        "h": 17,
+        "actual": 593.0,
+        "plan": 1077.0
+      }
+    ],
+    "Motor WL": [
+      {
+        "h": 8,
+        "actual": 12.0,
+        "plan": 43.0
+      },
+      {
+        "h": 9,
+        "actual": 12.0,
+        "plan": 148.0
+      },
+      {
+        "h": 10,
+        "actual": 12.0,
+        "plan": 273.0
+      },
+      {
+        "h": 11,
+        "actual": 12.0,
+        "plan": 422.0
+      },
+      {
+        "h": 12,
+        "actual": 12.0,
+        "plan": 571.0
+      },
+      {
+        "h": 13,
+        "actual": 12.0,
+        "plan": 572.0
+      },
+      {
+        "h": 14,
+        "actual": 12.0,
+        "plan": 721.0
+      },
+      {
+        "h": 15,
+        "actual": 12.0,
+        "plan": 846.0
+      },
+      {
+        "h": 16,
+        "actual": 12.0,
+        "plan": 993.0
+      },
+      {
+        "h": 17,
+        "actual": 12.0,
+        "plan": 1141.0
+      }
+    ],
+    "Rod Pispin": [
+      {
+        "h": 8,
+        "actual": 16.0,
+        "plan": 66.0
+      },
+      {
+        "h": 9,
+        "actual": 66.0,
+        "plan": 228.0
+      },
+      {
+        "h": 10,
+        "actual": 120.0,
+        "plan": 418.0
+      },
+      {
+        "h": 11,
+        "actual": 188.0,
+        "plan": 647.0
+      },
+      {
+        "h": 12,
+        "actual": 252.0,
+        "plan": 875.0
+      },
+      {
+        "h": 13,
+        "actual": 252.0,
+        "plan": 876.0
+      },
+      {
+        "h": 14,
+        "actual": 316.0,
+        "plan": 1103.0
+      },
+      {
+        "h": 15,
+        "actual": 376.0,
+        "plan": 1294.0
+      },
+      {
+        "h": 16,
+        "actual": 448.0,
+        "plan": 1522.0
+      },
+      {
+        "h": 17,
+        "actual": 510.0,
+        "plan": 1750.0
+      }
+    ],
+    "Frame Honing FL": [
+      {
+        "h": 8,
+        "actual": 14.0,
+        "plan": 56.0
+      },
+      {
+        "h": 9,
+        "actual": 128.0,
+        "plan": 195.0
+      },
+      {
+        "h": 10,
+        "actual": 243.0,
+        "plan": 358.0
+      },
+      {
+        "h": 11,
+        "actual": 381.0,
+        "plan": 553.0
+      },
+      {
+        "h": 12,
+        "actual": 500.0,
+        "plan": 749.0
+      },
+      {
+        "h": 13,
+        "actual": 502.0,
+        "plan": 750.0
+      },
+      {
+        "h": 14,
+        "actual": 709.0,
+        "plan": 945.0
+      },
+      {
+        "h": 15,
+        "actual": 814.0,
+        "plan": 1109.0
+      },
+      {
+        "h": 16,
+        "actual": 863.0,
+        "plan": 1304.0
+      },
+      {
+        "h": 17,
+        "actual": 958.0,
+        "plan": 1499.0
+      }
+    ],
+    "Press C-Shaft": [
+      {
+        "h": 8,
+        "actual": 126.0,
+        "plan": 313.0
+      },
+      {
+        "h": 9,
+        "actual": 611.0,
+        "plan": 1080.0
+      },
+      {
+        "h": 10,
+        "actual": 1462.0,
+        "plan": 1982.0
+      },
+      {
+        "h": 11,
+        "actual": 2259.0,
+        "plan": 3061.0
+      },
+      {
+        "h": 12,
+        "actual": 3082.0,
+        "plan": 4144.0
+      },
+      {
+        "h": 13,
+        "actual": 3082.0,
+        "plan": 4149.0
+      },
+      {
+        "h": 14,
+        "actual": 3947.0,
+        "plan": 5225.0
+      },
+      {
+        "h": 15,
+        "actual": 4652.0,
+        "plan": 6132.0
+      },
+      {
+        "h": 16,
+        "actual": 5752.0,
+        "plan": 7207.0
+      },
+      {
+        "h": 17,
+        "actual": 6578.0,
+        "plan": 8288.0
+      }
+    ],
+    "Piston honing FL": [
+      {
+        "h": 8,
+        "actual": 26.0,
+        "plan": 56.0
+      },
+      {
+        "h": 9,
+        "actual": 83.0,
+        "plan": 195.0
+      },
+      {
+        "h": 10,
+        "actual": 211.0,
+        "plan": 358.0
+      },
+      {
+        "h": 11,
+        "actual": 426.0,
+        "plan": 553.0
+      },
+      {
+        "h": 12,
+        "actual": 612.0,
+        "plan": 749.0
+      },
+      {
+        "h": 13,
+        "actual": 612.0,
+        "plan": 750.0
+      },
+      {
+        "h": 14,
+        "actual": 756.0,
+        "plan": 944.0
+      },
+      {
+        "h": 15,
+        "actual": 948.0,
+        "plan": 1108.0
+      },
+      {
+        "h": 16,
+        "actual": 1080.0,
+        "plan": 1303.0
+      },
+      {
+        "h": 17,
+        "actual": 1266.0,
+        "plan": 1498.0
+      }
+    ],
+    "Welding D line": [
+      {
+        "h": 8,
+        "actual": 28.0,
+        "plan": 45.0
+      },
+      {
+        "h": 9,
+        "actual": 126.0,
+        "plan": 156.0
+      },
+      {
+        "h": 10,
+        "actual": 298.0,
+        "plan": 313.0
+      },
+      {
+        "h": 11,
+        "actual": 422.0,
+        "plan": 443.0
+      },
+      {
+        "h": 12,
+        "actual": 706.0,
+        "plan": 599.0
+      },
+      {
+        "h": 13,
+        "actual": 706.0,
+        "plan": 600.0
+      },
+      {
+        "h": 14,
+        "actual": 970.0,
+        "plan": 756.0
+      },
+      {
+        "h": 15,
+        "actual": 1294.0,
+        "plan": 912.0
+      },
+      {
+        "h": 16,
+        "actual": 1392.0,
+        "plan": 1043.0
+      },
+      {
+        "h": 17,
+        "actual": 1579.0,
+        "plan": 1199.0
+      }
+    ],
+    "Welding B line": [
+      {
+        "h": 8,
+        "actual": 0,
+        "plan": 125.0
+      },
+      {
+        "h": 9,
+        "actual": 15.0,
+        "plan": 430.0
+      },
+      {
+        "h": 10,
+        "actual": 372.0,
+        "plan": 862.0
+      },
+      {
+        "h": 11,
+        "actual": 714.0,
+        "plan": 1221.0
+      },
+      {
+        "h": 12,
+        "actual": 873.0,
+        "plan": 1652.0
+      },
+      {
+        "h": 13,
+        "actual": 877.0,
+        "plan": 1654.0
+      },
+      {
+        "h": 14,
+        "actual": 1122.0,
+        "plan": 2083.0
+      },
+      {
+        "h": 15,
+        "actual": 1558.0,
+        "plan": 2513.0
+      },
+      {
+        "h": 16,
+        "actual": 1814.0,
+        "plan": 2873.0
+      },
+      {
+        "h": 17,
+        "actual": 2067.0,
+        "plan": 3305.0
+      }
+    ],
+    "Piston Grinding": [
+      {
+        "h": 8,
+        "actual": 8.0,
+        "plan": 378.0
+      },
+      {
+        "h": 9,
+        "actual": 421.0,
+        "plan": 1303.0
+      },
+      {
+        "h": 10,
+        "actual": 1564.0,
+        "plan": 2391.0
+      },
+      {
+        "h": 11,
+        "actual": 2879.0,
+        "plan": 3694.0
+      },
+      {
+        "h": 12,
+        "actual": 3388.0,
+        "plan": 5000.0
+      },
+      {
+        "h": 13,
+        "actual": 3388.0,
+        "plan": 5007.0
+      },
+      {
+        "h": 14,
+        "actual": 4350.0,
+        "plan": 6305.0
+      },
+      {
+        "h": 15,
+        "actual": 4846.0,
+        "plan": 7392.0
+      },
+      {
+        "h": 16,
+        "actual": 6508.0,
+        "plan": 8696.0
+      },
+      {
+        "h": 17,
+        "actual": 7849.0,
+        "plan": 10000.0
+      }
+    ],
+    "C-Shaft Pin C": [
+      {
+        "h": 8,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 9,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 10,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 11,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 12,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 13,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 14,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 15,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 16,
+        "actual": 0,
+        "plan": 0
+      },
+      {
+        "h": 17,
+        "actual": 0,
+        "plan": 0
+      }
+    ],
+    "C-Shaft Pin A": [
+      {
+        "h": 8,
+        "actual": 13.0,
+        "plan": 92.0
+      },
+      {
+        "h": 9,
+        "actual": 115.0,
+        "plan": 318.0
+      },
+      {
+        "h": 10,
+        "actual": 242.0,
+        "plan": 584.0
+      },
+      {
+        "h": 11,
+        "actual": 398.0,
+        "plan": 902.0
+      },
+      {
+        "h": 12,
+        "actual": 547.0,
+        "plan": 1221.0
+      },
+      {
+        "h": 13,
+        "actual": 550.0,
+        "plan": 1223.0
+      },
+      {
+        "h": 14,
+        "actual": 681.0,
+        "plan": 1540.0
+      },
+      {
+        "h": 15,
+        "actual": 792.0,
+        "plan": 1805.0
+      },
+      {
+        "h": 16,
+        "actual": 944.0,
+        "plan": 2124.0
+      },
+      {
+        "h": 17,
+        "actual": 1009.0,
+        "plan": 2442.0
+      }
+    ],
+    "Final A line": [
+      {
+        "h": 8,
+        "actual": 114.0,
+        "plan": 125.0
+      },
+      {
+        "h": 9,
+        "actual": 388.0,
+        "plan": 430.0
+      },
+      {
+        "h": 10,
+        "actual": 788.0,
+        "plan": 860.0
+      },
+      {
+        "h": 11,
+        "actual": 1095.0,
+        "plan": 1219.0
+      },
+      {
+        "h": 12,
+        "actual": 1467.0,
+        "plan": 1648.0
+      },
+      {
+        "h": 13,
+        "actual": 1470.0,
+        "plan": 1651.0
+      },
+      {
+        "h": 14,
+        "actual": 1817.0,
+        "plan": 2079.0
+      },
+      {
+        "h": 15,
+        "actual": 2160.0,
+        "plan": 2507.0
+      },
+      {
+        "h": 16,
+        "actual": 2517.0,
+        "plan": 2868.0
+      },
+      {
+        "h": 17,
+        "actual": 2918.0,
+        "plan": 3297.0
+      }
+    ],
+    "Motor CL": [
+      {
+        "h": 8,
+        "actual": 0,
+        "plan": 22.0
+      },
+      {
+        "h": 9,
+        "actual": 8.0,
+        "plan": 76.0
+      },
+      {
+        "h": 10,
+        "actual": 78.0,
+        "plan": 141.0
+      },
+      {
+        "h": 11,
+        "actual": 126.0,
+        "plan": 220.0
+      },
+      {
+        "h": 12,
+        "actual": 126.0,
+        "plan": 297.0
+      },
+      {
+        "h": 13,
+        "actual": 126.0,
+        "plan": 298.0
+      },
+      {
+        "h": 14,
+        "actual": 145.0,
+        "plan": 374.0
+      },
+      {
+        "h": 15,
+        "actual": 145.0,
+        "plan": 438.0
+      },
+      {
+        "h": 16,
+        "actual": 145.0,
+        "plan": 516.0
+      },
+      {
+        "h": 17,
+        "actual": 145.0,
+        "plan": 593.0
+      }
+    ],
+    "Rotor B Line": [
+      {
+        "h": 8,
+        "actual": 46.0,
+        "plan": 136.0
+      },
+      {
+        "h": 9,
+        "actual": 310.0,
+        "plan": 470.0
+      },
+      {
+        "h": 10,
+        "actual": 619.0,
+        "plan": 938.0
+      },
+      {
+        "h": 11,
+        "actual": 847.0,
+        "plan": 1329.0
+      },
+      {
+        "h": 12,
+        "actual": 1156.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 13,
+        "actual": 1167.0,
+        "plan": 1802.0
+      },
+      {
+        "h": 14,
+        "actual": 1479.0,
+        "plan": 2269.0
+      },
+      {
+        "h": 15,
+        "actual": 1825.0,
+        "plan": 2736.0
+      },
+      {
+        "h": 16,
+        "actual": 2019.0,
+        "plan": 3130.0
+      },
+      {
+        "h": 17,
+        "actual": 2328.0,
+        "plan": 3598.0
+      }
+    ],
+    "Rotor D  Line": [
+      {
+        "h": 8,
+        "actual": 80.0,
+        "plan": 60.0
+      },
+      {
+        "h": 9,
+        "actual": 211.0,
+        "plan": 208.0
+      },
+      {
+        "h": 10,
+        "actual": 377.0,
+        "plan": 417.0
+      },
+      {
+        "h": 11,
+        "actual": 549.0,
+        "plan": 590.0
+      },
+      {
+        "h": 12,
+        "actual": 790.0,
+        "plan": 799.0
+      },
+      {
+        "h": 13,
+        "actual": 795.0,
+        "plan": 800.0
+      },
+      {
+        "h": 14,
+        "actual": 1019.0,
+        "plan": 1008.0
+      },
+      {
+        "h": 15,
+        "actual": 1246.0,
+        "plan": 1216.0
+      },
+      {
+        "h": 16,
+        "actual": 1426.0,
+        "plan": 1391.0
+      },
+      {
+        "h": 17,
+        "actual": 1642.0,
+        "plan": 1598.0
+      }
+    ],
+    "Inspection B": [
+      {
+        "h": 8,
+        "actual": 39.0,
+        "plan": 126.0
+      },
+      {
+        "h": 9,
+        "actual": 284.0,
+        "plan": 433.0
+      },
+      {
+        "h": 10,
+        "actual": 577.0,
+        "plan": 867.0
+      },
+      {
+        "h": 11,
+        "actual": 805.0,
+        "plan": 1228.0
+      },
+      {
+        "h": 12,
+        "actual": 1053.0,
+        "plan": 1662.0
+      },
+      {
+        "h": 13,
+        "actual": 1059.0,
+        "plan": 1665.0
+      },
+      {
+        "h": 14,
+        "actual": 1254.0,
+        "plan": 2097.0
+      },
+      {
+        "h": 15,
+        "actual": 1577.0,
+        "plan": 2528.0
+      },
+      {
+        "h": 16,
+        "actual": 1821.0,
+        "plan": 2892.0
+      },
+      {
+        "h": 17,
+        "actual": 2085.0,
+        "plan": 3325.0
+      }
+    ],
+    "Inspection C": [
+      {
+        "h": 8,
+        "actual": 95.0,
+        "plan": 126.0
+      },
+      {
+        "h": 9,
+        "actual": 304.0,
+        "plan": 433.0
+      },
+      {
+        "h": 10,
+        "actual": 639.0,
+        "plan": 867.0
+      },
+      {
+        "h": 11,
+        "actual": 951.0,
+        "plan": 1228.0
+      },
+      {
+        "h": 12,
+        "actual": 1230.0,
+        "plan": 1662.0
+      },
+      {
+        "h": 13,
+        "actual": 1235.0,
+        "plan": 1665.0
+      },
+      {
+        "h": 14,
+        "actual": 1458.0,
+        "plan": 2097.0
+      },
+      {
+        "h": 15,
+        "actual": 1693.0,
+        "plan": 2528.0
+      },
+      {
+        "h": 16,
+        "actual": 1850.0,
+        "plan": 2892.0
+      },
+      {
+        "h": 17,
+        "actual": 2125.0,
+        "plan": 3325.0
+      }
+    ],
+    "Final B Line": [
+      {
+        "h": 8,
+        "actual": 79.0,
+        "plan": 136.0
+      },
+      {
+        "h": 9,
+        "actual": 340.0,
+        "plan": 469.0
+      },
+      {
+        "h": 10,
+        "actual": 663.0,
+        "plan": 938.0
+      },
+      {
+        "h": 11,
+        "actual": 1008.0,
+        "plan": 1329.0
+      },
+      {
+        "h": 12,
+        "actual": 1399.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 13,
+        "actual": 1399.0,
+        "plan": 1801.0
+      },
+      {
+        "h": 14,
+        "actual": 1818.0,
+        "plan": 2268.0
+      },
+      {
+        "h": 15,
+        "actual": 2213.0,
+        "plan": 2736.0
+      },
+      {
+        "h": 16,
+        "actual": 2606.0,
+        "plan": 3129.0
+      },
+      {
+        "h": 17,
+        "actual": 2934.0,
+        "plan": 3598.0
+      }
+    ],
+    "Final C line": [
+      {
+        "h": 8,
+        "actual": 122.0,
+        "plan": 132.0
+      },
+      {
+        "h": 9,
+        "actual": 427.0,
+        "plan": 456.0
+      },
+      {
+        "h": 10,
+        "actual": 851.0,
+        "plan": 912.0
+      },
+      {
+        "h": 11,
+        "actual": 1225.0,
+        "plan": 1292.0
+      },
+      {
+        "h": 12,
+        "actual": 1699.0,
+        "plan": 1749.0
+      },
+      {
+        "h": 13,
+        "actual": 1707.0,
+        "plan": 1751.0
+      },
+      {
+        "h": 14,
+        "actual": 2148.0,
+        "plan": 2205.0
+      },
+      {
+        "h": 15,
+        "actual": 2587.0,
+        "plan": 2659.0
+      },
+      {
+        "h": 16,
+        "actual": 2961.0,
+        "plan": 3042.0
+      },
+      {
+        "h": 17,
+        "actual": 3404.0,
+        "plan": 3497.0
+      }
+    ],
+    "Inspection A": [
+      {
+        "h": 8,
+        "actual": 92.0,
+        "plan": 136.0
+      },
+      {
+        "h": 9,
+        "actual": 337.0,
+        "plan": 469.0
+      },
+      {
+        "h": 10,
+        "actual": 689.0,
+        "plan": 938.0
+      },
+      {
+        "h": 11,
+        "actual": 905.0,
+        "plan": 1329.0
+      },
+      {
+        "h": 12,
+        "actual": 1290.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 13,
+        "actual": 1301.0,
+        "plan": 1801.0
+      },
+      {
+        "h": 14,
+        "actual": 1580.0,
+        "plan": 2269.0
+      },
+      {
+        "h": 15,
+        "actual": 1916.0,
+        "plan": 2736.0
+      },
+      {
+        "h": 16,
+        "actual": 2076.0,
+        "plan": 3129.0
+      },
+      {
+        "h": 17,
+        "actual": 2209.0,
+        "plan": 3598.0
+      }
+    ],
+    "Inspection D": [
+      {
+        "h": 8,
+        "actual": 0,
+        "plan": 66.0
+      },
+      {
+        "h": 9,
+        "actual": 0,
+        "plan": 230.0
+      },
+      {
+        "h": 10,
+        "actual": 0,
+        "plan": 460.0
+      },
+      {
+        "h": 11,
+        "actual": 0,
+        "plan": 651.0
+      },
+      {
+        "h": 12,
+        "actual": 0,
+        "plan": 881.0
+      },
+      {
+        "h": 13,
+        "actual": 0,
+        "plan": 883.0
+      },
+      {
+        "h": 14,
+        "actual": 0,
+        "plan": 1112.0
+      },
+      {
+        "h": 15,
+        "actual": 0,
+        "plan": 1341.0
+      },
+      {
+        "h": 16,
+        "actual": 0,
+        "plan": 1533.0
+      },
+      {
+        "h": 17,
+        "actual": 0,
+        "plan": 1763.0
+      }
+    ],
+    "Final D line": [
+      {
+        "h": 8,
+        "actual": 24.0,
+        "plan": 60.0
+      },
+      {
+        "h": 9,
+        "actual": 166.0,
+        "plan": 208.0
+      },
+      {
+        "h": 10,
+        "actual": 316.0,
+        "plan": 417.0
+      },
+      {
+        "h": 11,
+        "actual": 481.0,
+        "plan": 591.0
+      },
+      {
+        "h": 12,
+        "actual": 713.0,
+        "plan": 799.0
+      },
+      {
+        "h": 13,
+        "actual": 715.0,
+        "plan": 800.0
+      },
+      {
+        "h": 14,
+        "actual": 944.0,
+        "plan": 1008.0
+      },
+      {
+        "h": 15,
+        "actual": 1152.0,
+        "plan": 1216.0
+      },
+      {
+        "h": 16,
+        "actual": 1336.0,
+        "plan": 1390.0
+      },
+      {
+        "h": 17,
+        "actual": 1559.0,
+        "plan": 1599.0
+      }
+    ],
+    "Rotor C  line": [
+      {
+        "h": 8,
+        "actual": 111.0,
+        "plan": 132.0
+      },
+      {
+        "h": 9,
+        "actual": 418.0,
+        "plan": 456.0
+      },
+      {
+        "h": 10,
+        "actual": 842.0,
+        "plan": 912.0
+      },
+      {
+        "h": 11,
+        "actual": 1220.0,
+        "plan": 1293.0
+      },
+      {
+        "h": 12,
+        "actual": 1636.0,
+        "plan": 1749.0
+      },
+      {
+        "h": 13,
+        "actual": 1639.0,
+        "plan": 1751.0
+      },
+      {
+        "h": 14,
+        "actual": 2089.0,
+        "plan": 2206.0
+      },
+      {
+        "h": 15,
+        "actual": 2522.0,
+        "plan": 2660.0
+      },
+      {
+        "h": 16,
+        "actual": 2792.0,
+        "plan": 3042.0
+      },
+      {
+        "h": 17,
+        "actual": 3254.0,
+        "plan": 3498.0
+      }
+    ],
+    "Water Line": [
+      {
+        "h": 8,
+        "actual": 0,
+        "plan": 136.0
+      },
+      {
+        "h": 9,
+        "actual": 154.0,
+        "plan": 469.0
+      },
+      {
+        "h": 10,
+        "actual": 584.0,
+        "plan": 938.0
+      },
+      {
+        "h": 11,
+        "actual": 942.0,
+        "plan": 1330.0
+      },
+      {
+        "h": 12,
+        "actual": 1194.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 13,
+        "actual": 1198.0,
+        "plan": 1801.0
+      },
+      {
+        "h": 14,
+        "actual": 1628.0,
+        "plan": 2269.0
+      },
+      {
+        "h": 15,
+        "actual": 2044.0,
+        "plan": 2736.0
+      },
+      {
+        "h": 16,
+        "actual": 2418.0,
+        "plan": 3129.0
+      },
+      {
+        "h": 17,
+        "actual": 2852.0,
+        "plan": 3598.0
+      }
+    ],
+    "Motor AC": [
+      {
+        "h": 8,
+        "actual": 37.0,
+        "plan": 123.0
+      },
+      {
+        "h": 9,
+        "actual": 37.0,
+        "plan": 131.0
+      },
+      {
+        "h": 10,
+        "actual": 173.0,
+        "plan": 240.0
+      },
+      {
+        "h": 11,
+        "actual": 330.0,
+        "plan": 371.0
+      },
+      {
+        "h": 12,
+        "actual": 471.0,
+        "plan": 502.0
+      },
+      {
+        "h": 13,
+        "actual": 473.0,
+        "plan": 503.0
+      },
+      {
+        "h": 14,
+        "actual": 668.0,
+        "plan": 634.0
+      },
+      {
+        "h": 15,
+        "actual": 828.0,
+        "plan": 743.0
+      },
+      {
+        "h": 16,
+        "actual": 931.0,
+        "plan": 874.0
+      },
+      {
+        "h": 17,
+        "actual": 1028.0,
+        "plan": 1005.0
+      }
+    ],
+    "Rotor A line": [
+      {
+        "h": 8,
+        "actual": 423.0,
+        "plan": 403.0
+      },
+      {
+        "h": 9,
+        "actual": 440.0,
+        "plan": 430.0
+      },
+      {
+        "h": 10,
+        "actual": 944.0,
+        "plan": 860.0
+      },
+      {
+        "h": 11,
+        "actual": 1297.0,
+        "plan": 1218.0
+      },
+      {
+        "h": 12,
+        "actual": 1847.0,
+        "plan": 1648.0
+      },
+      {
+        "h": 13,
+        "actual": 1864.0,
+        "plan": 1651.0
+      },
+      {
+        "h": 14,
+        "actual": 2184.0,
+        "plan": 2079.0
+      },
+      {
+        "h": 15,
+        "actual": 2581.0,
+        "plan": 2507.0
+      },
+      {
+        "h": 16,
+        "actual": 2705.0,
+        "plan": 2867.0
+      },
+      {
+        "h": 17,
+        "actual": 3097.0,
+        "plan": 3297.0
+      }
+    ]
+  },
+  "eff": {
+    "C-Shaft Body A": 70.7,
+    "Cylinder Honing": 77.9,
+    "C-Shft Pin B": 87.8,
+    "Welding A line": 100.0,
+    "Motor H-Series": 96.5,
+    "Motor S-Series": 67.2,
+    "Motor F-Series": 55.0,
+    "Motor WL": 1.0,
+    "Rod Pispin": 29.1,
+    "Frame Honing FL": 63.9,
+    "Press C-Shaft": 77.8,
+    "Piston honing FL": 84.5,
+    "Welding B line": 62.5,
+    "Piston Grinding": 78.4,
+    "C-Shaft Pin C": 0.0,
+    "Rotor B Line": 64.7,
+    "Rotor D  Line": 102.6,
+    "Final B Line": 81.5,
+    "Final D line": 97.4,
+    "Water Line": 79.2,
+    "Final A line": 88.5,
+    "C-Shaft Body C": 0.0,
+    "Final C line": 97.3,
+    "Welding C line": 58.5,
+    "Inspection B": 62.8,
+    "Inspection D": 0.0,
+    "C-Shaft Body B": 63.8,
+    "Motor CL": 24.4,
+    "Inspection A": 61.3,
+    "Inspection C": 64.1,
+    "C-Shaft Pin A": 41.3,
+    "Welding D line": 131.6,
+    "True B": 27.7,
+    "Final D  Line": 88.3,
+    "Rotor C  line": 93.0,
+    "Motor AC": 102.2,
+    "Rotor A line": 93.9
+  },
+  "problems": [
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "11:00-12:00",
+      "problem_th": "เปลี่ยนรุ่นเข้าL2",
+      "problem_zh": "切换型号进入L2线。",
+      "plan": 186,
+      "actual": 66,
+      "impact": -120
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องm coil ใช้งานไม่ได้กำลังแก้ไข H-series",
+      "problem_zh": "H系列m线圈设备故障，正在修复中。",
+      "plan": 168,
+      "actual": 0,
+      "impact": -168
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "10:00-11:00",
+      "problem_th": "สลับเบครทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "换班导致H系列作业连续性中断。",
+      "plan": 168,
+      "actual": 200,
+      "impact": 32
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "11:00-12:00",
+      "problem_th": "คิ้มหัวสไปร์ติดแก้ไข15นาที H-series",
+      "problem_zh": "碰焊头卡滞，修复耗时15分钟，H系列。",
+      "plan": 168,
+      "actual": 123,
+      "impact": -45
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "13:00-14:00",
+      "problem_th": "จัดคนสลับเบรค12:00-13:00 น ช่วงสลับเบรคได้งาน216ตัว",
+      "problem_zh": "12:00-13:00午休轮换期间，安排人员交替休息，该时段产出216件。",
+      "plan": 168,
+      "actual": 386,
+      "impact": 218
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องM-Coilรันออโต้ไม่ได้ เครื่องเย็บตัวจับเชือกไม่ทำงานทำให้งานออกไม่ต่อเนื่อง",
+      "problem_zh": "M-Coil设备无法自动运行，扎带固定机构不动作，导致作业中断不连续。",
+      "plan": 141,
+      "actual": 39,
+      "impact": -102
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่องเย็บเย็บขั้นตอนสุดท้ายแล้วไม่เกี่ยวเชือก",
+      "problem_zh": "最后一道缝纫工序未穿绳。",
+      "plan": 141,
+      "actual": 84,
+      "impact": -57
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "11:00-12:00",
+      "problem_th": "เครื่องเย็บลวดตัดเชือกขาดทำให้งานออกไม่ต่อเนื่อง",
+      "problem_zh": "焊丝切断机切绳断裂，导致作业不连续。",
+      "plan": 141,
+      "actual": 86,
+      "impact": -55
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "เริ่มงาน PE เข้าแก้ไข pop up ยกประเต็งก่อนเข้าตู้เชื่อมใช้งานไม่ได้ (-20) ปรับเซ็ต Robot แก้ไของศา pipe",
+      "problem_zh": "PE上班时发现碰焊机弹出报警，进入碰焊机前的提升机构无法使用（-20），已调整机器人设定修复管路角度。",
+      "plan": 430,
+      "actual": 387,
+      "impact": -43
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "09:00-10:00",
+      "problem_th": "เครื่องเช็ค KV Alarm บ่อย (-10) PE เข้าตรวจสอบและแก้ไข stopper จุดเชื่อม D Pipe",
+      "problem_zh": "KV检测机频繁报警（-10），PE已介入检查并修复D管焊接点stopper。",
+      "plan": 430,
+      "actual": 406,
+      "impact": -24
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่อง test run สายลมอุดตันและปลั๊กไฟรวน PE เข้าแก้ไข 10:25-10:40",
+      "problem_zh": "试运行设备气管堵塞，电源插头接触不良，PE 于10:25-10:40进行维修。",
+      "plan": 360,
+      "actual": 308,
+      "impact": -52
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "11:00-12:00",
+      "problem_th": "เครื่อง test run ปลั๊กไฟรวน PE เข้าแก้ไข (-20) เครื่องเช็ค KV Alarm บ่อย",
+      "problem_zh": "试运行设备电源插头接触不良，PE线接入异常（-20），设备KV报警频繁。",
+      "plan": 430,
+      "actual": 372,
+      "impact": -58
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "13:00-14:00",
+      "problem_th": "A line final line เครื่องtestrunหัว 1 ใช้งานไม่ได้ IPและPE.เข้าตรวจสอบและแก้ไข @🦚🦚อิง- Production 🍃.. @sudthipan @gomin ho support unlimited @paitoon",
+      "problem_zh": "一线最终测试线1号机试运行无法使用，IP与PE异常，请检查并修复。",
+      "plan": 430,
+      "actual": 347,
+      "impact": -83
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-127) พนักงานประจำจุดลาจัดพนักงานเสริม งานจึงออกไม่ต่อเนื่อง(-80) เริ่มงานปรับเซ็ทตู้เชื่อม งานทะยอยออก ไม่ได้ตัดงานกอง(-47) B-Line Final",
+      "problem_zh": "(-127) 缺人，临时工顶岗，作业不连续。\n(-80) 开班调整焊机设定，工件陆续产出，未积压。\n(-47) B线最终检查。",
+      "plan": 470,
+      "actual": 353,
+      "impact": -117
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "9:00-10:00",
+      "problem_th": "(-145) QA หยุดไลน์อบรมพนักวานจุดเช็คเก้ (-65) เปลี่ยนรุ่น KE90HME-YBL(SCP#T) KE90HME-YCL(SCER#T) ปรับเซ็ทเครื่องจักร (-80) B-Line Final",
+      "problem_zh": "(-145) QA停线培训检查点员工 (-65) 换型KE90HME-YBL(SCP#T)/KE90HME-YCL(SCER#T)，调整设备设定 (-80) B线终检",
+      "plan": 470,
+      "actual": 325,
+      "impact": -145
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "(-52) เปลี่ยนรุ่น KE90HME-YCL(SCER#T) PZ99HMC-KCL(SRT#T) ปรับเซ็ทเครื่องจักร(-52) B-Line Final",
+      "problem_zh": "(-52) 换型 KE90HME-YCL(SCER#T) → PZ99HMC-KCL(SRT#T)，调整设备设定(-52) B线Final。",
+      "plan": 390,
+      "actual": 338,
+      "impact": -52
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "11:00-12:00",
+      "problem_th": "(-87) ปรับไฟเชื่อม pipe cover b ใหม่(-50) เครื่องเช็คความต้านทาน Alarm บ่อย (-37) Cal. ปลั๊กใหม่แล้ว B-Line Final",
+      "problem_zh": "(-87) 重新调整pipe cover B的焊接参数\n(-50) 电阻检测机频繁报警\n(-37) 已重新校准插头，B线Final工位",
+      "plan": 470,
+      "actual": 383,
+      "impact": -87
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "13:00-14:00",
+      "problem_th": "(-42) เปลี่ยนรุ่น 1 ครั้ง",
+      "problem_zh": "(-42) 换型1次",
+      "plan": 470,
+      "actual": 428,
+      "impact": -42
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "งานติด gap (นำ stock เข้าประกอบช่วย)",
+      "problem_zh": "作业卡滞（协助将库存件投入组装）",
+      "plan": 444,
+      "actual": 443,
+      "impact": -1
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "lift หัวไลน์โซ่ตก -35 (PE แก้ไขแล้ว)",
+      "problem_zh": "升降机头链条脱落 -35线（PE已修复）",
+      "plan": 444,
+      "actual": 409,
+      "impact": -35
+    }
+  ],
+  "attendance": null,
+  "updatedAt": "2026-08-24 17:09:21"
+}
