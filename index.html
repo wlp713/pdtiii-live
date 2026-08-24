@@ -2321,18 +2321,27 @@ let trendSel = {}; // {线体名: true/false}
 try { trendSel = JSON.parse(localStorage.getItem(TREND_SEL_KEY) || "{}") || {}; } catch (e) { trendSel = {}; }
 // 线体颜色表
 const TREND_COLORS = ["#58a6ff", "#f78166", "#3fb950", "#d29922", "#bc8cff", "#f778ba", "#39c5cf", "#8b949e"];
+// 周末判断: 系统运作时间 = 周一至周五, 趋势/历史一律不含周末 (2026-08-24 用户要求)
+function isWeekendDate(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
+  if (!m) return false;
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  const wd = d.getDay();
+  return wd === 0 || wd === 6; // 周日=0, 周六=6
+}
 // 读取历史: 优先 __HISTORY__ (17:00 cron 写入), 否则 localStorage; 并合并当天实时达成率 (2026-08-21 用户要求: 当天数据也要在趋势图里)
+// 2026-08-24 用户要求: 过滤掉周末(周六/周日)记录, 趋势只显示周一至周五
 function getTrendHist() {
   let h = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : null;
   if (!h || !h.length) {
     try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h = l; } catch (e) {}
   }
-  h = (h || []).slice();
-  // ★ 当天实时达成率合并: 若最后一天不是今天, 则用 state.lines 的 eff 追加今日记录
+  h = (h || []).slice().filter(d => !isWeekendDate(d && d.date));
+  // ★ 当天实时达成率合并: 若最后一天不是今天(且今天是工作日), 则用 state.lines 的 eff 追加今日记录
   try {
     const today = todayKey();
     const last = h.length ? h[h.length - 1] : null;
-    if ((!last || last.date !== today) && state && state.lines && state.lines.length) {
+    if (!isWeekendDate(today) && (!last || last.date !== today) && state && state.lines && state.lines.length) {
       const rec = { date: today, lines: {} };
       state.lines.forEach(l => {
         if (l && l.name && l.eff != null && !isNaN(l.eff)) rec.lines[l.name] = Number(l.eff);
