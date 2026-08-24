@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-24 14:05:12
+   最后写入: 2026-08-24 14:20:23
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -39,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "10:00-11:00",
       "problem_th": "สลับเบครทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H系列换型（换模具）导致作业连续性中断。",
+      "problem_zh": "换班导致H系列作业连续性中断。",
       "plan": 168,
       "actual": 200,
       "impact": 32
@@ -50,11 +50,23 @@ window.__LIVE_DATA__ = {
       "series": "H系列",
       "line": "RPO1·H系列",
       "time": "11:00-12:00",
-      "problem_th": "คิ้มหัวสไปร์ติดแก้ไข15นาที",
-      "problem_zh": "碰焊头卡滞，修复耗时15分钟。",
+      "problem_th": "คิ้มหัวสไปร์ติดแก้ไข15นาที H-series",
+      "problem_zh": "碰焊头卡滞，修复耗时15分钟，H系列。",
       "plan": 168,
       "actual": 123,
       "impact": -45
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "13:00-14:00",
+      "problem_th": "จัดคนสลับเบรค12:00-13:00 น ช่วงสลับเบรคได้งาน216ตัว",
+      "problem_zh": "12:00-13:00午休轮换期间，安排人员交替休息，该时段产出216件。",
+      "plan": 168,
+      "actual": 386,
+      "impact": 218
     },
     {
       "date": "2026-08-24",
@@ -63,7 +75,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องM-Coilรันออโต้ไม่ได้ เครื่องเย็บตัวจับเชือกไม่ทำงานทำให้งานออกไม่ต่อเนื่อง",
-      "problem_zh": "M-Coil设备无法自动运行，捆扎带夹持装置不动作，导致作业中断不连续。",
+      "problem_zh": "M-Coil设备无法自动运行，扎带固定机构不动作，导致作业中断不连续。",
       "plan": 141,
       "actual": 39,
       "impact": -102
@@ -75,7 +87,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "10:00-11:00",
       "problem_th": "เครื่องเย็บเย็บขั้นตอนสุดท้ายแล้วไม่เกี่ยวเชือก",
-      "problem_zh": "最后一道缝纫工序未穿线。",
+      "problem_zh": "最后一道缝纫工序未穿绳。",
       "plan": 141,
       "actual": 84,
       "impact": -57
@@ -86,8 +98,8 @@ window.__LIVE_DATA__ = {
       "series": "F系列",
       "line": "RPO1·F系列",
       "time": "11:00-12:00",
-      "problem_th": "เครื่องเย็บลวดตัดเชือกขาดทำใก้งานออกไม่ต่อเนื่อง",
-      "problem_zh": "焊丝切断机切绳断裂，导致作业产出不连续。",
+      "problem_th": "เครื่องเย็บลวดตัดเชือกขาดทำให้งานออกไม่ต่อเนื่อง",
+      "problem_zh": "焊丝切断机切绳断裂，导致作业不连续。",
       "plan": 141,
       "actual": 86,
       "impact": -55
@@ -99,7 +111,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "เริ่มงาน PE เข้าแก้ไข pop up ยกประเต็งก่อนเข้าตู้เชื่อมใช้งานไม่ได้ (-20) ปรับเซ็ต Robot แก้ไของศา pipe",
-      "problem_zh": "PE上班后处理报警：碰焊抬升机构在进入焊接箱前无法动作（-20），已调整机器人设定修复管路角度。",
+      "problem_zh": "PE上班时发现碰焊机弹出报警，进入碰焊机前的提升机构无法使用（-20），已调整机器人设定修复管路角度。",
       "plan": 430,
       "actual": 387,
       "impact": -43
@@ -111,7 +123,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "เครื่องเช็ค KV Alarm บ่อย (-10) PE เข้าตรวจสอบและแก้ไข stopper จุดเชื่อม D Pipe",
-      "problem_zh": "KV检测机频繁报警(-10)，PE已介入检查并修复D管焊接点挡块。",
+      "problem_zh": "KV检测机频繁报警（-10），PE已介入检查并修复D管焊接点stopper。",
       "plan": 430,
       "actual": 406,
       "impact": -24
@@ -123,7 +135,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "เครื่อง test run สายลมอุดตันและปลั๊กไฟรวน PE เข้าแก้ไข 10:25-10:40",
-      "problem_zh": "试运行设备气管堵塞，电源插头接触不良，PE 10:25-10:40 进行维修。",
+      "problem_zh": "试运行设备气管堵塞，电源插头接触不良，PE 于10:25-10:40进行维修。",
       "plan": 360,
       "actual": 308,
       "impact": -52
@@ -143,11 +155,23 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-08-24",
       "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "13:00-14:00",
+      "problem_th": "A line final line เครื่องtestrunหัว 1 ใช้งานไม่ได้ IPและPE.เข้าตรวจสอบและแก้ไข @🦚🦚อิง- Production 🍃.. @sudthipan @gomin ho support unlimited @paitoon",
+      "problem_zh": "一线最终测试线1号机试运行无法使用，IP与PE异常，请检查并修复。",
+      "plan": 430,
+      "actual": 347,
+      "impact": -83
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
       "series": "B",
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-127) พนักงานประจำจุดลาจัดพนักงานเสริม งานจึงออกไม่ต่อเนื่อง(-80) เริ่มงานปรับเซ็ทตู้เชื่อม งานทะยอยออก ไม่ได้ตัดงานกอง(-47) B-Line Final",
-      "problem_zh": "(-127) 缺人，临时工顶岗，作业不连续。\n(-80) 开班调整焊机设定，工件陆续产出，未积压。\n(-47) B线终检工位。",
+      "problem_zh": "(-127) 缺人，临时工顶岗，作业不连续。\n(-80) 开班调整焊机设定，工件陆续产出，未积压。\n(-47) B线最终检查。",
       "plan": 470,
       "actual": 353,
       "impact": -117
@@ -159,7 +183,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "9:00-10:00",
       "problem_th": "(-145) QA หยุดไลน์อบรมพนักวานจุดเช็คเก้ (-65) เปลี่ยนรุ่น KE90HME-YBL(SCP#T) KE90HME-YCL(SCER#T) ปรับเซ็ทเครื่องจักร (-80) B-Line Final",
-      "problem_zh": "(-145) QA停线培训检查点员工 (-65) 换型KE90HME-YBL(SCP#T) KE90HME-YCL(SCER#T)，调整设备设定 (-80) B线终检",
+      "problem_zh": "(-145) QA停线培训检查点员工 (-65) 换型KE90HME-YBL(SCP#T)/KE90HME-YCL(SCER#T)，调整设备设定 (-80) B线终检",
       "plan": 470,
       "actual": 325,
       "impact": -145
@@ -171,7 +195,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-52) เปลี่ยนรุ่น KE90HME-YCL(SCER#T) PZ99HMC-KCL(SRT#T) ปรับเซ็ทเครื่องจักร(-52) B-Line Final",
-      "problem_zh": "(-52) 换型 KE90HME-YCL(SCER#T) → PZ99HMC-KCL(SRT#T)，调整设备设定(-52) B线终检工位。",
+      "problem_zh": "(-52) 换型 KE90HME-YCL(SCER#T) → PZ99HMC-KCL(SRT#T)，调整设备设定(-52) B线Final。",
       "plan": 390,
       "actual": 338,
       "impact": -52
@@ -182,11 +206,23 @@ window.__LIVE_DATA__ = {
       "series": "B",
       "line": "PRO2·B",
       "time": "11:00-12:00",
-      "problem_th": "(-87) ปรับไฟเชื่อม pipe cover b ใหม่(-50) เครื่องเช็คความต้านทาน Alarm บ่อย (-37) Cal. ปลั๊กใหม่แล้ว",
-      "problem_zh": "(-87) 重新调整pipe cover B的焊接电流设定(-50) 电阻检测机频繁报警(-37) 已重新校准插头",
+      "problem_th": "(-87) ปรับไฟเชื่อม pipe cover b ใหม่(-50) เครื่องเช็คความต้านทาน Alarm บ่อย (-37) Cal. ปลั๊กใหม่แล้ว B-Line Final",
+      "problem_zh": "(-87) 重新调整pipe cover B的焊接参数\n(-50) 电阻检测机频繁报警\n(-37) 已重新校准插头，B线Final工位",
       "plan": 470,
       "actual": 383,
       "impact": -87
+    },
+    {
+      "date": "2026-08-24",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "13:00-14:00",
+      "problem_th": "(-42) เปลี่ยนรุ่น 1 ครั้ง",
+      "problem_zh": "(-42) 换型1次",
+      "plan": 470,
+      "actual": 428,
+      "impact": -42
     },
     {
       "date": "2026-08-24",
@@ -207,7 +243,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "09:00-10:00",
       "problem_th": "lift หัวไลน์โซ่ตก -35 (PE แก้ไขแล้ว)",
-      "problem_zh": "升降机链条头脱落 -35线（PE已修复）",
+      "problem_zh": "升降机头链条脱落 -35线（PE已修复）",
       "plan": 444,
       "actual": 409,
       "impact": -35
@@ -228,29 +264,31 @@ window.__LIVE_DATA__ = {
       "total_impact": -270
     },
     {
-      "name": "(-145) QA停线培训检查点员工 (-65) 换型KE90HME-YBL(SCP#T) KE90HME-YCL(SCER#T)，调整设备设定 (-80) B线终检",
+      "name": "12:00-13:00午休轮换期间，安排人员交替休息，该时段产出216件。",
+      "name_th": "จัดคนสลับเบรค12:00-13:00 น ช่วงสลับเบรคได้งาน216ตัว",
+      "lines": [
+        "RPO1·H系列"
+      ],
+      "times": [
+        "10:00-11:00",
+        "13:00-14:00"
+      ],
+      "count": 2,
+      "total_impact": 250
+    },
+    {
+      "name": "(-145) QA停线培训检查点员工 (-65) 换型KE90HME-YBL(SCP#T)/KE90HME-YCL(SCER#T)，调整设备设定 (-80) B线终检",
       "name_th": "(-145) QA หยุดไลน์อบรมพนักวานจุดเช็คเก้ (-65) เปลี่ยนรุ่น KE90HME-YBL(SCP#T) KE90HME-YCL(SCER#T) ปรับเซ็ทเครื่องจักร (-8",
       "lines": [
         "PRO2·B"
       ],
       "times": [
         "9:00-10:00",
-        "10:00-11:00"
+        "10:00-11:00",
+        "13:00-14:00"
       ],
-      "count": 2,
-      "total_impact": -197
-    },
-    {
-      "name": "切换型号进入L2线。",
-      "name_th": "เปลี่ยนรุ่นเข้าL2",
-      "lines": [
-        "RPO1·S系列"
-      ],
-      "times": [
-        "11:00-12:00"
-      ],
-      "count": 1,
-      "total_impact": -120
+      "count": 3,
+      "total_impact": -239
     }
   ]
 };
