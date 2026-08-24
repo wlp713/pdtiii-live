@@ -2188,7 +2188,7 @@ setInterval(refresh, 10000);
 // ★ 标题秒表: 每秒刷新日期/班次/时段(精确到秒)
 setInterval(updatePeriodLabel, 1000);
 </script>
-<script src="live-data.js?v=20260820b"></script>
+<script src="live-data.js?v=20260824a"></script>
 <script>
 "use strict";
 /* ═══════════════════════════════════════════════════════════
@@ -2653,7 +2653,8 @@ function renderProblems() {
       const summary = "<div class='prob-summary'>📋 <b>" + period + "</b> · 共" + problems.length + "条 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b></div>";
       if (src) src.textContent = "SRC: AI分组 " + top3.length + " / " + problems.length + "条";
       const rows = top3.map((item, bi) => {
-        const bname = (item.lines && item.lines[0]) ? String(item.lines[0]) : "-";
+        // 2026-08-24: 跨线体合并时显示全部涉及线体(join), 不再只显示 lines[0] 造成内容错位
+        const bname = (item.lines && item.lines.length) ? String(item.lines.join("、")) : "-";
         // 2026-08-21 13:57: 英文界面显示泰语原文, 中文界面显示中文翻译 (保持AI分组方法不变)
         const dispName = (!zh && item.name_th) ? item.name_th : (item.name || "");
         const imp = (item.total_impact != null) ? " <b class='prob-imp'>" + (Number(item.total_impact) <= 0 ? "" : "+") + Number(item.total_impact) + "台</b>" : "";
