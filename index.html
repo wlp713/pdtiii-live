@@ -402,7 +402,10 @@
   .chart-box.small { flex: 0.8; }
   .chart-box canvas { flex: 1; width: 100%; height: 0; min-height: 60px; }
   /* 2026-08-21 14:20 fix: 首帧 flex 未撑开时 clientHeight=0, 给 canvas 显式最小高度保证可见 */
-  .chart-box canvas { min-height: 140px; }
+  /* 2026-08-24 fix: 原 min-height:140px 导致容器被压小时 canvas 不肯缩小, UPPH图溢出右侧面板底部;
+     改为 max-height:100% 允许随容器收缩, 溢出由 .chart-box overflow:hidden 兜底裁剪 */
+  .chart-box canvas { min-height: 60px; max-height: 100%; }
+  .chart-box { overflow: hidden; }
   .legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--gray); margin-bottom: 4px; flex-wrap: wrap; flex-shrink: 0; }
   .legend span::before {
     content: ""; display: inline-block; width: 9px; height: 9px;
