@@ -349,6 +349,11 @@
   tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
   tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
   tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
+  /* ★ 2026-08-24: 计划停产线体(如本周 Motor WL) — 灰色标注, 不闪不红 */
+  tr.planned-off td { background: #262b33 !important; color: #8b949e; }
+  tr.planned-off td.line-name { color: #9da7b3; }
+  tr.planned-off:hover td { background: #2f353e !important; }
+  tr.planned-off .stall-dot { background: #8b949e !important; box-shadow: none; }
   @keyframes stallRowBlink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
   .stall-time {
     display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
@@ -719,7 +724,7 @@ const I18N = {
     editHeadTitle: "✏️ 编辑各线出勤人数",
     headHint: "UPPH达成率 = 实际UPPH÷目标UPPH；实际UPPH = 累计产出÷累计工时÷人数；目标UPPH = 累计目标(实时计划)÷累计工时÷人数。每天人数可改，保存后自动生效。",
     save: "💾 保存",
-    stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
+    stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", am: "上午", pm: "下午", setPeople: "设人数",
@@ -762,7 +767,7 @@ const I18N = {
     editHeadTitle: "✏️ Edit Line Headcount",
     headHint: "UPPH rate = Actual UPPH ÷ Target UPPH; Actual UPPH = Output ÷ Worked hrs ÷ Manpower; Target UPPH = Plan output ÷ Worked hrs ÷ Manpower. Manpower editable daily, applied automatically.",
     save: "💾 Save",
-    stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
+    stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
     kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", am: "AM", pm: "PM", setPeople: "Set HC",
@@ -860,9 +865,25 @@ function signClass(v) {
   return "zero";
 }
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+// ★ 2026-08-24: 计划停产线体名单(带日期范围) — 灰色标注"计划停产", 不触发红色停滞预警
+//   本周 Motor WL 计划停产 (08-24 ~ 08-28), 到期自动恢复; 后续停产修改此表即可
+const PLANNED_OFF = [
+  { name: "Motor WL", from: "2026-08-24", to: "2026-08-28" }
+];
+function isPlannedOff(l) {
+  if (!l || !l.name) return false;
+  const t = todayKey();
+  const n = l.name.trim().toLowerCase();
+  for (const p of PLANNED_OFF) {
+    if (n !== p.name.toLowerCase()) continue;
+    if (t >= p.from && t <= p.to) return true;
+  }
+  return false;
+}
 function stHtml(l) {
   let stCls, stTxt;
-  if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
+  if (isPlannedOff(l)) { stCls = "off"; stTxt = t("stPlannedOff"); }
+  else if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
   else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = t("stRun"); }
   else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = t("stOff"); }
   else { stCls = "err"; stTxt = l.status || t("stUnknown"); }
@@ -928,7 +949,7 @@ function lineNameCls(l) {
 function hbarHtml(l, maxV) {
   const aw = maxV > 0 ? Math.max(0, (Number(l.actual) || 0) / maxV * 100) : 0;
   const pw = maxV > 0 ? Math.max(0, (Number(l.plan) || 0) / maxV * 100) : 0;
-  const stalledCls = isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "";
+  const stalledCls = isPlannedOff(l) ? " style=\"border:1px solid rgba(139,148,158,.45)\"" : (isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "");
   return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
     `<div class="plan" style="width:${pw}%"></div>` +
     `<div class="act" style="width:${aw}%"></div></div>`;
@@ -947,9 +968,10 @@ function renderTable() {
   mainSorted.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-    if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
+    if (isPlannedOff(l)) tr.className = "planned-off";
+    else if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
     else if (miss) tr.className = "miss";
-    const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
+    const dot = isPlannedOff(l) ? '<span class="stall-dot"></span>' : (isStalled(l) ? '<span class="stall-dot"></span>' : "");
     tr.innerHTML =
       `<td class="rank">${idx + 1}</td>` +
       `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
@@ -967,9 +989,10 @@ function renderTable() {
   otherSorted.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-    if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
+    if (isPlannedOff(l)) tr.className = "planned-off";
+    else if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
     else if (miss) tr.className = "miss";
-    const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
+    const dot = isPlannedOff(l) ? '<span class="stall-dot"></span>' : (isStalled(l) ? '<span class="stall-dot"></span>' : "");
     tr.innerHTML =
       `<td class="rank">${idx + 1}</td>` +
       `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
@@ -1186,7 +1209,7 @@ function monthAgg(offsetMonths) {
 }
 // ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
-  const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)));
+  const stalled = state.lines.filter(l => isStalled(l) && !isPlannedOff(l) && MAIN_SET.has(normName(l.name)));
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
