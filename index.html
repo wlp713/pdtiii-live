@@ -2187,6 +2187,9 @@ try { collapseMap = JSON.parse(localStorage.getItem(EXTRA_COLLAPSE_KEY) || "{}")
 // 清理折叠状态: v2 key 全新开始, 底部模块默认全部展开 (防止旧折叠状态造成空白)
 collapseMap = {};
 try { localStorage.setItem(EXTRA_COLLAPSE_KEY, "{}"); } catch (e) {}
+// ★ 2026-08-24: 出勤率小模块默认隐藏 (用户要求) — 加载即收起, 需要时点右下角恢复按钮展开
+const _attInit = document.getElementById("mod-attendance");
+if (_attInit) _attInit.style.display = "none";
 syncRestoreBtn();
 
 // ── 画布: 响应式布局, 仅控制扩展模块显示/隐藏 (宽度自动铺满, 高度自动撑开) ──
