@@ -1806,6 +1806,16 @@ async function refresh() {
     trackStallStart();   // ★ v5.18 停滞时长追踪(需在 renderAll 前: renderTable 要用 stallLevelOf)
     recordToday();       // ★ v5.18 历史统计: 记录今日快照(覆盖当天, 跨天保留)
     renderAll();
+    // ★ 2026-08-24 修复: 首屏 renderTrend 早于 fetch 完成, state.lines 为空 → 今日实时数据未追加, 标题停在昨天
+    //   数据就绪后若趋势缺今天(工作日)记录则补绘一次; 已有今天则跳过, 避免每10秒重复重绘闪烁
+    try {
+      const today = todayKey();
+      const th = getTrendHist();
+      const tl = th.length ? th[th.length - 1] : null;
+      if (tl && tl.date !== today && !isWeekendDate(today) && state.lines && state.lines.length && typeof renderTrend === "function") {
+        renderTrend();
+      }
+    } catch (e) {}
   } catch (e) {
     const pl = document.getElementById("periodLabel");
     if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("connFailed"); }
