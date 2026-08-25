@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-25 12:40:24
+   最后写入: 2026-08-25 14:40:20
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -14,8 +14,8 @@ window.__LIVE_DATA__ = {
       "series": "S系列",
       "line": "RPO1·S系列",
       "time": "11:00-12:00",
-      "problem_th": "เครื่องเย็บเสียทำไห้ไลน์หยุดงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง",
-      "problem_zh": "设备故障导致生产线停机，产生大量不良品，作业无法连续进行。",
+      "problem_th": "เครื่องเย็บเสียทำไห้ไลน์หยุดงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง S-series",
+      "problem_zh": "设备故障导致S系列线体停机，NG品大量流出，作业连续性中断。",
       "plan": 186,
       "actual": 64,
       "impact": -122
@@ -27,7 +27,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "08:00-09:00",
       "problem_th": "ซ้อมงานที่ออกจาก m coil (มีwipท้ายไลค์ทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "M coil下线作业练习（线尾有WIP积压，导致H系列产品连续下线）",
+      "problem_zh": "M coil下线作业练习（线尾有WIP，H系列可连续出件）",
       "plan": 168,
       "actual": 175,
       "impact": 7
@@ -39,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "10:00-11:00",
       "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
-      "problem_zh": "H系列m coil出料碰伤，导致作业连续性中断。",
+      "problem_zh": "H系列m coil出料卡滞，导致作业连续性中断。",
       "plan": 168,
       "actual": 139,
       "impact": -29
@@ -50,11 +50,23 @@ window.__LIVE_DATA__ = {
       "series": "H系列",
       "line": "RPO1·H系列",
       "time": "11:00-12:00",
-      "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง",
-      "problem_zh": "M coil出料口作业卡滞，导致生产不连续。",
+      "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
+      "problem_zh": "H系列m coil出料碰伤，导致作业连续性中断。",
       "plan": 168,
       "actual": 113,
       "impact": -55
+    },
+    {
+      "date": "2026-08-25",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "13:00-14:00",
+      "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง",
+      "problem_zh": "M coil出料口作业不熟练，导致产出不连续。",
+      "plan": 168,
+      "actual": 93,
+      "impact": -75
     },
     {
       "date": "2026-08-25",
@@ -63,7 +75,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเพรสท้ายไลรันออโต้ไม่ได้แก้ไข20นาที หยุดเครื่องเพรสท้ายไลเพื่อถอดตัวนับยอดไปติดที่เครื่องเช็คไฟทำให้ไม่มียอดออกท้ายไล",
-      "problem_zh": "末线压机自动运行无法修复，停机20分钟。为拆计数器装到检电设备上，导致末线无产量输出。",
+      "problem_zh": "末线自动压机故障未修复，停机20分钟。为拆计数器装到检电测机，末线压机停机，导致末线无产量输出。",
       "plan": 141,
       "actual": 162,
       "impact": 21
@@ -75,7 +87,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "PEและIP เข้าแก้ไขหมุดยกประเต็งเครื่อง test run (-20) ผลกระทบ Rotor Line  Piston.รุ่นSZ40F1E-9KBL. งานไม่ตรงกลุ่ม แก้ไขเบื้องต้นเปลี่ยนกลุ่มCRANKCASE. และขอPiston.ให้ตรงกับกลุ่มงาน ทำให้ลดอุณหภูมิ Rotor ไม่ทัน งานทะยอยออก Final",
-      "problem_zh": "PE和IP已介入处理test run（-20）碰焊抬升销问题，影响Rotor Line Piston，型号SZ40F1E-9KBL。作业与组别不匹配，初步对策为更换CRANKCASE组别，并要求Piston与作业组别对应，导致Rotor降温来不及，工件陆续流出至Final。",
+      "problem_zh": "PE和IP已介入处理test run（-20）碰焊抬升销问题，影响Rotor Line Piston，型号SZ40F1E-9KBL。工件与工位不匹配，初步对策为更换CRANKCASE工位，并要求Piston与工位对应，导致Rotor降温来不及，工件陆续流出至Final。",
       "plan": 430,
       "actual": 364,
       "impact": -66
@@ -87,10 +99,22 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "PE เข้าแก้ไขเครื่องอบ Rotor ช๊อตงาน",
-      "problem_zh": "PE进入维修Rotor烘干机，导致作业中断。",
+      "problem_zh": "PE进入维修Rotor烘干机，导致停线。",
       "plan": 430,
       "actual": 415,
       "impact": -15
+    },
+    {
+      "date": "2026-08-25",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "13:00-14:00",
+      "problem_th": "เปลี่ยนรุ่นการผลิต 2 ครั้ง",
+      "problem_zh": "生产换型2次。",
+      "plan": 430,
+      "actual": 230,
+      "impact": -200
     },
     {
       "date": "2026-08-25",
@@ -99,7 +123,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-40) งานรั่ว DV= 22 set(-22) เครื่อง Test Run หัวที่ 1 ปลั๊กไม่ตรง ทำให้เครื่อง Alarm บ่อย (-20) ตั้งระดับใหม่แล้ว B-Line Final",
-      "problem_zh": "(-40) 泄漏工件 DV=22台(-22) 1号头Test Run时插头不对位，导致设备频繁报警(-20) 已重新设定等级，B线Final",
+      "problem_zh": "(-40) 泄漏工件 DV=22台(-22) 1号头Test Run时插头不对位，导致设备频繁报警(-20) 已重新设定级别，B线Final",
       "plan": 470,
       "actual": 430,
       "impact": -40
@@ -123,7 +147,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-14) งานรั่ว DV= 30 set(-30) B-Line Final",
-      "problem_zh": "(-14) 泄漏作业，DV=30，设定(-30)，B线最终工序",
+      "problem_zh": "(-14) 泄漏作业 DV=30 设定(-30) B线最终检查",
       "plan": 390,
       "actual": 376,
       "impact": -14
@@ -134,11 +158,23 @@ window.__LIVE_DATA__ = {
       "series": "B",
       "line": "PRO2·B",
       "time": "11:00-12:00",
-      "problem_th": "(-47) เครื่อง TDC ไม่อ่านค่าบ่อย งานทะยอยเข้าตู้ Coolling ลดอุณหภูมิไม่ทัน งานจึงมาไม่ต่อเนื่อง (-25) ไลน์ Conveyer ดับ เนื่องจากเบรคเกอร์ทริป",
-      "problem_zh": "(-47) TDC设备读数频繁失效，工件陆续进入冷却柜，降温来不及，导致工件供应不连续。\n(-25) Conveyer线断电，因断路器跳闸。",
+      "problem_th": "(-47) เครื่อง TDC ไม่อ่านค่าบ่อย งานทะยอยเข้าตู้ Coolling ลดอุณหภูมิไม่ทัน งานจึงมาไม่ต่อเนื่อง (-25) ไลน์ Conveyer ดับ เนื่องจากเบรคเกอร์ทริป (-25) B-Line Final",
+      "problem_zh": "(-47) TDC设备读数频繁失效，工件陆续进入冷却柜，降温来不及，导致供料不连续。\n(-25) Conveyer线断电，因断路器跳闸。\n(-25) B线Final工位。",
       "plan": 470,
       "actual": 423,
       "impact": -47
+    },
+    {
+      "date": "2026-08-25",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "13:00-14:00",
+      "problem_th": "(-33) ลิฟท์หัวไลน์ไม่ทำงาน เนื่องจาก sensor ไม่ on",
+      "problem_zh": "线头升降机不动作，因传感器未触发。",
+      "plan": 470,
+      "actual": 437,
+      "impact": -33
     },
     {
       "date": "2026-08-25",
@@ -151,12 +187,51 @@ window.__LIVE_DATA__ = {
       "plan": 444,
       "actual": 425,
       "impact": -19
+    },
+    {
+      "date": "2026-08-25",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "13:00-14:00",
+      "problem_th": "ต่อเนื่องจาก ชม.4 stock บนไลน์หมด",
+      "problem_zh": "继4点班后，线上库存耗尽。",
+      "plan": 444,
+      "actual": 428,
+      "impact": -16
     }
   ],
   "problems_top": [
     {
-      "name": "设备故障导致生产线停机，产生大量不良品，作业无法连续进行。",
-      "name_th": "เครื่องเย็บเสียทำไห้ไลน์หยุดงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง",
+      "name": "生产换型2次。",
+      "name_th": "เปลี่ยนรุ่นการผลิต 2 ครั้ง",
+      "lines": [
+        "PRO2·A"
+      ],
+      "times": [
+        "13:00-14:00"
+      ],
+      "count": 1,
+      "total_impact": -200
+    },
+    {
+      "name": "M coil出料口作业不熟练，导致产出不连续。",
+      "name_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง",
+      "lines": [
+        "RPO1·H系列"
+      ],
+      "times": [
+        "08:00-09:00",
+        "10:00-11:00",
+        "11:00-12:00",
+        "13:00-14:00"
+      ],
+      "count": 4,
+      "total_impact": -152
+    },
+    {
+      "name": "设备故障导致S系列线体停机，NG品大量流出，作业连续性中断。",
+      "name_th": "เครื่องเย็บเสียทำไห้ไลน์หยุดงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง S-series",
       "lines": [
         "RPO1·S系列"
       ],
@@ -165,32 +240,6 @@ window.__LIVE_DATA__ = {
       ],
       "count": 1,
       "total_impact": -122
-    },
-    {
-      "name": "M coil出料口作业卡滞，导致生产不连续。",
-      "name_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง",
-      "lines": [
-        "RPO1·H系列"
-      ],
-      "times": [
-        "08:00-09:00",
-        "10:00-11:00",
-        "11:00-12:00"
-      ],
-      "count": 3,
-      "total_impact": -77
-    },
-    {
-      "name": "PE和IP已介入处理test run（-20）碰焊抬升销问题，影响Rotor Line Piston，型号SZ40F1E-9KBL。作业与组别不匹配，初步对策为更换CRANKCASE组别，并要求Piston与作业组别对应，导致Rotor降温",
-      "name_th": "PEและIP เข้าแก้ไขหมุดยกประเต็งเครื่อง test run (-20) ผลกระทบ Rotor Line  Piston.รุ่นSZ40F1E-9KBL. งานไม่ตรงกลุ่ม แก้ไขเบ",
-      "lines": [
-        "PRO2·A"
-      ],
-      "times": [
-        "08:00-09:00"
-      ],
-      "count": 1,
-      "total_impact": -66
     }
   ],
   "first_hour": [
