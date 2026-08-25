@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-25 16:30:25
+   最后写入: 2026-08-25 16:40:18
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "11:00-12:00",
       "problem_th": "เครื่องเย็บเสียทำไห้ไลน์หยุดงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง S-series",
-      "problem_zh": "设备故障导致S-series线体停机，产生大量NG品，作业连续性中断。",
+      "problem_zh": "设备故障导致S系列线体停机，NG品大量流出，作业连续性中断。",
       "plan": 186,
       "actual": 64,
       "impact": -122
@@ -27,7 +27,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "14:00-15:00",
       "problem_th": "เครื่อง S-COLเสียไช้เวลาแก้ไข40นาทีงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง S-series",
-      "problem_zh": "S-COL设备故障，维修耗时40分钟，导致大量NG品流出，S系列生产连续性中断。",
+      "problem_zh": "S-COL设备故障，维修耗时40分钟，导致大量NG品流出，S系列生产中断不连续。",
       "plan": 186,
       "actual": 97,
       "impact": -89
@@ -39,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "08:00-09:00",
       "problem_th": "ซ้อมงานที่ออกจาก m coil (มีwipท้ายไลค์ทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "M coil出来的工件需返工（线尾有WIP积压，导致H系列工件连续流出）。",
+      "problem_zh": "M coil下线作业练习（线尾有WIP，H系列可连续产出）",
       "plan": 168,
       "actual": 175,
       "impact": 7
@@ -51,7 +51,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "10:00-11:00",
       "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
-      "problem_zh": "H系列m coil出料碰伤，导致作业连续性中断。",
+      "problem_zh": "H系列m coil工序出来的工件需要返工，导致生产不连续。",
       "plan": 168,
       "actual": 139,
       "impact": -29
@@ -63,7 +63,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "11:00-12:00",
       "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
-      "problem_zh": "H系列m coil出料卡滞，导致作业连续性中断。",
+      "problem_zh": "H系列m coil出料卡滞，导致作业不连续。",
       "plan": 168,
       "actual": 113,
       "impact": -55
@@ -75,7 +75,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "13:00-14:00",
       "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
-      "problem_zh": "H系列m coil出料口作业卡滞，导致产出不连续。",
+      "problem_zh": "H系列m coil出料卡滞，导致作业不连续。",
       "plan": 168,
       "actual": 93,
       "impact": -75
@@ -87,7 +87,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "14:00-15:00",
       "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
-      "problem_zh": "H系列m coil工序出来的工件需要返工，导致生产不连续。",
+      "problem_zh": "H系列m coil出料口作业卡滞，导致生产连续性中断。",
       "plan": 144,
       "actual": 81,
       "impact": -63
@@ -99,7 +99,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "15:00-16:00",
       "problem_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง",
-      "problem_zh": "M coil出料卡滞，导致作业不连续。",
+      "problem_zh": "M coil出料口作业卡滞，导致生产不连续。",
       "plan": 168,
       "actual": 110,
       "impact": -58
@@ -111,7 +111,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเพรสท้ายไลรันออโต้ไม่ได้แก้ไข20นาที หยุดเครื่องเพรสท้ายไลเพื่อถอดตัวนับยอดไปติดที่เครื่องเช็คไฟทำให้ไม่มียอดออกท้ายไล",
-      "problem_zh": "末线压机自动运行无法修复，停机20分钟。为拆计数器装到检电设备上，导致末线无产量输出。",
+      "problem_zh": "末线压机自动运行故障，维修20分钟未解决。停机拆下计数器转装到检电设备上，导致末线无产量输出。",
       "plan": 141,
       "actual": 162,
       "impact": 21
@@ -123,7 +123,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "PEและIP เข้าแก้ไขหมุดยกประเต็งเครื่อง test run (-20) ผลกระทบ Rotor Line  Piston.รุ่นSZ40F1E-9KBL. งานไม่ตรงกลุ่ม แก้ไขเบื้องต้นเปลี่ยนกลุ่มCRANKCASE. และขอPiston.ให้ตรงกับกลุ่มงาน ทำให้ลดอุณหภูมิ Rotor ไม่ทัน งานทะยอยออก Final",
-      "problem_zh": "PE和IP已介入处理碰焊抬升销问题，测试运行(-20℃)受影响。涉及Rotor Line Piston，型号SZ40F1E-9KBL。工件与工位不匹配，初步对策为更换CRANKCASE工位，并要求Piston与工位对应，导致转子降温来不及，工件陆续流出至Final。",
+      "problem_zh": "PE和IP已介入处理test run(-20)碰焊抬升销问题，影响Rotor Line Piston，型号SZ40F1E-9KBL。工件与班组不匹配，初步对策为更换CRANKCASE班组，并要求Piston与作业班组对应，导致Rotor降温来不及，工件陆续流出至Final。",
       "plan": 430,
       "actual": 364,
       "impact": -66
@@ -135,7 +135,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "PE เข้าแก้ไขเครื่องอบ Rotor ช๊อตงาน",
-      "problem_zh": "PE进入维修Rotor烘干机，导致作业中断。",
+      "problem_zh": "PE进入维修Rotor烘干机，导致停线。",
       "plan": 430,
       "actual": 415,
       "impact": -15
@@ -147,7 +147,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "13:00-14:00",
       "problem_th": "เปลี่ยนรุ่นการผลิต 2 ครั้ง",
-      "problem_zh": "换型生产2次。",
+      "problem_zh": "生产换型2次。",
       "plan": 430,
       "actual": 230,
       "impact": -200
@@ -171,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-40) งานรั่ว DV= 22 set(-22) เครื่อง Test Run หัวที่ 1 ปลั๊กไม่ตรง ทำให้เครื่อง Alarm บ่อย (-20) ตั้งระดับใหม่แล้ว B-Line Final",
-      "problem_zh": "(-40) 泄漏工件 DV=22台(-22) 1号头Test Run时插头不对位，导致设备频繁报警(-20) 已重新设定等级，B线Final",
+      "problem_zh": "(-40) 泄漏作业，DV=22，设定(-22)。1号机Test Run时插头不对位，导致设备频繁报警。(-20)已重新设定等级，B线Final。",
       "plan": 470,
       "actual": 430,
       "impact": -40
@@ -207,7 +207,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "11:00-12:00",
       "problem_th": "(-47) เครื่อง TDC ไม่อ่านค่าบ่อย งานทะยอยเข้าตู้ Coolling ลดอุณหภูมิไม่ทัน งานจึงมาไม่ต่อเนื่อง (-25) ไลน์ Conveyer ดับ เนื่องจากเบรคเกอร์ทริป (-25) B-Line Final",
-      "problem_zh": "(-47) TDC设备读数频繁失效，工件陆续进入冷却柜但降温不及时，导致来料不连续。\n(-25) Conveyer线因断路器跳闸断电停机。\n(-25) B线终检工位。",
+      "problem_zh": "(-47) TDC设备读数频繁异常，工件陆续进入冷却柜，降温来不及，导致工件供应不连续。\n(-25) Conveyer线断电，因断路器跳闸。\n(-25) B线Final工位。",
       "plan": 470,
       "actual": 423,
       "impact": -47
@@ -219,7 +219,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "13:00-14:00",
       "problem_th": "(-33) ลิฟท์หัวไลน์ไม่ทำงาน เนื่องจาก sensor ไม่ on  (-33) B-Line Final",
-      "problem_zh": "(-33)线头升降机不动作，因传感器未触发。(-33) B线终检工位。",
+      "problem_zh": "(-33) 线头升降机不动作，因传感器未触发。(-33) B线最终工位。",
       "plan": 470,
       "actual": 437,
       "impact": -33
@@ -231,7 +231,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "14:00-15:00",
       "problem_th": "(-116) งาน Air Gab Ng ทำให้งานมาไม่ต่อเนื่อง (-116) Pro.1 ส่งพนักงานมากระแทกจัดทรงแล้ว B-Line Final",
-      "problem_zh": "(-116) Air Gab Ng工序导致作业不连续；(-116) Pro.1派员工过来敲击整形后，B线终检工位（B-Line Final）作业中断。",
+      "problem_zh": "(-116) Air Gab Ng工序导致作业不连续；(-116) Pro.1派员工过来敲击整形后，B线最终工位（问题解决）。",
       "plan": 470,
       "actual": 354,
       "impact": -116
@@ -243,7 +243,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "15:00-16:00",
       "problem_th": "(-34) งานยังมาไม่ต่อเนื่อง Stator ต้องกระแทกจัดทรง ก่อนเข้าประกอบ (-20) เครื่อง cover b ขันไม่ตรง (-20) ตั้งระยะขันใหม่แล้ว",
-      "problem_zh": "(-34) 作业来料不连续，Stator需先敲击整形才能组装。(-20) Cover B拧紧不正，已重新设定拧紧距离。",
+      "problem_zh": "(-34) 作业来料不连续，Stator需先敲击整形才能进入组装。\n(-20) Cover B设备拧紧不正，已重新设定拧紧距离。",
       "plan": 390,
       "actual": 356,
       "impact": -34
@@ -255,7 +255,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "11:00-12:00",
       "problem_th": "เครื่องความต้านทานเสีย ทำให้งานมาไม่ต่อเนื่อง stock หมด-18 (PE แก้ไขแล้ว)",
-      "problem_zh": "电阻测试设备故障，导致作业不连续，库存耗尽-18（PE已修复）。",
+      "problem_zh": "电阻测试仪故障，导致作业不连续，库存耗尽-18（PE已修复）。",
       "plan": 444,
       "actual": 425,
       "impact": -19
@@ -275,24 +275,23 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "H系列m coil出料口作业卡滞，导致产出不连续。",
+      "name": "H系列m coil出料卡滞，导致作业不连续。",
       "name_th": "ซ้อมงานที่ออกจากเครื่องm coilทำให้งานออกไม่ต่อเนื่อง H-series",
       "lines": [
         "RPO1·H系列"
       ],
       "times": [
-        "08:00-09:00",
         "10:00-11:00",
         "11:00-12:00",
         "13:00-14:00",
         "14:00-15:00",
         "15:00-16:00"
       ],
-      "count": 6,
-      "total_impact": -273
+      "count": 5,
+      "total_impact": -280
     },
     {
-      "name": "设备故障导致S-series线体停机，产生大量NG品，作业连续性中断。",
+      "name": "设备故障导致S系列线体停机，NG品大量流出，作业连续性中断。",
       "name_th": "เครื่องเย็บเสียทำไห้ไลน์หยุดงานNGออกจำนวนมากงานออกไม่ต่อเนื่อง S-series",
       "lines": [
         "RPO1·S系列"
@@ -305,7 +304,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -211
     },
     {
-      "name": "换型生产2次。",
+      "name": "生产换型2次。",
       "name_th": "เปลี่ยนรุ่นการผลิต 2 ครั้ง",
       "lines": [
         "PRO2·A"
