@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-26 10:00:09
+   最后写入: 2026-08-26 10:10:11
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,10 +15,22 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "08:00-09:00",
       "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "WIP库存不足，导致H系列产出连续性受影响。",
+      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
       "plan": 168,
       "actual": 198,
       "impact": 30
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
+      "problem_zh": "M线绕线机NG计数与看板不一致，弹簧断裂，停机08:00-08:47，F系列。",
+      "plan": 141,
+      "actual": 130,
+      "impact": -11
     },
     {
       "date": "2026-08-26",
@@ -27,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankcase.สึกหรอ ส่งผลกระทบทำให้การวัดค่าชิ้นงานไม่ดี ส่งผลกระทบทำให้เกิดงานNG IPเข้าตรวจสอบ ระหว่างรอ Final นำคอมขึ้นเชื่อม(-120) เครื่องเช็ค KV Alarm บ่อย ยกลง 20 set",
-      "problem_zh": "开工时碰焊机可用4台，陆续切料堆积待焊（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件流入IP检查。等待Final期间，上压缩机焊接（-120件），KV检测机频繁报警，已停机20套待处理。",
+      "problem_zh": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor线。Micro jig量具（测Crankcase用）磨损，导致测量不准，产生NG件，IP介入检查。等待Final期间，将压缩机上焊接（-120件），KV检测机频繁报警，已下架20套。",
       "plan": 417,
       "actual": 288,
       "impact": -129
@@ -39,7 +51,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม",
-      "problem_zh": "(-55) 紧急订单SZ40F1E-9KBL优先上线焊接，削减常规产量，需调整焊机设定。",
+      "problem_zh": "(-55) 紧急订单SZ40F1E-9KBL需优先焊接，减少常规产量，必须调整焊机设定。",
       "plan": 470,
       "actual": 415,
       "impact": -55
@@ -51,7 +63,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
-      "problem_zh": "DV工位作业泄漏，设备频繁重复检测。",
+      "problem_zh": "DV工序作业泄漏，设备频繁复检。",
       "plan": 444,
       "actual": 420,
       "impact": -24
@@ -59,7 +71,7 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "开工时碰焊机可用4台，陆续切料堆积待焊（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件流入IP检查。等待Final期间，上压缩机焊接（-120件），KV检测机频繁报警，已停",
+      "name": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor线。Micro jig量具（测Crankcase用）磨损，导致测量不准，产生NG件，IP介入检查。等待Final期间，将压缩机上焊接（-120件），KV检测机频繁报警，已下架",
       "name_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankca",
       "lines": [
         "PRO2·A"
@@ -71,7 +83,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -129
     },
     {
-      "name": "(-55) 紧急订单SZ40F1E-9KBL优先上线焊接，削减常规产量，需调整焊机设定。",
+      "name": "(-55) 紧急订单SZ40F1E-9KBL需优先焊接，减少常规产量，必须调整焊机设定。",
       "name_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม",
       "lines": [
         "PRO2·B"
@@ -83,7 +95,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -55
     },
     {
-      "name": "WIP库存不足，导致H系列产出连续性受影响。",
+      "name": "H系列尾端有WIP库存，保证作业连续产出。",
       "name_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
       "lines": [
         "RPO1·H系列"
@@ -99,11 +111,29 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-08-26",
       "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 130,
+      "rate": 92.2
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
       "series": "H系列",
       "line": "RPO1·H系列",
       "target": 168,
       "actual": 198,
       "rate": 117.9
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 186,
+      "actual": 186,
+      "rate": 100.0
     },
     {
       "date": "2026-08-26",
@@ -316,7 +346,9 @@ window.__HISTORY__ = [
   {
     "date": "2026-08-26",
     "first_hour": {
+      "RPO1·F系列": 92.2,
       "RPO1·H系列": 117.9,
+      "RPO1·S系列": 100.0,
       "PRO2·A": 69.1,
       "PRO2·B": 88.3,
       "PRO2·C": 94.6
