@@ -1,0 +1,923 @@
+{
+  "date": "2026-08-26",
+  "snapAt": "2026-08-26 15:08:40",
+  "source": "save_daily_history v2",
+  "lines": [
+    {
+      "name": "Final A line",
+      "time": "26-Aug-1",
+      "target": 3300.0,
+      "plan": 2544.0,
+      "actual": 2356.0,
+      "cb": -188.0,
+      "cum": 2356.0,
+      "eff": 92.6,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Final B Line",
+      "time": "26-Aug-1",
+      "target": 3600.0,
+      "plan": 2777.0,
+      "actual": 2306.0,
+      "cb": -471.0,
+      "cum": 2306.0,
+      "eff": 83.0,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Final C line",
+      "time": "26-Aug-1",
+      "target": 3400.0,
+      "plan": 2699.0,
+      "actual": 2504.0,
+      "cb": -195.0,
+      "cum": 2504.0,
+      "eff": 92.7,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Final D line",
+      "time": "26-Aug-1",
+      "target": 1600.0,
+      "plan": 1234.0,
+      "actual": 981.0,
+      "cb": -253.0,
+      "cum": 981.0,
+      "eff": 79.4,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Motor H-Series",
+      "time": "26-Aug-1",
+      "target": 1800.0,
+      "plan": 978.0,
+      "actual": 1051.0,
+      "cb": 73.0,
+      "cum": 1051.0,
+      "eff": 107.4,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Motor S-Series",
+      "time": "26-Aug-1",
+      "target": 1600.0,
+      "plan": 868.0,
+      "actual": 964.0,
+      "cb": 96.0,
+      "cum": 964.0,
+      "eff": 111.0,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Motor F-Series",
+      "time": "26-Aug-1",
+      "target": 1500.0,
+      "plan": 815.0,
+      "actual": 965.0,
+      "cb": 150.0,
+      "cum": 965.0,
+      "eff": 118.4,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Motor WL",
+      "time": "26-Aug-1",
+      "target": 1600.0,
+      "plan": 866.0,
+      "actual": 0.0,
+      "cb": -866.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Inspection A",
+      "time": "26-Aug-1",
+      "target": 7200.0,
+      "plan": 2777.0,
+      "actual": 2442.0,
+      "cb": -335.0,
+      "cum": 2442.0,
+      "eff": 87.9,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Inspection B",
+      "time": "26-Aug-1",
+      "target": 3300.0,
+      "plan": 2566.0,
+      "actual": 2216.0,
+      "cb": -350.0,
+      "cum": 2216.0,
+      "eff": 86.3,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Inspection C",
+      "time": "26-Aug-1",
+      "target": 3300.0,
+      "plan": 2566.0,
+      "actual": 1184.0,
+      "cb": -1382.0,
+      "cum": 1184.0,
+      "eff": 46.1,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    },
+    {
+      "name": "Inspection D",
+      "time": "26-Aug-1",
+      "target": 1150.0,
+      "plan": 1361.0,
+      "actual": 0.0,
+      "cb": -1361.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "status": "RUNNING",
+      "stalled": false,
+      "pushed": "2026-08-26 15:08:02"
+    }
+  ],
+  "hourly": {
+    "Motor H-Series": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 190.0,
+        "plan": 168.0
+      },
+      {
+        "h": 10,
+        "actual": 347.0,
+        "plan": 309.0
+      },
+      {
+        "h": 11,
+        "actual": 532.0,
+        "plan": 477.0
+      },
+      {
+        "h": 12,
+        "actual": 723.0,
+        "plan": 646.0
+      },
+      {
+        "h": 13,
+        "actual": 723.0,
+        "plan": 646.0
+      },
+      {
+        "h": 14,
+        "actual": 883.0,
+        "plan": 815.0
+      },
+      {
+        "h": 15,
+        "actual": 1036.0,
+        "plan": 955.0
+      }
+    ],
+    "Motor S-Series": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 173.0,
+        "plan": 148.0
+      },
+      {
+        "h": 10,
+        "actual": 280.0,
+        "plan": 273.0
+      },
+      {
+        "h": 11,
+        "actual": 447.0,
+        "plan": 423.0
+      },
+      {
+        "h": 12,
+        "actual": 629.0,
+        "plan": 573.0
+      },
+      {
+        "h": 13,
+        "actual": 629.0,
+        "plan": 573.0
+      },
+      {
+        "h": 14,
+        "actual": 815.0,
+        "plan": 723.0
+      },
+      {
+        "h": 15,
+        "actual": 949.0,
+        "plan": 848.0
+      }
+    ],
+    "Motor F-Series": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 1358.0
+      },
+      {
+        "h": 9,
+        "actual": 164.0,
+        "plan": 140.0
+      },
+      {
+        "h": 10,
+        "actual": 320.0,
+        "plan": 257.0
+      },
+      {
+        "h": 11,
+        "actual": 485.0,
+        "plan": 398.0
+      },
+      {
+        "h": 12,
+        "actual": 642.0,
+        "plan": 538.0
+      },
+      {
+        "h": 13,
+        "actual": 643.0,
+        "plan": 538.0
+      },
+      {
+        "h": 14,
+        "actual": 776.0,
+        "plan": 679.0
+      },
+      {
+        "h": 15,
+        "actual": 943.0,
+        "plan": 796.0
+      }
+    ],
+    "Motor WL": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 1441.0
+      },
+      {
+        "h": 9,
+        "actual": 0.0,
+        "plan": 149.0
+      },
+      {
+        "h": 10,
+        "actual": 0.0,
+        "plan": 274.0
+      },
+      {
+        "h": 11,
+        "actual": 0.0,
+        "plan": 422.0
+      },
+      {
+        "h": 12,
+        "actual": 0.0,
+        "plan": 571.0
+      },
+      {
+        "h": 13,
+        "actual": 0.0,
+        "plan": 571.0
+      },
+      {
+        "h": 14,
+        "actual": 0.0,
+        "plan": 721.0
+      },
+      {
+        "h": 15,
+        "actual": 0.0,
+        "plan": 846.0
+      }
+    ],
+    "Final A line": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 288.0,
+        "plan": 429.0
+      },
+      {
+        "h": 10,
+        "actual": 716.0,
+        "plan": 859.0
+      },
+      {
+        "h": 11,
+        "actual": 1052.0,
+        "plan": 1218.0
+      },
+      {
+        "h": 12,
+        "actual": 1492.0,
+        "plan": 1648.0
+      },
+      {
+        "h": 13,
+        "actual": 1493.0,
+        "plan": 1648.0
+      },
+      {
+        "h": 14,
+        "actual": 1951.0,
+        "plan": 2078.0
+      },
+      {
+        "h": 15,
+        "actual": 2317.0,
+        "plan": 2508.0
+      }
+    ],
+    "Inspection B": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 383.0,
+        "plan": 433.0
+      },
+      {
+        "h": 10,
+        "actual": 779.0,
+        "plan": 867.0
+      },
+      {
+        "h": 11,
+        "actual": 1117.0,
+        "plan": 1228.0
+      },
+      {
+        "h": 12,
+        "actual": 1467.0,
+        "plan": 1662.0
+      },
+      {
+        "h": 13,
+        "actual": 1470.0,
+        "plan": 1662.0
+      },
+      {
+        "h": 14,
+        "actual": 1815.0,
+        "plan": 2096.0
+      },
+      {
+        "h": 15,
+        "actual": 2187.0,
+        "plan": 2529.0
+      }
+    ],
+    "Inspection C": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 259.0,
+        "plan": 433.0
+      },
+      {
+        "h": 10,
+        "actual": 575.0,
+        "plan": 867.0
+      },
+      {
+        "h": 11,
+        "actual": 734.0,
+        "plan": 1228.0
+      },
+      {
+        "h": 12,
+        "actual": 871.0,
+        "plan": 1662.0
+      },
+      {
+        "h": 13,
+        "actual": 872.0,
+        "plan": 1662.0
+      },
+      {
+        "h": 14,
+        "actual": 982.0,
+        "plan": 2096.0
+      },
+      {
+        "h": 15,
+        "actual": 1147.0,
+        "plan": 2529.0
+      }
+    ],
+    "Final B Line": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 410.0,
+        "plan": 469.0
+      },
+      {
+        "h": 10,
+        "actual": 819.0,
+        "plan": 938.0
+      },
+      {
+        "h": 11,
+        "actual": 1112.0,
+        "plan": 1329.0
+      },
+      {
+        "h": 12,
+        "actual": 1464.0,
+        "plan": 1798.0
+      },
+      {
+        "h": 13,
+        "actual": 1476.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 14,
+        "actual": 1905.0,
+        "plan": 2268.0
+      },
+      {
+        "h": 15,
+        "actual": 2261.0,
+        "plan": 2737.0
+      }
+    ],
+    "Final C line": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 4395.0
+      },
+      {
+        "h": 9,
+        "actual": 419.0,
+        "plan": 456.0
+      },
+      {
+        "h": 10,
+        "actual": 852.0,
+        "plan": 912.0
+      },
+      {
+        "h": 11,
+        "actual": 1215.0,
+        "plan": 1292.0
+      },
+      {
+        "h": 12,
+        "actual": 1614.0,
+        "plan": 1748.0
+      },
+      {
+        "h": 13,
+        "actual": 1616.0,
+        "plan": 1749.0
+      },
+      {
+        "h": 14,
+        "actual": 2073.0,
+        "plan": 2205.0
+      },
+      {
+        "h": 15,
+        "actual": 2481.0,
+        "plan": 2660.0
+      }
+    ],
+    "Inspection A": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 0.0
+      },
+      {
+        "h": 9,
+        "actual": 350.0,
+        "plan": 469.0
+      },
+      {
+        "h": 10,
+        "actual": 782.0,
+        "plan": 938.0
+      },
+      {
+        "h": 11,
+        "actual": 1131.0,
+        "plan": 1329.0
+      },
+      {
+        "h": 12,
+        "actual": 1538.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 13,
+        "actual": 1538.0,
+        "plan": 1799.0
+      },
+      {
+        "h": 14,
+        "actual": 1953.0,
+        "plan": 2268.0
+      },
+      {
+        "h": 15,
+        "actual": 2398.0,
+        "plan": 2737.0
+      }
+    ],
+    "Inspection D": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 2223.0
+      },
+      {
+        "h": 9,
+        "actual": 0.0,
+        "plan": 229.0
+      },
+      {
+        "h": 10,
+        "actual": 0.0,
+        "plan": 459.0
+      },
+      {
+        "h": 11,
+        "actual": 0.0,
+        "plan": 651.0
+      },
+      {
+        "h": 12,
+        "actual": 0.0,
+        "plan": 881.0
+      },
+      {
+        "h": 13,
+        "actual": 0.0,
+        "plan": 881.0
+      },
+      {
+        "h": 14,
+        "actual": 0.0,
+        "plan": 1111.0
+      },
+      {
+        "h": 15,
+        "actual": 0.0,
+        "plan": 1341.0
+      }
+    ],
+    "Final D line": [
+      {
+        "h": 8,
+        "actual": 0.0,
+        "plan": 2016.0
+      },
+      {
+        "h": 9,
+        "actual": 39.0,
+        "plan": 208.0
+      },
+      {
+        "h": 10,
+        "actual": 217.0,
+        "plan": 416.0
+      },
+      {
+        "h": 11,
+        "actual": 380.0,
+        "plan": 590.0
+      },
+      {
+        "h": 12,
+        "actual": 550.0,
+        "plan": 799.0
+      },
+      {
+        "h": 13,
+        "actual": 552.0,
+        "plan": 799.0
+      },
+      {
+        "h": 14,
+        "actual": 750.0,
+        "plan": 1007.0
+      },
+      {
+        "h": 15,
+        "actual": 957.0,
+        "plan": 1216.0
+      }
+    ]
+  },
+  "eff": {
+    "Final A line": 92.6,
+    "Final B Line": 83.0,
+    "Final C line": 92.7,
+    "Final D line": 79.4,
+    "Motor H-Series": 107.4,
+    "Motor S-Series": 111.0,
+    "Motor F-Series": 118.4,
+    "Motor WL": 0.0,
+    "Inspection A": 87.9,
+    "Inspection B": 86.3,
+    "Inspection C": 46.1,
+    "Inspection D": 0.0
+  },
+  "problems": [
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
+      "plan": 168,
+      "actual": 198,
+      "impact": 30
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "10:00-11:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
+      "problem_zh": "WIP库存不足，导致产出连续性受影响。",
+      "plan": 168,
+      "actual": 187,
+      "impact": 19
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
+      "problem_zh": "M线绕线机NG计数与看板显示不一致，弹簧断裂，停机08:00-08:47，F系列。",
+      "plan": 141,
+      "actual": 130,
+      "impact": -11
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankcase.สึกหรอ ส่งผลกระทบทำให้การวัดค่าชิ้นงานไม่ดี ส่งผลกระทบทำให้เกิดงานNG IPเข้าตรวจสอบ ระหว่างรอ Final นำคอมขึ้นเชื่อม(-120) เครื่องเช็ค KV Alarm บ่อย ยกลง 20 set",
+      "problem_zh": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频繁报警，已停机20套。",
+      "plan": 430,
+      "actual": 288,
+      "impact": -142
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "09:00-10:00",
+      "problem_th": "เครื่องเช็ค KV Alarm บ่อย ยกลง 15 set",
+      "problem_zh": "KV检测机频繁报警，已停机15套。",
+      "plan": 430,
+      "actual": 428,
+      "impact": -2
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "10:00-11:00",
+      "problem_th": "QA และ IP หยุดไลน์ตรวจสอบและแก้ไขปัญหาองศา pipe ไม่ได้สเปค",
+      "problem_zh": "QA和IP已停线检查并修复管路角度不合格问题。",
+      "plan": 360,
+      "actual": 336,
+      "impact": -24
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "11:00-12:00",
+      "problem_th": "ปกต",
+      "problem_zh": "正常。",
+      "plan": 430,
+      "actual": 440,
+      "impact": 10
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม(-55) B-Line Final",
+      "problem_zh": "(-55)线：SZ40F1E-9KBL急件优先上焊接，削减常规产量，需调整B线终检焊接柜设定。",
+      "plan": 470,
+      "actual": 415,
+      "impact": -55
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "9:00-10:00",
+      "problem_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
+      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先焊接，削减已投产任务，导致B-Line Final产出不连续。",
+      "plan": 470,
+      "actual": 408,
+      "impact": -62
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "(-100) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-100) ตอนนี้ Pro.1 ส่งพนักงานมาจัดทรง Stator แล้วครับ B-Line Final",
+      "problem_zh": "（-100）Air Gab装配前需先碰整形Stator再组装，导致作业不连续（-100）。现Pro.1已派人来整形Stator，B线Final。",
+      "plan": 390,
+      "actual": 290,
+      "impact": -100
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "11:00-12:00",
+      "problem_th": "(-119) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-70) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-50) B-Line Final",
+      "problem_zh": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
+      "plan": 470,
+      "actual": 351,
+      "impact": -119
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "13:00-14:00",
+      "problem_th": "(-27) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง",
+      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致产出不连续。",
+      "plan": 470,
+      "actual": 443,
+      "impact": -27
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
+      "problem_zh": "DV工位泄漏，设备频繁复测。",
+      "plan": 444,
+      "actual": 420,
+      "impact": -24
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "10:00-11:00",
+      "problem_th": "งานติด gap มาไม่ต่อเนื่อง stock บนไลน์หมด",
+      "problem_zh": "作业间隙（gap）作业不连续，线上库存耗尽。",
+      "plan": 370,
+      "actual": 362,
+      "impact": -8
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "11:00-12:00",
+      "problem_th": "งานรั่ว DV line out -45 (แจ้งQAและผู้เกี่ยวข้องแล้ว กำลังตรวจสอบ)",
+      "problem_zh": "DV线体工件泄漏 -45（已通知QA及相关人员，正在排查）",
+      "plan": 444,
+      "actual": 399,
+      "impact": -45
+    }
+  ],
+  "first_hour": [
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 130,
+      "rate": 92.2
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 198,
+      "rate": 117.9
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 186,
+      "actual": 186,
+      "rate": 100.0
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 430,
+      "actual": 288,
+      "rate": 67.0
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 415,
+      "rate": 88.3
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 420,
+      "rate": 94.6
+    }
+  ],
+  "attendance": null,
+  "updatedAt": "2026-08-26 15:08:02"
+}
