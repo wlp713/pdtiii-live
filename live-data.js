@@ -3,13 +3,136 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-26 00:00:02
+   最后写入: 2026-08-26 10:00:09
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
-  "problems_top": null,
-  "first_hour": []
+  "problems": [
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "WIP库存不足，导致H系列产出连续性受影响。",
+      "plan": 168,
+      "actual": 198,
+      "impact": 30
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankcase.สึกหรอ ส่งผลกระทบทำให้การวัดค่าชิ้นงานไม่ดี ส่งผลกระทบทำให้เกิดงานNG IPเข้าตรวจสอบ ระหว่างรอ Final นำคอมขึ้นเชื่อม(-120) เครื่องเช็ค KV Alarm บ่อย ยกลง 20 set",
+      "problem_zh": "开工时碰焊机可用4台，陆续切料堆积待焊（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件流入IP检查。等待Final期间，上压缩机焊接（-120件），KV检测机频繁报警，已停机20套待处理。",
+      "plan": 417,
+      "actual": 288,
+      "impact": -129
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม",
+      "problem_zh": "(-55) 紧急订单SZ40F1E-9KBL优先上线焊接，削减常规产量，需调整焊机设定。",
+      "plan": 470,
+      "actual": 415,
+      "impact": -55
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
+      "problem_zh": "DV工位作业泄漏，设备频繁重复检测。",
+      "plan": 444,
+      "actual": 420,
+      "impact": -24
+    }
+  ],
+  "problems_top": [
+    {
+      "name": "开工时碰焊机可用4台，陆续切料堆积待焊（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件流入IP检查。等待Final期间，上压缩机焊接（-120件），KV检测机频繁报警，已停",
+      "name_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankca",
+      "lines": [
+        "PRO2·A"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -129
+    },
+    {
+      "name": "(-55) 紧急订单SZ40F1E-9KBL优先上线焊接，削减常规产量，需调整焊机设定。",
+      "name_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "8:00-9:00"
+      ],
+      "count": 1,
+      "total_impact": -55
+    },
+    {
+      "name": "WIP库存不足，导致H系列产出连续性受影响。",
+      "name_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "lines": [
+        "RPO1·H系列"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": 30
+    }
+  ],
+  "first_hour": [
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 198,
+      "rate": 117.9
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 417,
+      "actual": 288,
+      "rate": 69.1
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 415,
+      "rate": 88.3
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 420,
+      "rate": 94.6
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -188,6 +311,15 @@ window.__HISTORY__ = [
       "PRO2·A": 84.7,
       "PRO2·B": 91.5,
       "PRO2·C": 99.8
+    }
+  },
+  {
+    "date": "2026-08-26",
+    "first_hour": {
+      "RPO1·H系列": 117.9,
+      "PRO2·A": 69.1,
+      "PRO2·B": 88.3,
+      "PRO2·C": 94.6
     }
   }
 ];
