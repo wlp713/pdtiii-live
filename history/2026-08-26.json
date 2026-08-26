@@ -1,163 +1,163 @@
 {
   "date": "2026-08-26",
-  "snapAt": "2026-08-26 15:08:40",
+  "snapAt": "2026-08-26 17:10:04",
   "source": "save_daily_history v2",
   "lines": [
     {
       "name": "Final A line",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 3300.0,
-      "plan": 2544.0,
-      "actual": 2356.0,
-      "cb": -188.0,
-      "cum": 2356.0,
-      "eff": 92.6,
+      "plan": 3297.0,
+      "actual": 3025.0,
+      "cb": -272.0,
+      "cum": 3025.0,
+      "eff": 91.7,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Final B Line",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 3600.0,
-      "plan": 2777.0,
-      "actual": 2306.0,
-      "cb": -471.0,
-      "cum": 2306.0,
-      "eff": 83.0,
+      "plan": 3598.0,
+      "actual": 2903.0,
+      "cb": -695.0,
+      "cum": 2903.0,
+      "eff": 80.6,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Final C line",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 3400.0,
-      "plan": 2699.0,
-      "actual": 2504.0,
-      "cb": -195.0,
-      "cum": 2504.0,
-      "eff": 92.7,
+      "plan": 3498.0,
+      "actual": 3200.0,
+      "cb": -298.0,
+      "cum": 3200.0,
+      "eff": 91.4,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Final D line",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 1600.0,
-      "plan": 1234.0,
-      "actual": 981.0,
-      "cb": -253.0,
-      "cum": 981.0,
-      "eff": 79.4,
+      "plan": 1599.0,
+      "actual": 1315.0,
+      "cb": -284.0,
+      "cum": 1315.0,
+      "eff": 82.2,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Motor H-Series",
-      "time": "26-Aug-1",
+      "time": "26-Aug-0",
       "target": 1800.0,
-      "plan": 978.0,
-      "actual": 1051.0,
-      "cb": 73.0,
-      "cum": 1051.0,
-      "eff": 107.4,
+      "plan": 1293.0,
+      "actual": 1340.0,
+      "cb": 47.0,
+      "cum": 1340.0,
+      "eff": 103.6,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Motor S-Series",
-      "time": "26-Aug-1",
+      "time": "26-Aug-0",
       "target": 1600.0,
-      "plan": 868.0,
-      "actual": 964.0,
-      "cb": 96.0,
-      "cum": 964.0,
-      "eff": 111.0,
+      "plan": 1148.0,
+      "actual": 1254.0,
+      "cb": 106.0,
+      "cum": 1254.0,
+      "eff": 109.2,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Motor F-Series",
-      "time": "26-Aug-1",
+      "time": "26-Aug-0",
       "target": 1500.0,
-      "plan": 815.0,
-      "actual": 965.0,
-      "cb": 150.0,
-      "cum": 965.0,
-      "eff": 118.4,
+      "plan": 1077.0,
+      "actual": 1264.0,
+      "cb": 187.0,
+      "cum": 1264.0,
+      "eff": 117.3,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Motor WL",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 1600.0,
-      "plan": 866.0,
+      "plan": 1144.0,
       "actual": 0.0,
-      "cb": -866.0,
+      "cb": -1144.0,
       "cum": 0.0,
       "eff": 0.0,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Inspection A",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 7200.0,
-      "plan": 2777.0,
-      "actual": 2442.0,
-      "cb": -335.0,
-      "cum": 2442.0,
-      "eff": 87.9,
+      "plan": 3598.0,
+      "actual": 3200.0,
+      "cb": -398.0,
+      "cum": 3200.0,
+      "eff": 88.9,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Inspection B",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 3300.0,
-      "plan": 2566.0,
-      "actual": 2216.0,
-      "cb": -350.0,
-      "cum": 2216.0,
-      "eff": 86.3,
+      "plan": 3325.0,
+      "actual": 2865.0,
+      "cb": -460.0,
+      "cum": 2865.0,
+      "eff": 86.1,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Inspection C",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 3300.0,
-      "plan": 2566.0,
-      "actual": 1184.0,
-      "cb": -1382.0,
-      "cum": 1184.0,
-      "eff": 46.1,
+      "plan": 3325.0,
+      "actual": 1686.0,
+      "cb": -1639.0,
+      "cum": 1686.0,
+      "eff": 50.7,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     },
     {
       "name": "Inspection D",
-      "time": "26-Aug-1",
+      "time": "26-Aug-2",
       "target": 1150.0,
-      "plan": 1361.0,
+      "plan": 1763.0,
       "actual": 0.0,
-      "cb": -1361.0,
+      "cb": -1763.0,
       "cum": 0.0,
       "eff": 0.0,
       "status": "RUNNING",
       "stalled": false,
-      "pushed": "2026-08-26 15:08:02"
+      "pushed": "2026-08-26 17:09:04"
     }
   ],
   "hourly": {
@@ -201,6 +201,16 @@
         "h": 15,
         "actual": 1036.0,
         "plan": 955.0
+      },
+      {
+        "h": 16,
+        "actual": 1186.0,
+        "plan": 1123.0
+      },
+      {
+        "h": 17,
+        "actual": 1339.0,
+        "plan": 1293.0
       }
     ],
     "Motor S-Series": [
@@ -243,6 +253,16 @@
         "h": 15,
         "actual": 949.0,
         "plan": 848.0
+      },
+      {
+        "h": 16,
+        "actual": 1083.0,
+        "plan": 997.0
+      },
+      {
+        "h": 17,
+        "actual": 1247.0,
+        "plan": 1148.0
       }
     ],
     "Motor F-Series": [
@@ -285,6 +305,16 @@
         "h": 15,
         "actual": 943.0,
         "plan": 796.0
+      },
+      {
+        "h": 16,
+        "actual": 1116.0,
+        "plan": 936.0
+      },
+      {
+        "h": 17,
+        "actual": 1264.0,
+        "plan": 1077.0
       }
     ],
     "Motor WL": [
@@ -327,6 +357,16 @@
         "h": 15,
         "actual": 0.0,
         "plan": 846.0
+      },
+      {
+        "h": 16,
+        "actual": 0.0,
+        "plan": 995.0
+      },
+      {
+        "h": 17,
+        "actual": 0.0,
+        "plan": 1144.0
       }
     ],
     "Final A line": [
@@ -369,6 +409,16 @@
         "h": 15,
         "actual": 2317.0,
         "plan": 2508.0
+      },
+      {
+        "h": 16,
+        "actual": 2637.0,
+        "plan": 2866.0
+      },
+      {
+        "h": 17,
+        "actual": 3025.0,
+        "plan": 3297.0
       }
     ],
     "Inspection B": [
@@ -411,6 +461,16 @@
         "h": 15,
         "actual": 2187.0,
         "plan": 2529.0
+      },
+      {
+        "h": 16,
+        "actual": 2495.0,
+        "plan": 2891.0
+      },
+      {
+        "h": 17,
+        "actual": 2865.0,
+        "plan": 3325.0
       }
     ],
     "Inspection C": [
@@ -453,6 +513,16 @@
         "h": 15,
         "actual": 1147.0,
         "plan": 2529.0
+      },
+      {
+        "h": 16,
+        "actual": 1446.0,
+        "plan": 2891.0
+      },
+      {
+        "h": 17,
+        "actual": 1686.0,
+        "plan": 3325.0
       }
     ],
     "Final B Line": [
@@ -495,6 +565,16 @@
         "h": 15,
         "actual": 2261.0,
         "plan": 2737.0
+      },
+      {
+        "h": 16,
+        "actual": 2554.0,
+        "plan": 3128.0
+      },
+      {
+        "h": 17,
+        "actual": 2898.0,
+        "plan": 3598.0
       }
     ],
     "Final C line": [
@@ -537,6 +617,16 @@
         "h": 15,
         "actual": 2481.0,
         "plan": 2660.0
+      },
+      {
+        "h": 16,
+        "actual": 2769.0,
+        "plan": 3041.0
+      },
+      {
+        "h": 17,
+        "actual": 3192.0,
+        "plan": 3497.0
       }
     ],
     "Inspection A": [
@@ -579,6 +669,16 @@
         "h": 15,
         "actual": 2398.0,
         "plan": 2737.0
+      },
+      {
+        "h": 16,
+        "actual": 2766.0,
+        "plan": 3128.0
+      },
+      {
+        "h": 17,
+        "actual": 3196.0,
+        "plan": 3597.0
       }
     ],
     "Inspection D": [
@@ -621,6 +721,16 @@
         "h": 15,
         "actual": 0.0,
         "plan": 1341.0
+      },
+      {
+        "h": 16,
+        "actual": 0.0,
+        "plan": 1533.0
+      },
+      {
+        "h": 17,
+        "actual": 0.0,
+        "plan": 1763.0
       }
     ],
     "Final D line": [
@@ -663,60 +773,34 @@
         "h": 15,
         "actual": 957.0,
         "plan": 1216.0
+      },
+      {
+        "h": 16,
+        "actual": 1104.0,
+        "plan": 1390.0
+      },
+      {
+        "h": 17,
+        "actual": 1315.0,
+        "plan": 1598.0
       }
     ]
   },
   "eff": {
-    "Final A line": 92.6,
-    "Final B Line": 83.0,
-    "Final C line": 92.7,
-    "Final D line": 79.4,
-    "Motor H-Series": 107.4,
-    "Motor S-Series": 111.0,
-    "Motor F-Series": 118.4,
+    "Final A line": 91.7,
+    "Final B Line": 80.6,
+    "Final C line": 91.4,
+    "Final D line": 82.2,
+    "Motor H-Series": 103.6,
+    "Motor S-Series": 109.2,
+    "Motor F-Series": 117.3,
     "Motor WL": 0.0,
-    "Inspection A": 87.9,
-    "Inspection B": 86.3,
-    "Inspection C": 46.1,
+    "Inspection A": 88.9,
+    "Inspection B": 86.1,
+    "Inspection C": 50.7,
     "Inspection D": 0.0
   },
   "problems": [
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "08:00-09:00",
-      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
-      "plan": 168,
-      "actual": 198,
-      "impact": 30
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "10:00-11:00",
-      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
-      "problem_zh": "WIP库存不足，导致产出连续性受影响。",
-      "plan": 168,
-      "actual": 187,
-      "impact": 19
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "08:00-09:00",
-      "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
-      "problem_zh": "M线绕线机NG计数与看板显示不一致，弹簧断裂，停机08:00-08:47，F系列。",
-      "plan": 141,
-      "actual": 130,
-      "impact": -11
-    },
     {
       "date": "2026-08-26",
       "ws": "PRO2",
@@ -724,7 +808,7 @@
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankcase.สึกหรอ ส่งผลกระทบทำให้การวัดค่าชิ้นงานไม่ดี ส่งผลกระทบทำให้เกิดงานNG IPเข้าตรวจสอบ ระหว่างรอ Final นำคอมขึ้นเชื่อม(-120) เครื่องเช็ค KV Alarm บ่อย ยกลง 20 set",
-      "problem_zh": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频繁报警，已停机20套。",
+      "problem_zh": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor Line。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频繁报警，已停机20套。",
       "plan": 430,
       "actual": 288,
       "impact": -142
@@ -748,7 +832,7 @@
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "QA และ IP หยุดไลน์ตรวจสอบและแก้ไขปัญหาองศา pipe ไม่ได้สเปค",
-      "problem_zh": "QA和IP已停线检查并修复管路角度不合格问题。",
+      "problem_zh": "QA和IP停线检查，处理管路角度不合格问题。",
       "plan": 360,
       "actual": 336,
       "impact": -24
@@ -760,7 +844,7 @@
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "ปกต",
-      "problem_zh": "正常。",
+      "problem_zh": "好的，请发送需要翻译的泰语生产问题描述。",
       "plan": 430,
       "actual": 440,
       "impact": 10
@@ -772,7 +856,7 @@
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม(-55) B-Line Final",
-      "problem_zh": "(-55)线：SZ40F1E-9KBL急件优先上焊接，削减常规产量，需调整B线终检焊接柜设定。",
+      "problem_zh": "(-55) 优先将急件SZ40F1E-9KBL上焊接线，并削减已投产数量，需调整B线终焊机设定。",
       "plan": 470,
       "actual": 415,
       "impact": -55
@@ -784,7 +868,7 @@
       "line": "PRO2·B",
       "time": "9:00-10:00",
       "problem_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
-      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先焊接，削减已投产任务，导致B-Line Final产出不连续。",
+      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减常规产量，导致B-Line Final产出不连续。",
       "plan": 470,
       "actual": 408,
       "impact": -62
@@ -796,7 +880,7 @@
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-100) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-100) ตอนนี้ Pro.1 ส่งพนักงานมาจัดทรง Stator แล้วครับ B-Line Final",
-      "problem_zh": "（-100）Air Gab装配前需先碰整形Stator再组装，导致作业不连续（-100）。现Pro.1已派人来整形Stator，B线Final。",
+      "problem_zh": "(-100) Air Gab装配前需先敲击整形Stator才能组装，导致作业不连续(-100)。目前Pro.1已派员来整形Stator，B线Final。",
       "plan": 390,
       "actual": 290,
       "impact": -100
@@ -819,11 +903,35 @@
       "series": "B",
       "line": "PRO2·B",
       "time": "13:00-14:00",
-      "problem_th": "(-27) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง",
-      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致产出不连续。",
+      "problem_th": "(-27) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-27) B-Line Final",
+      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL优先焊接，削减产量，导致B-Line Final作业不连续。",
       "plan": 470,
       "actual": 443,
       "impact": -27
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "14:00-15:00",
+      "problem_th": "(-114) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-65) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-50) B-Line Final",
+      "problem_zh": "(-114) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-65) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
+      "plan": 470,
+      "actual": 356,
+      "impact": -114
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "15:00-16:00",
+      "problem_th": "(-95) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง",
+      "problem_zh": "(-95) Air Gab装配前需先对Stator进行碰焊整形，导致作业不连续。",
+      "plan": 390,
+      "actual": 295,
+      "impact": -95
     },
     {
       "date": "2026-08-26",
@@ -832,7 +940,7 @@
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
-      "problem_zh": "DV工位泄漏，设备频繁复测。",
+      "problem_zh": "DV工序工件泄漏，设备频繁重复检测。",
       "plan": 444,
       "actual": 420,
       "impact": -24
@@ -844,7 +952,7 @@
       "line": "PRO2·C",
       "time": "10:00-11:00",
       "problem_th": "งานติด gap มาไม่ต่อเนื่อง stock บนไลน์หมด",
-      "problem_zh": "作业间隙（gap）作业不连续，线上库存耗尽。",
+      "problem_zh": "碰焊工序来料不连续，线上库存已耗尽。",
       "plan": 370,
       "actual": 362,
       "impact": -8
@@ -860,36 +968,105 @@
       "plan": 444,
       "actual": 399,
       "impact": -45
-    }
-  ],
-  "first_hour": [
+    },
     {
       "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "target": 141,
-      "actual": 130,
-      "rate": 92.2
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "14:00-15:00",
+      "problem_th": "rotor line เครื่อง TDC น๊อตยึดกระบอกสูบหลุด งานมาไม่ต่อเนื่อง-54 (PEแก้ไขแล้ว)",
+      "problem_zh": "转子线TDC设备，气缸固定螺栓脱落，导致作业不连续-54（PE已修复）。",
+      "plan": 444,
+      "actual": 390,
+      "impact": -54
     },
     {
       "date": "2026-08-26",
       "ws": "RPO1",
       "series": "H系列",
       "line": "RPO1·H系列",
-      "target": 168,
+      "time": "08:00-09:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H-series线尾有WIP库存，保证作业连续产出。",
+      "plan": 168,
       "actual": 198,
-      "rate": 117.9
+      "impact": 30
     },
     {
       "date": "2026-08-26",
       "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "target": 186,
-      "actual": 186,
-      "rate": 100.0
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "10:00-11:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
+      "plan": 168,
+      "actual": 187,
+      "impact": 19
     },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "11:00-12:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
+      "plan": 168,
+      "actual": 189,
+      "impact": 21
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
+      "problem_zh": "M线绕线机NG计数与看板不一致，弹簧断裂，停机08:00-08:47，F系列。",
+      "plan": 141,
+      "actual": 130,
+      "impact": -11
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด F-series",
+      "problem_zh": "设备检查NG计数与F系列看板显示数量不一致。",
+      "plan": 141,
+      "actual": 168,
+      "impact": 27
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "11:00-12:00",
+      "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด M Coil แท่งหลุดน็อตขาดคาหยุด11:10 กำลังแก้ไข F-series",
+      "problem_zh": "设备NG计数与M Coil看板不一致，螺栓断裂卡滞导致停机，11:10开始维修，F系列。",
+      "plan": 141,
+      "actual": 155,
+      "impact": 14
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "13:00-14:00",
+      "problem_th": "M Coil แท่งหลุดน็อตขาดคาหยุด 11:10-13:26 F-series",
+      "problem_zh": "M Coil 工件脱落，螺栓断裂卡死，停机 11:10-13:26，F系列。",
+      "plan": 141,
+      "actual": 133,
+      "impact": -8
+    }
+  ],
+  "first_hour": [
     {
       "date": "2026-08-26",
       "ws": "PRO2",
@@ -916,8 +1093,35 @@
       "target": 444,
       "actual": 420,
       "rate": 94.6
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 130,
+      "rate": 92.2
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 198,
+      "rate": 117.9
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 186,
+      "actual": 186,
+      "rate": 100.0
     }
   ],
   "attendance": null,
-  "updatedAt": "2026-08-26 15:08:02"
+  "updatedAt": "2026-08-26 17:09:04"
 }
