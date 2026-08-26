@@ -3,95 +3,11 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-26 16:10:27
+   最后写入: 2026-08-26 16:20:24
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "08:00-09:00",
-      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
-      "plan": 168,
-      "actual": 198,
-      "impact": 30
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "10:00-11:00",
-      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H系列尾端有WIP库存，可保证作业连续性。",
-      "plan": 168,
-      "actual": 187,
-      "impact": 19
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "11:00-12:00",
-      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
-      "plan": 168,
-      "actual": 189,
-      "impact": 21
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "08:00-09:00",
-      "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
-      "problem_zh": "M线绕线机NG计数与看板显示不一致，弹簧断裂，停机08:00-08:47，F系列。",
-      "plan": 141,
-      "actual": 130,
-      "impact": -11
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "10:00-11:00",
-      "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด F-series",
-      "problem_zh": "设备漏检NG工件，计数与F系列看板显示不一致。",
-      "plan": 141,
-      "actual": 168,
-      "impact": 27
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "11:00-12:00",
-      "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด M Coil แท่งหลุดน็อตขาดคาหยุด11:10 กำลังแก้ไข F-series",
-      "problem_zh": "设备NG计数与M Coil看板数量不一致，螺栓断裂卡滞导致停机，11:10开始维修，F系列正在处理中。",
-      "plan": 141,
-      "actual": 155,
-      "impact": 14
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "13:00-14:00",
-      "problem_th": "M Coil แท่งหลุดน็อตขาดคาหยุด 11:10-13:26 F-series",
-      "problem_zh": "M Coil 工件脱落，螺栓断裂卡死，停机 11:10-13:26，F系列。",
-      "plan": 141,
-      "actual": 133,
-      "impact": -8
-    },
     {
       "date": "2026-08-26",
       "ws": "PRO2",
@@ -99,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankcase.สึกหรอ ส่งผลกระทบทำให้การวัดค่าชิ้นงานไม่ดี ส่งผลกระทบทำให้เกิดงานNG IPเข้าตรวจสอบ ระหว่างรอ Final นำคอมขึ้นเชื่อม(-120) เครื่องเช็ค KV Alarm บ่อย ยกลง 20 set",
-      "problem_zh": "碰焊机启动4台可用，逐步切割积压待焊工件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上机焊接（-120件）。KV检测机频繁报警，已停机20套待处理。",
+      "problem_zh": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor Line。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频繁报警，已停机20套。",
       "plan": 430,
       "actual": 288,
       "impact": -142
@@ -123,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "QA และ IP หยุดไลน์ตรวจสอบและแก้ไขปัญหาองศา pipe ไม่ได้สเปค",
-      "problem_zh": "QA和IP已停线检查并修复管路角度不合格问题。",
+      "problem_zh": "QA和IP停线检查，处理管路角度不合格问题。",
       "plan": 360,
       "actual": 336,
       "impact": -24
@@ -147,7 +63,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม(-55) B-Line Final",
-      "problem_zh": "(-55) 将急出货SZ40F1E-9KBL优先上线焊接，削减在制品产量，需调整(-55) B-Line Final焊机设定。",
+      "problem_zh": "(-55) 优先将急件SZ40F1E-9KBL上焊接线，并削减已投产数量，需调整B线终焊机设定。",
       "plan": 470,
       "actual": 415,
       "impact": -55
@@ -159,7 +75,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "9:00-10:00",
       "problem_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
-      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致B-Line Final产出不连续。",
+      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减常规产量，导致B-Line Final产出不连续。",
       "plan": 470,
       "actual": 408,
       "impact": -62
@@ -171,7 +87,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-100) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-100) ตอนนี้ Pro.1 ส่งพนักงานมาจัดทรง Stator แล้วครับ B-Line Final",
-      "problem_zh": "(-100) Air Gab装配前需先敲击整形Stator，导致作业不连续(-100)。现Pro.1已派员整形Stator，B线Final。",
+      "problem_zh": "(-100) Air Gab装配前需先敲击整形Stator才能组装，导致作业不连续(-100)。目前Pro.1已派员来整形Stator，B线Final。",
       "plan": 390,
       "actual": 290,
       "impact": -100
@@ -195,7 +111,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "13:00-14:00",
       "problem_th": "(-27) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-27) B-Line Final",
-      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL机型优先上线焊接，削减已投产任务，导致B-Line Final产出不连续。",
+      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL优先焊接，削减产量，导致B-Line Final作业不连续。",
       "plan": 470,
       "actual": 443,
       "impact": -27
@@ -231,7 +147,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
-      "problem_zh": "DV工序作业泄漏，设备频繁重复检查。",
+      "problem_zh": "DV工序工件泄漏，设备频繁重复检测。",
       "plan": 444,
       "actual": 420,
       "impact": -24
@@ -243,7 +159,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "10:00-11:00",
       "problem_th": "งานติด gap มาไม่ต่อเนื่อง stock บนไลน์หมด",
-      "problem_zh": "作业间隙料供应不连续，线上库存已耗尽。",
+      "problem_zh": "碰焊工序来料不连续，线上库存已耗尽。",
       "plan": 370,
       "actual": 362,
       "impact": -8
@@ -255,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "11:00-12:00",
       "problem_th": "งานรั่ว DV line out -45 (แจ้งQAและผู้เกี่ยวข้องแล้ว กำลังตรวจสอบ)",
-      "problem_zh": "DV线体作业泄漏 -45（已通知QA及相关人员，正在排查）",
+      "problem_zh": "DV线体工件泄漏 -45（已通知QA及相关人员，正在排查）",
       "plan": 444,
       "actual": 399,
       "impact": -45
@@ -267,10 +183,94 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "14:00-15:00",
       "problem_th": "rotor line เครื่อง TDC น๊อตยึดกระบอกสูบหลุด งานมาไม่ต่อเนื่อง-54 (PEแก้ไขแล้ว)",
-      "problem_zh": "转子线TDC设备，气缸固定螺栓脱落，导致作业中断54分钟（PE已修复）。",
+      "problem_zh": "转子线TDC设备，气缸固定螺栓脱落，导致作业不连续-54（PE已修复）。",
       "plan": 444,
       "actual": 390,
       "impact": -54
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H-series线尾有WIP库存，保证作业连续产出。",
+      "plan": 168,
+      "actual": 198,
+      "impact": 30
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "10:00-11:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
+      "plan": 168,
+      "actual": 187,
+      "impact": 19
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "11:00-12:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
+      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
+      "plan": 168,
+      "actual": 189,
+      "impact": 21
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
+      "problem_zh": "M线绕线机NG计数与看板不一致，弹簧断裂，停机08:00-08:47，F系列。",
+      "plan": 141,
+      "actual": 130,
+      "impact": -11
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด F-series",
+      "problem_zh": "设备检查NG计数与F系列看板显示数量不一致。",
+      "plan": 141,
+      "actual": 168,
+      "impact": 27
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "11:00-12:00",
+      "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด M Coil แท่งหลุดน็อตขาดคาหยุด11:10 กำลังแก้ไข F-series",
+      "problem_zh": "设备NG计数与M Coil看板不一致，螺栓断裂卡滞导致停机，11:10开始维修，F系列。",
+      "plan": 141,
+      "actual": 155,
+      "impact": 14
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "13:00-14:00",
+      "problem_th": "M Coil แท่งหลุดน็อตขาดคาหยุด 11:10-13:26 F-series",
+      "problem_zh": "M Coil 工件脱落，螺栓断裂卡死，停机 11:10-13:26，F系列。",
+      "plan": 141,
+      "actual": 133,
+      "impact": -8
     }
   ],
   "problems_top": [
@@ -290,7 +290,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -428
     },
     {
-      "name": "碰焊机启动4台可用，逐步切割积压待焊工件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上机焊接（-120件）。KV检测机频繁报警",
+      "name": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor Line。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频",
       "name_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankca",
       "lines": [
         "PRO2·A"
@@ -303,7 +303,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -144
     },
     {
-      "name": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致B-Line Final产出不连续。",
+      "name": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减常规产量，导致B-Line Final产出不连续。",
       "name_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
       "lines": [
         "PRO2·B"
@@ -318,33 +318,6 @@ window.__LIVE_DATA__ = {
     }
   ],
   "first_hour": [
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "target": 141,
-      "actual": 130,
-      "rate": 92.2
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "target": 168,
-      "actual": 198,
-      "rate": 117.9
-    },
-    {
-      "date": "2026-08-26",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "target": 186,
-      "actual": 186,
-      "rate": 100.0
-    },
     {
       "date": "2026-08-26",
       "ws": "PRO2",
@@ -371,6 +344,33 @@ window.__LIVE_DATA__ = {
       "target": 444,
       "actual": 420,
       "rate": 94.6
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 130,
+      "rate": 92.2
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 198,
+      "rate": 117.9
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 186,
+      "actual": 186,
+      "rate": 100.0
     }
   ]
 };
@@ -562,12 +562,12 @@ window.__HISTORY__ = [
       "Inspection D": 0.0
     },
     "first_hour": {
-      "RPO1·F系列": 92.2,
-      "RPO1·H系列": 117.9,
-      "RPO1·S系列": 100.0,
       "PRO2·A": 67.0,
       "PRO2·B": 88.3,
-      "PRO2·C": 94.6
+      "PRO2·C": 94.6,
+      "RPO1·F系列": 92.2,
+      "RPO1·H系列": 117.9,
+      "RPO1·S系列": 100.0
     }
   }
 ];
