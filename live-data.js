@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-26 14:10:17
+   最后写入: 2026-08-26 14:30:21
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -27,7 +27,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "10:00-11:00",
       "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
-      "problem_zh": "WIP库存不足，导致后续作业无法连续进行。",
+      "problem_zh": "WIP库存不足，导致产出连续性受影响。",
       "plan": 168,
       "actual": 187,
       "impact": 19
@@ -51,7 +51,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankcase.สึกหรอ ส่งผลกระทบทำให้การวัดค่าชิ้นงานไม่ดี ส่งผลกระทบทำให้เกิดงานNG IPเข้าตรวจสอบ ระหว่างรอ Final นำคอมขึ้นเชื่อม(-120) เครื่องเช็ค KV Alarm บ่อย ยกลง 20 set",
-      "problem_zh": "碰焊机启动4台可用，逐步切割积压待焊工件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase，已磨损，导致测量精度不良，产生NG工件。IP介入检查，等待Final期间，将压缩机上机碰焊（-120件）。KV检测机频繁报警，已停机20套。",
+      "problem_zh": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频繁报警，已停机20套。",
       "plan": 430,
       "actual": 288,
       "impact": -142
@@ -75,7 +75,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "QA และ IP หยุดไลน์ตรวจสอบและแก้ไขปัญหาองศา pipe ไม่ได้สเปค",
-      "problem_zh": "QA和IP停线检查，处理管路角度不合格问题。",
+      "problem_zh": "QA和IP已停线检查并修复管路角度不合格问题。",
       "plan": 360,
       "actual": 336,
       "impact": -24
@@ -87,7 +87,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "ปกต",
-      "problem_zh": "好的，请提供需要翻译的泰语生产问题描述。",
+      "problem_zh": "正常。",
       "plan": 430,
       "actual": 440,
       "impact": 10
@@ -99,7 +99,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม(-55) B-Line Final",
-      "problem_zh": "(-55)线：优先将急件SZ40F1E-9KBL上焊接工位，并削减已投产数量，需调整焊机设定。(-55) B线最终工位。",
+      "problem_zh": "(-55)线：SZ40F1E-9KBL急件优先上焊接，削减常规产量，需调整B线终检焊接柜设定。",
       "plan": 470,
       "actual": 415,
       "impact": -55
@@ -111,7 +111,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "9:00-10:00",
       "problem_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
-      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先焊接，削减已生产工件，导致B-Line Final作业不连续。",
+      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先焊接，削减已投产任务，导致B-Line Final产出不连续。",
       "plan": 470,
       "actual": 408,
       "impact": -62
@@ -123,7 +123,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-100) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-100) ตอนนี้ Pro.1 ส่งพนักงานมาจัดทรง Stator แล้วครับ B-Line Final",
-      "problem_zh": "（-100）Air Gab装配前需先碰整形Stator才能组装，导致作业不连续（-100）。目前Pro.1已派人来整形Stator，B线Final。",
+      "problem_zh": "（-100）Air Gab装配前需先碰整形Stator再组装，导致作业不连续（-100）。现Pro.1已派人来整形Stator，B线Final。",
       "plan": 390,
       "actual": 290,
       "impact": -100
@@ -135,7 +135,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "11:00-12:00",
       "problem_th": "(-119) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-70) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-50) B-Line Final",
-      "problem_zh": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 赶产SZ40F1E-9KBL，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
+      "problem_zh": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
       "plan": 470,
       "actual": 351,
       "impact": -119
@@ -147,7 +147,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "13:00-14:00",
       "problem_th": "(-27) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง",
-      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL机型优先上线焊接，削减已投产任务，导致产出不连续。",
+      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致产出不连续。",
       "plan": 470,
       "actual": 443,
       "impact": -27
@@ -159,7 +159,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
-      "problem_zh": "DV工序工件泄漏，设备频繁重复检测。",
+      "problem_zh": "DV工位泄漏，设备频繁复测。",
       "plan": 444,
       "actual": 420,
       "impact": -24
@@ -171,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "10:00-11:00",
       "problem_th": "งานติด gap มาไม่ต่อเนื่อง stock บนไลน์หมด",
-      "problem_zh": "碰焊工序来料不连续，线上库存已耗尽。",
+      "problem_zh": "作业间隙（gap）作业不连续，线上库存耗尽。",
       "plan": 370,
       "actual": 362,
       "impact": -8
@@ -191,7 +191,7 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 赶产SZ40F1E-9KBL，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
+      "name": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
       "name_th": "(-119) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-70) นำงานเร่งส่งรุ่น SZ40F1E-9KBL",
       "lines": [
         "PRO2·B"
@@ -204,7 +204,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -219
     },
     {
-      "name": "(-62) 将急出货SZ40F1E-9KBL优先焊接，削减已生产工件，导致B-Line Final作业不连续。",
+      "name": "(-62) 将急出货SZ40F1E-9KBL优先焊接，削减已投产任务，导致B-Line Final产出不连续。",
       "name_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
       "lines": [
         "PRO2·B"
@@ -218,7 +218,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -144
     },
     {
-      "name": "碰焊机启动4台可用，逐步切割积压待焊工件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase，已磨损，导致测量精度不良，产生NG工件。IP介入检查，等待Final期间，将压缩机上机碰焊（-120件）。KV检测机频",
+      "name": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor线。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频繁报警，",
       "name_th": "เริ่มงานตู้เชื่อมใช้งานได้ 4 ตู้ ทะยอยตัดงานกองรอเชื่อม (-22) ผลกระทบ Rotor Line เครื่องมือMicro jig.สำหรับวัดค่าCrankca",
       "lines": [
         "PRO2·A"
