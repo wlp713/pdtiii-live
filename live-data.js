@@ -3,8 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
-   最后写入: 2026-08-26 17:10:07
+   最后写入: 2026-08-26 17:20:38
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -40,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "QA และ IP หยุดไลน์ตรวจสอบและแก้ไขปัญหาองศา pipe ไม่ได้สเปค",
-      "problem_zh": "QA和IP停线检查，处理管路角度不合格问题。",
+      "problem_zh": "QA和IP停线检查并整改管路角度不合格问题。",
       "plan": 360,
       "actual": 336,
       "impact": -24
@@ -50,12 +49,36 @@ window.__LIVE_DATA__ = {
       "ws": "PRO2",
       "series": "A",
       "line": "PRO2·A",
-      "time": "11:00-12:00",
-      "problem_th": "ปกต",
-      "problem_zh": "好的，请发送需要翻译的泰语生产问题描述。",
+      "time": "14:00-15:00",
+      "problem_th": "เปลี่ยนรุ่นการผลิต 1 ครั้ง (-64) นำงาน SZ40F1E-9KBL ดัด pipe ตัดงาน SZ59F1E-9YEL ลง",
+      "problem_zh": "换型1次（-64），SZ40F1E-9KBL工件弯管作业，SZ59F1E-9YEL工件切割下线。",
       "plan": 430,
-      "actual": 440,
-      "impact": 10
+      "actual": 366,
+      "impact": -64
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "15:00-16:00",
+      "problem_th": "หยุดแก้ไขมาร์คเลเซอร์ (-20) QA หยุดไลน์เนื่องจากไม่ลงเอกสารชิ้นงานตัวเเรกจุดดัด Pipe",
+      "problem_zh": "激光打标机停机维修(-20)，QA因首件管路折弯点未签核文件而停线。",
+      "plan": 360,
+      "actual": 320,
+      "impact": -40
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "16:00-17:00",
+      "problem_th": "ปรับเซ็ตแก้ไขแนวเชื่อมตู้ 1-6 (-22) เครื่องเช็ค KV Alarm บ่อย ยกลง 12 set",
+      "problem_zh": "1-6号柜（-22）碰焊位置调整修正，KV检测机频繁报警，已停机12套。",
+      "plan": 430,
+      "actual": 388,
+      "impact": -42
     },
     {
       "date": "2026-08-26",
@@ -64,7 +87,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-55) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง ต้องปรับเซ็ทตู้เชื่อม(-55) B-Line Final",
-      "problem_zh": "(-55) 优先将急件SZ40F1E-9KBL上焊接线，并削减已投产数量，需调整B线终焊机设定。",
+      "problem_zh": "(-55) 优先安排SZ40F1E-9KBL急件上线焊接，削减已投产任务量，需调整B线终焊机设定。",
       "plan": 470,
       "actual": 415,
       "impact": -55
@@ -76,7 +99,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "9:00-10:00",
       "problem_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
-      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减常规产量，导致B-Line Final产出不连续。",
+      "problem_zh": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致B-Line Final产出不连续。",
       "plan": 470,
       "actual": 408,
       "impact": -62
@@ -88,7 +111,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-100) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-100) ตอนนี้ Pro.1 ส่งพนักงานมาจัดทรง Stator แล้วครับ B-Line Final",
-      "problem_zh": "(-100) Air Gab装配前需先敲击整形Stator才能组装，导致作业不连续(-100)。目前Pro.1已派员来整形Stator，B线Final。",
+      "problem_zh": "(-100) Air Gab装配前需先敲击整形Stator才能组装，导致作业不连续(-100)。目前Pro.1已派人来整形Stator，B线Final。",
       "plan": 390,
       "actual": 290,
       "impact": -100
@@ -100,7 +123,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "11:00-12:00",
       "problem_th": "(-119) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-70) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-50) B-Line Final",
-      "problem_zh": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
+      "problem_zh": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 为赶交SZ40F1E-9KBL机型，提前上线焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
       "plan": 470,
       "actual": 351,
       "impact": -119
@@ -112,7 +135,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "13:00-14:00",
       "problem_th": "(-27) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-27) B-Line Final",
-      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL优先焊接，削减产量，导致B-Line Final作业不连续。",
+      "problem_zh": "(-27) 将急出货SZ40F1E-9KBL提前上线焊接，导致下线生产被削减，产出不连续。(-27) B线最终工序。",
       "plan": 470,
       "actual": 443,
       "impact": -27
@@ -124,7 +147,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "14:00-15:00",
       "problem_th": "(-114) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-65) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-50) B-Line Final",
-      "problem_zh": "(-114) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-65) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
+      "problem_zh": "(-114) Air Gab装配前需先敲击整形Stator，导致作业不连续。\n(-65) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
       "plan": 470,
       "actual": 356,
       "impact": -114
@@ -135,11 +158,23 @@ window.__LIVE_DATA__ = {
       "series": "B",
       "line": "PRO2·B",
       "time": "15:00-16:00",
-      "problem_th": "(-95) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง",
-      "problem_zh": "(-95) Air Gab装配前需先对Stator进行碰焊整形，导致作业不连续。",
+      "problem_th": "(-95) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-95) B-Line Final",
+      "problem_zh": "(-95) B线Final工位：装Air Gab前需先敲击整形Stator才能组装，导致作业不连续。",
       "plan": 390,
       "actual": 295,
       "impact": -95
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "16:00-17:00",
+      "problem_th": "(-125) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง",
+      "problem_zh": "(-125) Air Gab装配作业需先对Stator进行碰焊整形才能进入组装，导致作业连续性中断。",
+      "plan": 470,
+      "actual": 345,
+      "impact": -125
     },
     {
       "date": "2026-08-26",
@@ -148,7 +183,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
-      "problem_zh": "DV工序工件泄漏，设备频繁重复检测。",
+      "problem_zh": "DV工位作业泄漏，设备频繁复检。",
       "plan": 444,
       "actual": 420,
       "impact": -24
@@ -183,11 +218,23 @@ window.__LIVE_DATA__ = {
       "series": "C",
       "line": "PRO2·C",
       "time": "14:00-15:00",
-      "problem_th": "rotor line เครื่อง TDC น๊อตยึดกระบอกสูบหลุด งานมาไม่ต่อเนื่อง-54 (PEแก้ไขแล้ว)",
-      "problem_zh": "转子线TDC设备，气缸固定螺栓脱落，导致作业不连续-54（PE已修复）。",
+      "problem_th": "rotor line เครื่อง TDC น๊อตยึดกระบอกสูบหลุด งานมาไม่ต่อเนื่อง-54 (PEแก้ไขแล้ว) Time 15:00-16 00 Target:370 Actual:288 Problems-82 เปลี่ยนรุ่น1ครั้ง",
+      "problem_zh": "转子线TDC设备：气缸固定螺栓脱落，导致作业中断。15:00-16:00 目标370，实际288，缺口82个（其中换型1次）。PE已修复。",
       "plan": 444,
       "actual": 390,
       "impact": -54
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "16:00-17:00",
+      "problem_th": "LIFT หัว LINE FINAL  โซ๋ขาด-21 (PE แก้ไขแล้ว)",
+      "problem_zh": "LIFT机头（FINAL线）链条断裂-21号机（PE已修复）",
+      "plan": 444,
+      "actual": 423,
+      "impact": -21
     },
     {
       "date": "2026-08-26",
@@ -196,7 +243,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "08:00-09:00",
       "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H-series线尾有WIP库存，保证作业连续产出。",
+      "problem_zh": "H系列线尾有WIP库存，保证作业连续产出。",
       "plan": 168,
       "actual": 198,
       "impact": 30
@@ -220,7 +267,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "11:00-12:00",
       "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง H-series",
-      "problem_zh": "H系列尾端有WIP库存，保证作业连续产出。",
+      "problem_zh": "H系列尾端有WIP库存，保证产出连续性。",
       "plan": 168,
       "actual": 189,
       "impact": 21
@@ -232,7 +279,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด เครื่องM Coil Winding สปิงขาด หยุด08:00-08:47 F-series",
-      "problem_zh": "M线绕线机NG计数与看板不一致，弹簧断裂，停机08:00-08:47，F系列。",
+      "problem_zh": "M线绕线机NG计数与看板显示不一致，弹簧断裂，停机08:00-08:47，F系列。",
       "plan": 141,
       "actual": 130,
       "impact": -11
@@ -244,7 +291,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "10:00-11:00",
       "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด F-series",
-      "problem_zh": "设备检查NG计数与F系列看板显示数量不一致。",
+      "problem_zh": "设备NG计数与F系列看板显示数量不一致。",
       "plan": 141,
       "actual": 168,
       "impact": 27
@@ -256,7 +303,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "11:00-12:00",
       "problem_th": "ครื่องเช็คไฟนับงานNGด้วยยอดไม่ตรงกับ สกอร์บอร์ด M Coil แท่งหลุดน็อตขาดคาหยุด11:10 กำลังแก้ไข F-series",
-      "problem_zh": "设备NG计数与M Coil看板不一致，螺栓断裂卡滞导致停机，11:10开始维修，F系列。",
+      "problem_zh": "设备NG计数与M Coil看板不一致，螺栓断裂卡死导致停机，11:10开始维修，F系列。",
       "plan": 141,
       "actual": 155,
       "impact": 14
@@ -272,12 +319,24 @@ window.__LIVE_DATA__ = {
       "plan": 141,
       "actual": 133,
       "impact": -8
+    },
+    {
+      "date": "2026-08-26",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "15:00-16:00",
+      "problem_th": "M Coilแท่งแตก หยุด15:54กำลังแก้ไข",
+      "problem_zh": "M Coil 棒料破裂，15:54 停机，正在修复。",
+      "plan": 141,
+      "actual": 176,
+      "impact": 35
     }
   ],
   "problems_top": [
     {
-      "name": "(-119) Air Gab装配前需先碰焊整形Stator，导致作业不连续。\n(-70) 为赶交SZ40F1E-9KBL机型，优先焊接并削减产量，作业不连续。\n(-50) B线最终组装。",
-      "name_th": "(-119) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง(-70) นำงานเร่งส่งรุ่น SZ40F1E-9KBL",
+      "name": "(-125) Air Gab装配作业需先对Stator进行碰焊整形才能进入组装，导致作业连续性中断。",
+      "name_th": "(-125) งานติด Air Gab ต้องกระแทกจัดทรง Stator ก่อนเข้าประกอบ ทำให้ งานออกไม่ต่อเนื่อง",
       "lines": [
         "PRO2·B"
       ],
@@ -285,10 +344,11 @@ window.__LIVE_DATA__ = {
         "10:00-11:00",
         "11:00-12:00",
         "14:00-15:00",
-        "15:00-16:00"
+        "15:00-16:00",
+        "16:00-17:00"
       ],
-      "count": 4,
-      "total_impact": -428
+      "count": 5,
+      "total_impact": -553
     },
     {
       "name": "焊接柜启动4台可用，逐步切割积压待焊件（-22件），影响Rotor Line。Micro jig量具用于测量Crankcase已磨损，导致测量精度不良，产生NG件。IP介入检查，等待Final期间将压缩机上线焊接（-120件）。KV检测机频",
@@ -298,13 +358,14 @@ window.__LIVE_DATA__ = {
       ],
       "times": [
         "08:00-09:00",
-        "09:00-10:00"
+        "09:00-10:00",
+        "16:00-17:00"
       ],
-      "count": 2,
-      "total_impact": -144
+      "count": 3,
+      "total_impact": -186
     },
     {
-      "name": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减常规产量，导致B-Line Final产出不连续。",
+      "name": "(-62) 将急出货SZ40F1E-9KBL优先上线焊接，削减已投产任务，导致B-Line Final产出不连续。",
       "name_th": "(-62) นำงานเร่งส่งรุ่น SZ40F1E-9KBL ขึ้นเชื่อม และตัดงานที่ผลิตลง งานจึงออกไม่ต่อเนื่อง(-62) B-Line Final",
       "lines": [
         "PRO2·B"
@@ -375,6 +436,7 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
+
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
