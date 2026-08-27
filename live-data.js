@@ -3,7 +3,8 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-27 16:20:23
+   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
+   最后写入: 2026-08-27 17:10:05
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -375,7 +376,6 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
-
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
@@ -561,18 +561,24 @@ window.__HISTORY__ = [
       "Inspection B": 86.1,
       "Inspection C": 50.7,
       "Inspection D": 0.0
-    },
-    "first_hour": {
-      "PRO2·A": 67.0,
-      "PRO2·B": 88.3,
-      "PRO2·C": 94.6,
-      "RPO1·F系列": 92.2,
-      "RPO1·H系列": 117.9,
-      "RPO1·S系列": 100.0
     }
   },
   {
     "date": "2026-08-27",
+    "lines": {
+      "Final A line": 80.6,
+      "Final B Line": 71.6,
+      "Final C line": 97.1,
+      "Final D line": 101.9,
+      "Motor H-Series": 89.8,
+      "Motor S-Series": 84.9,
+      "Motor F-Series": 0.7,
+      "Motor WL": 114.0,
+      "Inspection A": 71.5,
+      "Inspection B": 89.2,
+      "Inspection C": 65.1,
+      "Inspection D": 0.1
+    },
     "first_hour": {
       "RPO1·H系列": 102.4,
       "RPO1·S系列": 110.7,
