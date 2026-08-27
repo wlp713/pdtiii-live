@@ -560,7 +560,7 @@
       </div>
       <button class="ex-expand" onclick="openDetail('problems')" title="⛶ 查看全部问题点" data-i18n-title="expandProb">⛶</button>
       <div class="ex-body" id="prob-body"></div>
-      <div class="ex-tools"><button class="ex-btn" onclick="openProbModal()">✏️ 录入</button><span class="ex-hint">自动提取 + 手工录入</span></div>
+      <div class="ex-tools"><span class="ex-hint" data-i18n="probExHint">每小时自动更新</span></div>
     </section>
 
     <!-- 拖拽手柄: 左右拉伸趋势图宽度, 其他模块自动让位 -->
@@ -605,30 +605,7 @@
   </div>
 </div>
 
-<!-- 问题点手工录入弹窗 (2026-08-27: 网页端更新问题点, localStorage + Firebase 跨端同步) -->
-<div class="ex-modal" id="probModal">
-  <div class="ex-modal-box">
-    <h3>🚨 录入问题点</h3>
-    <div class="ex-form">
-      <div class="ex-form-row">
-        <div><label>日期</label><input id="probF-date" style="width:120px"></div>
-        <div style="flex:1"><label>线体</label><select id="probF-line" class="ex-input"></select></div>
-      </div>
-      <div class="ex-form-row">
-        <div><label>时段</label><input id="probF-time" placeholder="如 08:00-09:00" style="width:140px"></div>
-        <div><label>影响(台)</label><input id="probF-impact" type="number" placeholder="0" style="width:90px"></div>
-      </div>
-      <div class="ex-form-row">
-        <div style="flex:1"><label>问题描述 (中/泰)</label><textarea id="probF-text" rows="3" style="width:100%"></textarea></div>
-      </div>
-      <div id="probF-msg" style="font-size:12px;color:var(--gray);margin-top:4px"></div>
-      <div class="ex-form-actions">
-        <button class="ex-btn" onclick="closeProbModal()">取消</button>
-        <button class="ex-btn" onclick="saveProbModal()">💾 保存</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- 2026-08-21: 问题点录入弹窗已取消 (Top3 数据由每小时自动同步, 无需手工录入) -->
 
 <!-- 2026-08-20 15:30 详情大弹窗 (模块扩展查看: 趋势大图/全部问题点/完整出勤表) -->
 <div class="detail-modal" id="detailModal">
@@ -2465,14 +2442,13 @@ function getExtraData() {
   // 2026-08-21 13:30: AI 语义聚合的主要问题点 TOP3 (同一问题跨时段合并累计影响, 每小时自动更新)
   //    优先展示; 无则退回全量 problems 旧逻辑
   const top = (ld.problems_top || []).slice();
-  // 2026-08-21: 问题点自动数据全部来自每小时同步 (live-data.js)
-  // 2026-08-27: 手工录入的问题点独立存 Firebase, 渲染时自动区下方追加 ✋ 手工区
-  const manualProblems = getManualProblems();
+  // 2026-08-21: 问题点手动录入功能已取消 (数据全部来自每小时自动同步)
+  // 出勤率 = 纯手动录入 (2026-08-21 起不再读 live attendance), localStorage + Firebase 跨端同步
   try {
     const ma = attReadLocal();
-    if (ma && ma.rows && ma.rows.length) return { attendance: ma, problems: probs, top: top, manual: true, manualProblems: manualProblems };
+    if (ma && ma.rows && ma.rows.length) return { attendance: ma, problems: probs, top: top, manual: true };
   } catch (e) {}
-  return { attendance: null, problems: probs, top: top, manual: false, manualProblems: manualProblems };
+  return { attendance: null, problems: probs, top: top, manual: false };
 }
 
 function renderExtra() {
@@ -2896,25 +2872,6 @@ function renderProblems() {
       fitProbFont();
     }
   }
-  // 2026-08-27: 手工录入问题点 (Firebase 跨端同步) 追加在自动数据下方
-  appendManualProblems();
-}
-
-// ── 2026-08-27: 手工录入问题点渲染区 (✋ 标记, 可删除) ──
-function appendManualProblems() {
-  const body = document.getElementById("prob-body");
-  const manual = getManualProblems();
-  if (!body || !manual.length) return;
-  const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
-  const rows = manual.map(p => {
-    const id = String(p.id || "");
-    const t = p.time ? "<span class='prob-time'>" + escapeHtml(p.time) + "</span> " : "";
-    const imp = (p.impact != null && p.impact !== "") ? " <b style='color:var(--red)'>-" + Number(p.impact) + "台</b>" : "";
-    return "<tr><td class='prob-line'>✋ " + escapeHtml(p.line || "其他") + "</td><td class='prob-cell'><div class='prob-top'>" + t +
-      "<span class='prob-txt'>" + escapeHtml(String(p.problem || "")) + "</span>" + imp +
-      " <span onclick='delManualProblem(\"" + id + "\")' title='" + (zh ? "删除" : "Delete") + "' style='cursor:pointer;color:var(--gray);font-size:11px;margin-left:6px'>🗑</span></div></td></tr>";
-  }).join("");
-  body.innerHTML += "<div style='margin-top:6px;border-top:1px dashed var(--border);padding-top:4px'><div style='font-size:11px;color:var(--gray)'>✋ " + (zh ? "手工录入" : "Manual entry") + "</div><table class='mod-table'><tbody>" + rows + "</tbody></table></div>";
 }
 
 // ── 2026-08-20 14:05 未达成原因模块字体自适应: 内容超出时逐级缩小字号, 绝不出现滚动条 ──
@@ -3257,71 +3214,6 @@ function saveAttModal() {
   renderAttendance();
 }
 
-// ── 问题点手工录入 (2026-08-27): 旧设备网页端更新问题点, localStorage + Firebase 双写, 全设备同步 ──
-//   自动提取(Excel→live-data.js)与手工录入互不覆盖: 手工单独存 Firebase pdtiii_problems_manual 节点
-const PROB_MANUAL_KEY = "pdtiii_manual_problems_v1";
-const PROB_FB_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii_problems_manual.json";
-const PROB_LINES = ["Final A line","Final B Line","Final C line","Final D line","Motor H-Series","Motor S-Series","Motor F-Series","Motor WL","Inspection A","Inspection B","Inspection C","Inspection D","其他"];
-function probReadLocal() { try { return JSON.parse(localStorage.getItem(PROB_MANUAL_KEY) || "null"); } catch (e) { return null; } }
-function probWriteLocal(rec) { try { localStorage.setItem(PROB_MANUAL_KEY, JSON.stringify(rec)); } catch (e) {} }
-function probWriteRemote(rec) { return fetch(PROB_FB_URL, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rec), signal: AbortSignal.timeout(8000) }).catch(() => null); }
-function probReadRemote() { return fetch(PROB_FB_URL + "?t=" + Date.now(), { signal: AbortSignal.timeout(8000) }).then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }).catch(() => null); }
-function probSyncFromRemote() {
-  probReadRemote().then(remote => {
-    if (!remote || !remote.list || !remote.list.length) return;
-    const local = probReadLocal();
-    const rT = Number(remote.savedAt || 0);
-    const lT = Number((local && local.savedAt) || 0);
-    if (rT > lT) { probWriteLocal(remote); renderProblems(); }
-  });
-}
-function getManualProblems(dateStr) {
-  const d = dateStr || todayKey();
-  const rec = probReadLocal();
-  if (!rec || !Array.isArray(rec.list)) return [];
-  return rec.list.filter(p => p.date === d);
-}
-function openProbModal() {
-  const d = document.getElementById("probF-date");
-  if (d) d.value = todayKey();
-  const sel = document.getElementById("probF-line");
-  if (sel && !sel.options.length) {
-    sel.innerHTML = PROB_LINES.map(l => "<option value='" + l + "'>" + l + "</option>").join("");
-  }
-  const t = document.getElementById("probF-text"); if (t) t.value = "";
-  const im = document.getElementById("probF-impact"); if (im) im.value = "";
-  const tm = document.getElementById("probF-time"); if (tm) tm.value = "";
-  const msg = document.getElementById("probF-msg"); if (msg) msg.textContent = "";
-  document.getElementById("probModal").classList.add("open");
-}
-function closeProbModal() { document.getElementById("probModal").classList.remove("open"); }
-function saveProbModal() {
-  const date = (document.getElementById("probF-date").value || todayKey()).trim();
-  const line = document.getElementById("probF-line").value || "其他";
-  const time = (document.getElementById("probF-time").value || "").trim();
-  const problem = (document.getElementById("probF-text").value || "").trim();
-  const impact = parseFloat(document.getElementById("probF-impact").value) || 0;
-  if (!problem) { const m = document.getElementById("probF-msg"); if (m) m.textContent = "⚠️ 请填写问题描述"; return; }
-  const rec = probReadLocal() || { list: [], savedAt: 0 };
-  if (!Array.isArray(rec.list)) rec.list = [];
-  rec.list.push({ id: "p" + Date.now(), date: date, line: line, time: time, problem: problem, impact: impact, manual: true, savedAt: Date.now() });
-  rec.savedAt = Date.now();
-  probWriteLocal(rec);
-  probWriteRemote(rec);
-  closeProbModal();
-  renderProblems();
-}
-function delManualProblem(id) {
-  if (!id) return;
-  const rec = probReadLocal();
-  if (!rec || !Array.isArray(rec.list)) return;
-  rec.list = rec.list.filter(p => p.id !== id);
-  rec.savedAt = Date.now();
-  probWriteLocal(rec);
-  probWriteRemote(rec);
-  renderProblems();
-}
-
 // 2026-08-21: 问题点手动录入功能已取消 (数据全部由 extract_problems.py 每小时自动同步)
 
 // ── 模式按钮 ──
@@ -3391,7 +3283,6 @@ initTrendResize();
 window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); });
 setInterval(renderExtra, 60000);
 attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同步)
-probSyncFromRemote(); // 2026-08-27: 页面加载即拉取云端手工问题点 (跨端同步)
 setInterval(attSyncFromRemote, 7200000); // 每2小时同步一次 (2026-08-21 11:46 用户要求: 60s太浪费资源)
 // ★ 每日17:00自动快照 (页面开着时): 检查是否到17:00且今天未快照过
 setInterval(function () {
