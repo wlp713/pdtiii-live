@@ -877,9 +877,9 @@ function signClass(v) {
 }
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
 // ★ 2026-08-24: 计划停产线体名单(带日期范围) — 灰色标注"计划停产", 不触发红色停滞预警
-//   本周 Motor WL 计划停产 (08-24 ~ 08-28), 到期自动恢复; 后续停产修改此表即可
+//   2026-08-27: Motor WL 已恢复生产, 移除; Motor F-Series 停产 (08-27 ~ 08-28), 到期自动恢复; 后续停产修改此表即可
 const PLANNED_OFF = [
-  { name: "Motor WL", from: "2026-08-24", to: "2026-08-28" }
+  { name: "Motor F-Series", from: "2026-08-27", to: "2026-08-28" }
 ];
 function isPlannedOff(l) {
   if (!l || !l.name) return false;
