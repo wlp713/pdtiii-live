@@ -3,13 +3,124 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-27 00:00:01
+   最后写入: 2026-08-27 09:09:48
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
-  "problems_top": null,
-  "first_hour": []
+  "problems": [
+    {
+      "date": "2026-08-27",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
+      "problem_zh": "WIP库存不足，导致后续作业无法连续进行。",
+      "plan": 168,
+      "actual": 172,
+      "impact": 4
+    },
+    {
+      "date": "2026-08-27",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "ปืนเชื่อม D Pipe สายไฟหลุด ได้ทำการแก้ไขแล้ว (-21) ประเต็งหล่นขัดลิฟต์จุดเช็ค thrust gap PEเข้าแก้ไขแล้ว (-30) งานติด Air gap เช็คยาก (-50) ผลกระทบ Rotor Line งานฝืดและสดุดทำให้ทะยอยออกตู้ Cooling",
+      "problem_zh": "碰焊机D Pipe焊枪电线脱落，已修复（-21）。碰焊件掉落卡住升降机，thrust gap检查点PE已处理（-30）。Air gap装配检查困难（-50）。影响Rotor线作业，运行卡滞不顺，导致冷却柜产品陆续流出。",
+      "plan": 417,
+      "actual": 299,
+      "impact": -118
+    },
+    {
+      "date": "2026-08-27",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-129) พนักงานใหม่เข้าจุด (-30) ติดตามเร่งสกิลความเร็ว งานรั่ว DV Line Out ออกต่อเนื่อง ส่งผลกระทบ",
+      "problem_zh": "(-129) 新员工到岗，(-30) 跟进提速技能。DV线Out口泄漏件连续流出，造成影响。",
+      "plan": 470,
+      "actual": 341,
+      "impact": -129
+    }
+  ],
+  "problems_top": [
+    {
+      "name": "(-129) 新员工到岗，(-30) 跟进提速技能。DV线Out口泄漏件连续流出，造成影响。",
+      "name_th": "(-129) พนักงานใหม่เข้าจุด (-30) ติดตามเร่งสกิลความเร็ว งานรั่ว DV Line Out ออกต่อเนื่อง ส่งผลกระทบ",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "8:00-9:00"
+      ],
+      "count": 1,
+      "total_impact": -129
+    },
+    {
+      "name": "碰焊机D Pipe焊枪电线脱落，已修复（-21）。碰焊件掉落卡住升降机，thrust gap检查点PE已处理（-30）。Air gap装配检查困难（-50）。影响Rotor线作业，运行卡滞不顺，导致冷却柜产品陆续流出。",
+      "name_th": "ปืนเชื่อม D Pipe สายไฟหลุด ได้ทำการแก้ไขแล้ว (-21) ประเต็งหล่นขัดลิฟต์จุดเช็ค thrust gap PEเข้าแก้ไขแล้ว (-30) งานติด Ai",
+      "lines": [
+        "PRO2·A"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -118
+    },
+    {
+      "name": "WIP库存不足，导致后续作业无法连续进行。",
+      "name_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
+      "lines": [
+        "RPO1·H系列"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": 4
+    }
+  ],
+  "first_hour": [
+    {
+      "date": "2026-08-27",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 172,
+      "rate": 102.4
+    },
+    {
+      "date": "2026-08-27",
+      "ws": "RPO1",
+      "series": "WL系列",
+      "line": "RPO1·WL系列",
+      "target": 145,
+      "actual": 191,
+      "rate": 131.7
+    },
+    {
+      "date": "2026-08-27",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 417,
+      "actual": 299,
+      "rate": 71.7
+    },
+    {
+      "date": "2026-08-27",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 341,
+      "rate": 72.6
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -205,6 +316,15 @@ window.__HISTORY__ = [
       "RPO1·F系列": 92.2,
       "RPO1·H系列": 117.9,
       "RPO1·S系列": 100.0
+    }
+  },
+  {
+    "date": "2026-08-27",
+    "first_hour": {
+      "RPO1·H系列": 102.4,
+      "RPO1·WL系列": 131.7,
+      "PRO2·A": 71.7,
+      "PRO2·B": 72.6
     }
   }
 ];
