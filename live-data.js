@@ -3,13 +3,154 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-28 00:00:03
+   最后写入: 2026-08-28 09:40:06
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
-  "problems_top": null,
-  "first_hour": []
+  "problems": [
+    {
+      "date": "2026-08-28",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
+      "problem_zh": "WIP库存不足，导致后续作业无法连续进行。",
+      "plan": 168,
+      "actual": 175,
+      "impact": 7
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "ผลกระทบ Rotor Line งานรุ่น SZ59F1E-9YEL ฝืดและสะดุดออกอย่างต่อเนื่อง ทำให้งานทะยอยออกตู้ Cooling",
+      "problem_zh": "Rotor Line生产SZ59F1E-9YEL时，工件卡滞并连续停顿，导致工件无法及时进入Cooling柜，影响产出连续性。",
+      "plan": 430,
+      "actual": 372,
+      "impact": -58
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-28) เครื่องเช็คความต้านทาน Alarm บ่อย (-28) cal. ปลั๊กใหม่แล้ว",
+      "problem_zh": "(-28)绝缘电阻检测机频繁报警，已更换新插头并校准。",
+      "plan": 470,
+      "actual": 442,
+      "impact": -28
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องขัน COVER B เสีย-74 ( PE หยุดเครื่องเพื่อแก้ไข) ระหว่างแก้ไขให้พนักงานช่วยขันแน่นแทนชั่วคราว",
+      "problem_zh": "COVER B拧紧机故障-74（PE停机维修），维修期间由员工手动拧紧临时替代。",
+      "plan": 444,
+      "actual": 370,
+      "impact": -74
+    }
+  ],
+  "problems_top": [
+    {
+      "name": "COVER B拧紧机故障-74（PE停机维修），维修期间由员工手动拧紧临时替代。",
+      "name_th": "เครื่องขัน COVER B เสีย-74 ( PE หยุดเครื่องเพื่อแก้ไข) ระหว่างแก้ไขให้พนักงานช่วยขันแน่นแทนชั่วคราว",
+      "lines": [
+        "PRO2·C"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -74
+    },
+    {
+      "name": "Rotor Line生产SZ59F1E-9YEL时，工件卡滞并连续停顿，导致工件无法及时进入Cooling柜，影响产出连续性。",
+      "name_th": "ผลกระทบ Rotor Line งานรุ่น SZ59F1E-9YEL ฝืดและสะดุดออกอย่างต่อเนื่อง ทำให้งานทะยอยออกตู้ Cooling",
+      "lines": [
+        "PRO2·A"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -58
+    },
+    {
+      "name": "(-28)绝缘电阻检测机频繁报警，已更换新插头并校准。",
+      "name_th": "(-28) เครื่องเช็คความต้านทาน Alarm บ่อย (-28) cal. ปลั๊กใหม่แล้ว",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "8:00-9:00"
+      ],
+      "count": 1,
+      "total_impact": -28
+    }
+  ],
+  "first_hour": [
+    {
+      "date": "2026-08-28",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 175,
+      "rate": 104.2
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 150,
+      "actual": 124,
+      "rate": 82.7
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "RPO1",
+      "series": "WL系列",
+      "line": "RPO1·WL系列",
+      "target": 145,
+      "actual": 236,
+      "rate": 162.8
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 430,
+      "actual": 372,
+      "rate": 86.5
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 442,
+      "rate": 94.0
+    },
+    {
+      "date": "2026-08-28",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 370,
+      "rate": 83.3
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -222,6 +363,17 @@ window.__HISTORY__ = [
       "PRO2·A": 69.5,
       "PRO2·B": 72.6,
       "PRO2·C": 100.0
+    }
+  },
+  {
+    "date": "2026-08-28",
+    "first_hour": {
+      "RPO1·H系列": 104.2,
+      "RPO1·S系列": 82.7,
+      "RPO1·WL系列": 162.8,
+      "PRO2·A": 86.5,
+      "PRO2·B": 94.0,
+      "PRO2·C": 83.3
     }
   }
 ];
