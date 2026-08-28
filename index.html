@@ -2587,7 +2587,8 @@ const MAIN_TREND_LINES = [
 const TREND_EXCLUDE = ["Rotor A line"];
 function renderTrend() {
   const wrap = document.getElementById("trend-lines");
-  const hist = getTrendHist();
+  // ★ 2026-08-28 用户要求: 趋势图最多显示最近7天, 动态跟随 (存储层保留全量, 展示层截断)
+  const hist = getTrendHist().slice(-7);
   const lineNames = [];
   hist.forEach(d => { (Object.keys(trendValsOf(d))).forEach(n => { if (lineNames.indexOf(n) < 0) lineNames.push(n); }); });
   // ★ 标题: 动态时间范围 + 数据源模式 (2026-08-25: 达成率/首小时切换)
@@ -2650,7 +2651,7 @@ function drawTrend() {
   const wrap = document.getElementById("chartTrend");
   const hist = getTrendHist();
   if (!wrap) return;
-  const days = hist.slice(-14); // 近14天足够看趋势
+  const days = hist.slice(-7); // ★ 2026-08-28: 最多显示最近7天趋势
   if (!days.length) {
     wrap.innerHTML = "<div style='color:var(--gray);font-size:10px;padding:8px 2px'>暂无历史数据</div>";
     return;
@@ -2923,7 +2924,7 @@ function renderDetail(type) {
 // ★ 2026-08-21 12:01: 单线体趋势放大图 (点击趋势卡片触发)
 function renderDetailLine(title, modes, src, body, zh) {
   const n = detailLineName;
-  const hist = getTrendHist();
+  const hist = getTrendHist().slice(-7); // ★ 2026-08-28: 最多7天
   if (!n || !hist.length) {
     body.innerHTML = "<div style='color:var(--gray);padding:30px;text-align:center'>" + (zh ? "暂无历史数据" : "No history") + "</div>";
     modes.innerHTML = ""; src.textContent = "SRC: -";
@@ -2937,7 +2938,7 @@ function renderDetailLine(title, modes, src, body, zh) {
 }
 function drawTrendDetailLine() {
   const cv = document.getElementById("chartTrendDetail");
-  const hist = getTrendHist();
+  const hist = getTrendHist().slice(-7); // ★ 2026-08-28: 最多7天
   if (!cv || !hist.length || !detailLineName) return;
   const dpr = window.devicePixelRatio || 1;
   const W = cv.clientWidth, H = cv.clientHeight || 300;
@@ -2947,7 +2948,7 @@ function drawTrendDetailLine() {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
   const n = detailLineName;
-  const days = hist.slice(-30);
+  const days = hist.slice(-7); // ★ 2026-08-28: 最多7天
   const padL = 46, padB = 24, padT = 22;
   const cw = W - padL - 16, ch = H - padT - padB;
   const yMin = 60, yMax = 120; // 与主页卡片一致, 目标线100%固定
@@ -3000,7 +3001,8 @@ function drawTrendDetailLine() {
 // ── 趋势详情: 大图 + 形态切换 (全部线/仅选中/仅≥100%) ──
 function renderDetailTrend(title, modes, src, body, zh) {
   title.textContent = (trendMode === "first" ? (zh ? "⏰ 首小时达成趋势 · 详细大图" : "⏰ First-Hour Trend · Detailed") : (zh ? "📈 达成率趋势 · 详细大图" : "📈 Rate Trend · Detailed"));
-  const hist = getTrendHist();
+  // ★ 2026-08-28: 最多显示最近7天 (展示层截断, 存储层保留全量)
+  const hist = getTrendHist().slice(-7);
   if (!hist.length) {
     body.innerHTML = "<div style='color:var(--gray);padding:30px;text-align:center'>" + (zh ? "暂无历史数据 — 每日17:00自动快照后出现" : "No history — appears after daily 17:00 snapshot") + "</div>";
     modes.innerHTML = ""; src.textContent = "SRC: -";
@@ -3042,7 +3044,7 @@ function toggleTrendDetailLine(el) {
 }
 function drawTrendDetail() {
   const cv = document.getElementById("chartTrendDetail");
-  const hist = getTrendHist();
+  const hist = getTrendHist().slice(-7); // ★ 2026-08-28: 最多7天
   if (!cv || !hist.length) return;
   const dpr = window.devicePixelRatio || 1;
   const W = cv.clientWidth, H = cv.clientHeight || 300;
@@ -3051,7 +3053,7 @@ function drawTrendDetail() {
   const ctx = cv.getContext("2d");
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, W, H);
-  const days = hist.slice(-30);
+  const days = hist.slice(-7); // ★ 2026-08-28: 最多7天
   const padL = 40, padB = 22, padT = 20;
   const cw = W - padL - 14, ch = H - padT - padB;
   let names = Object.keys(trendSel).filter(n => trendSel[n]);
