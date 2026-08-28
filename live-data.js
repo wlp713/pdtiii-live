@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-28 09:40:06
+   最后写入: 2026-08-28 10:00:07
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "08:00-09:00",
       "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
-      "problem_zh": "WIP库存不足，导致后续作业无法连续进行。",
+      "problem_zh": "线尾WIP有库存，保证产出连续性。",
       "plan": 168,
       "actual": 175,
       "impact": 7
@@ -27,7 +27,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "ผลกระทบ Rotor Line งานรุ่น SZ59F1E-9YEL ฝืดและสะดุดออกอย่างต่อเนื่อง ทำให้งานทะยอยออกตู้ Cooling",
-      "problem_zh": "Rotor Line生产SZ59F1E-9YEL时，工件卡滞并连续停顿，导致工件无法及时进入Cooling柜，影响产出连续性。",
+      "problem_zh": "Rotor Line 生产 SZ59F1E-9YEL 时，工件卡滞并持续停顿，导致 Cooling 柜出货延迟。",
       "plan": 430,
       "actual": 372,
       "impact": -58
@@ -51,7 +51,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "เครื่องขัน COVER B เสีย-74 ( PE หยุดเครื่องเพื่อแก้ไข) ระหว่างแก้ไขให้พนักงานช่วยขันแน่นแทนชั่วคราว",
-      "problem_zh": "COVER B拧紧机故障-74（PE停机维修），维修期间由员工手动拧紧临时替代。",
+      "problem_zh": "COVER B拧紧机故障-74（PE停机维修），维修期间临时安排员工手动拧紧。",
       "plan": 444,
       "actual": 370,
       "impact": -74
@@ -59,7 +59,7 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "COVER B拧紧机故障-74（PE停机维修），维修期间由员工手动拧紧临时替代。",
+      "name": "COVER B拧紧机故障-74（PE停机维修），维修期间临时安排员工手动拧紧。",
       "name_th": "เครื่องขัน COVER B เสีย-74 ( PE หยุดเครื่องเพื่อแก้ไข) ระหว่างแก้ไขให้พนักงานช่วยขันแน่นแทนชั่วคราว",
       "lines": [
         "PRO2·C"
@@ -71,7 +71,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -74
     },
     {
-      "name": "Rotor Line生产SZ59F1E-9YEL时，工件卡滞并连续停顿，导致工件无法及时进入Cooling柜，影响产出连续性。",
+      "name": "Rotor Line 生产 SZ59F1E-9YEL 时，工件卡滞并持续停顿，导致 Cooling 柜出货延迟。",
       "name_th": "ผลกระทบ Rotor Line งานรุ่น SZ59F1E-9YEL ฝืดและสะดุดออกอย่างต่อเนื่อง ทำให้งานทะยอยออกตู้ Cooling",
       "lines": [
         "PRO2·A"
