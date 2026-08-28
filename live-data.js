@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-08-28 10:00:07
+   最后写入: 2026-08-28 10:10:07
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·H系列",
       "time": "08:00-09:00",
       "problem_th": "มีstock wip ท้ายทำให้งานออกต่อเนื่อง",
-      "problem_zh": "线尾WIP有库存，保证产出连续性。",
+      "problem_zh": "WIP库存不足，导致后续作业无法连续进行。",
       "plan": 168,
       "actual": 175,
       "impact": 7
@@ -27,7 +27,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "ผลกระทบ Rotor Line งานรุ่น SZ59F1E-9YEL ฝืดและสะดุดออกอย่างต่อเนื่อง ทำให้งานทะยอยออกตู้ Cooling",
-      "problem_zh": "Rotor Line 生产 SZ59F1E-9YEL 时，工件卡滞并持续停顿，导致 Cooling 柜出货延迟。",
+      "problem_zh": "Rotor Line生产SZ59F1E-9YEL型号时，工件卡滞并连续停顿，导致冷却柜出货延迟。",
       "plan": 430,
       "actual": 372,
       "impact": -58
@@ -39,7 +39,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-28) เครื่องเช็คความต้านทาน Alarm บ่อย (-28) cal. ปลั๊กใหม่แล้ว",
-      "problem_zh": "(-28)绝缘电阻检测机频繁报警，已更换新插头并校准。",
+      "problem_zh": "(-28) 绝缘电阻检测机频繁报警，已更换新插头并校准。",
       "plan": 470,
       "actual": 442,
       "impact": -28
@@ -71,7 +71,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -74
     },
     {
-      "name": "Rotor Line 生产 SZ59F1E-9YEL 时，工件卡滞并持续停顿，导致 Cooling 柜出货延迟。",
+      "name": "Rotor Line生产SZ59F1E-9YEL型号时，工件卡滞并连续停顿，导致冷却柜出货延迟。",
       "name_th": "ผลกระทบ Rotor Line งานรุ่น SZ59F1E-9YEL ฝืดและสะดุดออกอย่างต่อเนื่อง ทำให้งานทะยอยออกตู้ Cooling",
       "lines": [
         "PRO2·A"
@@ -83,7 +83,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -58
     },
     {
-      "name": "(-28)绝缘电阻检测机频繁报警，已更换新插头并校准。",
+      "name": "(-28) 绝缘电阻检测机频繁报警，已更换新插头并校准。",
       "name_th": "(-28) เครื่องเช็คความต้านทาน Alarm บ่อย (-28) cal. ปลั๊กใหม่แล้ว",
       "lines": [
         "PRO2·B"
