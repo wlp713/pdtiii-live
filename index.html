@@ -3300,6 +3300,28 @@ setInterval(function () {
 }, 60000);
 // 首次加载后嵌入问题点 (此时主表格已由 refresh 渲染)
 setTimeout(function () { renderProblems(); }, 300);
+// ★ 2026-08-28 用户要求: 问题点/出勤/趋势自动热更新, 不用刷新网页
+//    每5分钟重新拉取 live-data.js (no-store 防缓存), 数据到位后整体重渲染
+//    问题点同步周期 10 分钟 → 5 分钟轮询保证每次更新最多延迟 5 分钟可见
+function reloadLiveData() {
+  fetch("live-data.js?t=" + Date.now(), { cache: "no-store", signal: AbortSignal.timeout(20000) })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function (txt) {
+      try {
+        var sc = document.createElement("script");
+        var closeTag = "<" + "/script"; // 拼接避免源码里出现 </script 字面量 (HTML解析器会提前闭合)
+        sc.textContent = txt.split(closeTag).join("<\\/script");
+        document.head.appendChild(sc);
+        sc.remove();
+        if (typeof window.__LIVE_DATA__ !== "undefined" && typeof window.__HISTORY__ !== "undefined") {
+          renderExtra(); // 出勤/问题点/趋势 全部用最新数据重渲染
+        }
+      } catch (e) { /* 数据解析失败则保持旧数据, 下轮重试 */ }
+    })
+    .catch(function () { /* 网络失败静默, 下轮重试 */ });
+}
+setTimeout(function () { reloadLiveData(); }, 20000); // 首轮延后20秒 (页面加载完)
+setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一次
 </script>
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
