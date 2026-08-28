@@ -2103,6 +2103,7 @@ function renderHistReplay(snap, histDays) {
     const badge = it.prevDay ? "<span class='rep-badge rep-day'>🔁 " + (zh ? "前日" : "yday") + "</span>" : (it.prevWeek ? "<span class='rep-badge rep-week'>🔁 " + (zh ? "前周" : "week") + "</span>" : "");
     return "<div class='prob-row' style='padding:6px 2px;border-bottom:1px solid var(--border)'>" +
       "<div style='display:flex;align-items:center;gap:5px;flex-wrap:wrap'><b style='font-size:10.5px'>" + (p.line || p.ws || "-") + "</b>" +
+      (p.shift ? "<span style='font-size:8.5px;padding:0 5px;border-radius:6px;background:" + (p.shift === "night" ? "#1f6feb" : "#d29922") + "22;color:" + (p.shift === "night" ? "#58a6ff" : "#d29922") + ";border:1px solid " + (p.shift === "night" ? "#58a6ff55" : "#d2992255") + "'>" + (zh ? (p.shift === "night" ? "晚班" : "白班") : (p.shift === "night" ? "Night" : "Day")) + "</span>" : "") +
       "<span style='color:var(--gray);font-size:9.5px'>" + (p.time || "") + "</span>" +
       "<span style='color:var(--red);font-weight:700;font-size:10.5px'>" + (Number(p.impact) <= 0 ? "" : "+") + (p.impact || 0) + "台</span>" +
       "<span class='cat-tag' style='font-size:9px;padding:1px 6px;border-radius:8px;background:" + c.color + "22;color:" + c.color + ";border:1px solid " + c.color + "55'>" + (zh ? c.zh : c.en) + "</span>" + badge + "</div>" +
@@ -2860,8 +2861,11 @@ function renderProblems() {
       const period = times.length ? (fmtTime(times[0]) + " ~ " + fmtTime(times[times.length - 1])) : "全天";
       const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
       const absImp = Math.abs(totalImpact);
-      const summary = "<div class='prob-summary'>📋 <b>" + period + "</b> · 共" + problems.length + "条 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b></div>";
-      if (src) src.textContent = "SRC: AI分组 " + top3.length + " / " + problems.length + "条";
+      // ★ 2026-08-28 班次化: summary 显示当前班次
+      const pSh = (problems[0] && problems[0].shift) || "";
+      const shTxt = pSh ? (pSh === "night" ? "晚班 · " : "白班 · ") : "";
+      const summary = "<div class='prob-summary'>📋 <b>" + shTxt + period + "</b> · 共" + problems.length + "条 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b></div>";
+      if (src) src.textContent = "SRC: " + (pSh === "night" ? "晚班" : (pSh === "day" ? "白班" : "")) + " AI分组 " + top3.length + " / " + problems.length + "条";
       const rows = top3.map((item, bi) => {
         // 2026-08-24: 跨线体合并时显示全部涉及线体(join), 不再只显示 lines[0] 造成内容错位
         const bname = (item.lines && item.lines.length) ? String(item.lines.join("、")) : "-";
@@ -2896,8 +2900,11 @@ function renderProblems() {
       const times = problems.map(p => Number(p.time)).filter(t => !isNaN(t)).sort((a, b) => a - b);
       const period = times.length ? (fmtTime(times[0]) + " ~ " + fmtTime(times[times.length - 1])) : "全天";
       const absImp = Math.abs(totalImpact);
-      const summary = "<div class='prob-summary'>📋 <b>" + period + "</b> · 共" + problems.length + "条问题 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b> · 影响最大线体 <b style='color:var(--orange)'>" + topLine + "</b>(-"+ absTop + "台)</div>";
-      if (src) src.textContent = t("probSrcFmt").replace("{n}", problems.length).replace("{m}", perLine.length);
+      // ★ 2026-08-28 班次化: summary 显示当前班次
+      const pSh = (problems[0] && problems[0].shift) || "";
+      const shTxt = pSh ? (pSh === "night" ? "晚班 · " : "白班 · ") : "";
+      const summary = "<div class='prob-summary'>📋 <b>" + shTxt + period + "</b> · 共" + problems.length + "条问题 · 累计影响 <b style='color:var(--red)'>-" + absImp + "台</b> · 影响最大线体 <b style='color:var(--orange)'>" + topLine + "</b>(-"+ absTop + "台)</div>";
+      if (src) src.textContent = "SRC: " + (pSh === "night" ? "晚班" : (pSh === "day" ? "白班" : "")) + " " + t("probSrcFmt").replace("{n}", problems.length).replace("{m}", perLine.length);
       const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
       const rows = perLine.map((item, bi) => {
         const bname = item.bname, p = item.best;
