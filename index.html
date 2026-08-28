@@ -1267,80 +1267,98 @@ function initNotif() {
   });
 }
 
-// ---- 小时产量分段: 实际柱与目标柱共用同一时段骨架(逐段对齐, 直接对比每时段实际 vs 目标差异) ----
-// 编号规则: 工作时间 8-17点, 12-13点午休忽略
-//   8-9=1, 9-10=2, 10-11=3, 11-12=4, (12-13午休), 13-14=5, 14-15=6, 15-16=7, 16-17=8
-function hourNo(lab) {
-  if (lab >= 8 && lab <= 11) return lab - 7;   // 8→1, 9→2, 10→3, 11→4
-  if (lab >= 13 && lab <= 16) return lab - 8;  // 13→5, 14→6, 15→7, 16→8
-  return null; // 12午休 / 其他不统计
+// ---- 前端采样: 页面开着时每60秒记一次各线实际累计 (localStorage) → 班次时段边界产量越算越准 ----
+const SAMP_KEY = "pdtiii_samps_v1";
+let sampStore = null;
+function loadSamps() {
+  if (sampStore) return sampStore;
+  try { sampStore = JSON.parse(localStorage.getItem(SAMP_KEY) || "{}") || {}; } catch (e) { sampStore = {}; }
+  return sampStore;
+}
+function saveSamps() {
+  try { localStorage.setItem(SAMP_KEY, JSON.stringify(sampStore)); } catch (e) { /* ignore */ }
+}
+function sampleNow() {
+  const now = Date.now();
+  const store = loadSamps();
+  state.lines.forEach(function (l) {
+    const arr = store[l.name] || (store[l.name] = []);
+    const last = arr[arr.length - 1];
+    if (last && now - last.ts < 60000) return;
+    arr.push({ ts: now, a: Number(l.actual) || 0 });
+    const cut = now - 48 * 3600 * 1000;
+    while (arr.length && arr[0].ts < cut) arr.shift();
+  });
+  saveSamps();
+}
+// ≤t 最近的已知累计值 (t=当天0点基准分钟, 可>1440跨天; 优先采样, 其次hourly整点定格, 最后实时)
+function valueAt(name, t, usePlan) {
+  const now = new Date();
+  const day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const tMs = day0 + t * 60000;
+  const store = loadSamps();
+  const arr = store[name] || [];
+  let best = null;
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i].ts <= tMs) best = arr[i].a; else break;
+  }
+  if (best != null) return best;
+  const snaps = (state.hourly || {})[name] || [];
+  for (const sn of snaps) {
+    if ((Number(sn.h) || 0) * 60 <= t) {
+      best = usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0);
+    }
+  }
+  if (best != null) return best;
+  const ln = state.lines.find(x => x.name === name) || {};
+  return usePlan ? (Number(ln.plan) || 0) : (Number(ln.actual) || 0);
 }
 // ★ 统一骨架: 每段同时含 actual(该时段实际产量) 与 plan(该时段目标)
 //   plan/actual 均来自 hourly 快照的定格累计值差分 → 时段一过即定格, 不再随实时数据变化
 //   live 段(当前进行中的小时) = 实时累计 − 上一快照定格 → 继续累计变化
 //   base 段 = 启动前累计(今天上午缺小时数据): 实际柱/目标柱都画灰底, 段内写"上午"+累计值
 //   ★ 目的: 同一时段的实际段与目标段在两根柱子上位置完全一致 → 逐段比高度 = 直接看差异
-function segsOf(name, curActual) {
-  const snaps = (state.hourly || {})[name] || [];
-  const ln = state.lines.find(x => x.name === name) || {};
-  const livePlan = Number(ln.plan) || 0; // 实时累计目标(与表格 Plan 列一致, 仅 live 段用)
-  if (!snaps.length) return [];
-  const nowH = new Date().getHours();
+// ★ 2026-08-28 v5.19 班次制时段: 只画当前班次(白班/晚班)已开始的时段, 每根段=60分钟
+//   段号 lab = 时段号(1起); live 段 = 当前进行中; 无产出线段产量=0 (柱子0高)
+function segsOf(name, curActual, curPlan) {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const sc = shiftSegAt(nowMins);
   const segs = [];
-  if (snaps[0].h > 8) {
-    // ★ 当天中途启动: 上午(13点前)合成一个 base 段, 下午(13点起)逐时差分(整点分段)
-    let baseIdx = snaps.length - 1;
-    for (let i = 0; i < snaps.length; i++) {
-      if (snaps[i].h >= 13) { baseIdx = i; break; }
+  if (sc.shift === "night") {
+    // 晚班: 今天20:40起 (若现在<8:00 → 昨天20:40起), 段连续到次日8:00
+    const base = (nowMins >= NIGHT_START) ? NIGHT_START : NIGHT_START - 24 * 60;
+    const endCap = NIGHT_END + 24 * 60;
+    for (let k = 0; ; k++) {
+      const t0 = base + k * 60;
+      if (t0 >= nowMins || t0 >= endCap) break;
+      const t1 = Math.min(t0 + 60, endCap);
+      const a0 = valueAt(name, t0, false);
+      const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
+      const p0 = valueAt(name, t0, true);
+      const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
+      let actual = a1 - a0, plan = p1 - p0;
+      if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
+      if (plan < 0) plan = p1;
+      segs.push({ h: t1 / 60, lab: k + 1, live: t1 > nowMins, base: false, pm: false,
+        actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
     }
-    const baseSnap = snaps[baseIdx];
-    segs.push({
-      h: baseSnap.h, lab: null, live: false, base: true,
-      actual: baseSnap.actual || 0,
-      plan: baseSnap.plan || 0
-    });
-    let prevA = baseSnap.actual || 0;
-    let prevP = baseSnap.plan || 0;
-    let prevH = baseSnap.h;
-    for (let i = baseIdx + 1; i < snaps.length; i++) {
-      const s = snaps[i];
-      if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
-      segs.push({
-        h: s.h, lab: prevH, live: false,
-        actual: Math.max(0, (s.actual || 0) - prevA),
-        plan: Math.max(0, (s.plan || 0) - prevP)
-      });
-      prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
+  } else {
+    // 白班: 8:00起逐段, 最后 [20:00,20:30) 尾段
+    for (let k = 0; ; k++) {
+      const t0 = DAY_START + k * 60;
+      if (t0 >= nowMins || t0 >= DAY_END) break;
+      const t1 = Math.min(t0 + 60, DAY_END);
+      const a0 = valueAt(name, t0, false);
+      const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
+      const p0 = valueAt(name, t0, true);
+      const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
+      let actual = a1 - a0, plan = p1 - p0;
+      if (actual < 0) actual = a1;
+      if (plan < 0) plan = p1;
+      segs.push({ h: t1 / 60, lab: k + 1, live: t1 > nowMins, base: false, pm: false,
+        actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
     }
-    if (curActual != null && prevH <= nowH && hourNo(prevH) != null) {
-      segs.push({
-        h: nowH, lab: prevH, live: true,
-        actual: Math.max(0, (curActual || 0) - prevA),
-        plan: Math.max(0, livePlan - prevP)
-      });
-    }
-    return segs;
-  }
-  // 完整日(8点起): 全天逐时差分
-  let prevA = 0;
-  let prevP = 0;
-  let prevH = snaps[0].h;
-  for (let i = 1; i < snaps.length; i++) {
-    const s = snaps[i];
-    if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
-    segs.push({
-      h: s.h, lab: prevH, live: false,
-      actual: Math.max(0, (s.actual || 0) - prevA),
-      plan: Math.max(0, (s.plan || 0) - prevP)
-    });
-    prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
-  }
-  if (curActual != null && prevH <= nowH && hourNo(prevH) != null) {
-    segs.push({
-      h: nowH, lab: prevH, live: true,
-      actual: Math.max(0, (curActual || 0) - prevA),
-      plan: Math.max(0, livePlan - prevP)
-    });
   }
   return segs;
 }
@@ -1412,7 +1430,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
       const valTxt = String(Math.round(v));
-      const hNo = hourNo(s.lab);
+      const hNo = s.lab;
       // ★ 字体随段高自适应: 段越矮字越小, 避免第8段后文字放不下
       const fBig = perH >= 26 ? 10 : perH >= 20 ? 9 : perH >= 15 ? 8 : perH >= 11 ? 7.5 : 7;
       const fSml = Math.max(6.5, fBig - 1);
@@ -1516,7 +1534,7 @@ function drawBar(main) {
     const cx = padL + slot * i + slot / 2;
     // ★ 小时产出开关: 开启后实际柱/目标柱共用同一份 segs(统一骨架) → 段边界完全一致, 逐段对比差异
     if (segShow) {
-      const segs = segsOf(l.name, l.actual);
+      const segs = segsOf(l.name, l.actual, l.plan);
       // 实际柱(蓝): 每段画实际产量, 段内写该时段实际达成数
       drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff", "actual");
       // 目标柱(橙): 同一份 segs, 每段画目标产量(均匀), 段内写该时段目标数 → 与实际柱逐段对齐
@@ -1557,15 +1575,34 @@ function setHead(name, v) {
 }
 // 已工作小时(净工时): 8:00 上班 → 20:20 下班; 休息: 10:00-10:10(10min) + 12:00-13:00午休(1h) + 15:05-15:15(10min) + 17:00-17:20(20min)
 //   封顶净工时 = (20:20-8:00=12h20m) - 100min休息 = 10h40m = 10.67h; 与 UPPH 目标分母 10.67h 口径一致
-// ★ 班次判断 (按班次开始小时查名; 当前看板数据从 8:00 开始累计 → 早班; 若以后支持多班次数据, 班次开始时间变化会自动跟随)
-const SHIFT_RANGES = [
-  { s: 8, e: 16, key: "shiftDay" },
-  { s: 16, e: 24, key: "shiftSwing" },
-  { s: 0, e: 8, key: "shiftNight" }
-];
+// ★ 2026-08-28 v5.19 班次制: 白班 8:00-20:30 / 晚班 20:40-次日8:00, 每60分钟一时段
+//   白班时段: [8:00,9:00)=1, [9:00,10:00)=2, ... 最后 [20:00,20:30)=尾段
+//   晚班时段: [20:40,21:40)=1, [21:40,22:40)=2, ... 跨天到次日8:00
+//   段产量 = 段末累计 - 段初累计 (若跨换班清零 → 段末值, 新班从0累计)
+const DAY_START = 8 * 60;         // 白班 8:00 开始
+const DAY_END = 20 * 60 + 30;     // 白班 20:30 结束
+const NIGHT_START = 20 * 60 + 40; // 晚班 20:40 开始
+const NIGHT_END = 8 * 60;         // 晚班次日 8:00 结束
+// 返回 {shift:'day'|'night', idx:时段号(1起), t0:段起分钟, t1:段末分钟} (t0/t1 以当天0点为基准, 跨天>1440)
+function shiftSegAt(mins) {
+  // 20:30-20:40 交班空档归白班(显示刚结束的白班尾段 [20:00-20:30])
+  if (mins >= DAY_START && mins < NIGHT_START) {
+    const k = Math.floor((mins - DAY_START) / 60);
+    const t0 = DAY_START + k * 60;
+    return { shift: "day", idx: k + 1, t0: t0, t1: Math.min(t0 + 60, DAY_END) };
+  }
+  const ref = (mins >= NIGHT_START) ? mins : mins + 24 * 60; // 0:00-8:00 属于前一天晚班
+  const k = Math.floor((ref - NIGHT_START) / 60);
+  const t0 = NIGHT_START + k * 60;
+  return { shift: "night", idx: k + 1, t0: t0, t1: Math.min(t0 + 60, NIGHT_END + 24 * 60) };
+}
 function shiftNameOfHour(h) {
-  for (const sh of SHIFT_RANGES) if (h >= sh.s && h < sh.e) return t(sh.key);
-  return "";
+  // 兼容旧调用: 8:00 起为白班
+  return (h >= 8 && h < 20) ? t("shiftDay") : t("shiftNight");
+}
+function fmtSegMin(m) {
+  const x = ((m % 1440) + 1440) % 1440;
+  return String(Math.floor(x / 60)).padStart(2, "0") + ":" + String(x % 60).padStart(2, "0");
 }
 
 function workedHours(now) {
@@ -1794,7 +1831,12 @@ function updatePeriodLabel() {
   const hh = String(now.getHours()).padStart(2, "0");
   const mm = String(now.getMinutes()).padStart(2, "0");
   const ss = String(now.getSeconds()).padStart(2, "0");
-  pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftNameOfHour(8) + " 8:00 - " + hh + ":" + mm + ":" + ss;
+  // ★ 2026-08-28 班次化: 显示当前班次+时段, 如 "8/28 晚班 第2段 21:40-22:40 22:23:10"
+  const sc = shiftSegAt(now.getHours() * 60 + now.getMinutes());
+  const isZh = (typeof lang === "undefined") || lang === "zh";
+  const shiftTxt = sc.shift === "night" ? (isZh ? "晚班" : "Night") : (isZh ? "白班" : "Day");
+  const segTxt = (isZh ? "第" : "Seg ") + sc.idx + (isZh ? "段" : "");
+  pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftTxt + " " + segTxt + " " + fmtSegMin(sc.t0) + "-" + fmtSegMin(sc.t1) + " " + hh + ":" + mm + ":" + ss;
 }
 
 async function refresh() {
@@ -1825,6 +1867,7 @@ async function refresh() {
     state.lines = [...dedupMap.values()];
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
+    sampleNow(); // ★ 2026-08-28 班次时段采样: 每60秒/线记一次实际累计 → 时段边界产量越算越准
     // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
     //   ⚠️ data.json 的 updatedAt 是字符串 "YYYY-MM-DD HH:MM:SS", 必须先转时间戳再相减
     const st = d.source || "";
