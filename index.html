@@ -3309,7 +3309,7 @@ function reloadLiveData() {
     .then(function (txt) {
       try {
         var sc = document.createElement("script");
-        var closeTag = "<" + "/script"; // 拼接避免源码里出现 </script 字面量 (HTML解析器会提前闭合)
+        var closeTag = "<" + "/script"; // 拼接避免源码出现 script 闭合标签字面量 (HTML解析器会提前结束本块)
         sc.textContent = txt.split(closeTag).join("<\\/script");
         document.head.appendChild(sc);
         sc.remove();
