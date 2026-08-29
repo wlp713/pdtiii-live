@@ -2260,7 +2260,7 @@ function renderFirstHourHist() {
   if (!body) return;
   const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
   let hist = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : [];
-  hist = hist.filter(d => d && d.first_hour && Object.keys(d.first_hour).length && !isWeekendDate(d.date));
+  hist = hist.filter(d => d && d.first_hour && Object.keys(d.first_hour).length);
   // 当天全量明细 (target/actual) 优先来自 __LIVE_DATA__.first_hour
   let todayDetail = [];
   try {
@@ -2271,7 +2271,7 @@ function renderFirstHourHist() {
   const todayRec = hist.filter(h => h.date === today);
   // 确定展示日期集: 今天 + 最近的工作日 (去重, 最多10天)
   const days = [];
-  [today].concat(hist.map(h => h.date)).forEach(d => { if (d && days.indexOf(d) < 0 && !isWeekendDate(d)) days.push(d); });
+  [today].concat(hist.map(h => h.date)).forEach(d => { if (d && days.indexOf(d) < 0) days.push(d); });
   const dayRows = days.slice(-10);
   if (!dayRows.length && !todayDetail.length) {
     body.innerHTML = "<div style='color:var(--gray);font-size:11px;padding:8px 2px'>" + (zh ? "暂无首小时数据 — 现场在Excel填写8-9点时段后自动同步" : "No first-hour data yet — auto-syncs after 8-9am entries in Excel") + "</div>";
@@ -2284,7 +2284,7 @@ function renderFirstHourHist() {
     todayDetail.forEach(e => { if (e && e.line && e.rate != null) m[e.line] = Number(e.rate); });
     if (Object.keys(m).length) { hist = hist.slice(); hist.push({ date: today, first_hour: m }); hist.sort((a, b) => String(a.date).localeCompare(String(b.date))); }
   }
-  const daysAll = hist.filter(h => h.date && !isWeekendDate(h.date));
+  const daysAll = hist.filter(h => h.date);
   const lastRec = daysAll.length ? daysAll[daysAll.length - 1] : null;
   const lastMap = lastRec ? fhMap(lastRec) : {};
   // ① 排名 (最新一天, 按达成率降序, 前5名加奖牌)
@@ -2587,13 +2587,14 @@ function getTrendHist() {
   if (!h || !h.length) {
     try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h = l; } catch (e) {}
   }
-  h = (h || []).slice().filter(d => !isWeekendDate(d && d.date));
+  h = (h || []).slice().filter(d => d && d.date);
+  // ★ 2026-08-29: 不再按周末过滤 (工厂周六也生产, 历史归档按「当天有数据」判断)
   // ★ 当天实时数据补全: 若最后一天不是今天则追加今日记录; 若是今天但 lines/first_hour 为空(extract提前写入的快照壳)
   //   也从实时数据补齐 — 2026-08-25 修复: merge_first_hour 把当天记录提前写进 __HISTORY__ 导致卡片消失
   try {
     const today = todayKey();
     const last = h.length ? h[h.length - 1] : null;
-    if (!isWeekendDate(today) && state && state.lines && state.lines.length) {
+    if (state && state.lines && state.lines.length) {
       const isToday = !!(last && last.date === today);
       const rec = isToday ? last : { date: today, lines: {}, first_hour: {} };
       // 2026-08-25: 后端新建当天记录可能没有 lines/first_hour 字段(undefined) → 先初始化为对象, 否则赋值抛错被吞
