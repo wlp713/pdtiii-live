@@ -1285,13 +1285,26 @@ function sampleNow() {
     const arr = store[l.name] || (store[l.name] = []);
     const last = arr[arr.length - 1];
     if (last && now - last.ts < 60000) return;
-    arr.push({ ts: now, a: Number(l.actual) || 0 });
+    arr.push({ ts: now, a: Number(l.actual) || 0, p: Number(l.plan) || 0 });
     const cut = now - 48 * 3600 * 1000;
     while (arr.length && arr[0].ts < cut) arr.shift();
   });
   saveSamps();
 }
-// ≤t 最近的已知累计值 (t=当天0点基准分钟, 可>1440跨天; 优先采样, 其次hourly整点定格, 最后实时)
+// ★ 快照桶时间解析: 旧格式 h=小时(如 21=21:00), 新格式 h=HHMM分钟数(如 2040=20:40, 后端10分钟桶)
+function snapMins(sn) {
+  const raw = String(sn.h || "").trim();
+  if (!raw) return 0;
+  if (raw.length >= 3) {
+    const hh = parseInt(raw.slice(0, raw.length - 2), 10) || 0;
+    const mm = parseInt(raw.slice(-2), 10) || 0;
+    return hh * 60 + mm; // 新格式 HHMM → 当天分钟 (2040 → 1240)
+  }
+  return (Number(raw) || 0) * 60; // 旧格式 小时 → 分钟
+}
+// ≤t 最近的已知累计值 (t=当天0点基准分钟, 可>1440跨天; 优先采样, 其次hourly快照插值/外推, 最后实时)
+// ★ v5.22: 晚班段边界在 :40/:30, 与整点快照错位 → 取最近快照会差 20-40 分钟
+//   改为相邻快照线性插值; 跨换班(白班累计→晚班清零)不插值, 用换班后斜率外推
 function valueAt(name, t, usePlan) {
   const now = new Date();
   const day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -1300,16 +1313,41 @@ function valueAt(name, t, usePlan) {
   const arr = store[name] || [];
   let best = null;
   for (let i = 0; i < arr.length; i++) {
-    if (arr[i].ts <= tMs) best = arr[i].a; else break;
+    if (arr[i].ts > tMs) break;
+    // 采样含 actual(a) 和 plan(p); 旧采样(无 p) 在要 plan 时跳过, 避免用 actual 冒充 plan
+    if (usePlan) { if (arr[i].p != null) best = arr[i].p; }
+    else best = arr[i].a;
   }
   if (best != null) return best;
   const snaps = (state.hourly || {})[name] || [];
-  for (const sn of snaps) {
-    if ((Number(sn.h) || 0) * 60 <= t) {
-      best = usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0);
+  if (snaps.length) {
+    const pts = [];
+    for (const sn of snaps) {
+      pts.push({ m: snapMins(sn), v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
+    }
+    pts.sort(function (a, b) { return a.m - b.m; });
+    let lo = null, hi = null, hiNext = null;
+    for (let i = 0; i < pts.length; i++) {
+      if (pts[i].m <= t) lo = pts[i];
+      else { if (!hi) hi = pts[i]; else { hiNext = pts[i]; break; } }
+    }
+    if (lo && hi) {
+      if (hi.v < lo.v * 0.5) {
+        // 换班跳变(累计清零): t 在换班后, 用 hi→后继 斜率外推回 t
+        const nxt = hiNext || pts[pts.length - 1];
+        const slope = (nxt && nxt.m > hi.m) ? (nxt.v - hi.v) / (nxt.m - hi.m) : 0;
+        return Math.max(0, hi.v - (hi.m - t) * slope);
+      }
+      return lo.v + (hi.v - lo.v) * (t - lo.m) / (hi.m - lo.m);
+    }
+    if (lo) return lo.v; // t 在最后快照后 (凌晨无桶时用最近值兜底)
+    if (hi) {
+      // t 在首个快照前 (如晚班第1段起点 20:40 在桶21前): 用 hi→后继 斜率外推
+      const nxt = hiNext || pts[1] || hi;
+      const slope = (nxt.m > hi.m) ? (nxt.v - hi.v) / (nxt.m - hi.m) : 0;
+      return Math.max(0, hi.v - (hi.m - t) * slope);
     }
   }
-  if (best != null) return best;
   const ln = state.lines.find(x => x.name === name) || {};
   return usePlan ? (Number(ln.plan) || 0) : (Number(ln.actual) || 0);
 }
@@ -1318,7 +1356,7 @@ function valueAt(name, t, usePlan) {
 //   live 段(当前进行中的小时) = 实时累计 − 上一快照定格 → 继续累计变化
 //   base 段 = 启动前累计(今天上午缺小时数据): 实际柱/目标柱都画灰底, 段内写"上午"+累计值
 //   ★ 目的: 同一时段的实际段与目标段在两根柱子上位置完全一致 → 逐段比高度 = 直接看差异
-// ★ 2026-08-29 v5.21 班次时段(用户拍板口径): 休息时段不产柱、不计入时段
+// ★ 2026-08-29 v5.22 班次时段(用户拍板口径)+10分钟快照桶: 休息时段不产柱、不计入时段; 快照加密后时段边界值准确
 //   段号 lab = 时段号(1起); live 段 = 当前进行中; 休息中/交班空档 → 无 live 段(全部定格)
 //   时段表见 DAY_SEGS/NIGHT_SEGS (休息已剔除, 如午休 12:00-13:00 直接不在表内)
 function segsOf(name, curActual, curPlan) {
@@ -1557,7 +1595,7 @@ function setHead(name, v) {
 }
 // 已工作小时(净工时): 8:00 上班 → 20:30 下班; 休息: 10:00-10:10(10min) + 12:00-13:00午休(1h) + 15:00-15:10(10min) + 17:00-17:20(20min) + 20:20-20:30(10min)
 //   封顶净工时 = (20:30-8:00=12h30m) - 110min休息 = 10h40m = 10.67h; 与 UPPH 目标分母 10.67h 口径一致
-// ★ 2026-08-29 v5.21 班次时段(用户拍板口径)
+// ★ 2026-08-29 v5.22 班次时段(用户拍板口径)+10分钟快照桶: 休息时段不产柱、不计入时段; 快照加密后时段边界值准确
 //   白班 8:00-20:30, 休息(不计时段): 10:00-10:10 + 12:00-13:00午休 + 15:00-15:10 + 17:00-17:20 + 20:20-20:30
 //     时段: [8:00,10:00)=1, [10:10,11:00)=2, [11:00,12:00)=3, [13:00,14:00)=4, [14:00,15:00)=5,
 //           [15:10,16:00)=6, [16:00,17:00)=7, [17:20,18:00)=8, [18:00,19:00)=9, [19:00,20:20)=10
