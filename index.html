@@ -1318,47 +1318,29 @@ function valueAt(name, t, usePlan) {
 //   live 段(当前进行中的小时) = 实时累计 − 上一快照定格 → 继续累计变化
 //   base 段 = 启动前累计(今天上午缺小时数据): 实际柱/目标柱都画灰底, 段内写"上午"+累计值
 //   ★ 目的: 同一时段的实际段与目标段在两根柱子上位置完全一致 → 逐段比高度 = 直接看差异
-// ★ 2026-08-28 v5.19 班次制时段: 只画当前班次(白班/晚班)已开始的时段, 每根段=60分钟
-//   段号 lab = 时段号(1起); live 段 = 当前进行中; 无产出线段产量=0 (柱子0高)
+// ★ 2026-08-29 v5.21 班次时段(用户拍板口径): 休息时段不产柱、不计入时段
+//   段号 lab = 时段号(1起); live 段 = 当前进行中; 休息中/交班空档 → 无 live 段(全部定格)
+//   时段表见 DAY_SEGS/NIGHT_SEGS (休息已剔除, 如午休 12:00-13:00 直接不在表内)
 function segsOf(name, curActual, curPlan) {
   const now = new Date();
   const nowMins = now.getHours() * 60 + now.getMinutes();
   const sc = shiftSegAt(nowMins);
   const segs = [];
-  if (sc.shift === "night") {
-    // 晚班: 今天20:40起 (若现在<8:00 → 昨天20:40起), 段连续到次日8:00
-    const base = (nowMins >= NIGHT_START) ? NIGHT_START : NIGHT_START - 24 * 60;
-    const endCap = NIGHT_END + 24 * 60;
-    for (let k = 0; ; k++) {
-      const t0 = base + k * 60;
-      if (t0 >= nowMins || t0 >= endCap) break;
-      const t1 = Math.min(t0 + 60, endCap);
-      const a0 = valueAt(name, t0, false);
-      const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
-      const p0 = valueAt(name, t0, true);
-      const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
-      let actual = a1 - a0, plan = p1 - p0;
-      if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
-      if (plan < 0) plan = p1;
-      segs.push({ h: t1 / 60, lab: k + 1, live: t1 > nowMins, base: false, pm: false,
-        actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
-    }
-  } else {
-    // 白班: 8:00起逐段, 最后 [20:00,20:30) 尾段
-    for (let k = 0; ; k++) {
-      const t0 = DAY_START + k * 60;
-      if (t0 >= nowMins || t0 >= DAY_END) break;
-      const t1 = Math.min(t0 + 60, DAY_END);
-      const a0 = valueAt(name, t0, false);
-      const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
-      const p0 = valueAt(name, t0, true);
-      const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
-      let actual = a1 - a0, plan = p1 - p0;
-      if (actual < 0) actual = a1;
-      if (plan < 0) plan = p1;
-      segs.push({ h: t1 / 60, lab: k + 1, live: t1 > nowMins, base: false, pm: false,
-        actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
-    }
+  const isNight = sc.shift === "night";
+  const table = isNight ? NIGHT_SEGS : DAY_SEGS;
+  const endCap = isNight ? NIGHT_END + 24 * 60 : DAY_END;
+  for (let k = 0; k < table.length; k++) {
+    const t0 = table[k][0], t1 = table[k][1];
+    if (t0 >= nowMins || t0 >= endCap) break;   // 未开始的时段不画
+    const a0 = valueAt(name, t0, false);
+    const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
+    const p0 = valueAt(name, t0, true);
+    const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
+    let actual = a1 - a0, plan = p1 - p0;
+    if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
+    if (plan < 0) plan = p1;
+    segs.push({ h: t1 / 60, lab: k + 1, live: t1 > nowMins, base: false, pm: false,
+      actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
   }
   return segs;
 }
@@ -1573,28 +1555,51 @@ function setHead(name, v) {
   headMap[normName(name)] = Number(v) || 0;
   try { localStorage.setItem(HEADS_KEY, JSON.stringify(headMap)); } catch (e) { /* ignore */ }
 }
-// 已工作小时(净工时): 8:00 上班 → 20:20 下班; 休息: 10:00-10:10(10min) + 12:00-13:00午休(1h) + 15:05-15:15(10min) + 17:00-17:20(20min)
-//   封顶净工时 = (20:20-8:00=12h20m) - 100min休息 = 10h40m = 10.67h; 与 UPPH 目标分母 10.67h 口径一致
-// ★ 2026-08-28 v5.19 班次制: 白班 8:00-20:30 / 晚班 20:40-次日8:00, 每60分钟一时段
-//   白班时段: [8:00,9:00)=1, [9:00,10:00)=2, ... 最后 [20:00,20:30)=尾段
-//   晚班时段: [20:40,21:40)=1, [21:40,22:40)=2, ... 跨天到次日8:00
+// 已工作小时(净工时): 8:00 上班 → 20:30 下班; 休息: 10:00-10:10(10min) + 12:00-13:00午休(1h) + 15:00-15:10(10min) + 17:00-17:20(20min) + 20:20-20:30(10min)
+//   封顶净工时 = (20:30-8:00=12h30m) - 110min休息 = 10h40m = 10.67h; 与 UPPH 目标分母 10.67h 口径一致
+// ★ 2026-08-29 v5.21 班次时段(用户拍板口径)
+//   白班 8:00-20:30, 休息(不计时段): 10:00-10:10 + 12:00-13:00午休 + 15:00-15:10 + 17:00-17:20 + 20:20-20:30
+//     时段: [8:00,10:00)=1, [10:10,11:00)=2, [11:00,12:00)=3, [13:00,14:00)=4, [14:00,15:00)=5,
+//           [15:10,16:00)=6, [16:00,17:00)=7, [17:20,18:00)=8, [18:00,19:00)=9, [19:00,20:20)=10
+//   晚班 20:40-次日8:00, 2次10分钟休息(不计时段): 第2段后 22:30-22:40 + 最后两小时 07:30-07:40
+//     时段: [20:40,21:40)=1, [21:40,22:30)=2, [22:40,23:40)=3, [23:40,00:40)=4, [00:40,01:40)=5,
+//           [01:40,02:40)=6, [02:40,03:40)=7, [03:40,04:40)=8, [04:40,05:40)=9, [05:40,06:40)=10,
+//           [06:40,07:30)=11, [07:40,08:00)=12
 //   段产量 = 段末累计 - 段初累计 (若跨换班清零 → 段末值, 新班从0累计)
 const DAY_START = 8 * 60;         // 白班 8:00 开始
 const DAY_END = 20 * 60 + 30;     // 白班 20:30 结束
 const NIGHT_START = 20 * 60 + 40; // 晚班 20:40 开始
 const NIGHT_END = 8 * 60;         // 晚班次日 8:00 结束
+// 白班时段表 (分钟, 当天0点基准) — 休息/午休已剔除
+const DAY_SEGS = [
+  [480, 600], [610, 660], [660, 720], [780, 840], [840, 900],
+  [910, 960], [960, 1020], [1040, 1080], [1080, 1140], [1140, 1220]
+];
+// 晚班时段表 (分钟, 当天0点基准, 跨天>1440) — 休息 22:30-22:40 / 07:30-07:40 已剔除
+const NIGHT_SEGS = [
+  [1240, 1300], [1300, 1350], [1360, 1420], [1420, 1480], [1480, 1540], [1540, 1600],
+  [1600, 1660], [1660, 1720], [1720, 1780], [1780, 1840], [1840, 1890], [1900, 1920]
+];
 // 返回 {shift:'day'|'night', idx:时段号(1起), t0:段起分钟, t1:段末分钟} (t0/t1 以当天0点为基准, 跨天>1440)
-function shiftSegAt(mins) {
-  // 20:30-20:40 交班空档归白班(显示刚结束的白班尾段 [20:00-20:30])
+//   休息中/交班空档 → 返回刚结束的上一段; 8:00 前 → 归前一天晚班
+function segFor(mins) {
   if (mins >= DAY_START && mins < NIGHT_START) {
-    const k = Math.floor((mins - DAY_START) / 60);
-    const t0 = DAY_START + k * 60;
-    return { shift: "day", idx: k + 1, t0: t0, t1: Math.min(t0 + 60, DAY_END) };
+    for (let i = DAY_SEGS.length - 1; i >= 0; i--) {
+      if (mins >= DAY_SEGS[i][0]) return { shift: "day", idx: i + 1, t0: DAY_SEGS[i][0], t1: DAY_SEGS[i][1] };
+    }
+    return null;
   }
   const ref = (mins >= NIGHT_START) ? mins : mins + 24 * 60; // 0:00-8:00 属于前一天晚班
-  const k = Math.floor((ref - NIGHT_START) / 60);
-  const t0 = NIGHT_START + k * 60;
-  return { shift: "night", idx: k + 1, t0: t0, t1: Math.min(t0 + 60, NIGHT_END + 24 * 60) };
+  if (ref < NIGHT_START || ref >= NIGHT_END + 24 * 60) return null;
+  for (let i = NIGHT_SEGS.length - 1; i >= 0; i--) {
+    if (ref >= NIGHT_SEGS[i][0]) return { shift: "night", idx: i + 1, t0: NIGHT_SEGS[i][0], t1: NIGHT_SEGS[i][1] };
+  }
+  return null;
+}
+function shiftSegAt(mins) {
+  const s = segFor(mins);
+  if (s) return s;
+  return { shift: "day", idx: 1, t0: DAY_START, t1: DAY_SEGS[0][1] }; // 兜底: 白班第1段
 }
 function shiftNameOfHour(h) {
   // 兼容旧调用: 8:00 起为白班
@@ -1607,16 +1612,17 @@ function fmtSegMin(m) {
 
 function workedHours(now) {
   const mins = now.getHours() * 60 + now.getMinutes();
-  const start = 8 * 60, end = 20 * 60 + 20;   // 8:00 上班 → 20:20 下班
+  const start = 8 * 60, end = 20 * 60 + 30;   // 8:00 上班 → 20:30 下班
   if (mins <= start) return 0;
-  const mm = Math.min(mins, end);             // 产量实时累计, 封顶 20:20
+  const mm = Math.min(mins, end);             // 产量实时累计, 封顶 20:30
   let w = mm - start;
-  // 扣除休息: 上午 10:00-10:10, 午休 12:00-13:00, 下午 15:05-15:15, 17:00-17:20
+  // 扣除休息: 上午 10:00-10:10, 午休 12:00-13:00, 下午 15:00-15:10, 17:00-17:20, 20:20-20:30
   const breaks = [
     [10 * 60, 10 * 60 + 10],
     [12 * 60, 13 * 60],
-    [15 * 60 + 5, 15 * 60 + 15],
-    [17 * 60, 17 * 60 + 20]
+    [15 * 60, 15 * 60 + 10],
+    [17 * 60, 17 * 60 + 20],
+    [20 * 60 + 20, 20 * 60 + 30]
   ];
   for (const [bs, be] of breaks) {
     const ov = mm - Math.max(start, bs);
