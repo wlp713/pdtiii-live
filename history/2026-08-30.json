@@ -1,0 +1,792 @@
+{
+  "date": "2026-08-30",
+  "snapAt": "2026-08-30 17:10:03",
+  "source": "save_daily_history v2",
+  "lines": [
+    {
+      "actual": 0.0,
+      "cb": -3297.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Final A line",
+      "plan": 3297.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 5.0,
+      "cb": -3593.0,
+      "cum": 5.0,
+      "eff": 0.1,
+      "name": "Final B Line",
+      "plan": 3598.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3600.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 0.0,
+      "cb": -3487.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Final C line",
+      "plan": 3487.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3400.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 0.0,
+      "cb": -1599.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Final D line",
+      "plan": 1599.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1600.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 0.0,
+      "cb": -1285.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Motor H-Series",
+      "plan": 1285.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1800.0,
+      "time": "30-Aug-0"
+    },
+    {
+      "actual": 0.0,
+      "cb": -949.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Motor S-Series",
+      "plan": 949.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": true,
+      "status": "STALLED",
+      "target": 1820.0,
+      "time": "30-Aug-1"
+    },
+    {
+      "actual": 0.0,
+      "cb": -1077.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Motor F-Series",
+      "plan": 1077.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1500.0,
+      "time": "30-Aug-0"
+    },
+    {
+      "actual": 0.0,
+      "cb": -1146.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Motor WL",
+      "plan": 1146.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1600.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 1684.0,
+      "cb": -1912.0,
+      "cum": 1684.0,
+      "eff": 46.8,
+      "name": "Inspection A",
+      "plan": 3596.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 7200.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 518.0,
+      "cb": -2803.0,
+      "cum": 518.0,
+      "eff": 15.5,
+      "name": "Inspection B",
+      "plan": 3321.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 2319.0,
+      "cb": -1006.0,
+      "cum": 2319.0,
+      "eff": 69.7,
+      "name": "Inspection C",
+      "plan": 3325.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "30-Aug-2"
+    },
+    {
+      "actual": 0.0,
+      "cb": -1763.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Inspection D",
+      "plan": 1763.0,
+      "pushed": "2026-08-30 17:09:32",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1150.0,
+      "time": "30-Aug-2"
+    }
+  ],
+  "hourly": {
+    "Final A line": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 759.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 860.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 1218.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 1648.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 1648.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 2078.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 2508.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 2867.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 3297.0
+      }
+    ],
+    "Final B Line": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 0.0
+      },
+      {
+        "actual": 5.0,
+        "h": 9,
+        "plan": 828.0
+      },
+      {
+        "actual": 5.0,
+        "h": 10,
+        "plan": 938.0
+      },
+      {
+        "actual": 5.0,
+        "h": 11,
+        "plan": 1329.0
+      },
+      {
+        "actual": 5.0,
+        "h": 12,
+        "plan": 1798.0
+      },
+      {
+        "actual": 5.0,
+        "h": 13,
+        "plan": 1798.0
+      },
+      {
+        "actual": 5.0,
+        "h": 14,
+        "plan": 2267.0
+      },
+      {
+        "actual": 5.0,
+        "h": 15,
+        "plan": 2737.0
+      },
+      {
+        "actual": 5.0,
+        "h": 16,
+        "plan": 3128.0
+      },
+      {
+        "actual": 5.0,
+        "h": 17,
+        "plan": 3598.0
+      }
+    ],
+    "Final C line": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 4395.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 805.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 911.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 1289.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 1744.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 1744.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 2199.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 2653.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 3032.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 3487.0
+      }
+    ],
+    "Final D line": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 2016.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 368.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 417.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 590.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 799.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 799.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 1007.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 1216.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 1390.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 1598.0
+      }
+    ],
+    "Inspection A": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 0.0
+      },
+      {
+        "actual": 81.0,
+        "h": 9,
+        "plan": 828.0
+      },
+      {
+        "actual": 81.0,
+        "h": 10,
+        "plan": 938.0
+      },
+      {
+        "actual": 81.0,
+        "h": 11,
+        "plan": 1328.0
+      },
+      {
+        "actual": 339.0,
+        "h": 12,
+        "plan": 1797.0
+      },
+      {
+        "actual": 339.0,
+        "h": 13,
+        "plan": 1797.0
+      },
+      {
+        "actual": 614.0,
+        "h": 14,
+        "plan": 2266.0
+      },
+      {
+        "actual": 972.0,
+        "h": 15,
+        "plan": 2735.0
+      },
+      {
+        "actual": 1265.0,
+        "h": 16,
+        "plan": 3127.0
+      },
+      {
+        "actual": 1684.0,
+        "h": 17,
+        "plan": 3596.0
+      }
+    ],
+    "Inspection B": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 0.0
+      },
+      {
+        "actual": 347.0,
+        "h": 9,
+        "plan": 766.0
+      },
+      {
+        "actual": 390.0,
+        "h": 10,
+        "plan": 867.0
+      },
+      {
+        "actual": 442.0,
+        "h": 11,
+        "plan": 1228.0
+      },
+      {
+        "actual": 454.0,
+        "h": 12,
+        "plan": 1662.0
+      },
+      {
+        "actual": 454.0,
+        "h": 13,
+        "plan": 1662.0
+      },
+      {
+        "actual": 454.0,
+        "h": 14,
+        "plan": 2093.0
+      },
+      {
+        "actual": 455.0,
+        "h": 15,
+        "plan": 2526.0
+      },
+      {
+        "actual": 455.0,
+        "h": 16,
+        "plan": 2888.0
+      },
+      {
+        "actual": 511.0,
+        "h": 17,
+        "plan": 3321.0
+      }
+    ],
+    "Inspection C": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 0.0
+      },
+      {
+        "actual": 500.0,
+        "h": 9,
+        "plan": 766.0
+      },
+      {
+        "actual": 556.0,
+        "h": 10,
+        "plan": 867.0
+      },
+      {
+        "actual": 741.0,
+        "h": 11,
+        "plan": 1228.0
+      },
+      {
+        "actual": 1053.0,
+        "h": 12,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1055.0,
+        "h": 13,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1366.0,
+        "h": 14,
+        "plan": 2096.0
+      },
+      {
+        "actual": 1729.0,
+        "h": 15,
+        "plan": 2530.0
+      },
+      {
+        "actual": 2021.0,
+        "h": 16,
+        "plan": 2891.0
+      },
+      {
+        "actual": 2319.0,
+        "h": 17,
+        "plan": 3325.0
+      }
+    ],
+    "Inspection D": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 2223.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 406.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 459.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 651.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 881.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 881.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 1111.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 1341.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 1533.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 1763.0
+      }
+    ],
+    "Motor F-Series": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 1358.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 248.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 257.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 398.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 538.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 538.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 679.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 796.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 936.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 1077.0
+      }
+    ],
+    "Motor H-Series": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 1616.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 297.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 308.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 476.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 643.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 643.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 811.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 950.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 1117.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 1284.0
+      }
+    ],
+    "Motor S-Series": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 1649.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 301.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 312.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 483.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 653.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 654.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 823.0
+      }
+    ],
+    "Motor WL": [
+      {
+        "actual": 0.0,
+        "h": 8,
+        "plan": 1443.0
+      },
+      {
+        "actual": 0.0,
+        "h": 9,
+        "plan": 263.0
+      },
+      {
+        "actual": 0.0,
+        "h": 10,
+        "plan": 274.0
+      },
+      {
+        "actual": 0.0,
+        "h": 11,
+        "plan": 422.0
+      },
+      {
+        "actual": 0.0,
+        "h": 12,
+        "plan": 572.0
+      },
+      {
+        "actual": 0.0,
+        "h": 13,
+        "plan": 572.0
+      },
+      {
+        "actual": 0.0,
+        "h": 14,
+        "plan": 722.0
+      },
+      {
+        "actual": 0.0,
+        "h": 15,
+        "plan": 847.0
+      },
+      {
+        "actual": 0.0,
+        "h": 16,
+        "plan": 996.0
+      },
+      {
+        "actual": 0.0,
+        "h": 17,
+        "plan": 1146.0
+      }
+    ]
+  },
+  "eff": {
+    "Final A line": 0.0,
+    "Final B Line": 0.1,
+    "Final C line": 0.0,
+    "Final D line": 0.0,
+    "Motor H-Series": 0.0,
+    "Motor S-Series": 0.0,
+    "Motor F-Series": 0.0,
+    "Motor WL": 0.0,
+    "Inspection A": 46.8,
+    "Inspection B": 15.5,
+    "Inspection C": 69.7,
+    "Inspection D": 0.0
+  },
+  "problems": [],
+  "first_hour": [],
+  "attendance": null,
+  "updatedAt": "2026-08-30 17:09:32"
+}
