@@ -1398,34 +1398,7 @@ function segsOf(name, curActual, curPlan) {
   }
   return segs;
 }
-// ---- 目标柱分段(回退/关闭分段时用): 每段目标 = plan ÷ 已过时段数(均匀相等), 柱顶累计 = plan ----
-function planSegsOf(name, nowH) {
-  const ln = state.lines.find(x => x.name === name) || {};
-  const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
-  let n = 0;
-  for (let h = 8; h <= nowH && h <= 16; h++) {
-    if (h === 12) continue;
-    n++;
-  }
-  if (!n) return [];
-  const per = plan / n;
-  const segs = [];
-  for (let h = 8; h <= nowH && h <= 16; h++) {
-    if (h === 12) continue;
-    segs.push({ h: h, lab: h, live: (h === nowH), actual: per });
-  }
-  return segs;
-}
-// ---- 固定小时目标(回退用): 日目标 ÷ 8 个工作小时, 每段等高不变 ----
-function planSegs(target, nowH) {
-  const perH = (target || 0) / 8; // 8 个工作小时(8-9,9-10,10-11,11-12,午休,13-14,14-15,15-16,16-17)
-  const segs = [];
-  for (let h = 8; h <= nowH && h <= 16; h++) {
-    if (h === 12) continue; // 午休不计数
-    segs.push({ actual: perH, live: false, lab: h });
-  }
-  return segs;
-}
+// ★ v5.28 清理: 删除旧版 planSegsOf/planSegs 死代码(8小时均分目标, v5.15 起已无调用)
 // ★ v5.15 统一绘制: 两柱共用同一份 segs, 段骨架按目标值(plan)定位 → 段边界完全平行
 //   实际柱(key='actual'): 每段 = 蓝色(实际达成, 从段底向上) + 灰色(未达成缺口)
 //   目标柱(key='plan'): 每段 = 橙色(目标达成, 画满整段)
@@ -1654,10 +1627,6 @@ function shiftSegAt(mins) {
   const s = segFor(mins);
   if (s) return s;
   return { shift: "day", idx: 1, t0: DAY_START, t1: DAY_SEGS[0][1] }; // 兜底: 白班第1段
-}
-function shiftNameOfHour(h) {
-  // 兼容旧调用: 8:00 起为白班
-  return (h >= 8 && h < 20) ? t("shiftDay") : t("shiftNight");
 }
 function fmtSegMin(m) {
   const x = ((m % 1440) + 1440) % 1440;
