@@ -578,7 +578,11 @@
         <!-- 2026-08-25: 趋势数据源切换 [达成率 | 首小时达成率(8-9点)] -->
         <div id="trendModeBar" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
           <button class="ex-btn trend-mode-btn" id="trendModeRateBtn" onclick="setTrendMode('rate')" style="font-size:10px;padding:1px 8px">📊 达成率</button>
-          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时(8-9点)</button>
+          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时</button>
+          <span id="fhShiftBar" style="display:none;gap:6px;align-items:center">
+            <button class="ex-btn trend-mode-btn" id="fhTrendDayBtn" onclick="setFhShift('day')" style="font-size:10px;padding:1px 8px">🌞 白班</button>
+            <button class="ex-btn trend-mode-btn" id="fhTrendNightBtn" onclick="setFhShift('night')" style="font-size:10px;padding:1px 8px">🌙 夜班</button>
+          </span>
           <span id="trendModeHint" style="font-size:9px;color:var(--gray)"></span>
         </div>
         <div id="trend-lines"></div>
@@ -1120,6 +1124,89 @@ function trackStallStart() {
       localStorage.setItem(STALL_LAST_KEY, JSON.stringify(lastActualMap));
     } catch (e) { /* ignore */ }
   }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ★ v5.29 首小时快照持久记录（2026-08-31 用户要求）
+//   需求: 首小时(白班8:00-9:00 / 夜班20:30-21:30)达成率快照要真正持续记录,
+//         每天自动定格一次, 形成跨天趋势; 趋势图/首小时面板支持白班/夜班切换
+//   存储: localStorage FH_SNAP_KEY, 结构 {"2026-08-31_day": {线原名: 达成率%}, "2026-08-31_night": {...}}
+//   记录时机: refresh() 时调用 maybeSnapFirstHour(), 首小时结束后即定格当天该班次快照(每班次每天只记一次)
+const FH_SNAP_KEY = "pdtiii_fh_snap_v1";
+const FH_SHIFT_KEY = "pdtiii_fh_shift_v1";
+let fhSnap = {};
+try { fhSnap = JSON.parse(localStorage.getItem(FH_SNAP_KEY) || "{}") || {}; } catch (e) { fhSnap = {}; }
+let fhShift = "day"; // 首小时面板/趋势: day=白班首小时 | night=夜班首小时
+try { fhShift = localStorage.getItem(FH_SHIFT_KEY) === "night" ? "night" : "day"; } catch (e) {}
+// 首小时边界: 白班 [480,540) 8:00-9:00; 夜班 [1230,1290) 20:30-21:30 (与 DAY_SEGS/NIGHT_SEGS 段1一致)
+const FH_DAY_END = 540, FH_NIGHT_END = 1290;
+function fhKeyOf(dateStr, shift) { return String(dateStr) + "_" + (shift === "night" ? "night" : "day"); }
+// 判断当前时刻属于哪个班次(用于首小时定格): 白班 8:00-20:20; 夜班 20:30-次日8:00
+function fhShiftOfNow() {
+  const d = new Date();
+  const m = d.getHours() * 60 + d.getMinutes();
+  if (m >= DAY_START && m < DAY_END) return "day";
+  if (m >= NIGHT_START || m < NIGHT_END) return "night";
+  return null; // 交班缝隙 20:20-20:30
+}
+// 自动定格首小时快照: 首小时结束后调用一次即记录当天该班次(幂等)
+function maybeSnapFirstHour() {
+  try {
+    const shift = fhShiftOfNow();
+    if (!shift) return;
+    const now = new Date();
+    const m = now.getHours() * 60 + now.getMinutes();
+    const endMin = shift === "day" ? FH_DAY_END : FH_NIGHT_END;
+    if (m < endMin) return; // 首小时还没结束, 不记
+    // 日期归属: 白班首小时(9:00后)属当天; 夜班首小时(21:30后)属当天; 凌晨(0-8点)是夜班尾巴, 首小时早已定格在昨天
+    const dateStr = (shift === "night" && m < DAY_START) ? dayKeyOf(new Date(Date.now() - 86400000)) : todayKey();
+    const key = fhKeyOf(dateStr, shift);
+    if (fhSnap[key]) return; // 已记录过, 幂等
+    const map = {};
+    (state.lines || []).forEach(l => {
+      if (!MAIN_SET.has(normName(l.name))) return;
+      const segs = segsOf(l.name, l.actual || 0, l.plan || 0);
+      const s1 = segs[0];
+      if (!s1) return;
+      const p = Number(s1.plan) || 0;
+      const a = Number(s1.actual) || 0;
+      const rate = p > 0 ? Math.round(a / p * 1000) / 10 : 0; // 首小时达成率 = 段1实际/段1目标
+      if (rate > 0) map[l.name] = rate; // 实际为0(数据未推)时不记脏快照
+    });
+    if (!Object.keys(map).length) return;
+    fhSnap[key] = map;
+    try { localStorage.setItem(FH_SNAP_KEY, JSON.stringify(fhSnap)); } catch (e) {}
+    console.log("[fh] 首小时快照已记录 " + key + " " + Object.keys(map).length + " 线体");
+    try { renderFirstHourHist(); } catch (e) {}
+    try { renderTrend(); } catch (e) {}
+  } catch (e) { console.error("[fh] maybeSnapFirstHour", e); }
+}
+// 首小时数据源统一读取: 返回 [{date, first_hour:{线名:率}}, ...] 按班次过滤(升序)
+function fhHistList() {
+  const out = [];
+  Object.keys(fhSnap).forEach(k => {
+    const m = /^(\d{4}-\d{2}-\d{2})_(day|night)$/.exec(k);
+    if (!m || m[2] !== fhShift) return;
+    out.push({ date: m[1], first_hour: fhSnap[k] });
+  });
+  out.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  return out;
+}
+// 首小时面板切换按钮 (白班/夜班)
+function setFhShift(sh) {
+  fhShift = (sh === "night") ? "night" : "day";
+  try { localStorage.setItem(FH_SHIFT_KEY, fhShift); } catch (e) {}
+  const db = document.getElementById("fhShiftDayBtn");
+  const nb = document.getElementById("fhShiftNightBtn");
+  if (db) db.style.background = fhShift === "day" ? "var(--accent)" : "";
+  if (nb) nb.style.background = fhShift === "night" ? "var(--accent)" : "";
+  // 同步趋势图角落的切换按钮高亮
+  const tdb = document.getElementById("fhTrendDayBtn");
+  const tnb = document.getElementById("fhTrendNightBtn");
+  if (tdb) tdb.style.background = fhShift === "day" ? "var(--accent)" : "";
+  if (tnb) tnb.style.background = fhShift === "night" ? "var(--accent)" : "";
+  try { renderFirstHourHist(); } catch (e) {}
+  if (typeof trendMode !== "undefined" && trendMode === "first") { try { renderTrend(); } catch (e) {} }
 }
 
 // ---- 历史统计 v5.18: 每日快照(localStorage) → 周/月对比 + 站擂排名 ----
@@ -1896,6 +1983,7 @@ async function refresh() {
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
     sampleNow(); // ★ 2026-08-28 班次时段采样: 每60秒/线记一次实际累计 → 时段边界产量越算越准
+    maybeSnapFirstHour(); // ★ v5.29 首小时快照自动定格: 首小时结束后记当天该班次达成率(幂等)
     // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
     //   ⚠️ data.json 的 updatedAt 是字符串 "YYYY-MM-DD HH:MM:SS", 必须先转时间戳再相减
     const st = d.source || "";
@@ -2243,8 +2331,14 @@ function renderFirstHourHist() {
   const title = document.getElementById("histFirstHourTitle");
   if (!body) return;
   const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
-  let hist = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : [];
-  hist = hist.filter(d => d && d.first_hour && Object.keys(d.first_hour).length);
+  // ★ v5.29 数据源: 前端自动快照 fhSnap(localStorage, 每班次每天自动定格) 优先
+  //   兼容旧来源: __HISTORY__[].first_hour(extract 每10分钟) + __LIVE_DATA__.first_hour(当天全量)
+  let hist = fhHistList();
+  if (!hist.length) {
+    let oldHist = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : [];
+    oldHist = oldHist.filter(d => d && d.first_hour && Object.keys(d.first_hour).length);
+    hist = oldHist;
+  }
   // 当天全量明细 (target/actual) 优先来自 __LIVE_DATA__.first_hour
   let todayDetail = [];
   try {
@@ -2258,7 +2352,7 @@ function renderFirstHourHist() {
   [today].concat(hist.map(h => h.date)).forEach(d => { if (d && days.indexOf(d) < 0) days.push(d); });
   const dayRows = days.slice(-10);
   if (!dayRows.length && !todayDetail.length) {
-    body.innerHTML = "<div style='color:var(--gray);font-size:11px;padding:8px 2px'>" + (zh ? "暂无首小时数据 — 现场在Excel填写8-9点时段后自动同步" : "No first-hour data yet — auto-syncs after 8-9am entries in Excel") + "</div>";
+    body.innerHTML = "<div style='color:var(--gray);font-size:11px;padding:8px 2px'>" + (zh ? "暂无首小时数据 — 首小时结束后页面自动定格记录" : "No first-hour data yet — auto-captured after first hour ends") + "</div>";
     return;
   }
   // 今天数据: __HISTORY__ 优先, 否则 __LIVE_DATA__.first_hour 现场组装
@@ -2320,9 +2414,24 @@ function renderFirstHourHist() {
   }).join("");
   const trendHtml = lineCards ? "<div style='background:var(--panel);border-radius:8px;padding:8px;margin-top:10px;min-width:0'><b style='font-size:11px'>" + (zh ? "📈 首小时达成率趋势 (近" + lastN.length + "工作日)" : "📈 First-Hour Trend (last " + lastN.length + " workdays)") + "</b><div style='margin-top:6px;display:flex;flex-wrap:wrap;gap:6px 14px'>" + lineCards + "</div></div>" : "";
   body.innerHTML = tableHtml + trendHtml;
-  if (ttl && ttl.indexOf("首小时") < 0 && ttl.indexOf("First-Hour") < 0) {
-    // 标题加数据源说明 (仅首次)
-    if (title) title.textContent = (zh ? "⏰ 首小时达成 (8-9点) · 历史 / 趋势 / 排名" : "⏰ First-Hour (8-9am) · History / Trend / Rank");
+  if (title) {
+    // 先设置文本, 再挂切换按钮(避免 textContent 清掉已挂载的按钮)
+    const hasBar = !!title.querySelector(".fh-shift-bar");
+    title.textContent = (zh ? "⏰ 首小时达成 (" + (fhShift === "day" ? "8-9点" : "20:30-21:30") + ") · 历史 / 趋势 / 排名" : "⏰ First-Hour (" + (fhShift === "day" ? "8-9am" : "8:30-9:30pm") + ") · History / Trend / Rank");
+    let bar = hasBar ? title.querySelector(".fh-shift-bar") : null;
+    if (!bar) {
+      bar = document.createElement("span");
+      bar.className = "fh-shift-bar";
+      bar.style.cssText = "margin-left:10px;display:inline-flex;gap:6px;vertical-align:middle";
+      bar.innerHTML =
+        "<button class='ex-btn trend-mode-btn' id='fhShiftDayBtn' onclick='setFhShift(&quot;day&quot;)' style='font-size:10px;padding:1px 8px'>🌞 " + (zh ? "白班" : "Day") + "</button>" +
+        "<button class='ex-btn trend-mode-btn' id='fhShiftNightBtn' onclick='setFhShift(&quot;night&quot;)' style='font-size:10px;padding:1px 8px'>🌙 " + (zh ? "夜班" : "Night") + "</button>";
+      title.appendChild(bar);
+    }
+    const fdb = document.getElementById("fhShiftDayBtn");
+    const fnb = document.getElementById("fhShiftNightBtn");
+    if (fdb) fdb.style.background = fhShift === "day" ? "var(--accent)" : "";
+    if (fnb) fnb.style.background = fhShift === "night" ? "var(--accent)" : "";
   }
 }
 // 聚合集平均达成率(表头摘要用)
@@ -2550,6 +2659,13 @@ function setTrendMode(m) {
   const fb = document.getElementById("trendModeFirstBtn");
   if (rb) rb.style.background = trendMode === "rate" ? "var(--accent)" : "";
   if (fb) fb.style.background = trendMode === "first" ? "var(--accent)" : "";
+  // ★ v5.29: 首小时模式下显示白班/夜班切换条
+  const fsb = document.getElementById("fhShiftBar");
+  if (fsb) { fsb.style.display = trendMode === "first" ? "inline-flex" : "none"; }
+  const fdb = document.getElementById("fhTrendDayBtn");
+  const fnb = document.getElementById("fhTrendNightBtn");
+  if (fdb) fdb.style.background = fhShift === "day" ? "var(--accent)" : "";
+  if (fnb) fnb.style.background = fhShift === "night" ? "var(--accent)" : "";
   renderTrend();
 }
 let trendSel = {}; // {线体名: true/false}
@@ -2567,6 +2683,17 @@ function isWeekendDate(dateStr) {
 // 读取历史: 优先 __HISTORY__ (17:00 cron 写入), 否则 localStorage; 并合并当天实时达成率 (2026-08-21 用户要求: 当天数据也要在趋势图里)
 // 2026-08-24 用户要求: 过滤掉周末(周六/周日)记录, 趋势只显示周一至周五
 function getTrendHist() {
+  // ★ v5.29: first 模式(首小时达成率趋势)主数据源 = 前端自动快照 fhSnap(按当前班次切换)
+  if (trendMode === "first") {
+    const fhList = fhHistList();
+    if (fhList.length) return fhList;
+    // 兜底: 旧 __HISTORY__ 里手工/脚本写入的 first_hour 记录
+    let h0 = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : null;
+    if (!h0 || !h0.length) {
+      try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h0 = l; } catch (e) {}
+    }
+    return (h0 || []).slice().filter(d => d && d.date && d.first_hour && Object.keys(d.first_hour).length);
+  }
   let h = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : null;
   if (!h || !h.length) {
     try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h = l; } catch (e) {}
@@ -2621,7 +2748,14 @@ function trendDayHasData(d) {
 // ── 2026-08-25: 趋势取数 — 按模式返回某天记录的数值表 {line: 值} ──
 function trendValsOf(d) {
   if (!d) return {};
-  return (trendMode === "first") ? (d.first_hour || {}) : (d.lines || {});
+  // ★ v5.29: first 模式优先用前端自动快照 fhSnap(按班次), 旧记录(first_hour 已在 getTrendHist 合并)兜底
+  if (trendMode === "first") {
+    const snapKey = fhKeyOf(d.date, fhShift);
+    const snap = fhSnap[snapKey];
+    if (snap && Object.keys(snap).length) return snap;
+    return (d.first_hour || {});
+  }
+  return (d.lines || {});
 }
 // 线体名 → 首字母简称 (2026-08-20 15:30: 用户要求只写首字母/系列字母, 小图标一排, 空间留给图表)
 // Final A line→A, Final B Line→B, Final C line→C, Final D line→D, Motor H-Series→H, Motor S-Series→S, Motor F-Series→F, Motor WL→WL
