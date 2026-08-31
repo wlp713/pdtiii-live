@@ -2619,7 +2619,20 @@ function getTrendHist() {
       if (!isToday && (Object.keys(rec.lines).length || Object.keys(rec.first_hour || {}).length)) h.push(rec);
     }
   } catch (e) {}
-  return h;
+  // ★ 2026-08-31 用户要求: 没有数据的那一天直接跳过, 只展示有数据的最近7天
+  //   无数据天定义: 该天没有任何线体有 >0 的有效达成率 (全 0 / 全缺失 / 空记录)
+  return h.filter(trendDayHasData);
+}
+// ── 2026-08-31: 判断某天趋势记录是否有有效数据 (至少一个线体值 > 0) ──
+function trendDayHasData(d) {
+  if (!d) return false;
+  const vals = trendValsOf(d);
+  const keys = Object.keys(vals);
+  if (!keys.length) return false;
+  return keys.some(function (k) {
+    const v = Number(vals[k]);
+    return !isNaN(v) && v > 0;
+  });
 }
 // ── 2026-08-25: 趋势取数 — 按模式返回某天记录的数值表 {line: 值} ──
 function trendValsOf(d) {
@@ -2753,7 +2766,7 @@ function drawTrend() {
   const yMin = 60, yMax = 120;
   const cards = order.map((n, li) => {
     const color = TREND_COLORS[li % TREND_COLORS.length];
-    const vals = days.map(d => { const v = Number(trendValsOf(d)[n]); return isNaN(v) ? null : v; });
+    const vals = days.map(d => { const v = Number(trendValsOf(d)[n]); return (isNaN(v) || v <= 0) ? null : v; });
     const lastV = vals[vals.length - 1];
     const prevV = vals[vals.length - 2];
     let arrow = "", arrowCls = "";
@@ -3069,7 +3082,7 @@ function drawTrendDetailLine() {
   xIx.forEach(ix => ctx.fillText(String(days[ix].date || "").slice(5), padL + ix * xStep - 12, H - 7));
   // 数据线 + 数据标签
   const color = TREND_COLORS[0];
-  const vals = days.map(d => { const v = Number(trendValsOf(d)[n]); return isNaN(v) ? null : v; });
+  const vals = days.map(d => { const v = Number(trendValsOf(d)[n]); return (isNaN(v) || v <= 0) ? null : v; });
   const pts = [];
   vals.forEach((v, ix) => {
     if (v == null) return;
@@ -3186,10 +3199,10 @@ function drawTrendDetail() {
     const pts = [];
     days.forEach((d, ix) => {
       const v = Number(trendValsOf(d)[n]);
-      if (isNaN(v)) return;
+      if (isNaN(v) || v <= 0) return; // 2026-08-31: 该天无数据(0/缺失) → 跳过该点
       const x = padL + ix * xStep;
       const y = padT + ch - (ch * Math.min(v, maxV) / maxV);
-      pts.push([x, y]);
+      pts.push([x, y, v]);
       ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
     });
     if (pts.length > 1) {
@@ -3200,7 +3213,8 @@ function drawTrendDetail() {
     if (pts.length) {
       const last = pts[pts.length - 1];
       ctx.font = "bold 10px sans-serif";
-      ctx.fillText(tinyName(n) + " " + Math.round(Number(trendValsOf(days[days.length - 1])[n])) + "%", Math.min(last[0] + 4, W - 52), last[1] - 6);
+      // 2026-08-31: 标签值取最后一个有效点, 避免最后一天无数据(0)时误标 0%
+      ctx.fillText(tinyName(n) + " " + Math.round(last[2]) + "%", Math.min(last[0] + 4, W - 52), last[1] - 6);
     }
   });
 }
