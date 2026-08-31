@@ -1302,6 +1302,15 @@ function snapMins(sn) {
   }
   return (Number(raw) || 0) * 60; // 旧格式 小时 → 分钟
 }
+// 采样所属班次日 (绝对时间戳): 8:00 前归前一天晚班, 8:00 起归当天白班
+// ★ 2026-08-31 修复: localStorage 采样保留48h, 昨天采样会被 valueAt 当成今天 → 今天所有时段
+//   p0=p1=昨天终值 → plan 差分全0 → 小时图只剩当前 live 段一根柱。按班次日过滤后互不污染。
+function sampDay(ts) {
+  const d = new Date(ts);
+  let day0 = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  if (d.getHours() < 8) day0 -= 24 * 3600 * 1000; // 凌晨 0-8点 属于前一天晚班
+  return day0;
+}
 // ≤t 最近的已知累计值 (t=当天0点基准分钟, 可>1440跨天; 优先采样, 其次hourly快照插值/外推, 最后实时)
 // ★ v5.22: 晚班段边界在 :40/:30, 与整点快照错位 → 取最近快照会差 20-40 分钟
 //   改为相邻快照线性插值; 跨换班(白班累计→晚班清零)不插值, 用换班后斜率外推
@@ -1312,8 +1321,10 @@ function valueAt(name, t, usePlan) {
   const store = loadSamps();
   const arr = store[name] || [];
   let best = null;
+  const qDay = sampDay(tMs); // 查询时刻的班次日
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].ts > tMs) break;
+    if (sampDay(arr[i].ts) !== qDay) continue; // ★ 只取同班次日的采样, 昨天的数据不污染今天
     // 采样含 actual(a) 和 plan(p); 旧采样(无 p) 在要 plan 时跳过, 避免用 actual 冒充 plan
     if (usePlan) { if (arr[i].p != null) best = arr[i].p; }
     else best = arr[i].a;
