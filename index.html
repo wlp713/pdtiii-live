@@ -1381,9 +1381,14 @@ function segsOf(name, curActual, curPlan) {
   for (let k = 0; k < table.length; k++) {
     const t0 = table[k][0], t1 = table[k][1];
     if (t0 >= nowMins || t0 >= endCap) break;   // 未开始的时段不画
-    const a0 = valueAt(name, t0, false);
+    // ★ 2026-08-31 v5.26 开班清零: 每班第一段的起点(8:00/20:40)目标与实际一律为 0
+    //   hourly 快照里 8 点桶可能被写入全天目标脏值、晚班 h=21 桶是重启后的小值,
+    //   valueAt 外推会把它们当成开班时刻的值 → 段1 目标 = 实时Plan − 脏值, 与 Plan 列对不上。
+    //   开班 = 新班从 0 重新累计, 段1 目标应 = 实时累计目标(即 Plan 列), 实际同理。
+    const first = (k === 0);
+    const a0 = first ? 0 : valueAt(name, t0, false);
     const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
-    const p0 = valueAt(name, t0, true);
+    const p0 = first ? 0 : valueAt(name, t0, true);
     const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
     let actual = a1 - a0, plan = p1 - p0;
     if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
