@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-01 15:40:19
+   最后写入: 2026-09-01 16:10:26
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "09:00-09:50",
       "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข งานออกไม่ต่อเนื่อง S-series",
-      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在修复中，导致S系列产出不连续。",
+      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在修复中，S系列产出不连续。",
       "plan": 150,
       "actual": 112,
       "impact": -38,
@@ -28,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "10:00-11:00",
       "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข เปลี่ยนอะไหล่ใหม่อยู่ S-series",
-      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在维修更换新备件，S系列。",
+      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在更换新备件进行修复，S系列。",
       "plan": 169,
       "actual": 102,
       "impact": -67,
@@ -41,7 +41,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "11:00-12:00",
       "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข",
-      "problem_zh": "Slot机（Slot machine）仍无法使用，正在维修中。",
+      "problem_zh": "Slot机还不能用，正在修。",
       "plan": 169,
       "actual": 93,
       "impact": -76,
@@ -67,7 +67,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·WL系列",
       "time": "13:00-14:00",
       "problem_th": "มีStockรอเช็คไฟฟ้า ทำให้งานออกต่อเนื่อง เครื่องSlot no.3น็อตตัวประกอบFlimขาดpeกำลังแก้ WL",
-      "problem_zh": "有库存待检电气，作业可连续产出。Slot No.3机台组装Flim的螺母缺失，PE正在修复中。",
+      "problem_zh": "有库存待检电气，作业可连续产出。Slot No.3机台组装Flim的螺母缺失，PE正在处理中。",
       "plan": 150,
       "actual": 393,
       "impact": 243,
@@ -80,7 +80,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·WL系列",
       "time": "14:00-14:50",
       "problem_th": "เครื่องSlot no.3น็อตตัวประกอบFlimขาดpeกำลังแก้",
-      "problem_zh": "Slot No.3 设备螺栓松动，Flim 组装件破损，正在修复中。",
+      "problem_zh": "Slot No.3 设备，Flim 组装工位螺栓缺失，PE 正在修复中。",
       "plan": 144,
       "actual": 36,
       "impact": -108,
@@ -93,7 +93,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องขัดไม่ทำงานหยุด 08:00-08:50 Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข เครื่อง เช็คไฟไม่อ่านค่าหยุด 08:26 กำลังแก้ไข F-series",
-      "problem_zh": "碰焊机不工作，停机08:00-08:50；Slot射出件数不足，08:24停机，正在修复；设备检查时读不到电压值，08:26停机，正在修复。F系列。",
+      "problem_zh": "抛光机不工作，停机08:00-08:50；Slot射出件数不足，08:24停机，正在处理；设备检查时读不到数值，08:26停机，正在处理。F系列。",
       "plan": 141,
       "actual": 82,
       "impact": -59,
@@ -106,7 +106,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "10:00-11:00",
       "problem_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL / รื้อNG F-series",
-      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。调员工去支援WL线/返工F系列NG品。",
+      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。调员工支援WL线/返工F系列NG品。",
       "plan": 141,
       "actual": 0,
       "impact": -141,
@@ -119,7 +119,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "11:00-12:00",
       "problem_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL / รื้อNG สลับเบรค 6 คน F-series",
-      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。抽调6名员工支援WL线/拆解NG品、轮换休息，F系列。",
+      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。抽调6名员工支援WL线/返工NG件，轮换休息，F系列。",
       "plan": 141,
       "actual": 0,
       "impact": -141,
@@ -132,7 +132,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "13:00-14:00",
       "problem_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL /  H / ขัดภายใน / Rework",
-      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。抽调人员支援WL/H/内壁打磨/Rework。",
+      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。已调员工支援WL/H/内壁打磨/Rework。",
       "plan": 141,
       "actual": 0,
       "impact": -141,
@@ -145,7 +145,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "พนักงานไม่ครบจุดการทำงาน (หัวหน้าเข้า Support)(-42) เครื่อง Test run ทำงานไม่เสถียร(หัวหน้างาน,IP เข้าแก้ไขแล้ว)(-40) A Line Final",
-      "problem_zh": "工位缺人（组长支援）（-42）；Test run设备运行不稳定（组长、IP已介入处理）（-40）；A线Final工位。",
+      "problem_zh": "1. 作业岗位缺员（组长已支援）（-42）\n2. Test run设备运行不稳定（组长、IP已介入处理）（-40）\n3. A线最终组装工序",
       "plan": 431,
       "actual": 349,
       "impact": -82,
@@ -158,7 +158,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "air gap check ยาก (-66) A Line Final",
-      "problem_zh": "A线最终检查工位空气间隙检测困难（-66），检测值异常。",
+      "problem_zh": "A Line Final工位空气间隙检查困难（-66），作业难度大。",
       "plan": 431,
       "actual": 365,
       "impact": -66,
@@ -171,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "งานรุ่น EA 50 FMF -UZEL                         ROD สวม Piston แล้ว ฝืดงานออกไม่ต่อเนื่อง (ip pro.4 เข้าตรวจสอบ)(-58) A Line Final",
-      "problem_zh": "EA 50 FMF -UZEL 机型：ROD 套入 Piston 后卡滞，作业无法连续进行（IP Pro.4 已介入检查）（-58）A Line Final",
+      "problem_zh": "EA 50 FMF -UZEL 机型：ROD 套入 Piston 后卡滞，作业输出不连续（IP Pro.4 已介入检查）（-58）A Line Final",
       "plan": 359,
       "actual": 301,
       "impact": -58,
@@ -184,7 +184,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "KV Line Out  ออกต่อเนื่องงาน(ip,คนจีน เข้าตรวจสอบ)",
-      "problem_zh": "KV Line Out 连续出件（IP、中方人员进入检查）。",
+      "problem_zh": "KV Line Out 连续出件（IP/中方人员进入检查）",
       "plan": 431,
       "actual": 364,
       "impact": -67,
@@ -197,10 +197,36 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "08:00-09:00",
       "problem_th": "งานระบายตู้เชื่อม robot ไม่ทัน เนื่องจากจอด เสีย 1 ตู้ ,แก้ไขรอยเชื่อม 1 ตู้",
-      "problem_zh": "机器人焊接柜排出不及时，因1台停机故障、1台需修复焊痕。",
+      "problem_zh": "机器人焊接柜来不及排出，因1台停机故障，1台在修复焊接缺陷。",
       "plan": 470,
       "actual": 400,
       "impact": -70,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "13:00-14:00",
+      "problem_th": "รองานจาก rotor line เปลี่ยนรุ่น 2 ครั้ง H/E ต้องเปลี่ยนปะเต็ง",
+      "problem_zh": "等待转子线换型2次，热交换器需更换碰焊。",
+      "plan": 470,
+      "actual": 204,
+      "impact": -266,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "14:00-15:00",
+      "problem_th": "เปลี่ยนรุ่น H/E ปรับเซ็ตค่าเครื่องจักร",
+      "problem_zh": "更换H/E型号，调整设定设备参数。",
+      "plan": 470,
+      "actual": 319,
+      "impact": -151,
       "shift": "day"
     },
     {
@@ -241,11 +267,50 @@ window.__LIVE_DATA__ = {
       "actual": 414,
       "impact": -30,
       "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "13:00-14:00",
+      "problem_th": "เปลี่ยนรุ่น1ครั้ง",
+      "problem_zh": "更换型号1次。",
+      "plan": 444,
+      "actual": 410,
+      "impact": -34,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "14:00-15:00",
+      "problem_th": "PE เข้าแก้ไขเครื่องขัน D-COVER ที่ Rotor line งานมาไม่ต่อเนื่อง-48 (แก้ไขแล้ว)",
+      "problem_zh": "PE已处理Rotor线D-COVER拧紧机故障，导致作业中断48分钟（已修复）。",
+      "plan": 444,
+      "actual": 396,
+      "impact": -48,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "15:00-16:00",
+      "problem_th": "เปลี่ยนรุ่น1ครั้ง-30 เครื่องขัน D-COVER Rotor line ติดขัดทำงานไม่เสถียร แก้ไขยังไม่หาย-42 (รอ PE เข้าแก้ไขอีกครั้ง)",
+      "problem_zh": "换型1次-30台，D-COVER拧紧机在Rotor线卡滞、运行不稳定，修复未果-42（待PE再次介入处理）。",
+      "plan": 370,
+      "actual": 298,
+      "impact": -72,
+      "shift": "day"
     }
   ],
   "problems_top": [
     {
-      "name": "Slot 射出件数不足，08:24停机，正在修复。调员工去支援WL线/返工F系列NG品。",
+      "name": "Slot 射出件数不足，08:24停机，正在修复。调员工支援WL线/返工F系列NG品。",
       "name_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL / รื้อNG F-series",
       "lines": [
         "RPO1·F系列"
@@ -260,7 +325,20 @@ window.__LIVE_DATA__ = {
       "total_impact": -482
     },
     {
-      "name": "Slot机（Slot machine）仍无法使用，正在维修中。",
+      "name": "等待转子线换型2次，热交换器需更换碰焊。",
+      "name_th": "รองานจาก rotor line เปลี่ยนรุ่น 2 ครั้ง H/E ต้องเปลี่ยนปะเต็ง",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "13:00-14:00",
+        "14:00-15:00"
+      ],
+      "count": 2,
+      "total_impact": -417
+    },
+    {
+      "name": "Slot机还不能用，正在修。",
       "name_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข",
       "lines": [
         "RPO1·S系列"
@@ -272,19 +350,6 @@ window.__LIVE_DATA__ = {
       ],
       "count": 3,
       "total_impact": -181
-    },
-    {
-      "name": "换型1次，Rotor线来料30件不连续，线上库存耗尽。",
-      "name_th": "เปลี่ยนรุ่น1ครั้ง-30 งานจาก Rotor line มาไม่ต่อเนื่อง stock บนไลน์หมด",
-      "lines": [
-        "PRO2·C"
-      ],
-      "times": [
-        "09:00-10:00",
-        "10:00-11:00"
-      ],
-      "count": 2,
-      "total_impact": -147
     }
   ],
   "first_hour": [
