@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-01 10:30:09
+   最后写入: 2026-09-01 14:10:16
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -14,11 +14,154 @@ window.__LIVE_DATA__ = {
       "series": "S系列",
       "line": "RPO1·S系列",
       "time": "09:00-09:50",
-      "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข งานออกไม่ต่อเนื่อง",
-      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在修复中，导致出料不连续。",
+      "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข งานออกไม่ต่อเนื่อง S-series",
+      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在修复中，导致S系列产出不连续。",
       "plan": 150,
       "actual": 112,
       "impact": -38,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข เปลี่ยนอะไหล่ใหม่อยู่ S-series",
+      "problem_zh": "Slot机还不能用，正在修，换新备件中，S系列。",
+      "plan": 169,
+      "actual": 102,
+      "impact": -67,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "11:00-12:00",
+      "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข",
+      "problem_zh": "Slot机还不能用，正在修。",
+      "plan": 169,
+      "actual": 93,
+      "impact": -76,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "WL系列",
+      "line": "RPO1·WL系列",
+      "time": "11:00-12:00",
+      "problem_th": "เครื่องSlot no.2 กระบอกสูบแตกpeแก้ใข 30 นาที",
+      "problem_zh": "Slot No.2 气缸破裂，维修需30分钟。",
+      "plan": 150,
+      "actual": 128,
+      "impact": -22,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องขัดไม่ทำงานหยุด 08:00-08:50 Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข เครื่อง เช็คไฟไม่อ่านค่าหยุด 08:26 กำลังแก้ไข F-series",
+      "problem_zh": "抛光机不工作，停机08:00-08:50；Slot射出件数不足，08:24停机，正在处理；设备检查时读不到电压值，08:26停机，正在修复。F系列。",
+      "plan": 141,
+      "actual": 82,
+      "impact": -59,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL / รื้อNG F-series",
+      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。调员工去支援WL线/返工F系列NG品。",
+      "plan": 141,
+      "actual": 0,
+      "impact": -141,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "11:00-12:00",
+      "problem_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL / รื้อNG สลับเบรค 6 คน F-series",
+      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。抽调6人支援WL线/返工NG件，F系列交替休息。",
+      "plan": 141,
+      "actual": 0,
+      "impact": -141,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "13:00-14:00",
+      "problem_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL /  H / ขัดภายใน / Rework",
+      "problem_zh": "Slot 射出件数不足，08:24停机，正在修复。抽调人员支援WL/H/内壁打磨/Rework。",
+      "plan": 141,
+      "actual": 0,
+      "impact": -141,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "พนักงานไม่ครบจุดการทำงาน (หัวหน้าเข้า Support)(-42) เครื่อง Test run ทำงานไม่เสถียร(หัวหน้างาน,IP เข้าแก้ไขแล้ว)(-40) A Line Final",
+      "problem_zh": "1. 作业岗位缺员（组长支援）（-42）\n2. Test run设备运行不稳定（组长、IP已介入处理）（-40）\n3. A线最终组装",
+      "plan": 431,
+      "actual": 349,
+      "impact": -82,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "09:00-10:00",
+      "problem_th": "air gap check ยาก (-66) A Line Final",
+      "problem_zh": "A Line Final工位空气间隙检查困难（-66），作业难度大。",
+      "plan": 431,
+      "actual": 365,
+      "impact": -66,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "10:00-11:00",
+      "problem_th": "งานรุ่น EA 50 FMF -UZEL                         ROD สวม Piston แล้ว ฝืดงานออกไม่ต่อเนื่อง (ip pro.4 เข้าตรวจสอบ)(-58) A Line Final",
+      "problem_zh": "EA 50 FMF -UZEL 机型：ROD 套入 Piston 后卡滞，作业无法连续进行（IP Pro.4 已介入检查）（-58）A线 Final",
+      "plan": 359,
+      "actual": 301,
+      "impact": -58,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "11:00-12:00",
+      "problem_th": "KV Line Out  ออกต่อเนื่องงาน(ip,คนจีน เข้าตรวจสอบ)",
+      "problem_zh": "KV Line Out 连续出件（IPQC、中方人员进场检查）。",
+      "plan": 431,
+      "actual": 364,
+      "impact": -67,
       "shift": "day"
     },
     {
@@ -28,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "08:00-09:00",
       "problem_th": "งานระบายตู้เชื่อม robot ไม่ทัน เนื่องจากจอด เสีย 1 ตู้ ,แก้ไขรอยเชื่อม 1 ตู้",
-      "problem_zh": "机器人焊接柜来不及排出，因1台故障停机，1台需修复焊痕。",
+      "problem_zh": "机器人焊接柜来不及排出：1台故障停机，1台返修焊点。",
       "plan": 470,
       "actual": 400,
       "impact": -70,
@@ -41,52 +184,92 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "09:00-10:00",
       "problem_th": "เปลี่ยนรุ่น1ครั้ง-30 งานจาก Rotor line มาไม่ต่อเนื่อง stock บนไลน์หมด",
-      "problem_zh": "换型1次，Rotor线来料30件不连续，线上库存耗尽。",
+      "problem_zh": "换型1次-30件，Rotor线来料不连续，线上库存耗尽。",
       "plan": 444,
       "actual": 369,
       "impact": -75,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "10:00-11:00",
+      "problem_th": "เนื่องจากเปลี่ยนรุ่น งานRotor line มาไม่ต่อเนื่อง-72(เร่งทำ stock ใหม่)",
+      "problem_zh": "因换型，Rotor线来料不连续-72（正赶制新库存）。",
+      "plan": 370,
+      "actual": 298,
+      "impact": -72,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "11:00-12:00",
+      "problem_th": "รุ่น AW6 เครื่อง tast run ทำงานไม่เสถียร",
+      "problem_zh": "AW6型号，试运行设备工作不稳定。",
+      "plan": 444,
+      "actual": 414,
+      "impact": -30,
       "shift": "day"
     }
   ],
   "problems_top": [
     {
-      "name": "换型1次，Rotor线来料30件不连续，线上库存耗尽。",
+      "name": "Slot 射出件数不足，08:24停机，正在修复。调员工去支援WL线/返工F系列NG品。",
+      "name_th": "Slot ยิงออกมาไม่ครบ หยุด 08:24 กำลังแก้ไข นำพนักงานไปช่วย WL / รื้อNG F-series",
+      "lines": [
+        "RPO1·F系列"
+      ],
+      "times": [
+        "10:00-11:00",
+        "11:00-12:00",
+        "13:00-14:00"
+      ],
+      "count": 3,
+      "total_impact": -423
+    },
+    {
+      "name": "Slot机还不能用，正在修。",
+      "name_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข",
+      "lines": [
+        "RPO1·S系列"
+      ],
+      "times": [
+        "09:00-09:50",
+        "10:00-11:00",
+        "11:00-12:00"
+      ],
+      "count": 3,
+      "total_impact": -181
+    },
+    {
+      "name": "换型1次-30件，Rotor线来料不连续，线上库存耗尽。",
       "name_th": "เปลี่ยนรุ่น1ครั้ง-30 งานจาก Rotor line มาไม่ต่อเนื่อง stock บนไลน์หมด",
       "lines": [
         "PRO2·C"
       ],
       "times": [
-        "09:00-10:00"
+        "09:00-10:00",
+        "10:00-11:00"
       ],
-      "count": 1,
-      "total_impact": -75
-    },
-    {
-      "name": "机器人焊接柜来不及排出，因1台故障停机，1台需修复焊痕。",
-      "name_th": "งานระบายตู้เชื่อม robot ไม่ทัน เนื่องจากจอด เสีย 1 ตู้ ,แก้ไขรอยเชื่อม 1 ตู้",
-      "lines": [
-        "PRO2·B"
-      ],
-      "times": [
-        "08:00-09:00"
-      ],
-      "count": 1,
-      "total_impact": -70
-    },
-    {
-      "name": "Slot机（Slot Machine）仍无法使用，正在修复中，导致出料不连续。",
-      "name_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข งานออกไม่ต่อเนื่อง",
-      "lines": [
-        "RPO1·S系列"
-      ],
-      "times": [
-        "09:00-09:50"
-      ],
-      "count": 1,
-      "total_impact": -38
+      "count": 2,
+      "total_impact": -147
     }
   ],
   "first_hour": [
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 82,
+      "rate": 58.2
+    },
     {
       "date": "2026-09-01",
       "ws": "RPO1",
@@ -113,6 +296,15 @@ window.__LIVE_DATA__ = {
       "target": 150,
       "actual": 187,
       "rate": 124.7
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 431,
+      "actual": 349,
+      "rate": 81.0
     },
     {
       "date": "2026-09-01",
@@ -393,9 +585,11 @@ window.__HISTORY__ = [
   {
     "date": "2026-09-01",
     "first_hour": {
+      "RPO1·F系列": 58.2,
       "RPO1·H系列": 110.1,
       "RPO1·S系列": 110.7,
       "RPO1·WL系列": 124.7,
+      "PRO2·A": 81.0,
       "PRO2·B": 85.1,
       "PRO2·C": 64.9
     }
