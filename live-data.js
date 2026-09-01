@@ -3,13 +3,111 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-01 08:05:02
+   最后写入: 2026-09-01 10:10:06
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
-  "problems_top": null,
-  "first_hour": []
+  "problems": [
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "09:00-09:50",
+      "problem_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข งานออกไม่ต่อเนื่อง",
+      "problem_zh": "Slot机（Slot Machine）仍无法使用，正在修复中，导致出料不连续。",
+      "plan": 150,
+      "actual": 112,
+      "impact": -38,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "08:00-09:00",
+      "problem_th": "งานระบายตู้เชื่อม robot ไม่ทัน เนื่องจากจอด เสีย 1 ตู้ ,แก้ไขรอยเชื่อม 1 ตู้",
+      "problem_zh": "机器人焊接柜来不及排出，因1台停机故障，1台需修复焊痕。",
+      "plan": 470,
+      "actual": 400,
+      "impact": -70,
+      "shift": "day"
+    }
+  ],
+  "problems_top": [
+    {
+      "name": "机器人焊接柜来不及排出，因1台停机故障，1台需修复焊痕。",
+      "name_th": "งานระบายตู้เชื่อม robot ไม่ทัน เนื่องจากจอด เสีย 1 ตู้ ,แก้ไขรอยเชื่อม 1 ตู้",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -70
+    },
+    {
+      "name": "Slot机（Slot Machine）仍无法使用，正在修复中，导致出料不连续。",
+      "name_th": "เครื่อง Slot ยังใช้งานไม่ได้กำลังแก้ไข งานออกไม่ต่อเนื่อง",
+      "lines": [
+        "RPO1·S系列"
+      ],
+      "times": [
+        "09:00-09:50"
+      ],
+      "count": 1,
+      "total_impact": -38
+    }
+  ],
+  "first_hour": [
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 185,
+      "rate": 110.1
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 187,
+      "rate": 110.7
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "RPO1",
+      "series": "WL系列",
+      "line": "RPO1·WL系列",
+      "target": 150,
+      "actual": 187,
+      "rate": 124.7
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 400,
+      "rate": 85.1
+    },
+    {
+      "date": "2026-09-01",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 288,
+      "rate": 64.9
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -265,6 +363,16 @@ window.__HISTORY__ = [
       "Inspection B": 15.5,
       "Inspection C": 69.7,
       "Inspection D": 0.0
+    }
+  },
+  {
+    "date": "2026-09-01",
+    "first_hour": {
+      "RPO1·H系列": 110.1,
+      "RPO1·S系列": 110.7,
+      "RPO1·WL系列": 124.7,
+      "PRO2·B": 85.1,
+      "PRO2·C": 64.9
     }
   }
 ];
