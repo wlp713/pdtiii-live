@@ -113,15 +113,15 @@
   var css = "\n#anaRoot{position:fixed;inset:0;z-index:9999;background:#000;color:#f0f6fc;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;overflow:auto;display:flex;flex-direction:column}\n" +
     "#anaRoot *{box-sizing:border-box;margin:0;padding:0}\n" +
     "#anaTop{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:10px 16px;background:#000;border-bottom:1px solid #232329;flex-wrap:wrap}\n" +
-    "#anaRoot .ana-back{background:#15151a;color:#f0f6fc;border:1px solid #2a2a31;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer}\n" +
-    "#anaRoot .ana-back:hover{background:#1f1f26}\n" +
+    "#anaRoot .ana-back{background:#000000;color:#f0f6fc;border:1px solid #2a2a31;border-radius:8px;padding:6px 14px;font-size:13px;cursor:pointer}\n" +
+    "#anaRoot .ana-back:hover{background:#0c0c0c}\n" +
     "#anaRoot h1{font-size:16px;letter-spacing:1px;font-weight:700}\n" +
     "#anaRoot .ana-sub{font-size:11px;color:#a3adbb;margin-left:4px}\n" +
-    "#anaTop input[type=date]{background:#15151a;color:#f0f6fc;border:1px solid #2a2a31;border-radius:6px;padding:5px 8px;font-size:12px;color-scheme:dark}\n" +
+    "#anaTop input[type=date]{background:#000000;color:#f0f6fc;border:1px solid #2a2a31;border-radius:6px;padding:5px 8px;font-size:12px;color-scheme:dark}\n" +
     "#anaBody{padding:14px 16px 40px;display:flex;flex-direction:column;gap:14px}\n" +
-    "#anaRoot .ana-note{font-size:11px;color:#a3adbb;background:#0e0e11;border:1px solid #232329;border-radius:8px;padding:8px 12px;line-height:1.6}\n" +
+    "#anaRoot .ana-note{font-size:11px;color:#a3adbb;background:#000000;border:1px solid #232329;border-radius:8px;padding:8px 12px;line-height:1.6}\n" +
     "#anaCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}\n" +
-    ".ana-card{background:#0e0e11;border:1px solid #232329;border-radius:12px;padding:12px;cursor:pointer;transition:border-color .15s}\n" +
+    ".ana-card{background:#000000;border:1px solid #232329;border-radius:12px;padding:12px;cursor:pointer;transition:border-color .15s}\n" +
     ".ana-card:hover{border-color:#3a3a44}\n" +
     ".ana-card.sel{border-color:#58a6ff;box-shadow:0 0 0 1px #58a6ff66}\n" +
     ".ana-card h3{font-size:14px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}\n" +
@@ -135,17 +135,17 @@
     ".ana-row .nm{color:#58a6ff}\n" +
     ".ana-cmp{margin-top:8px;font-size:11.5px;padding-top:6px;border-top:1px dashed #2a2a31}\n" +
     ".ana-cmp .good{color:#3fb950}.ana-cmp .bad{color:#f85149}.ana-cmp .na{color:#a3adbb}\n" +
-    ".ana-panel{background:#0e0e11;border:1px solid #232329;border-radius:12px;padding:12px}\n" +
+    ".ana-panel{background:#000000;border:1px solid #232329;border-radius:12px;padding:12px}\n" +
     ".ana-panel h3{font-size:14px;margin-bottom:8px}\n" +
     "#anaTable{width:100%;border-collapse:collapse;font-size:12.5px}\n" +
     "#anaTable th{color:#a3adbb;font-size:11px;padding:6px 8px;text-align:right;border-bottom:1px solid #232329;white-space:nowrap}\n" +
     "#anaTable th:first-child,#anaTable td:first-child{text-align:left}\n" +
     "#anaTable td{padding:6px 8px;text-align:right;border-bottom:1px solid #15151a;white-space:nowrap}\n" +
-    "#anaTable tr.sum td{font-weight:700;border-top:1px solid #2a2a31;background:#101014}\n" +
+    "#anaTable tr.sum td{font-weight:700;border-top:1px solid #2a2a31;background:#000000}\n" +
     "#anaTable td.ws-line{font-weight:600}\n" +
     "#anaTable .nm{color:#58a6ff}#anaTable .ot{color:#d29922}#anaTable .tot{color:#f0f6fc;font-weight:600}\n" +
     "#anaTable .ppl{color:#a3adbb;font-size:11px}\n" +
-    "#anaTable input.hc{width:52px;background:#15151a;color:#f0f6fc;border:1px solid #2a2a31;border-radius:4px;padding:2px 4px;font-size:11px;text-align:center}\n" +
+    "#anaTable input.hc{width:52px;background:#000000;color:#f0f6fc;border:1px solid #2a2a31;border-radius:4px;padding:2px 4px;font-size:11px;text-align:center}\n" +
     "#anaRoot .ana-foot{font-size:10.5px;color:#6e7681;padding:0 16px 20px;line-height:1.7}\n" +
     "#anaStatus{font-size:11px;color:#a3adbb;margin-left:auto}";
 

@@ -10,10 +10,10 @@
 <link rel="icon" href="data:,">
 <style>
   :root {
-    /* ★ 2026-09-02 v5.33 按用户要求: 纯黑背景 + 模块色略浅于纯黑 + 象牙白细分段线 */
+    /* ★ 2026-09-02 v5.35 按用户要求: 模块底色也改纯黑, 边框保留原色 */
     --bg: #000000;
-    --panel: #0e0e11;
-    --panel2: #15151a;
+    --panel: #000000;
+    --panel2: #000000;
     --border: #232329;
     --green: #3fb950;
     --orange: #d29922;
@@ -279,7 +279,7 @@
   body.battle-mode th { padding: 4px 10px; font-size: 9px; }
   body.battle-mode .legend { font-size: 9.5px; margin-bottom: 2px; }
   body.battle-mode .btn { padding: 2px 9px; font-size: 10.5px; }
-  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #0e0e11; border: 1px solid #2a2a31; border-radius: 12px; padding: 3px 10px; }
+  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #000000; border: 1px solid #2a2a31; border-radius: 12px; padding: 3px 10px; }
   .conn-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d29922; }
   .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
   .conn-status.warn .dot { background: #d29922; }
@@ -1546,8 +1546,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillStyle = color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       }
-      // ★ 分割线: 段边界 (v5.33: 象牙白 1px 细线; 柱顶收尾线已取消)
-      ctx.fillStyle = "#fffff0";
+      // ★ 分割线: 段边界 (v5.35: 用户要求改纯黑细线)
+      ctx.fillStyle = "#000000";
       ctx.fillRect(cx - 1, yAcc - 0.5, bw + 2, 1);
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
