@@ -335,13 +335,13 @@
   }
   .panel-head {
     display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 6px; flex-shrink: 0;
+    margin-bottom: 4px; flex-shrink: 0;
   }
   .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 700; letter-spacing: .5px; }
-  .table-scroll { overflow-y: hidden; flex: 1; min-height: 0; }
+  .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
-    text-align: right; padding: 4px 6px; color: var(--gray);
+    text-align: right; padding: 3px 6px; color: var(--gray);
     font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
     font-size: 11px; position: sticky; top: 0; background: var(--panel); z-index: 1;
   }
@@ -351,7 +351,7 @@
   th[data-sort].sorted { color: var(--blue); }
   th[data-sort].sorted.desc::after { content: " ▼"; font-size: 9px; }
   th[data-sort].sorted.asc::after { content: " ▲"; font-size: 9px; }
-  td { text-align: right; padding: 10px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  td { text-align: right; padding: 8px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
@@ -1543,9 +1543,9 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillStyle = color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       }
-      // ★ 分割线: 段边界 (v5.35: 用户要求改纯黑细线)
+      // ★ 分割线: 段边界 (v5.40: 用户要求加粗, 1px→2px)
       ctx.fillStyle = "#000000";
-      ctx.fillRect(cx - 1, yAcc - 0.5, bw + 2, 1);
+      ctx.fillRect(cx - 1.5, yAcc - 1, bw + 3, 2);
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
@@ -1746,22 +1746,38 @@ function fmtSegMin(m) {
 
 function workedHours(now) {
   const mins = now.getHours() * 60 + now.getMinutes();
-  const start = 8 * 60, end = 20 * 60 + 20;   // 8:00 上班 → 20:20 下班
-  if (mins <= start) return 0;
-  const mm = Math.min(mins, end);             // 产量实时累计, 封顶 20:20
-  let w = mm - start;
-  // 扣除休息: 上午 10:00-10:10, 午休 12:00-13:00, 下午 15:00-15:10, 17:00-17:20
-  const breaks = [
-    [10 * 60, 10 * 60 + 10],
-    [12 * 60, 13 * 60],
-    [15 * 60, 15 * 60 + 10],
-    [17 * 60, 17 * 60 + 20]
-  ];
-  for (const [bs, be] of breaks) {
-    const ov = mm - Math.max(start, bs);
-    if (ov > 0) w -= Math.min(be - bs, ov);
+  /* 班次识别: 白班 8:00–20:20 / 夜班 20:30–次日8:00 / 20:20-20:30 交班 → 0 */
+  const DAY_START = 8 * 60, DAY_END = 20 * 60 + 20;
+  const NIGHT_START = 20 * 60 + 30, NIGHT_END = 8 * 60; // 夜班跨天, 次日 8:00
+  /* 夜班休息(相对 20:30 起偏移分钟, v5.27 用户拍板): 22:30-22:40 → 120-130; 00:30-01:30 吃饭 → 240-300 */
+  const NIGHT_BREAKS = [[120, 130], [240, 300]];
+  if (mins >= DAY_START && mins <= DAY_END) {
+    const mm = mins;
+    let w = mm - DAY_START;
+    // 扣除休息: 上午 10:00-10:10, 午休 12:00-13:00, 下午 15:00-15:10, 17:00-17:20
+    const breaks = [
+      [10 * 60, 10 * 60 + 10],
+      [12 * 60, 13 * 60],
+      [15 * 60, 15 * 60 + 10],
+      [17 * 60, 17 * 60 + 20]
+    ];
+    for (const [bs, be] of breaks) {
+      const ov = mm - Math.max(DAY_START, bs);
+      if (ov > 0) w -= Math.min(be - bs, ov);
+    }
+    return Math.max(0, w) / 60;
   }
-  return Math.max(0, w) / 60;
+  /* 夜班: 20:30 起到 now(跨天 0-8 点也算), 数据桶 20:30 重置 → 实时累计 */
+  const nightElapsed = mins >= NIGHT_START
+    ? mins - NIGHT_START                    // 20:30-24:00
+    : (mins < NIGHT_END ? (1440 - NIGHT_START) + mins : -1); // 0:00-8:00
+  if (nightElapsed < 0) return 0;           // 20:20-20:30 交班间隙
+  let nw = nightElapsed;
+  for (const [bs, be] of NIGHT_BREAKS) {
+    const ov = nw - bs;
+    if (ov > 0) nw -= Math.min(be - bs, ov);
+  }
+  return Math.max(0, nw) / 60;
 }
 // UPH = 实际产量 ÷ 实际工作小时(净工时, 不含人数)
 function uphOf(l, now) {
