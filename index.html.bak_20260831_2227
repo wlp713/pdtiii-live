@@ -6,26 +6,25 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>生产实时看板 v8</title>
+<title>生产实时看板 v7</title>
 <link rel="icon" href="data:,">
 <style>
   :root {
-    /* ★ 2026-09-02 v5.35 按用户要求: 模块底色也改纯黑, 边框保留原色 */
-    --bg: #000000;
-    --panel: #000000;
-    --panel2: #000000;
-    --border: #232329;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d333b;
     --green: #3fb950;
     --orange: #d29922;
     --red: #f85149;
-    --gray: #a3adbb;
-    --white: #f0f6fc;
+    --gray: #8b949e;
+    --white: #e6edf3;
     --blue: #58a6ff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #000000;
+    background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -77,21 +76,7 @@
   #extra-modules .ex-card h2 { font-size: 11px; margin: 0; }
   #extra-modules .ex-card .ex-btn { font-size: 9.5px; padding: 1px 7px; }
   /* 2026-08-20 14:05 已删除 font-size:inherit 规则 — 它让日常模式表格继承 body 默认16px 导致字体变大; v7 无此规则, 日常模式恢复 table 11.5px 默认 */
-  body.battle-mode #pages-wrap table { font-size: 11.5px; }
-  /* ★ 2026-09-02 v5.31: 详情模式表格不允许横向滚轮 — table-layout:fixed 按比例分列(宽=容器宽, 永不溢出),
-     表头允许换行(两行显示), 数据列右对齐完整显示; overflow-x:hidden 兜底 + body 级防溢出 */
-  body.battle-mode { overflow-x: hidden; }
-  body.battle-mode #pages-wrap .table-scroll { overflow-x: hidden; }
-  body.battle-mode #pages-wrap #mainTable { table-layout: fixed; }
-  body.battle-mode #pages-wrap #mainTable th { white-space: normal; line-height: 1.3; }
-  body.battle-mode #pages-wrap #mainTable th:nth-child(1) { width: 4%; }   /* # */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(2) { width: 22%; }  /* 线体 */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(3) { width: 15%; }  /* 条形图 */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(8) { width: 8%; }   /* UPH */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(9) { width: 7%; }   /* 停滞 */
-  body.battle-mode #pages-wrap th { font-size: 10.5px; font-weight: 700; }
-  body.battle-mode #pages-wrap td { font-weight: 700; }
-  body.battle-mode #pages-wrap .line-name { font-size: 13px; font-weight: 800; }
+  body.battle-mode #pages-wrap table { font-size: 9.5px; }
   body.battle-mode #pages-wrap .kpi .value { font-size: 12px; }
   body.battle-mode #pages-wrap h1 { font-size: 12.5px; }
   body.battle-mode #pages-wrap h2 { font-size: 10px; }
@@ -139,7 +124,7 @@
   /* 问题点嵌入线体行下方 */
   tr.prob-subrow td {
     background: rgba(88,166,255,.045); padding: 2px 8px 7px 26px;
-    border-bottom: 1px dashed #3a3a42;
+    border-bottom: 1px dashed #2d333b;
   }
   tr.prob-subrow:hover td { background: rgba(88,166,255,.07); }
   .prob-inline { font-size: 10.5px; color: var(--orange); line-height: 1.55; display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -275,11 +260,11 @@
   body.battle-mode .panel { padding: 4px 8px; }
   body.battle-mode .panel-head { margin-bottom: 2px; }
   body.battle-mode .panel h2 { font-size: 9.5px; }
-  body.battle-mode td { padding: 8px 10px; }
+  body.battle-mode td { padding: 6px 10px; }
   body.battle-mode th { padding: 4px 10px; font-size: 9px; }
   body.battle-mode .legend { font-size: 9.5px; margin-bottom: 2px; }
   body.battle-mode .btn { padding: 2px 9px; font-size: 10.5px; }
-  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #000000; border: 1px solid #2a2a31; border-radius: 12px; padding: 3px 10px; }
+  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 3px 10px; }
   .conn-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d29922; }
   .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
   .conn-status.warn .dot { background: #d29922; }
@@ -501,7 +486,6 @@
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
     <button class="btn" id="histBtn" data-i18n="histBtn">📊 历史统计</button>
-    <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
 </div>
@@ -528,7 +512,7 @@
       <table id="mainTable">
         <thead>
           <tr>
-            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">Output</th>
+            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
             <th data-sort="actual">Actual</th><th data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th><th data-sort="status" data-i18n="thStatus">状态</th>
           </tr>
         </thead>
@@ -594,11 +578,7 @@
         <!-- 2026-08-25: 趋势数据源切换 [达成率 | 首小时达成率(8-9点)] -->
         <div id="trendModeBar" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
           <button class="ex-btn trend-mode-btn" id="trendModeRateBtn" onclick="setTrendMode('rate')" style="font-size:10px;padding:1px 8px">📊 达成率</button>
-          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时</button>
-          <span id="fhShiftBar" style="display:none;gap:6px;align-items:center">
-            <button class="ex-btn trend-mode-btn" id="fhTrendDayBtn" onclick="setFhShift('day')" style="font-size:10px;padding:1px 8px">🌞 白班</button>
-            <button class="ex-btn trend-mode-btn" id="fhTrendNightBtn" onclick="setFhShift('night')" style="font-size:10px;padding:1px 8px">🌙 夜班</button>
-          </span>
+          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时(8-9点)</button>
           <span id="trendModeHint" style="font-size:9px;color:var(--gray)"></span>
         </div>
         <div id="trend-lines"></div>
@@ -745,7 +725,7 @@ const I18N = {
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
     panelMainTitle: "📋 主要线体 · 产量对比 · 点击列头排序", otherLines: "其他线体",
-    thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
+    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
@@ -788,7 +768,7 @@ const I18N = {
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
     panelMainTitle: "📋 Main Lines · Output vs Plan · Click to sort", otherLines: "Other Lines",
-    thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
+    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
@@ -1142,89 +1122,6 @@ function trackStallStart() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════
-// ★ v5.29 首小时快照持久记录（2026-08-31 用户要求）
-//   需求: 首小时(白班8:00-9:00 / 夜班20:30-21:30)达成率快照要真正持续记录,
-//         每天自动定格一次, 形成跨天趋势; 趋势图/首小时面板支持白班/夜班切换
-//   存储: localStorage FH_SNAP_KEY, 结构 {"2026-08-31_day": {线原名: 达成率%}, "2026-08-31_night": {...}}
-//   记录时机: refresh() 时调用 maybeSnapFirstHour(), 首小时结束后即定格当天该班次快照(每班次每天只记一次)
-const FH_SNAP_KEY = "pdtiii_fh_snap_v1";
-const FH_SHIFT_KEY = "pdtiii_fh_shift_v1";
-let fhSnap = {};
-try { fhSnap = JSON.parse(localStorage.getItem(FH_SNAP_KEY) || "{}") || {}; } catch (e) { fhSnap = {}; }
-let fhShift = "day"; // 首小时面板/趋势: day=白班首小时 | night=夜班首小时
-try { fhShift = localStorage.getItem(FH_SHIFT_KEY) === "night" ? "night" : "day"; } catch (e) {}
-// 首小时边界: 白班 [480,540) 8:00-9:00; 夜班 [1230,1290) 20:30-21:30 (与 DAY_SEGS/NIGHT_SEGS 段1一致)
-const FH_DAY_END = 540, FH_NIGHT_END = 1290;
-function fhKeyOf(dateStr, shift) { return String(dateStr) + "_" + (shift === "night" ? "night" : "day"); }
-// 判断当前时刻属于哪个班次(用于首小时定格): 白班 8:00-20:20; 夜班 20:30-次日8:00
-function fhShiftOfNow() {
-  const d = new Date();
-  const m = d.getHours() * 60 + d.getMinutes();
-  if (m >= DAY_START && m < DAY_END) return "day";
-  if (m >= NIGHT_START || m < NIGHT_END) return "night";
-  return null; // 交班缝隙 20:20-20:30
-}
-// 自动定格首小时快照: 首小时结束后调用一次即记录当天该班次(幂等)
-function maybeSnapFirstHour() {
-  try {
-    const shift = fhShiftOfNow();
-    if (!shift) return;
-    const now = new Date();
-    const m = now.getHours() * 60 + now.getMinutes();
-    const endMin = shift === "day" ? FH_DAY_END : FH_NIGHT_END;
-    if (m < endMin) return; // 首小时还没结束, 不记
-    // 日期归属: 白班首小时(9:00后)属当天; 夜班首小时(21:30后)属当天; 凌晨(0-8点)是夜班尾巴, 首小时早已定格在昨天
-    const dateStr = (shift === "night" && m < DAY_START) ? dayKeyOf(new Date(Date.now() - 86400000)) : todayKey();
-    const key = fhKeyOf(dateStr, shift);
-    if (fhSnap[key]) return; // 已记录过, 幂等
-    const map = {};
-    (state.lines || []).forEach(l => {
-      if (!MAIN_SET.has(normName(l.name))) return;
-      const segs = segsOf(l.name, l.actual || 0, l.plan || 0);
-      const s1 = segs[0];
-      if (!s1) return;
-      const p = Number(s1.plan) || 0;
-      const a = Number(s1.actual) || 0;
-      const rate = p > 0 ? Math.round(a / p * 1000) / 10 : 0; // 首小时达成率 = 段1实际/段1目标
-      if (rate > 0) map[l.name] = rate; // 实际为0(数据未推)时不记脏快照
-    });
-    if (!Object.keys(map).length) return;
-    fhSnap[key] = map;
-    try { localStorage.setItem(FH_SNAP_KEY, JSON.stringify(fhSnap)); } catch (e) {}
-    console.log("[fh] 首小时快照已记录 " + key + " " + Object.keys(map).length + " 线体");
-    try { renderFirstHourHist(); } catch (e) {}
-    try { renderTrend(); } catch (e) {}
-  } catch (e) { console.error("[fh] maybeSnapFirstHour", e); }
-}
-// 首小时数据源统一读取: 返回 [{date, first_hour:{线名:率}}, ...] 按班次过滤(升序)
-function fhHistList() {
-  const out = [];
-  Object.keys(fhSnap).forEach(k => {
-    const m = /^(\d{4}-\d{2}-\d{2})_(day|night)$/.exec(k);
-    if (!m || m[2] !== fhShift) return;
-    out.push({ date: m[1], first_hour: fhSnap[k] });
-  });
-  out.sort((a, b) => String(a.date).localeCompare(String(b.date)));
-  return out;
-}
-// 首小时面板切换按钮 (白班/夜班)
-function setFhShift(sh) {
-  fhShift = (sh === "night") ? "night" : "day";
-  try { localStorage.setItem(FH_SHIFT_KEY, fhShift); } catch (e) {}
-  const db = document.getElementById("fhShiftDayBtn");
-  const nb = document.getElementById("fhShiftNightBtn");
-  if (db) db.style.background = fhShift === "day" ? "var(--accent)" : "";
-  if (nb) nb.style.background = fhShift === "night" ? "var(--accent)" : "";
-  // 同步趋势图角落的切换按钮高亮
-  const tdb = document.getElementById("fhTrendDayBtn");
-  const tnb = document.getElementById("fhTrendNightBtn");
-  if (tdb) tdb.style.background = fhShift === "day" ? "var(--accent)" : "";
-  if (tnb) tnb.style.background = fhShift === "night" ? "var(--accent)" : "";
-  try { renderFirstHourHist(); } catch (e) {}
-  if (typeof trendMode !== "undefined" && trendMode === "first") { try { renderTrend(); } catch (e) {} }
-}
-
 // ---- 历史统计 v5.18: 每日快照(localStorage) → 周/月对比 + 站擂排名 ----
 //   每天每次 refresh 更新当天记录(覆盖); 跨天后保留 → 自然形成历史
 //   记录字段(每条主要线): rate=达成率% eff, uph, upph=UPPH达成率%
@@ -1394,7 +1291,7 @@ function sampleNow() {
   });
   saveSamps();
 }
-// ★ 快照桶时间解析: 旧格式 h=小时(如 21=21:00), 新格式 h=HHMM分钟数(如 2030=20:30, 后端10分钟桶)
+// ★ 快照桶时间解析: 旧格式 h=小时(如 21=21:00), 新格式 h=HHMM分钟数(如 2040=20:40, 后端10分钟桶)
 function snapMins(sn) {
   const raw = String(sn.h || "").trim();
   if (!raw) return 0;
@@ -1414,15 +1311,13 @@ function sampDay(ts) {
   if (d.getHours() < 8) day0 -= 24 * 3600 * 1000; // 凌晨 0-8点 属于前一天晚班
   return day0;
 }
-// ≤t 最近的已知累计值 (t=班次日0点基准分钟, 可>1440跨天; 优先采样, 其次hourly快照插值/外推, 最后实时)
+// ≤t 最近的已知累计值 (t=当天0点基准分钟, 可>1440跨天; 优先采样, 其次hourly快照插值/外推, 最后实时)
 // ★ v5.22: 晚班段边界在 :40/:30, 与整点快照错位 → 取最近快照会差 20-40 分钟
 //   改为相邻快照线性插值; 跨换班(白班累计→晚班清零)不插值, 用换班后斜率外推
-// ★ v5.30 凌晨夜班窗口(0:00-8:00): 夜班段 t 是班次日基准(昨天20:30起), 查询时 dayOff=-1
-//   把 t 换算回真实日历时间 (如 t=1290 → 昨天21:30; t=1470 → 今天00:30), 采样按班次日过滤天然正确
-function valueAt(name, t, usePlan, dayOff) {
+function valueAt(name, t, usePlan) {
   const now = new Date();
   const day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const tMs = day0 + (t + (dayOff || 0) * 1440) * 60000;
+  const tMs = day0 + t * 60000;
   const store = loadSamps();
   const arr = store[name] || [];
   let best = null;
@@ -1442,12 +1337,9 @@ function valueAt(name, t, usePlan, dayOff) {
       pts.push({ m: snapMins(sn), v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
     }
     pts.sort(function (a, b) { return a.m - b.m; });
-    // ★ v5.30: 桶的 snapMins 是快照所在日历日绝对分钟; 凌晨夜班查询(t≥1440, dayOff=-1)
-    //   换算成本日绝对分钟再比较 (t=1470 → 30, 匹配 00:30 桶); 其余路径 tAbs=t 与原逻辑完全一致
-    const tAbs = (dayOff === -1 && t >= 1440) ? t - 1440 : t;
     let lo = null, hi = null, hiNext = null;
     for (let i = 0; i < pts.length; i++) {
-      if (pts[i].m <= tAbs) lo = pts[i];
+      if (pts[i].m <= t) lo = pts[i];
       else { if (!hi) hi = pts[i]; else { hiNext = pts[i]; break; } }
     }
     if (lo && hi) {
@@ -1455,16 +1347,16 @@ function valueAt(name, t, usePlan, dayOff) {
         // 换班跳变(累计清零): t 在换班后, 用 hi→后继 斜率外推回 t
         const nxt = hiNext || pts[pts.length - 1];
         const slope = (nxt && nxt.m > hi.m) ? (nxt.v - hi.v) / (nxt.m - hi.m) : 0;
-        return Math.max(0, hi.v - (hi.m - tAbs) * slope);
+        return Math.max(0, hi.v - (hi.m - t) * slope);
       }
-      return lo.v + (hi.v - lo.v) * (tAbs - lo.m) / (hi.m - lo.m);
+      return lo.v + (hi.v - lo.v) * (t - lo.m) / (hi.m - lo.m);
     }
     if (lo) return lo.v; // t 在最后快照后 (凌晨无桶时用最近值兜底)
     if (hi) {
       // t 在首个快照前 (如晚班第1段起点 20:30 在桶21前): 用 hi→后继 斜率外推
       const nxt = hiNext || pts[1] || hi;
       const slope = (nxt.m > hi.m) ? (nxt.v - hi.v) / (nxt.m - hi.m) : 0;
-      return Math.max(0, hi.v - (hi.m - tAbs) * slope);
+      return Math.max(0, hi.v - (hi.m - t) * slope);
     }
   }
   const ln = state.lines.find(x => x.name === name) || {};
@@ -1486,34 +1378,54 @@ function segsOf(name, curActual, curPlan) {
   const isNight = sc.shift === "night";
   const table = isNight ? NIGHT_SEGS : DAY_SEGS;
   const endCap = isNight ? NIGHT_END + 24 * 60 : DAY_END;
-  // ★ 2026-09-02 v5.30 修复: 凌晨 0:00-8:00 属夜班次日, 夜班时段起点(1230+)全大于当前分钟数(0-480),
-  //   旧逻辑第一段就 break → 凌晨永远画不出分段(纯色柱)。统一用 cmpMins(=nowMins+1440) 判断
-  //   时段是否开始/进行中; 夜班段 t 是班次日基准 → 边界查询一律 dayOff=-1 定位到真实日历时间
-  //   (前半夜段=昨天, 后半夜段=今天凌晨), 采样按班次日过滤天然匹配, 与 20:30-24:00 显示口径一致。
-  const postMid = isNight && nowMins < NIGHT_END;
-  const cmpMins = postMid ? nowMins + 24 * 60 : nowMins;
   for (let k = 0; k < table.length; k++) {
     const t0 = table[k][0], t1 = table[k][1];
-    if (t0 >= cmpMins || t0 >= endCap) break;   // 未开始的时段不画
+    if (t0 >= nowMins || t0 >= endCap) break;   // 未开始的时段不画
     // ★ 2026-08-31 v5.26/v5.27 开班清零: 每班第一段的起点(8:00/20:30)目标与实际一律为 0
     //   hourly 快照里 8 点桶可能被写入全天目标脏值、晚班 h=21 桶是重启后的小值,
     //   valueAt 外推会把它们当成开班时刻的值 → 段1 目标 = 实时Plan − 脏值, 与 Plan 列对不上。
     //   开班 = 新班从 0 重新累计, 段1 目标应 = 实时累计目标(即 Plan 列), 实际同理。
     const first = (k === 0);
-    const off = postMid ? -1 : 0;
-    const a0 = first ? 0 : valueAt(name, t0, false, off);
-    const a1 = (t1 > cmpMins) ? (Number(curActual) || 0) : valueAt(name, t1, false, off);
-    const p0 = first ? 0 : valueAt(name, t0, true, off);
-    const p1 = (t1 > cmpMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true, off);
+    const a0 = first ? 0 : valueAt(name, t0, false);
+    const a1 = (t1 > nowMins) ? (Number(curActual) || 0) : valueAt(name, t1, false);
+    const p0 = first ? 0 : valueAt(name, t0, true);
+    const p1 = (t1 > nowMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true);
     let actual = a1 - a0, plan = p1 - p0;
     if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
     if (plan < 0) plan = p1;
-    segs.push({ h: t1 / 60, lab: k + 1, live: t1 > cmpMins, base: false, pm: false,
+    segs.push({ h: t1 / 60, lab: k + 1, live: t1 > nowMins, base: false, pm: false,
       actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
   }
   return segs;
 }
-// ★ v5.28 清理: 删除旧版 planSegsOf/planSegs 死代码(8小时均分目标, v5.15 起已无调用)
+// ---- 目标柱分段(回退/关闭分段时用): 每段目标 = plan ÷ 已过时段数(均匀相等), 柱顶累计 = plan ----
+function planSegsOf(name, nowH) {
+  const ln = state.lines.find(x => x.name === name) || {};
+  const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
+  let n = 0;
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue;
+    n++;
+  }
+  if (!n) return [];
+  const per = plan / n;
+  const segs = [];
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue;
+    segs.push({ h: h, lab: h, live: (h === nowH), actual: per });
+  }
+  return segs;
+}
+// ---- 固定小时目标(回退用): 日目标 ÷ 8 个工作小时, 每段等高不变 ----
+function planSegs(target, nowH) {
+  const perH = (target || 0) / 8; // 8 个工作小时(8-9,9-10,10-11,11-12,午休,13-14,14-15,15-16,16-17)
+  const segs = [];
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue; // 午休不计数
+    segs.push({ actual: perH, live: false, lab: h });
+  }
+  return segs;
+}
 // ★ v5.15 统一绘制: 两柱共用同一份 segs, 段骨架按目标值(plan)定位 → 段边界完全平行
 //   实际柱(key='actual'): 每段 = 蓝色(实际达成, 从段底向上) + 灰色(未达成缺口)
 //   目标柱(key='plan'): 每段 = 橙色(目标达成, 画满整段)
@@ -1523,9 +1435,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   const planTotalPix = segs.reduce((s, x) => s + (x.plan || 0), 0) / maxV * ch;
   const topY = padT + ch - planTotalPix;
   const totalH = Math.max(0, (total || 0) / maxV * ch);
-  // ★ v5.30 兜底: 有段但全部低于可画高度(如凌晨数据缺失/差分≈0) → 退回纯色累计柱, 避免柱子"消失"
-  const drawable = segs.some(function (s) { return ((s.plan || 0) / maxV) * ch >= 0.5; });
-  if (!segs.length || !drawable) {
+  if (!segs.length) {
     // 无分段数据: 纯色累计柱
     const base = padT + ch - totalH;
     ctx.fillStyle = color;
@@ -1546,9 +1456,12 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillStyle = color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       }
-      // ★ 分割线: 段边界 (v5.35: 用户要求改纯黑细线)
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(cx - 1, yAcc - 0.5, bw + 2, 1);
+      // ★ 分割线: 段边界(plan 定位) → 两柱完全平行; 柱顶也画收尾线
+      ctx.fillStyle = "#0d1117";
+      ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
+      if (idx === segs.length - 1) {
+        ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
+      }
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
@@ -1572,7 +1485,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       } else if (s.live) {
         // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
         if (perH >= 14 && hNo != null) {
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
@@ -1582,8 +1495,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         }
       } else {
         if (perH >= 16 && hNo != null) {
-          // 段高足够: 两行 — 编号 + 数值 (v5.32: 编号改纯白, 深底上更清晰)
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
+          // 段高足够: 两行 — 编号 + 数值
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
@@ -1706,6 +1619,8 @@ function setHead(name, v) {
 //   晚班 20:30-次日7:50, 休息(不计时段): 22:30-22:40 + 00:30-01:30吃饭 + 07:50-08:00交班
 //     时段: [20:30,21:30)=1, [21:30,22:30)=2, [22:40,23:30)=3, [23:30,00:30)=4, [01:30,02:30)=5,
 //           [02:30,03:30)=6, [03:30,04:30)=7, [04:30,05:30)=8, [05:30,06:30)=9, [06:30,07:50)=10
+//           [01:40,02:40)=6, [02:40,03:40)=7, [03:40,04:40)=8, [04:40,05:40)=9, [05:40,06:40)=10,
+//           [06:40,07:30)=11, [07:40,08:00)=12
 //   段产量 = 段末累计 - 段初累计 (若跨换班清零 → 段末值, 新班从0累计)
 const DAY_START = 8 * 60;         // 白班 8:00 开始
 const DAY_END = 20 * 60 + 20;     // 白班 20:20 结束
@@ -1716,7 +1631,7 @@ const DAY_SEGS = [
   [480, 540], [540, 600], [610, 660], [660, 720], [780, 840], [840, 900],
   [910, 960], [960, 1020], [1040, 1100], [1100, 1160], [1160, 1220]
 ];
-// 晚班时段表 (分钟, 当天0点基准, 跨天>1440) — 休息 22:30-22:40 / 00:30-01:30 / 07:50-08:00 已剔除
+// 晚班时段表 (分钟, 当天0点基准, 跨天>1440) — 休息 22:30-22:40 / 07:30-07:40 已剔除
 const NIGHT_SEGS = [
   [1230, 1290], [1290, 1350], [1360, 1410], [1410, 1470], [1530, 1590],
   [1590, 1650], [1650, 1710], [1710, 1770], [1770, 1830], [1830, 1910]
@@ -1741,6 +1656,10 @@ function shiftSegAt(mins) {
   const s = segFor(mins);
   if (s) return s;
   return { shift: "day", idx: 1, t0: DAY_START, t1: DAY_SEGS[0][1] }; // 兜底: 白班第1段
+}
+function shiftNameOfHour(h) {
+  // 兼容旧调用: 8:00 起为白班
+  return (h >= 8 && h < 20) ? t("shiftDay") : t("shiftNight");
 }
 function fmtSegMin(m) {
   const x = ((m % 1440) + 1440) % 1440;
@@ -2010,7 +1929,6 @@ async function refresh() {
     state.hourly = d.hourly || {};
     state.updatedAt = d.updatedAt || null;
     sampleNow(); // ★ 2026-08-28 班次时段采样: 每60秒/线记一次实际累计 → 时段边界产量越算越准
-    maybeSnapFirstHour(); // ★ v5.29 首小时快照自动定格: 首小时结束后记当天该班次达成率(幂等)
     // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
     //   ⚠️ data.json 的 updatedAt 是字符串 "YYYY-MM-DD HH:MM:SS", 必须先转时间戳再相减
     const st = d.source || "";
@@ -2358,14 +2276,8 @@ function renderFirstHourHist() {
   const title = document.getElementById("histFirstHourTitle");
   if (!body) return;
   const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
-  // ★ v5.29 数据源: 前端自动快照 fhSnap(localStorage, 每班次每天自动定格) 优先
-  //   兼容旧来源: __HISTORY__[].first_hour(extract 每10分钟) + __LIVE_DATA__.first_hour(当天全量)
-  let hist = fhHistList();
-  if (!hist.length) {
-    let oldHist = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : [];
-    oldHist = oldHist.filter(d => d && d.first_hour && Object.keys(d.first_hour).length);
-    hist = oldHist;
-  }
+  let hist = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : [];
+  hist = hist.filter(d => d && d.first_hour && Object.keys(d.first_hour).length);
   // 当天全量明细 (target/actual) 优先来自 __LIVE_DATA__.first_hour
   let todayDetail = [];
   try {
@@ -2379,7 +2291,7 @@ function renderFirstHourHist() {
   [today].concat(hist.map(h => h.date)).forEach(d => { if (d && days.indexOf(d) < 0) days.push(d); });
   const dayRows = days.slice(-10);
   if (!dayRows.length && !todayDetail.length) {
-    body.innerHTML = "<div style='color:var(--gray);font-size:11px;padding:8px 2px'>" + (zh ? "暂无首小时数据 — 首小时结束后页面自动定格记录" : "No first-hour data yet — auto-captured after first hour ends") + "</div>";
+    body.innerHTML = "<div style='color:var(--gray);font-size:11px;padding:8px 2px'>" + (zh ? "暂无首小时数据 — 现场在Excel填写8-9点时段后自动同步" : "No first-hour data yet — auto-syncs after 8-9am entries in Excel") + "</div>";
     return;
   }
   // 今天数据: __HISTORY__ 优先, 否则 __LIVE_DATA__.first_hour 现场组装
@@ -2441,24 +2353,9 @@ function renderFirstHourHist() {
   }).join("");
   const trendHtml = lineCards ? "<div style='background:var(--panel);border-radius:8px;padding:8px;margin-top:10px;min-width:0'><b style='font-size:11px'>" + (zh ? "📈 首小时达成率趋势 (近" + lastN.length + "工作日)" : "📈 First-Hour Trend (last " + lastN.length + " workdays)") + "</b><div style='margin-top:6px;display:flex;flex-wrap:wrap;gap:6px 14px'>" + lineCards + "</div></div>" : "";
   body.innerHTML = tableHtml + trendHtml;
-  if (title) {
-    // 先设置文本, 再挂切换按钮(避免 textContent 清掉已挂载的按钮)
-    const hasBar = !!title.querySelector(".fh-shift-bar");
-    title.textContent = (zh ? "⏰ 首小时达成 (" + (fhShift === "day" ? "8-9点" : "20:30-21:30") + ") · 历史 / 趋势 / 排名" : "⏰ First-Hour (" + (fhShift === "day" ? "8-9am" : "8:30-9:30pm") + ") · History / Trend / Rank");
-    let bar = hasBar ? title.querySelector(".fh-shift-bar") : null;
-    if (!bar) {
-      bar = document.createElement("span");
-      bar.className = "fh-shift-bar";
-      bar.style.cssText = "margin-left:10px;display:inline-flex;gap:6px;vertical-align:middle";
-      bar.innerHTML =
-        "<button class='ex-btn trend-mode-btn' id='fhShiftDayBtn' onclick='setFhShift(&quot;day&quot;)' style='font-size:10px;padding:1px 8px'>🌞 " + (zh ? "白班" : "Day") + "</button>" +
-        "<button class='ex-btn trend-mode-btn' id='fhShiftNightBtn' onclick='setFhShift(&quot;night&quot;)' style='font-size:10px;padding:1px 8px'>🌙 " + (zh ? "夜班" : "Night") + "</button>";
-      title.appendChild(bar);
-    }
-    const fdb = document.getElementById("fhShiftDayBtn");
-    const fnb = document.getElementById("fhShiftNightBtn");
-    if (fdb) fdb.style.background = fhShift === "day" ? "var(--accent)" : "";
-    if (fnb) fnb.style.background = fhShift === "night" ? "var(--accent)" : "";
+  if (ttl && ttl.indexOf("首小时") < 0 && ttl.indexOf("First-Hour") < 0) {
+    // 标题加数据源说明 (仅首次)
+    if (title) title.textContent = (zh ? "⏰ 首小时达成 (8-9点) · 历史 / 趋势 / 排名" : "⏰ First-Hour (8-9am) · History / Trend / Rank");
   }
 }
 // 聚合集平均达成率(表头摘要用)
@@ -2686,13 +2583,6 @@ function setTrendMode(m) {
   const fb = document.getElementById("trendModeFirstBtn");
   if (rb) rb.style.background = trendMode === "rate" ? "var(--accent)" : "";
   if (fb) fb.style.background = trendMode === "first" ? "var(--accent)" : "";
-  // ★ v5.29: 首小时模式下显示白班/夜班切换条
-  const fsb = document.getElementById("fhShiftBar");
-  if (fsb) { fsb.style.display = trendMode === "first" ? "inline-flex" : "none"; }
-  const fdb = document.getElementById("fhTrendDayBtn");
-  const fnb = document.getElementById("fhTrendNightBtn");
-  if (fdb) fdb.style.background = fhShift === "day" ? "var(--accent)" : "";
-  if (fnb) fnb.style.background = fhShift === "night" ? "var(--accent)" : "";
   renderTrend();
 }
 let trendSel = {}; // {线体名: true/false}
@@ -2710,17 +2600,6 @@ function isWeekendDate(dateStr) {
 // 读取历史: 优先 __HISTORY__ (17:00 cron 写入), 否则 localStorage; 并合并当天实时达成率 (2026-08-21 用户要求: 当天数据也要在趋势图里)
 // 2026-08-24 用户要求: 过滤掉周末(周六/周日)记录, 趋势只显示周一至周五
 function getTrendHist() {
-  // ★ v5.29: first 模式(首小时达成率趋势)主数据源 = 前端自动快照 fhSnap(按当前班次切换)
-  if (trendMode === "first") {
-    const fhList = fhHistList();
-    if (fhList.length) return fhList;
-    // 兜底: 旧 __HISTORY__ 里手工/脚本写入的 first_hour 记录
-    let h0 = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : null;
-    if (!h0 || !h0.length) {
-      try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h0 = l; } catch (e) {}
-    }
-    return (h0 || []).slice().filter(d => d && d.date && d.first_hour && Object.keys(d.first_hour).length);
-  }
   let h = (typeof window.__HISTORY__ !== "undefined" && Array.isArray(window.__HISTORY__)) ? window.__HISTORY__ : null;
   if (!h || !h.length) {
     try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h = l; } catch (e) {}
@@ -2775,14 +2654,7 @@ function trendDayHasData(d) {
 // ── 2026-08-25: 趋势取数 — 按模式返回某天记录的数值表 {line: 值} ──
 function trendValsOf(d) {
   if (!d) return {};
-  // ★ v5.29: first 模式优先用前端自动快照 fhSnap(按班次), 旧记录(first_hour 已在 getTrendHist 合并)兜底
-  if (trendMode === "first") {
-    const snapKey = fhKeyOf(d.date, fhShift);
-    const snap = fhSnap[snapKey];
-    if (snap && Object.keys(snap).length) return snap;
-    return (d.first_hour || {});
-  }
-  return (d.lines || {});
+  return (trendMode === "first") ? (d.first_hour || {}) : (d.lines || {});
 }
 // 线体名 → 首字母简称 (2026-08-20 15:30: 用户要求只写首字母/系列字母, 小图标一排, 空间留给图表)
 // Final A line→A, Final B Line→B, Final C line→C, Final D line→D, Motor H-Series→H, Motor S-Series→S, Motor F-Series→F, Motor WL→WL
@@ -3580,6 +3452,4 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
-<!-- 2026-09-02: 车间产出分析独立页 (analysis-page.js, 全屏 overlay, 不影响主逻辑) -->
-<script src="analysis-page.js?v=20260902b"></script>
 </html>

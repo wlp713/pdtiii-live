@@ -10,22 +10,21 @@
 <link rel="icon" href="data:,">
 <style>
   :root {
-    /* ★ 2026-09-02 v5.35 按用户要求: 模块底色也改纯黑, 边框保留原色 */
-    --bg: #000000;
-    --panel: #000000;
-    --panel2: #000000;
-    --border: #232329;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d333b;
     --green: #3fb950;
     --orange: #d29922;
     --red: #f85149;
-    --gray: #a3adbb;
-    --white: #f0f6fc;
+    --gray: #8b949e;
+    --white: #e6edf3;
     --blue: #58a6ff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #000000;
+    background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -139,7 +138,7 @@
   /* 问题点嵌入线体行下方 */
   tr.prob-subrow td {
     background: rgba(88,166,255,.045); padding: 2px 8px 7px 26px;
-    border-bottom: 1px dashed #3a3a42;
+    border-bottom: 1px dashed #2d333b;
   }
   tr.prob-subrow:hover td { background: rgba(88,166,255,.07); }
   .prob-inline { font-size: 10.5px; color: var(--orange); line-height: 1.55; display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -279,7 +278,7 @@
   body.battle-mode th { padding: 4px 10px; font-size: 9px; }
   body.battle-mode .legend { font-size: 9.5px; margin-bottom: 2px; }
   body.battle-mode .btn { padding: 2px 9px; font-size: 10.5px; }
-  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #000000; border: 1px solid #2a2a31; border-radius: 12px; padding: 3px 10px; }
+  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 3px 10px; }
   .conn-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d29922; }
   .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
   .conn-status.warn .dot { background: #d29922; }
@@ -501,7 +500,6 @@
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
     <button class="btn" id="histBtn" data-i18n="histBtn">📊 历史统计</button>
-    <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
 </div>
@@ -1546,9 +1544,12 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillStyle = color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       }
-      // ★ 分割线: 段边界 (v5.35: 用户要求改纯黑细线)
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(cx - 1, yAcc - 0.5, bw + 2, 1);
+      // ★ 分割线: 段边界(plan 定位) → 两柱完全平行; 柱顶也画收尾线
+      ctx.fillStyle = "#0d1117";
+      ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
+      if (idx === segs.length - 1) {
+        ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
+      }
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
@@ -1572,7 +1573,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       } else if (s.live) {
         // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
         if (perH >= 14 && hNo != null) {
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
@@ -1582,8 +1583,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         }
       } else {
         if (perH >= 16 && hNo != null) {
-          // 段高足够: 两行 — 编号 + 数值 (v5.32: 编号改纯白, 深底上更清晰)
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
+          // 段高足够: 两行 — 编号 + 数值
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
@@ -3580,6 +3581,4 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
-<!-- 2026-09-02: 车间产出分析独立页 (analysis-page.js, 全屏 overlay, 不影响主逻辑) -->
-<script src="analysis-page.js?v=20260902b"></script>
 </html>
