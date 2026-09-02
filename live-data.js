@@ -3,7 +3,8 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-02 14:20:19
+   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
+   最后写入: 2026-09-02 17:10:07
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -291,7 +292,6 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
-
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
@@ -562,19 +562,46 @@ window.__HISTORY__ = [
       "Inspection B": 61.0,
       "Inspection C": 77.9,
       "Inspection D": 17.5
-    },
-    "first_hour": {
-      "RPO1·F系列": 58.2,
-      "RPO1·H系列": 110.1,
-      "RPO1·S系列": 110.7,
-      "RPO1·WL系列": 124.7,
-      "PRO2·A": 81.0,
-      "PRO2·B": 85.1,
-      "PRO2·C": 64.9
     }
   },
   {
     "date": "2026-09-02",
+    "lines": {
+      "Final A line": 88.5,
+      "Final B Line": 92.3,
+      "Final C line": 71.4,
+      "Final D line": 91.7,
+      "Motor H-Series": 102.0,
+      "Motor S-Series": 31.7,
+      "Motor F-Series": 81.0,
+      "Motor WL": 80.5,
+      "Inspection A": 61.1,
+      "Inspection B": 65.0,
+      "Inspection C": 85.6,
+      "Inspection D": 19.5,
+      "C-Shaft Body A": 77.3,
+      "C-Shaft Body B": 66.0,
+      "C-Shaft Pin A": 71.4,
+      "C-Shaft Pin C": 0.0,
+      "C-Shft Pin B": 17.4,
+      "Cylinder Honing": 105.8,
+      "Frame Honing FL": 95.5,
+      "Piston Grinding": 93.0,
+      "Piston honing FL": 83.4,
+      "Press C-Shaft": 79.1,
+      "Rod Pispin": 73.6,
+      "Water Line": 76.0,
+      "Motor AC": 2.8,
+      "Motor CL": 99.1,
+      "Rotor A line": 51.3,
+      "Rotor B Line": 94.6,
+      "Rotor C line": 68.2,
+      "Rotor D Line": 99.4,
+      "Welding A line": 70.8,
+      "Welding B line": 83.1,
+      "Welding C line": 65.3,
+      "Welding D line": 80.9
+    },
     "first_hour": {
       "RPO1·F系列": 39.7,
       "RPO1·H系列": 111.3,
