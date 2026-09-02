@@ -274,7 +274,7 @@
   body.battle-mode .panel { padding: 4px 8px; }
   body.battle-mode .panel-head { margin-bottom: 2px; }
   body.battle-mode .panel h2 { font-size: 9.5px; }
-  body.battle-mode td { padding: 6px 10px; }
+  body.battle-mode td { padding: 8px 10px; }
   body.battle-mode th { padding: 4px 10px; font-size: 9px; }
   body.battle-mode .legend { font-size: 9.5px; margin-bottom: 2px; }
   body.battle-mode .btn { padding: 2px 9px; font-size: 10.5px; }
@@ -526,7 +526,7 @@
       <table id="mainTable">
         <thead>
           <tr>
-            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
+            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">Output</th>
             <th data-sort="actual">Actual</th><th data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th><th data-sort="status" data-i18n="thStatus">状态</th>
           </tr>
         </thead>
@@ -743,7 +743,7 @@ const I18N = {
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
     panelMainTitle: "📋 主要线体 · 产量对比 · 点击列头排序", otherLines: "其他线体",
-    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
+    thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
@@ -786,7 +786,7 @@ const I18N = {
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
     panelMainTitle: "📋 Main Lines · Output vs Plan · Click to sort", otherLines: "Other Lines",
-    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
+    thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
