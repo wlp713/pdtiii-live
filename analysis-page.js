@@ -339,7 +339,6 @@
     });
   }
 
-  document.body.appendChild(root);
   var started = false;
   /* 点击顶部「🏭 产出分析」按钮打开; 再次点击已开则不重建 */
   window.openAnaPage = function () {
