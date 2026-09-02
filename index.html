@@ -10,21 +10,22 @@
 <link rel="icon" href="data:,">
 <style>
   :root {
-    --bg: #0d1117;
-    --panel: #161b22;
-    --panel2: #1c2330;
-    --border: #2d333b;
+    /* ★ 2026-09-02 v5.32 全站深色增强: 背景更接近纯黑 + 文字对比度提升 */
+    --bg: #07090d;
+    --panel: #101319;
+    --panel2: #171c24;
+    --border: #262d36;
     --green: #3fb950;
     --orange: #d29922;
     --red: #f85149;
-    --gray: #8b949e;
-    --white: #e6edf3;
+    --gray: #a3adbb;
+    --white: #f0f6fc;
     --blue: #58a6ff;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
+    background: linear-gradient(160deg, #07090d 0%, #03050a 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -1545,7 +1546,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       }
       // ★ 分割线: 段边界(plan 定位) → 两柱完全平行; 柱顶也画收尾线
-      ctx.fillStyle = "#0d1117";
+      // ★ 2026-09-02 v5.32: 深色背景下分割线改为白色, 时段边界清晰可见
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
       if (idx === segs.length - 1) {
         ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
@@ -1573,7 +1575,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       } else if (s.live) {
         // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
         if (perH >= 14 && hNo != null) {
-          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
+          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
@@ -1583,8 +1585,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         }
       } else {
         if (perH >= 16 && hNo != null) {
-          // 段高足够: 两行 — 编号 + 数值
-          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
+          // 段高足够: 两行 — 编号 + 数值 (v5.32: 编号改纯白, 深底上更清晰)
+          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
           ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
           ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
