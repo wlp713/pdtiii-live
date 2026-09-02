@@ -85,10 +85,9 @@
   body.battle-mode #pages-wrap #mainTable { table-layout: fixed; }
   body.battle-mode #pages-wrap #mainTable th { white-space: normal; line-height: 1.3; }
   body.battle-mode #pages-wrap #mainTable th:nth-child(1) { width: 4%; }   /* # */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(2) { width: 22%; }  /* 线体 */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(3) { width: 15%; }  /* 条形图 */
+  body.battle-mode #pages-wrap #mainTable th:nth-child(2) { width: 19%; }  /* 线体 */
+  body.battle-mode #pages-wrap #mainTable th:nth-child(3) { width: 27%; }  /* 条形图(Output) */
   body.battle-mode #pages-wrap #mainTable th:nth-child(8) { width: 8%; }   /* UPH */
-  body.battle-mode #pages-wrap #mainTable th:nth-child(9) { width: 7%; }   /* 停滞 */
   body.battle-mode #pages-wrap th { font-size: 10.5px; font-weight: 700; }
   body.battle-mode #pages-wrap td { font-weight: 700; }
   body.battle-mode #pages-wrap .line-name { font-size: 13px; font-weight: 800; }
@@ -352,7 +351,7 @@
   th[data-sort].sorted { color: var(--blue); }
   th[data-sort].sorted.desc::after { content: " ▼"; font-size: 9px; }
   th[data-sort].sorted.asc::after { content: " ▲"; font-size: 9px; }
-  td { text-align: right; padding: 12px 6px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  td { text-align: right; padding: 10px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
@@ -379,7 +378,7 @@
   .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
   .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
   .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 1s infinite; }
-  .line-name { font-weight: 600; color: var(--white); white-space: nowrap; }
+  .line-name { font-weight: 600; color: var(--white); white-space: nowrap; text-align: left; }
   .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
   .hit-name { color: var(--green); }
   .miss-name { color: var(--red); }
@@ -389,16 +388,16 @@
     animation: blink 1s infinite;
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
-  td.bar-cell { padding: 3px 8px; min-width: 130px; }
-  .hbar { position: relative; height: 12px; background: #1a1f27; border-radius: 6px; overflow: hidden; }
+  td.bar-cell { padding: 3px 10px; min-width: 230px; }
+  .hbar { position: relative; height: 16px; background: #161b22; border-radius: 8px; overflow: hidden; }
   .hbar .act {
     position: absolute; left: 0; top: 0; height: 100%;
     background: linear-gradient(90deg, #58a6ff, #79c0ff);
-    border-radius: 6px; min-width: 3px;
+    border-radius: 8px; min-width: 3px;
   }
   .hbar .plan {
     position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    height: 5px; background: rgba(210,153,34,.9);
+    height: 6px; background: rgba(210,153,34,.9);
     border-radius: 3px; min-width: 2px;
   }
   .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
@@ -529,7 +528,7 @@
         <thead>
           <tr>
             <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">Output</th>
-            <th data-sort="actual">Actual</th><th data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th><th data-sort="status" data-i18n="thStatus">状态</th>
+            <th data-sort="actual">Actual</th><th data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -653,7 +652,7 @@
         <thead>
           <tr>
             <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="target" data-i18n="thTargetDay">目标/日</th><th data-sort="plan">Plan</th><th data-sort="actual">Actual</th>
-            <th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="status" data-i18n="thStatus">状态</th>
+            <th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -1011,8 +1010,7 @@ function renderTable() {
       `<td>${fmt(l.plan)}</td>` +
       `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
       `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
-      `<td class="uph-cell">${uphTxt(l, now)}</td>` +
-      `<td>${stHtml(l)}</td>`;
+      `<td class="uph-cell">${uphTxt(l, now)}</td>`;
     tb.appendChild(tr);
   });
   const otb = document.querySelector("#otherTable tbody");
@@ -1031,8 +1029,7 @@ function renderTable() {
       `<td>${fmt(l.plan)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
       `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
-      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
-      `<td>${stHtml(l)}</td>`;
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>`;
     otb.appendChild(tr);
   });
   document.getElementById("otherBtn").textContent = t("otherLinesFmt").replace("{n}", other.length);
