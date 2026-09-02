@@ -6,9 +6,11 @@
  * 人数: normal_hc / ot_hc 预留(可手填, 存 Firebase analysis/hc/{date}.json)
  *
  * 2026-09-02 v2 UI重做 (用户: 卡片太丑/无排版/全是字)
- *   → 现代暗色数据卡: 车间色条+大数字+占比条+徽章化, 去除长段说明文字
- *   → 口径说明收进顶部「ⓘ」折叠; 明细表改双行分组表头(白班/夜班/人数/人均)
- *   → 视觉语言与主看板统一: 纯黑底, #232329 边框, GitHub-dark 语义色
+ * 2026-09-02 v3 UI重做×2 (用户: 仍低级/挤/乱/无层次)
+ *   → 设计基准: Grafana dark 面板克制性 + shadcn/ui 表格排版 + Linear 灰阶层级
+ *   → 去掉彩色底块/发光特效(低级感来源), 回归灰阶系统: 文字三级亮度+字号层级
+ *   → 顶部全局 KPI 行(与主看板 .kpi 同构) → 中性车间卡片(左缘色条识别) → 明细
+ *   → 明细表精简 8 列, 行高稳定, 等宽数字, 分组表头极淡化
  * ============================================================ */
 (function () {
   "use strict";
@@ -26,7 +28,7 @@
     { ws: "Pro.5", tag: "FL精加工", lines: ["Piston honing FL", "Cylinder Honing"] },
     { ws: "Pro.6", tag: "电机部件", lines: [] }
   ];
-  /* 车间 accent 色 (仅用于数据页视觉, 与主看板语义色同族) */
+  /* 车间识别色 (仅小面积点缀: 卡左缘条 + 点) */
   var WS_ACC = { "Pro.1": "#3fb950", "Pro.2": "#58a6ff", "Pro.3": "#d29922", "Pro.4": "#bc8cff", "Pro.5": "#39c5cf", "Pro.6": "#f778ba" };
   var LINE2WS = {};
   WS_MAP.forEach(function (g) {
@@ -116,124 +118,125 @@
     }).catch(function () { });
   }
 
-  /* ════════════════ DOM (v2 UI) ════════════════ */
+  /* ════════════════ DOM (v3 UI) ════════════════
+   * 设计基准: Grafana 面板克制 / shadcn 表格排版 / Linear 灰阶层级
+   * 灰阶三级: --t1 主字 / --t2 次字 / --t3 弱字; 色仅用于: 语义值(正常蓝/加班金)+识别(车间色小面积) */
   var css = [
     "#anaRoot{position:fixed;inset:0;z-index:9999;overflow:auto;display:flex;flex-direction:column;",
-    "background:radial-gradient(1100px 520px at 18% -8%,#0e0e13 0%,#000 58%),#000;color:#f0f6fc;",
-    "font-family:'Segoe UI','Microsoft YaHei',system-ui,sans-serif}",
+    "background:#07070a;color:#e6edf3;font-family:'Segoe UI','Microsoft YaHei',system-ui,sans-serif;font-size:12px}",
     "#anaRoot *{box-sizing:border-box;margin:0;padding:0}",
-    "/* 顶栏 */",
-    "#anaTop{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:12px 18px;",
-    "background:rgba(0,0,0,.86);backdrop-filter:blur(8px);border-bottom:1px solid #232329;flex-wrap:wrap}",
-    ".ana-back{display:inline-flex;align-items:center;gap:6px;background:#0a0a0d;color:#f0f6fc;border:1px solid #2a2a31;",
-    "border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;transition:all .15s}",
-    ".ana-back:hover{border-color:#3d3d47;background:#121218;transform:translateX(-1px)}",
-    "#anaTop h1{font-size:16px;font-weight:800;letter-spacing:.4px;display:flex;align-items:center;gap:8px}",
-    "#anaTop h1 .ttl-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;",
-    "font-size:14px;background:linear-gradient(135deg,rgba(88,166,255,.22),rgba(88,166,255,.05));border:1px solid rgba(88,166,255,.3)}",
-    ".ana-sub{font-size:10.5px;color:#8b949e;font-weight:400;letter-spacing:0;margin-top:1px}",
-    "#anaTop input[type=date]{background:#0a0a0d;color:#f0f6fc;border:1px solid #2a2a31;border-radius:8px;padding:5px 10px;",
+    "/* ─ 顶栏 ─ */",
+    "#anaTop{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;padding:12px 22px;",
+    "background:rgba(7,7,10,.88);backdrop-filter:blur(10px);border-bottom:1px solid #1b1d23;flex-wrap:wrap}",
+    ".ana-back{display:inline-flex;align-items:center;gap:7px;background:transparent;color:#a3adbb;border:1px solid #26282f;",
+    "border-radius:8px;padding:6px 13px;font-size:12px;cursor:pointer;transition:all .15s}",
+    ".ana-back:hover{color:#e6edf3;border-color:#3d414b;background:#0e0f13}",
+    "#anaTop h1{font-size:15px;font-weight:800;letter-spacing:.3px;display:flex;align-items:center;gap:9px}",
+    ".ana-sub{font-size:10.5px;color:#6e7681;font-weight:400;margin-left:2px}",
+    "#anaTop input[type=date]{background:#0e0f13;color:#e6edf3;border:1px solid #26282f;border-radius:8px;padding:5px 10px;",
     "font-size:12px;color-scheme:dark;cursor:pointer}",
-    "#anaTop input[type=date]:focus{border-color:#58a6ff;outline:none;box-shadow:0 0 0 2px rgba(88,166,255,.14)}",
+    "#anaTop input[type=date]:focus{border-color:#3d414b;outline:none}",
     ".ana-ctl{display:flex;align-items:center;gap:8px;margin-left:auto}",
-    "#anaHelpBtn{display:inline-flex;align-items:center;gap:5px;background:#0a0a0d;color:#8b949e;border:1px solid #2a2a31;",
-    "border-radius:20px;padding:4px 11px;font-size:11px;cursor:pointer;transition:all .15s}",
-    "#anaHelpBtn:hover{color:#f0f6fc;border-color:#3d3d47}",
-    "#anaHelpBtn.on{color:#58a6ff;border-color:rgba(88,166,255,.4);background:rgba(88,166,255,.08)}",
-    "#anaStatus{font-size:11px;color:#8b949e;display:flex;align-items:center;gap:6px}",
-    "#anaStatus .st-dot{width:7px;height:7px;border-radius:50%;background:#3fb950;box-shadow:0 0 6px rgba(63,185,80,.6)}",
-    "#anaStatus.st-err .st-dot{background:#f85149;box-shadow:0 0 6px rgba(248,81,73,.6)}",
-    "#anaStatus.st-idle .st-dot{background:#6e7681;box-shadow:none}",
-    "/* 口径折叠 */",
-    "#anaHelpBox{display:none;margin:0 18px;padding:12px 16px;background:#08080b;border:1px solid #232329;border-radius:0 0 10px 10px;",
-    "font-size:11px;color:#8b949e;line-height:1.9}",
-    "#anaHelpBox b{color:#c9d1d9}",
-    "#anaHelpBox .hl{color:#58a6ff}.anaHelpBox .hl2{color:#d29922}",
-    "/* 主体 */",
-    "#anaBody{padding:16px 18px 34px;display:flex;flex-direction:column;gap:14px}",
-    ".ana-state{display:flex;align-items:center;justify-content:center;gap:12px;padding:56px 0;color:#8b949e;font-size:12.5px}",
-    ".spinner{width:24px;height:24px;border-radius:50%;border:2px solid #232329;border-top-color:#58a6ff;animation:anaSpin .7s linear infinite}",
+    "#anaHelpBtn{display:inline-flex;align-items:center;gap:5px;background:transparent;color:#6e7681;border:1px solid #26282f;",
+    "border-radius:8px;padding:5px 11px;font-size:11px;cursor:pointer;transition:all .15s}",
+    "#anaHelpBtn:hover{color:#a3adbb;border-color:#3d414b}",
+    "#anaHelpBtn.on{color:#58a6ff;border-color:rgba(88,166,255,.35)}",
+    "#anaStatus{font-size:11px;color:#6e7681;display:flex;align-items:center;gap:7px;white-space:nowrap}",
+    "#anaStatus .st-dot{width:6px;height:6px;border-radius:50%;background:#3fb950}",
+    "#anaStatus.st-err .st-dot{background:#f85149}#anaStatus.st-idle .st-dot{background:#484f58}",
+    "#anaHelpBox{display:none;margin:0 22px;padding:13px 18px;background:#0b0c0f;border:1px solid #1b1d23;border-radius:0 0 10px 10px;",
+    "font-size:11px;color:#8b949e;line-height:2;border-top:none}",
+    "#anaHelpBox b{color:#c9d1d9;font-weight:700}",
+    "/* ─ 主体 ─ */",
+    "#anaBody{padding:18px 22px 44px;display:flex;flex-direction:column;gap:18px}",
+    "/* 全局 KPI (与主看板 .kpi 同构) */",
+    "#anaKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex-shrink:0}",
+    ".kpi{background:#0d0e12;border:1px solid #1f2128;border-radius:10px;padding:10px 16px;min-width:0;",
+    "display:flex;flex-direction:column;justify-content:center;gap:2px}",
+    ".kpi .lb{font-size:10.5px;color:#6e7681;letter-spacing:.06em;display:flex;align-items:center;gap:6px;white-space:nowrap}",
+    ".kpi .lb i{width:5px;height:5px;border-radius:50%;flex:none}",
+    ".kpi .va{font-size:24px;font-weight:650;letter-spacing:-.5px;line-height:1.25;font-variant-numeric:tabular-nums;color:#e6edf3}",
+    ".kpi .va.gold{color:#e3b341}.kpi .va.blue{color:#79c0ff}",
+    ".kpi .sb{font-size:10px;color:#484f58;margin-top:1px;white-space:nowrap}",
+    "/* 空态/加载 */",
+    ".ana-state{display:flex;align-items:center;justify-content:center;gap:12px;padding:70px 0;color:#6e7681;font-size:12.5px}",
+    ".spinner{width:22px;height:22px;border-radius:50%;border:2px solid #1f2128;border-top-color:#58a6ff;animation:anaSpin .7s linear infinite}",
     "@keyframes anaSpin{to{transform:rotate(360deg)}}",
-    "/* 车间卡片网格 */",
-    "#anaCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}",
-    ".ana-card{position:relative;display:flex;flex-direction:column;background:linear-gradient(180deg,#0c0c10 0%,#070709 100%);",
-    "border:1px solid #232329;border-radius:12px;padding:13px 14px 10px;cursor:pointer;overflow:hidden;",
-    "transition:border-color .15s,box-shadow .15s,transform .15s}",
-    ".ana-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--acc);opacity:.85}",
-    ".ana-card:hover{border-color:#34343d;transform:translateY(-1px)}",
-    ".ana-card.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 10px 30px -12px var(--acc)}",
-    ".ac-top{display:flex;align-items:center;gap:9px;margin-bottom:11px}",
-    ".ac-no{flex:none;width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;",
-    "font-family:ui-monospace,'Cascadia Mono',monospace;font-size:12px;font-weight:800;color:#fff;",
-    "background:var(--acc);opacity:.92;box-shadow:0 0 0 1px rgba(255,255,255,.06) inset}",
-    ".ac-name{min-width:0;line-height:1.25}",
-    ".ac-name .n{font-size:14.5px;font-weight:800;letter-spacing:.3px}",
-    ".ac-name .tag{font-size:10px;color:#8b949e;margin-left:6px;font-weight:400}",
-    ".ac-badges{margin-left:auto;display:flex;align-items:center;gap:7px;flex:none}",
-    ".chip{font-size:10px;color:#8b949e;background:#121218;border:1px solid #232329;border-radius:14px;padding:2px 8px;",
+    "/* ─ 车间卡片 (中性灰阶, 左缘色条识别) ─ */",
+    "#anaCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(348px,1fr));gap:12px}",
+    ".ana-card{position:relative;display:flex;flex-direction:column;background:#0d0e12;border:1px solid #1f2128;border-radius:12px;",
+    "padding:16px 16px 13px 18px;cursor:pointer;overflow:hidden;transition:border-color .15s,transform .15s,background .15s}",
+    ".ana-card::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--acc);opacity:.75}",
+    ".ana-card:hover{border-color:#31343d;transform:translateY(-1px);background:#0f1015}",
+    ".ana-card.sel{border-color:#3a3f4b;background:#101116;box-shadow:0 0 0 1px #3a3f4b inset}",
+    ".ana-card.sel::before{opacity:1}",
+    ".ac-top{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}",
+    ".ac-name{font-size:13.5px;font-weight:750;letter-spacing:.2px}",
+    ".ac-tag{font-size:10px;color:#6e7681;margin-left:1px}",
+    ".ac-badges{margin-left:auto;display:flex;align-items:center;gap:8px;flex:none}",
+    ".chip{font-size:10px;color:#6e7681;background:#0a0b0e;border:1px solid #26282f;border-radius:12px;padding:1.5px 9px;",
     "font-variant-numeric:tabular-nums}",
-    ".dot{width:8px;height:8px;border-radius:50%;flex:none}",
-    ".dot.ok{background:#3fb950;box-shadow:0 0 6px rgba(63,185,80,.7)}",
-    ".dot.na{background:#30363d;border:1px solid #484f58}",
-    "/* 指标块 */",
-    ".ana-metrics{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px}",
-    ".m{background:#0a0a0e;border:1px solid #1b1b21;border-radius:9px;padding:7px 10px 6px;min-width:0}",
-    ".m .l{display:flex;align-items:center;gap:5px;font-size:9.5px;color:#6e7681;letter-spacing:.07em;text-transform:uppercase;margin-bottom:2px;white-space:nowrap}",
-    ".m .l i{width:5px;height:5px;border-radius:50%;flex:none}",
-    ".m .v{font-family:ui-monospace,'Cascadia Mono',SFMono-Regular,Menlo,monospace;font-size:18px;font-weight:700;",
-    "font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.2;color:#f0f6fc;white-space:nowrap}",
-    ".m .v small{font-size:9.5px;color:#6e7681;font-weight:400;letter-spacing:0;margin-left:2px}",
-    ".m.nm{border-color:rgba(88,166,255,.16);background:linear-gradient(180deg,rgba(88,166,255,.06),rgba(88,166,255,.01))}",
-    ".m.nm .v{color:#79b8ff}.m.nm .l i{background:#58a6ff}",
-    ".m.ot{border-color:rgba(210,153,34,.17);background:linear-gradient(180deg,rgba(210,153,34,.06),rgba(210,153,34,.01))}",
-    ".m.ot .v{color:#e3b341}.m.ot .l i{background:#d29922}",
-    ".m.nt .v{color:#e6edf3}",
-    "/* 占比条 */",
-    ".ana-share{margin-bottom:9px}",
-    ".bar{display:flex;height:5px;border-radius:3px;overflow:hidden;background:#16161c;gap:1px}",
-    ".bar .b-nm{background:#58a6ff;border-radius:3px 0 0 3px}",
-    ".bar .b-ot{background:linear-gradient(90deg,#d29922,#e3b341);border-radius:0 3px 3px 0}",
-    ".bar .b-nm:only-child,.bar .b-ot:only-child{border-radius:3px}",
-    ".bar-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:9.5px;color:#6e7681;",
-    "font-variant-numeric:tabular-nums}",
-    ".bar-labels b{color:#8b949e;font-weight:600}",
-    "/* 卡片脚: 人均徽章 */",
-    ".ac-foot{display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px dashed #1e1e25;font-size:10.5px;color:#8b949e}",
-    ".pill{display:inline-flex;align-items:center;gap:5px;padding:2.5px 10px;border-radius:20px;font-size:10px;font-weight:700;",
-    "letter-spacing:.03em;white-space:nowrap}",
-    ".pill.good{color:#3fb950;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3)}",
-    ".pill.bad{color:#f85149;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.28)}",
-    ".pill.na{color:#6e7681;background:#121218;border:1px solid #232329}",
-    ".ac-foot .t{color:#6e7681;font-size:10px;margin-left:auto;text-align:right;line-height:1.5}",
-    "/* 明细面板 */",
-    ".ana-panel{background:linear-gradient(180deg,#0b0b0f,#070709);border:1px solid #232329;border-radius:12px;overflow:hidden;display:none}",
-    ".panel-head{display:flex;align-items:center;gap:8px;padding:11px 16px;border-bottom:1px solid #232329}",
-    ".panel-head h3{font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:8px}",
-    ".panel-head h3 .dot2{width:7px;height:7px;border-radius:2px;background:var(--acc)}",
-    ".panel-head .tip{margin-left:auto;font-size:10.5px;color:#6e7681}",
+    ".hc-st{display:flex;align-items:center;gap:5px;font-size:10px;color:#484f58}",
+    ".hc-st i{width:6px;height:6px;border-radius:50%;background:#3fb950;flex:none}",
+    ".hc-st.na i{background:#30363d}",
+    "/* 主数字 */",
+    ".ac-main{display:flex;align-items:baseline;gap:8px;margin-bottom:14px;line-height:1}",
+    ".ac-main .mv{font-size:30px;font-weight:650;letter-spacing:-1px;font-variant-numeric:tabular-nums;color:#f0f6fc}",
+    ".ac-main .mv small{font-size:11px;color:#484f58;font-weight:400;letter-spacing:0;margin-left:4px}",
+    ".ac-main .ml{margin-left:auto;font-size:10px;color:#484f58;text-align:right;line-height:1.5;white-space:nowrap}",
+    "/* 班次拆分行 */",
+    ".ac-split{display:flex;flex-direction:column;gap:7px;margin-bottom:13px}",
+    ".sp-row{display:grid;grid-template-columns:52px 1fr 1fr;gap:10px;align-items:baseline}",
+    ".sp-row .sh{font-size:10.5px;color:#6e7681;display:flex;align-items:center;gap:6px}",
+    ".sp-row .sh b{font-weight:600}",
+    ".sp-cell{display:flex;align-items:baseline;gap:6px;min-width:0}",
+    ".sp-cell .k{font-size:9.5px;color:#484f58;letter-spacing:.05em;white-space:nowrap}",
+    ".sp-cell .v{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:#d0d7de;letter-spacing:-.2px}",
+    ".sp-cell.ot .v{color:#e3b341}",
+    ".sp-cell.nm .v{color:#79c0ff}",
+    "/* 卡片脚 */",
+    ".ac-foot{display:flex;align-items:center;gap:8px;padding-top:11px;border-top:1px solid #1a1c22;font-size:10.5px;color:#6e7681;min-height:28px}",
+    ".ac-foot .note{display:flex;align-items:center;gap:6px}",
+    ".arrow-up{color:#3fb950;font-weight:700}.arrow-dn{color:#f85149;font-weight:700}",
+    ".ac-foot .f-r{margin-left:auto;color:#484f58;font-size:10px;white-space:nowrap}",
+    "/* ─ 明细面板 ─ */",
+    ".ana-panel{background:#0b0c0f;border:1px solid #1f2128;border-radius:12px;overflow:hidden;display:none}",
+    ".panel-head{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid #1b1d23}",
+    ".panel-head .ph-t{font-size:13px;font-weight:750;display:flex;align-items:center;gap:8px}",
+    ".panel-head .ph-t .d{width:8px;height:8px;border-radius:2px;background:var(--acc)}",
+    ".panel-head .ph-t .tt{font-weight:400;color:#6e7681;font-size:11px;margin-left:2px}",
+    ".ph-sum{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:#6e7681;font-variant-numeric:tabular-nums}",
+    ".ph-sum b{color:#d0d7de;font-weight:650}",
+    ".ph-close{background:transparent;border:1px solid #26282f;color:#6e7681;border-radius:7px;width:24px;height:24px;",
+    "font-size:12px;line-height:1;cursor:pointer;flex:none;transition:all .15s}",
+    ".ph-close:hover{color:#e6edf3;border-color:#3d414b}",
     ".panel-scroll{overflow-x:auto}",
-    "#anaTable{border-collapse:collapse;font-size:11.5px;width:100%;font-variant-numeric:tabular-nums;white-space:nowrap}",
-    "#anaTable th{padding:0;border-bottom:1px solid #232329;text-align:right}",
-    "#anaTable th.ws-l{text-align:left}",
-    "#anaTable tr.grp th{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#6e7681;font-weight:600;padding:5px 10px 3px}",
-    "#anaTable tr.grp th.g-blue{color:#58a6ff}#anaTable tr.grp th.g-gold{color:#d29922}",
-    "#anaTable tr.grp th.g-gray{color:#8b949e}#anaTable tr.grp th.g-wht{color:#c9d1d9}",
-    "#anaTable tr.col th{font-size:10px;color:#8b949e;font-weight:600;padding:4px 10px 6px;background:#0a0a0e}",
-    "#anaTable td{padding:5.5px 10px;text-align:right;border-bottom:1px solid #101014;color:#c9d1d9}",
-    "#anaTable tbody tr:hover td{background:rgba(255,255,255,.018)}",
-    "#anaTable td.ws-line{text-align:left;font-weight:600;color:#f0f6fc}",
-    "#anaTable .nm{color:#79b8ff}#anaTable .ot{color:#e3b341}#anaTable .tot{color:#f0f6fc;font-weight:700}",
-    "#anaTable .ppl{color:#8b949e;font-size:10.5px}",
-    "#anaTable tr.sum td{font-weight:800;border-top:1px solid #2a2a31;background:linear-gradient(90deg,rgba(88,166,255,.08),rgba(88,166,255,0) 60%)}",
+    "/* 明细表: shadcn 式极淡分隔 + tabular */",
+    "#anaTable{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums;white-space:nowrap}",
+    "#anaTable th{font-weight:600;padding:0;border-bottom:1px solid #1b1d23}",
+    "#anaTable tr.grp th{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#484f58;font-weight:600;padding:9px 12px 3px;text-align:right}",
+    "#anaTable tr.grp th:first-child{text-align:left}",
+    "#anaTable tr.grp th.gh-bl{color:#1f6feb}#anaTable tr.grp th.gh-gd{color:#9e6a03}",
+    "#anaTable tr.col th{font-size:10px;color:#8b949e;font-weight:600;padding:2px 12px 8px;background:transparent;text-align:right}",
+    "#anaTable tr.col th:first-child{text-align:left}",
+    "#anaTable td{padding:7px 12px;text-align:right;border-bottom:1px solid #131519;color:#c9d1d9}",
+    "#anaTable tbody tr{transition:background .1s}",
+    "#anaTable tbody tr:hover td{background:#101116}",
+    "#anaTable td.ws-line{text-align:left;font-weight:650;color:#f0f6fc;font-size:12px}",
+    "#anaTable td.ws-line .off-n{color:#484f58;font-size:10px;font-weight:400;margin-left:6px}",
+    "#anaTable .nm{color:#79c0ff}#anaTable .ot{color:#e3b341}#anaTable .tot{color:#f0f6fc;font-weight:700}",
+    "#anaTable .ppl{color:#a3adbb;font-size:11px}",
+    "#anaTable tr.sum td{font-weight:700;border-top:1px solid #26282f;border-bottom:none;color:#f0f6fc;background:rgba(88,166,255,.05)}",
     "#anaTable tr.sum td.ws-line{color:#58a6ff}",
-    "#anaTable input.hc{width:56px;background:#000;color:#f0f6fc;border:1px solid #2a2a31;border-radius:6px;padding:2.5px 4px;",
-    "font-size:11px;text-align:center;font-variant-numeric:tabular-nums}",
-    "#anaTable input.hc:focus{border-color:#58a6ff;outline:none;box-shadow:0 0 0 2px rgba(88,166,255,.15)}",
+    "#anaTable input.hc{width:50px;background:#07070a;color:#e6edf3;border:1px solid #26282f;border-radius:6px;padding:3px 4px;",
+    "font-size:11.5px;text-align:center;font-variant-numeric:tabular-nums}",
+    "#anaTable input.hc:focus{border-color:#58a6ff;outline:none}",
+    "#anaTable input.hc::placeholder{color:#30363d}",
     "/* 滚动条 */",
     "#anaRoot ::-webkit-scrollbar{width:10px;height:10px}",
-    "#anaRoot ::-webkit-scrollbar-thumb{background:#26262e;border-radius:5px;border:2px solid #000}",
-    "#anaRoot ::-webkit-scrollbar-thumb:hover{background:#34343d}",
-    "@media (max-width:640px){#anaCards{grid-template-columns:1fr}.m .v{font-size:16px}}"
+    "#anaRoot ::-webkit-scrollbar-thumb{background:#21242b;border-radius:5px;border:2px solid #07070a}",
+    "#anaRoot ::-webkit-scrollbar-thumb:hover{background:#2f333c}",
+    "@media (max-width:800px){#anaKpis{grid-template-columns:repeat(2,1fr)}#anaCards{grid-template-columns:1fr}.ac-main .mv{font-size:26px}}"
   ].join("\n");
 
   var st = document.createElement("style");
@@ -244,32 +247,37 @@
   root.id = "anaRoot";
   root.innerHTML =
     '<div id="anaTop">' +
-    '<button class="ana-back" id="anaBack"><span>←</span> 看板</button>' +
-    "<h1><span class='ttl-ico'>📊</span>产出分析<span class='ana-sub'>车间 · 正常 vs 加班</span></h1>" +
+    '<button class="ana-back" id="anaBack">← 返回看板</button>' +
+    "<h1>车间产出分析<span class='ana-sub'>正常 vs 加班 · 按班次拆解</span></h1>" +
     '<input type="date" id="anaDate" title="选择历史日期">' +
     '<div class="ana-ctl">' +
     '<button id="anaHelpBtn">ⓘ 口径</button>' +
     '<span id="anaStatus" class="st-idle"><span class="st-dot"></span><span id="anaStatusTxt">就绪</span></span>' +
     "</div></div>" +
     '<div id="anaHelpBox">' +
-    '<b>口径</b>：白班 8:00–20:20（正常 ≤17:20），加班 17:20–20:20；夜班 20:30–次日 8:00，加班 5:50–7:50。' +
-    "<br><b>数据</b>：MES 10 分钟快照差分（班内累计）。白班完整需 20:20 后；21:50 前夜班当晚可见，完整夜班归入开始日。" +
-    '<br><b>人数</b>：明细表内<span class="hl">可手填</span>（正常/加班人数），存云端；人均 = 产出 ÷ 人数。历史日期查看云端归档。' +
+    '<b>口径</b> 白班 8:00–20:20 · 正常 ≤17:20 · 加班 17:20–20:20　|　夜班 20:30–次日 8:00 · 加班 5:50–7:50<br>' +
+    '<b>数据</b> MES 10 分钟快照差分（班内累计）· 白班完整需 20:20 后 · 完整夜班归入开始日 · 历史日期读云端归档<br>' +
+    '<b>人均</b> 明细表中可手填各线正常/加班人数（存云端）→ 自动算人均。' +
     "</div>" +
     '<div id="anaBody">' +
+    '<div id="anaKpis"></div>' +
     '<div id="anaCards"></div>' +
     '<div class="ana-state" id="anaState" style="display:none"><div class="spinner"></div><span id="anaStateTxt">加载中…</span></div>' +
     '<div class="ana-panel" id="anaDetailWrap"><div class="panel-head">' +
-    "<h3><span class='dot2' id='anaDot2'></span><span id='anaDetailTitle'></span></h3>" +
-    '<span class="tip">点击其他车间卡切换 · 人数可手填</span></div>' +
+    "<div class='ph-t'><span class='d' id='anaDot2'></span><span id='anaDetailTitle'></span><span class='tt' id='anaDetailSub'></span></div>" +
+    '<div class="ph-sum" id="anaDetailSum"></div>' +
+    '<button class="ph-close" id="anaClose" title="收起明细">✕</button></div>' +
     "<div class='panel-scroll'><table id='anaTable'><thead></thead><tbody></tbody></table></div></div>" +
     "</div>";
 
   /* root 仅由 openAnaPage() 按需挂载, 禁止页面加载自动显示 */
   var dateInput = root.querySelector("#anaDate");
+  var kpisEl = root.querySelector("#anaKpis");
   var cardsEl = root.querySelector("#anaCards");
   var detailWrap = root.querySelector("#anaDetailWrap");
   var detailTitle = root.querySelector("#anaDetailTitle");
+  var detailSub = root.querySelector("#anaDetailSub");
+  var detailSum = root.querySelector("#anaDetailSum");
   var dot2 = root.querySelector("#anaDot2");
   var tableEl = root.querySelector("#anaTable");
   var statusEl = root.querySelector("#anaStatus");
@@ -280,6 +288,7 @@
   var helpBtn = root.querySelector("#anaHelpBtn");
 
   root.querySelector("#anaBack").onclick = function () { root.remove(); };
+  root.querySelector("#anaClose").onclick = function () { state.selWs = null; renderCards(); detailWrap.style.display = "none"; };
   helpBtn.onclick = function () {
     var show = helpBox.style.display !== "block";
     helpBox.style.display = show ? "block" : "none";
@@ -322,7 +331,7 @@
       var d = res[0] || {};
       if (!d || !d.hourly || Object.keys(d.hourly).length === 0) {
         setState(true, false, isToday ? "今天暂无生产数据" : "该日无归档数据");
-        cardsEl.innerHTML = "";
+        cardsEl.innerHTML = ""; kpisEl.innerHTML = "";
         detailWrap.style.display = "none";
         setStatus(isToday ? "暂无数据" : "无归档", "idle");
         return;
@@ -332,7 +341,7 @@
       aggregateAndRender();
       setState(false);
       setStatus("更新 " + (d.updatedAt ? d.updatedAt.replace("T", " ").substring(5, 16) : (isToday ? "实时" : date)), "ok");
-    }).catch(function (e) {
+    }).catch(function () {
       setState(true, false, "加载失败，请重试");
       setStatus("加载失败", "err");
     });
@@ -340,7 +349,7 @@
 
   function aggregateAndRender() {
     /* 每线聚合 + 车间汇总 */
-    var wsAgg = {};
+    var wsAgg = {}, SUM = { dayTotal: 0, dayNorm: 0, dayOt: 0, ntTotal: 0, ntOt: 0 };
     WS_MAP.forEach(function (g) { wsAgg[g.ws] = { dayTotal: 0, dayNorm: 0, dayOt: 0, ntTotal: 0, ntNorm: 0, ntOt: 0, nLine: 0 }; });
     Object.keys(state.hourly).forEach(function (rawName) {
       var std = NORM2WS[normN(rawName)];
@@ -354,7 +363,14 @@
       if (s.nightCur) { g.ntTotal += s.nightCur.total; }
       if (s.nightTail) { g.ntTotal += s.nightTail.total; g.ntNorm += s.nightTail.norm; g.ntOt += s.nightTail.ot; }
     });
+    WS_MAP.forEach(function (g) {
+      var a = wsAgg[g.ws];
+      SUM.dayTotal += a.dayTotal; SUM.dayNorm += a.dayNorm; SUM.dayOt += a.dayOt;
+      SUM.ntTotal += a.ntTotal; SUM.ntOt += a.ntOt;
+    });
     state.wsAgg = wsAgg;
+    state.sum = SUM;
+    renderKpis();
     renderCards();
     if (state.selWs && wsAgg[state.selWs] && wsAgg[state.selWs].nLine) renderDetail(state.selWs);
     else { state.selWs = null; detailWrap.style.display = "none"; }
@@ -365,15 +381,28 @@
     return null;
   }
 
-  /* 人均对比徽章: 有正常+加班人数且白班有加班 → 值/亏; 否则待填 */
-  function hcPill(a, hcn, hco) {
+  /* ─ 顶部全局 KPI ─ */
+  function renderKpis() {
+    var s = state.sum;
+    kpisEl.innerHTML =
+      '<div class="kpi"><div class="lb">总产出 · 白班+夜班</div><div class="va">' + fmt(s.dayTotal + s.ntTotal) + '</div><div class="sb">全车间合计</div></div>' +
+      '<div class="kpi"><div class="lb"><i style="background:#79c0ff"></i>白班正常时段</div><div class="va blue">' + fmt(s.dayNorm) + '</div><div class="sb">≤ 17:20</div></div>' +
+      '<div class="kpi"><div class="lb"><i style="background:#e3b341"></i>加班产出</div><div class="va gold">' + fmt(s.dayOt + s.ntOt) + '</div><div class="sb">白班 OT + 夜班 OT</div></div>' +
+      '<div class="kpi"><div class="lb">夜班产出</div><div class="va">' + fmt(s.ntTotal) + '</div><div class="sb">今晚 + 凌晨段</div></div>';
+  }
+
+  /* 人均对比: 返回 {html, ok} */
+  function perCap(a, hcn, hco) {
     if (a.dayOt > 0 && hco > 0 && hcn > 0) {
       var dN = a.dayNorm / hcn, dO = a.dayOt / hco;
-      return dO >= dN
-        ? '<span class="pill good">▲ 加班人均更值</span>'
-        : '<span class="pill bad">▼ 加班人均更低</span>';
+      var better = dO >= dN;
+      return {
+        html: '<span class="note"><span class="' + (better ? "arrow-up" : "arrow-dn") + '">' + (better ? "▲" : "▼") + "</span>加班人均 " +
+          Math.round(dO) + " / " + Math.round(dN) + "·正常</span>",
+        ok: true, better: better
+      };
     }
-    return '<span class="pill na">待填人数算人均</span>';
+    return { html: '<span class="note">填人数后对比加班/正常人均</span>', ok: false };
   }
 
   function renderCards() {
@@ -393,39 +422,37 @@
       });
       var cls = state.selWs === g.ws ? "ana-card sel" : "ana-card";
       var noLines = g.lines.length === 0;
-      /* 白班正常vs加班占比条 */
-      var share = "";
-      if (!noLines && (a.dayNorm > 0 || a.dayOt > 0)) {
-        var tot = a.dayNorm + a.dayOt;
-        var wp = Math.max(a.dayNorm / tot * 100, a.dayNorm > 0 ? 4 : 0);
-        var op = 100 - wp;
-        share = '<div class="ana-share"><div class="bar">' +
-          (a.dayNorm > 0 ? '<div class="b-nm" style="width:' + wp.toFixed(1) + '%"></div>' : "") +
-          (a.dayOt > 0 ? '<div class="b-ot" style="width:' + op.toFixed(1) + '%"></div>' : "") +
-          "</div><div class='bar-labels'><span>正常 <b>" + fmt(a.dayNorm) + "</b></span><span>加班 <b>" + fmt(a.dayOt) + "</b></span></div></div>";
-      } else if (!noLines) {
-        share = '<div class="ana-share"><div class="bar"></div><div class="bar-labels"><span>白班暂未结束或无产出</span></div></div>';
+      var dayTot = a.dayTotal, ntTot = a.ntTotal;
+      var foot, footR;
+      if (noLines) {
+        foot = '<span class="note">线体清单未配置</span>';
+        footR = "";
+      } else {
+        var pc = perCap(a, hcn, hco);
+        foot = pc.html;
+        footR = '<span class="f-r">' + g.lines.length + " 线体 · " +
+          (nHC ? "人数 " + (hcn + hco) : "人数未填") + "</span>";
       }
-      var hcDot = noLines
-        ? '<span class="dot na" title="未配置线体"></span>'
-        : (nHC ? '<span class="dot ok" title="人数已填"></span>' : '<span class="dot na" title="人数未填"></span>');
-      var foot = noLines
-        ? '<span class="pill na">未配置线体</span><span class="t">线体清单待定<br>暂无聚合</span>'
-        : hcPill(a, hcn, hco) +
-          '<span class="t">' + (a.ntOt > 0 ? "夜班加班 " + fmt(a.ntOt) : g.lines.length + " 线体") + "</span>";
+      var hcSt = noLines ? "" :
+        '<span class="hc-st' + (nHC ? "" : " na") + '"><i></i>' + (nHC ? "人数已填" : "未填人数") + "</span>";
       html += '<div class="' + cls + '" data-ws="' + g.ws + '" style="--acc:' + acc + '">' +
         '<div class="ac-top">' +
-        '<span class="ac-no">' + String(idx + 1).padStart(2, "0") + "</span>" +
-        '<div class="ac-name"><span class="n">' + g.ws + '</span><span class="tag">' + g.tag + "</span></div>" +
-        '<div class="ac-badges">' + (noLines ? "" : '<span class="chip">' + g.lines.length + "线</span>") + hcDot + "</div>" +
+        '<span class="ac-name">' + g.ws + "</span><span class='ac-tag'>" + g.tag + "</span>" +
+        '<span class="ac-badges">' + (noLines ? "" : '<span class="chip">' + g.lines.length + "线</span>") + hcSt + "</span>" +
         "</div>" +
-        '<div class="ana-metrics">' +
-        '<div class="m nm"><div class="l"><i></i>白班 · 正常</div><div class="v">' + fmt(a.dayNorm) + "</div></div>" +
-        '<div class="m ot"><div class="l"><i></i>白班 · 加班</div><div class="v">' + fmt(a.dayOt) + "</div></div>" +
-        '<div class="m nt"><div class="l"><i></i>夜班 · 总</div><div class="v">' + fmt(a.ntTotal) + "</div></div>" +
-        '<div class="m ot"><div class="l"><i></i>夜班 · 加班</div><div class="v">' + fmt(a.ntOt) + "</div></div>" +
-        "</div>" + share +
-        '<div class="ac-foot">' + foot + "</div></div>";
+        '<div class="ac-main">' +
+        '<span class="mv">' + fmt(dayTot + ntTot) + "<small>总产出</small></span>" +
+        '<span class="ml">白班 ' + fmt(dayTot) + "<br>夜班 " + fmt(ntTot) + "</span>" +
+        "</div>" +
+        '<div class="ac-split">' +
+        '<div class="sp-row"><span class="sh"><b>白班</b></span>' +
+        '<span class="sp-cell nm"><span class="k">正常时段</span><span class="v">' + fmt(a.dayNorm) + "</span></span>" +
+        '<span class="sp-cell ot"><span class="k">加班 17:20后</span><span class="v">' + fmt(a.dayOt) + "</span></span></div>" +
+        '<div class="sp-row"><span class="sh"><b>夜班</b></span>' +
+        '<span class="sp-cell"><span class="k">今晚</span><span class="v">' + fmt(a.ntTotal - a.ntOt) + "</span></span>" +
+        '<span class="sp-cell ot"><span class="k">加班/凌晨段</span><span class="v">' + fmt(a.ntOt) + "</span></span></div>" +
+        "</div>" +
+        '<div class="ac-foot">' + foot + footR + "</div></div>";
     });
     cardsEl.innerHTML = html;
     Array.prototype.forEach.call(cardsEl.querySelectorAll(".ana-card"), function (c) {
@@ -442,21 +469,25 @@
     var g = wsMeta(ws);
     var acc = WS_ACC[ws] || "#58a6ff";
     dot2.style.background = acc;
-    detailTitle.textContent = g.ws + " · " + g.tag + " 明细";
+    detailTitle.textContent = g.ws;
+    detailSub.textContent = g.tag + " · 各线明细";
+    var sd = state.wsAgg[ws];
+    detailSum.innerHTML = "车间合计 <b>" + fmt(sd.dayTotal + sd.ntTotal) + "</b> · 白班 " + fmt(sd.dayTotal) +
+      " · 夜班 " + fmt(sd.ntTotal);
     var hcAll = {};
     Object.keys(state.hc).forEach(function (ln) {
       var hc = state.hc[ln] || {};
       hcAll[ln] = { n: hc.normal_hc, o: hc.ot_hc };
     });
     var th = "<tr class='grp'>" +
-      "<th class='ws-l' rowspan='2'></th>" +
-      "<th colspan='3' class='g-blue'>白班 (8:00–20:20)</th>" +
-      "<th colspan='2' class='g-wht'>夜班</th>" +
-      "<th colspan='2' class='g-gray'>人数</th>" +
-      "<th colspan='2' class='g-gold'>人均</th></tr>" +
-      "<tr class='col'><th>总产出</th><th>正常 ≤17:20</th><th>加班</th><th>今晚总</th><th>凌晨段(昨晚)</th>" +
-      "<th>正常</th><th>加班</th><th>正常</th><th>加班</th></tr>";
-    var rows = "", sd = state.wsAgg[ws], dN = 0, dO = 0, nN = 0, nO = 0;
+      "<th colspan='2'>线体</th>" +
+      "<th colspan='3' class='gh-bl'>白班 8:00–20:20</th>" +
+      "<th>夜班</th>" +
+      "<th colspan='2'>人数</th>" +
+      "<th>人均 正常/加班</th></tr>" +
+      "<tr class='col'><th>线体</th><th>产出构成</th><th>总产出</th><th>正常 ≤17:20</th><th>加班</th><th>今晚+凌晨</th>" +
+      "<th>正常人数</th><th>加班人数</th><th></th></tr>";
+    var rows = "", dN = 0, dO = 0;
     g.lines.forEach(function (ln) {
       var raw = state.hourly[ln];
       if (!raw) return;
@@ -466,20 +497,39 @@
       dN += hn; dO += ho;
       var dayP = s.day ? (hn ? (s.day.norm / hn) : null) : null;
       var otP = (s.day && s.day.ot > 0 && ho) ? (s.day.ot / ho) : null;
-      rows += "<tr data-ln='" + ln + "'><td class='ws-line'>" + ln + "</td>" +
-        "<td class='tot'>" + fmt(s.day ? s.day.total : null) + "</td>" +
+      var dayTot = s.day ? s.day.total : 0;
+      var ntCur = s.nightCur ? s.nightCur.total : 0;
+      var ntTail = s.nightTail ? s.nightTail.total : 0;
+      var ntTot = ntCur + ntTail;
+      var ntOt = s.nightTail ? s.nightTail.ot : 0;
+      var ntTip = s.nightTail ? ("今晚 " + fmt(ntCur) + " · 凌晨 " + fmt(ntTail)) : "今晚 " + fmt(ntCur);
+      /* 产出构成条: 白班正常=蓝 白班加班=金 夜班=白 */
+      var bar = "";
+      if (dayTot > 0 || ntTot > 0) {
+        var tot = Math.max(1, dayTot + ntTot);
+        var wN = s.day && s.day.norm > 0 ? Math.max(s.day.norm / tot * 100, 3) : 0;
+        var wO = s.day && s.day.ot > 0 ? Math.max(s.day.ot / tot * 100, 3) : 0;
+        bar = '<div style="display:flex;height:9px;border-radius:4px;overflow:hidden;background:#16181d;min-width:110px">' +
+          (wN > 0 ? '<div style="width:' + wN.toFixed(1) + '%;background:#58a6ff"></div>' : "") +
+          (wO > 0 ? '<div style="width:' + wO.toFixed(1) + '%;background:#e3b341"></div>' : "") +
+          (ntTot > 0 ? '<div style="flex:1;background:rgba(255,255,255,.25)"></div>' : "") +
+          "</div>";
+      } else bar = '<div style="display:flex;height:9px;border-radius:4px;background:#16181d;min-width:110px"></div>';
+      var nW = dayTot > 0 || ntTot > 0 ? "" : " ";
+      rows += "<tr data-ln='" + ln + "'>" +
+        "<td class='ws-line'>" + ln + "</td>" +
+        "<td style='text-align:left'>" + bar + "</td>" +
+        "<td class='tot'>" + fmt(dayTot) + "</td>" +
         "<td class='nm'>" + fmt(s.day ? s.day.norm : null) + "</td>" +
         "<td class='ot'>" + fmt(s.day ? s.day.ot : null) + "</td>" +
-        "<td class='tot'>" + fmt(s.nightCur ? s.nightCur.total : null) + "</td>" +
-        "<td>" + (s.nightTail ? fmt(s.nightTail.total) + ' <span class="ot">OT ' + fmt(s.nightTail.ot) + "</span>" : "--") + "</td>" +
-        "<td><input class='hc' type='number' min='0' value='" + (hc.n || "") + "' data-f='normal_hc'></td>" +
-        "<td><input class='hc' type='number' min='0' value='" + (hc.o || "") + "' data-f='ot_hc'></td>" +
-        "<td class='ppl'>" + (dayP === null ? "--" : dayP.toFixed(1)) + "</td>" +
-        "<td class='ppl'>" + (otP === null ? "--" : otP.toFixed(1)) + "</td></tr>";
+        "<td class='tot' title='" + ntTip + "'>" + (ntTot > 0 ? fmt(ntTot) : "--") + (ntOt > 0 ? "<span style='color:#e3b341;font-size:10px'> +OT" + fmt(ntOt) + "</span>" : "") + "</td>" +
+        "<td><input class='hc' type='number' min='0' placeholder='0' value='" + (hc.n || "") + "' data-f='normal_hc'></td>" +
+        "<td><input class='hc' type='number' min='0' placeholder='0' value='" + (hc.o || "") + "' data-f='ot_hc'></td>" +
+        "<td class='ppl'>" + (dayP === null && otP === null ? "--" : (dayP === null ? "--" : dayP.toFixed(1)) + " / " + (otP === null ? "--" : otP.toFixed(1))) + "</td></tr>";
     });
-    rows += "<tr class='sum'><td class='ws-line'>合计 (" + g.lines.length + "线)</td><td>" + fmt(sd.dayTotal) + "</td><td>" + fmt(sd.dayNorm) + "</td><td>" + fmt(sd.dayOt) +
-      "</td><td>" + fmt(sd.ntTotal) + "</td><td>" + fmt(sd.ntNorm) + ' <span class="ot">OT ' + fmt(sd.ntOt) + "</span></td><td>" + (dN || "") + "</td><td>" + (dO || "") +
-      "</td><td class='ppl'>" + (dN ? (sd.dayNorm / dN).toFixed(1) : "--") + "</td><td class='ppl'>" + (dO ? (sd.dayOt / dO).toFixed(1) : "--") + "</td></tr>";
+    rows += "<tr class='sum'><td class='ws-line' colspan='2'>合计 (" + g.lines.length + " 线)</td><td>" + fmt(sd.dayTotal) + "</td><td>" + fmt(sd.dayNorm) + "</td><td>" + fmt(sd.dayOt) +
+      "</td><td>" + fmt(sd.ntTotal) + "</td><td>" + (dN || "") + "</td><td>" + (dO || "") +
+      "</td><td class='ppl'>" + (dN ? (sd.dayNorm / dN).toFixed(1) : "--") + " / " + (dO ? (sd.dayOt / dO).toFixed(1) : "--") + "</td></tr>";
     tableEl.querySelector("thead").innerHTML = th;
     tableEl.querySelector("tbody").innerHTML = rows;
     detailWrap.style.display = "block";
