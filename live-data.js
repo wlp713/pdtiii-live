@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-02 09:40:03
+   最后写入: 2026-09-02 11:10:16
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -14,11 +14,76 @@ window.__LIVE_DATA__ = {
       "series": "S系列",
       "line": "RPO1·S系列",
       "time": "08:00-09:00",
-      "problem_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น.",
-      "problem_zh": "INSERT S-coil机转盘定位偏移，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在处理。",
+      "problem_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น. S -series",
+      "problem_zh": "INSERT S-coil机台转盘定位不准，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在修复，涉及S系列。",
       "plan": 169,
       "actual": 132,
       "impact": -37,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "09:00-09:50",
+      "problem_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น.ยังใช้งานไม่ได้ S-series",
+      "problem_zh": "INSERT S-coil设备转盘定位不准，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在处理，至今仍无法正常使用。S系列受影响。",
+      "plan": 150,
+      "actual": 106,
+      "impact": -44,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่อง INSERT S-coil  ยังใช้งานไม่ได้",
+      "problem_zh": "INSERT S-coil设备仍无法使用。",
+      "plan": 169,
+      "actual": 81,
+      "impact": -88,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "สกอร์บอร์ดให้นับยอด หยุด08:00-08:35 รางจุด M Coil ไม่ปล่อยงาน หยุด 08:00-08:34 เครื่อง Slot ตัวโหลดงานไม่ทำงาน หยุด08:00-08:45 เครื่องเย็บฮีตเตอ์ไม่ร้อน หยุด08:00-08:25 F-series",
+      "problem_zh": "看板计数：08:00-08:35 M点Coil轨道不释放工件，停机；08:00-08:34 Slot机上料机构不动作，停机；08:00-08:45 加热器缝焊机不发热，停机；08:00-08:25 F系列停机。",
+      "plan": 141,
+      "actual": 56,
+      "impact": -85,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "08:00-09:00",
+      "problem_th": "ผลกระทบต่อเนื่องกะดึก งานมาไม่ต่อเนื่องรองานในตู้ cooling ทำความเย็นไม่ทัน",
+      "problem_zh": "夜班连续受影响，因冷却柜制冷不及时，导致来料不连续、等料停工。",
+      "plan": 470,
+      "actual": 441,
+      "impact": -29,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "09:00-10:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบจากเครื่อง TDC ไม่อ่านค่า (-70) ติดตาม",
+      "problem_zh": "等待转子线来料，受TDC设备读不到数值（-70）影响，正在跟进。",
+      "plan": 470,
+      "actual": 400,
+      "impact": -70,
       "shift": "day"
     },
     {
@@ -28,40 +93,85 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "เปลี่ยนรุ่น2ครั้ง",
-      "problem_zh": "更换型号2次。",
+      "problem_zh": "换型2次。",
       "plan": 444,
       "actual": 402,
       "impact": -42,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "เครื่องความต้านทาน ALARM ค่าไม่นิ่งบ่อย",
+      "problem_zh": "电阻测试仪ALARM频繁，数值不稳定。",
+      "plan": 444,
+      "actual": 427,
+      "impact": -17,
       "shift": "day"
     }
   ],
   "problems_top": [
     {
-      "name": "更换型号2次。",
-      "name_th": "เปลี่ยนรุ่น2ครั้ง",
-      "lines": [
-        "PRO2·C"
-      ],
-      "times": [
-        "08:00-09:00"
-      ],
-      "count": 1,
-      "total_impact": -42
-    },
-    {
-      "name": "INSERT S-coil机转盘定位偏移，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在处理。",
-      "name_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น.",
+      "name": "INSERT S-coil设备仍无法使用。",
+      "name_th": "เครื่อง INSERT S-coil  ยังใช้งานไม่ได้",
       "lines": [
         "RPO1·S系列"
       ],
       "times": [
+        "08:00-09:00",
+        "09:00-09:50",
+        "10:00-11:00"
+      ],
+      "count": 3,
+      "total_impact": -169
+    },
+    {
+      "name": "看板计数：08:00-08:35 M点Coil轨道不释放工件，停机；08:00-08:34 Slot机上料机构不动作，停机；08:00-08:45 加热器缝焊机不发热，停机；08:00-08:25 F系列停机。",
+      "name_th": "สกอร์บอร์ดให้นับยอด หยุด08:00-08:35 รางจุด M Coil ไม่ปล่อยงาน หยุด 08:00-08:34 เครื่อง Slot ตัวโหลดงานไม่ทำงาน หยุด08:00",
+      "lines": [
+        "RPO1·F系列"
+      ],
+      "times": [
         "08:00-09:00"
       ],
       "count": 1,
-      "total_impact": -37
+      "total_impact": -85
+    },
+    {
+      "name": "等待转子线来料，受TDC设备读不到数值（-70）影响，正在跟进。",
+      "name_th": "รองานจาก rotor line ผลกระทบจากเครื่อง TDC ไม่อ่านค่า (-70) ติดตาม",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "09:00-10:00"
+      ],
+      "count": 1,
+      "total_impact": -70
     }
   ],
   "first_hour": [
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 56,
+      "rate": 39.7
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 187,
+      "rate": 111.3
+    },
     {
       "date": "2026-09-02",
       "ws": "RPO1",
@@ -70,6 +180,15 @@ window.__LIVE_DATA__ = {
       "target": 169,
       "actual": 132,
       "rate": 78.1
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 441,
+      "rate": 93.8
     },
     {
       "date": "2026-09-02",
@@ -367,7 +486,10 @@ window.__HISTORY__ = [
   {
     "date": "2026-09-02",
     "first_hour": {
+      "RPO1·F系列": 39.7,
+      "RPO1·H系列": 111.3,
       "RPO1·S系列": 78.1,
+      "PRO2·B": 93.8,
       "PRO2·C": 90.5
     }
   }
