@@ -3,13 +3,37 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-02 08:00:02
+   最后写入: 2026-09-02 09:20:03
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น.",
+      "problem_zh": "INSERT S-coil机转盘定位偏移，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在处理中。",
+      "plan": 169,
+      "actual": 132,
+      "impact": -37,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 132,
+      "rate": 78.1
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -291,6 +315,12 @@ window.__HISTORY__ = [
       "PRO2·A": 81.0,
       "PRO2·B": 85.1,
       "PRO2·C": 64.9
+    }
+  },
+  {
+    "date": "2026-09-02",
+    "first_hour": {
+      "RPO1·S系列": 78.1
     }
   }
 ];
