@@ -10,11 +10,11 @@
 <link rel="icon" href="data:,">
 <style>
   :root {
-    /* ★ 2026-09-02 v5.32 全站深色增强: 背景更接近纯黑 + 文字对比度提升 */
-    --bg: #07090d;
-    --panel: #101319;
-    --panel2: #171c24;
-    --border: #262d36;
+    /* ★ 2026-09-02 v5.33 按用户要求: 纯黑背景 + 模块色略浅于纯黑 + 象牙白细分段线 */
+    --bg: #000000;
+    --panel: #0e0e11;
+    --panel2: #15151a;
+    --border: #232329;
     --green: #3fb950;
     --orange: #d29922;
     --red: #f85149;
@@ -25,7 +25,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: linear-gradient(160deg, #07090d 0%, #03050a 100%);
+    background: #000000;
     background-attachment: fixed;
     color: var(--white);
     font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -139,7 +139,7 @@
   /* 问题点嵌入线体行下方 */
   tr.prob-subrow td {
     background: rgba(88,166,255,.045); padding: 2px 8px 7px 26px;
-    border-bottom: 1px dashed #2d333b;
+    border-bottom: 1px dashed #3a3a42;
   }
   tr.prob-subrow:hover td { background: rgba(88,166,255,.07); }
   .prob-inline { font-size: 10.5px; color: var(--orange); line-height: 1.55; display: flex; flex-wrap: wrap; gap: 4px 14px; }
@@ -279,7 +279,7 @@
   body.battle-mode th { padding: 4px 10px; font-size: 9px; }
   body.battle-mode .legend { font-size: 9.5px; margin-bottom: 2px; }
   body.battle-mode .btn { padding: 2px 9px; font-size: 10.5px; }
-  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 3px 10px; }
+  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #0e0e11; border: 1px solid #2a2a31; border-radius: 12px; padding: 3px 10px; }
   .conn-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d29922; }
   .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
   .conn-status.warn .dot { background: #d29922; }
@@ -1545,13 +1545,9 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillStyle = color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       }
-      // ★ 分割线: 段边界(plan 定位) → 两柱完全平行; 柱顶也画收尾线
-      // ★ 2026-09-02 v5.32: 深色背景下分割线改为白色, 时段边界清晰可见
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
-      if (idx === segs.length - 1) {
-        ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
-      }
+      // ★ 分割线: 段边界 (v5.33: 象牙白 1px 细线; 柱顶收尾线已取消)
+      ctx.fillStyle = "#fffff0";
+      ctx.fillRect(cx - 1, yAcc - 0.5, bw + 2, 1);
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
