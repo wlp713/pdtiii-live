@@ -3,8 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
-   最后写入: 2026-09-02 17:10:07
+   最后写入: 2026-09-02 17:30:26
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -16,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น. S -series",
-      "problem_zh": "INSERT S-coil机转盘定位不准，导致INSERT杆件时杆件弯曲/转盘不复位。PE自08:20起正在处理。S系列。",
+      "problem_zh": "INSERT S-coil 设备转盘定位不准，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在修复，涉及S系列。",
       "plan": 169,
       "actual": 132,
       "impact": -37,
@@ -29,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "09:00-09:50",
       "problem_th": "เครื่อง INSERT S-coil จานหมุนไม่ตรงทำให้เวบาINSERT แท่งทำให้แท่งง้อ/จานไม่กลับตำแหน่ง PE กำลังแก้ไขตั้งแต่ 08:20น.ยังใช้งานไม่ได้ S-series",
-      "problem_zh": "INSERT S-coil设备转盘定位不准，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在修复，目前仍无法正常使用。S-series受影响。",
+      "problem_zh": "INSERT S-coil设备转盘定位不准，导致INSERT杆件时杆件弯曲/转盘无法复位。PE自08:20起正在处理，目前仍无法恢复生产。S-series线体受影响。",
       "plan": 150,
       "actual": 106,
       "impact": -44,
@@ -42,7 +41,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "10:00-11:00",
       "problem_th": "เครื่อง INSERT S-coil  ยังใช้งานไม่ได้",
-      "problem_zh": "INSERT S-coil 设备仍无法使用。",
+      "problem_zh": "INSERT S-coil设备仍无法使用。",
       "plan": 169,
       "actual": 81,
       "impact": -88,
@@ -55,7 +54,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "สกอร์บอร์ดให้นับยอด หยุด08:00-08:35 รางจุด M Coil ไม่ปล่อยงาน หยุด 08:00-08:34 เครื่อง Slot ตัวโหลดงานไม่ทำงาน หยุด08:00-08:45 เครื่องเย็บฮีตเตอ์ไม่ร้อน หยุด08:00-08:25 F-series",
-      "problem_zh": "看板计数，08:00-08:35停机，M点Coil轨道不放料；08:00-08:34停机，Slot机加载机构不动作；08:00-08:45停机，加热器缝焊机不加热；08:00-08:25停机，F系列。",
+      "problem_zh": "看板计数，08:00-08:35停机，M Coil轨道不放料；08:00-08:34停机，Slot机上料机构不动作；08:00-08:45停机，加热器缝焊机不加热；08:00-08:25停机，F系列。",
       "plan": 141,
       "actual": 56,
       "impact": -85,
@@ -81,10 +80,36 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "11:00-12:00",
       "problem_th": "เครื่องเย็บNO2 ฮิตตอร์ขาดหยุด10:58 - 11:54 F-series",
-      "problem_zh": "NO2缝焊机加热器故障，停机10:58-11:54，F系列。",
+      "problem_zh": "NO2缝焊机加热器故障停机，10:58-11:54，F系列。",
       "plan": 141,
       "actual": 66,
       "impact": -75,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "14:00-14:50",
+      "problem_th": "เครื่องSlotค้างไม่ปล่อยงาน หยุด14:35-14:41",
+      "problem_zh": "Slot机卡滞不释放工件，停机14:35-14:41。",
+      "plan": 116,
+      "actual": 114,
+      "impact": -2,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "15:00-16:00",
+      "problem_th": "F-series Time    ：16:00:17:00 Target : 141 Actual :99 ปัญหา: เครื่องเย็บเชือกหยุดบ่อย",
+      "problem_zh": "F系列 时间：16:00-17:00 目标：141 实际：99 问题：缝纫机停机频繁",
+      "plan": 141,
+      "actual": 117,
+      "impact": -24,
       "shift": "day"
     },
     {
@@ -94,7 +119,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "pipe รุ่น S-series จัดทรงยาก หัวหน้าเข้า Support(-47) เครื่องอบ Rotor น้ำหยด(ระหว่างรอ P/E ตัดงานกองก่อนหยอดRotor) ทำให้งานออกFinal ไม่ต่อเนื่อง(-30) IP เข้าแก้ไขเครื่องปรับเซ็ตจิก ขัน Cover B ให้ตรงตำแหน่ง(-30) A Line Final",
-      "problem_zh": "S系列管路整形困难，班长支援(-47)。Rotor烘干机滴水（等待P/E期间积压工件未投Rotor），导致Final出件不连续(-30)。IP介入调整定位夹具，将Cover B拧紧至正确位置(-30)。A线Final。",
+      "problem_zh": "S系列管路整形困难，班长支援(-47)。Rotor烘干机滴水（等待P/E期间，先堆料再投Rotor），导致Final出料不连续(-30)。IP介入调整夹具设定，将Cover B拧紧至正确位置(-30)。A线Final。",
       "plan": 431,
       "actual": 324,
       "impact": -107,
@@ -107,7 +132,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "ราง Conveyor จุดใส่ Low ประเต็งติดขัด (PE เข้าแก้ไขแล้ว)(-28) เครื่อง TDC ไม่อ่านค่า งานทยอยเข้าตู้ Cooling ต้องหยุดรออุณหภูมิ(-40) A Line Final",
-      "problem_zh": "Conveyor轨道Low工位碰焊卡滞（PE已处理）（-28）；TDC设备读不到数值，工件陆续进入Cooling柜，需停机等待温度（-40）；A线Final。",
+      "problem_zh": "输送线轨道在Low碰焊工位卡滞（PE已处理）（-28）；TDC设备读不到数值，工件陆续进入冷却柜，需停机等待温度（-40）；A线最终组装工序。",
       "plan": 431,
       "actual": 363,
       "impact": -68,
@@ -120,7 +145,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "10:00-11:00",
       "problem_th": "เครื่องเช็ค KV&MΩ Alarm บ่อย (IP กำลังเข้าตรวจสอบ)(-59) A Line Final",
-      "problem_zh": "KV&MΩ检测机频繁报警（IP正在排查中）（-59）A线最终检测工位",
+      "problem_zh": "A线终检KV&MΩ检测机频繁报警（IP正在排查中）（-59）",
       "plan": 359,
       "actual": 300,
       "impact": -59,
@@ -132,11 +157,89 @@ window.__LIVE_DATA__ = {
       "series": "A",
       "line": "PRO2·A",
       "time": "11:00-12:00",
-      "problem_th": "เครื่องเช็ค KV&MΩ Alarm บ่อย line Out ต่อเนื่อง(IP และคนจีนกำลังเข้าแก้ไข)",
-      "problem_zh": "KV&MΩ检测机频繁报警，Out线连续报警（IP及中方人员正在处理中）。",
+      "problem_th": "เครื่องเช็ค KV&MΩ Alarm บ่อย line Out ต่อเนื่อง(IP และคนจีนกำลังเข้าแก้ไข)(-64) A Line Final",
+      "problem_zh": "KV&MΩ检测机频繁报警，Out线连续报警（-64），A线Final工位。IP及中方人员正在处理中。",
       "plan": 431,
       "actual": 367,
       "impact": -64,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "13:00-14:00",
+      "problem_th": "เครื่องเช็ค KV&MΩ Alarm บ่อย line Out ต่อเนื่อง (IP และคนจีนกำลังเข้าแก้ไข)(-40) ip หัวหน้างาน เข้าปรับเซ็ตจิกกดสปริง เครื่องถอดไลน์เนอร์ให้ตรงตำแหน่ง(-43) A Line Final",
+      "problem_zh": "KV&MΩ检测机频繁报警，Out线连续停机（IP及中方人员正在处理中）(-40)。IP主管调整弹簧压紧设定，拆线机定位偏移(-43)。A线Final工位。",
+      "plan": 431,
+      "actual": 348,
+      "impact": -83,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "14:00-15:00",
+      "problem_th": "เครื่องเช็ค KV&MΩ Alarm บ่อย line Out ต่อเนื่อง (IP และคนจีนกำลังเข้าแก้ไข)",
+      "problem_zh": "KV&MΩ检测机频繁报警，Out线连续报警（IP和中国人员正在处理中）。",
+      "plan": 431,
+      "actual": 381,
+      "impact": -50,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "08:00-09:00",
+      "problem_th": "ผลกระทบต่อเนื่องกะดึก งานมาไม่ต่อเนื่องรองานในตู้ cooling ทำความเย็นไม่ทัน",
+      "problem_zh": "夜班连续受影响，作业不连续，等冷却柜内工件降温，制冷来不及。",
+      "plan": 470,
+      "actual": 441,
+      "impact": -29,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "09:00-10:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบจากเครื่อง TDC ไม่อ่านค่า (-70) ติดตาม",
+      "problem_zh": "等待转子线来料，受TDC设备读不到数值(-70)影响，正在跟进。",
+      "plan": 470,
+      "actual": 400,
+      "impact": -70,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "รองานจากตู้ cooling ทำความความเย็นไม่ทัน ผลกระทบจากเครื่อง TDC ไม่อ่านค่า (-17) dv leak line out",
+      "problem_zh": "等待冷却柜制冷不及时，受TDC设备影响读不到数值(-17)，DV泄漏管路外排。",
+      "plan": 390,
+      "actual": 363,
+      "impact": -27,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "15:00-16:00",
+      "problem_th": "dv leak line out",
+      "problem_zh": "dv leak line out",
+      "plan": 390,
+      "actual": 386,
+      "impact": -4,
       "shift": "day"
     },
     {
@@ -159,7 +262,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "09:00-10:00",
       "problem_th": "เครื่องความต้านทาน ALARM ค่าไม่นิ่งบ่อย",
-      "problem_zh": "电阻检测设备频繁报警，阻值读数不稳定。",
+      "problem_zh": "电阻检测设备频繁报警，数值不稳定。",
       "plan": 444,
       "actual": 427,
       "impact": -17,
@@ -172,7 +275,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "10:00-11:00",
       "problem_th": "เปลี่ยนรุ่น1ครั้ง-30 Pe เข้าแก้ไขเครื่องความต้านทาน-51(แก้ไขแล้วยังไม่หาย)",
-      "problem_zh": "换型1次-30台，电阻测试机-51故障维修（已修但未恢复）",
+      "problem_zh": "换型1次-30台，进入电阻检测机维修-51（已修但未解决）。",
       "plan": 370,
       "actual": 289,
       "impact": -81,
@@ -185,16 +288,68 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "11:00-12:00",
       "problem_th": "เครื่องความต้านทานเสีย ใช้งานไม่ได้ pe หยุดเครื่องแก้ไข",
-      "problem_zh": "电阻检测设备故障，无法使用，PE线导致设备停机维修。",
+      "problem_zh": "电阻检测设备故障无法使用，PE线导致设备停机维修。",
       "plan": 444,
       "actual": 184,
       "impact": -260,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "13:00-14:00",
+      "problem_th": "เปลี่ยนรุ่น1ครั้ง-30 งานออกค่า KV NG -25 (แต้งQAนำงานไปเช็คและแจ้งผู้เกี่ยวข้องแล้ว)",
+      "problem_zh": "换型1次-30件工件出现KV值NG -25件（QA已取走工件检查并通知相关人员）",
+      "plan": 444,
+      "actual": 389,
+      "impact": -55,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "14:00-15:00",
+      "problem_th": "เปลี่ยนรุ่น2ครั้ง-60 รุ่น BF8 งานรั่ว DV เครื่องเช็คซ้ำบ่อย-48 (QA ตรวจสอบแล้วแผ่น Head เป็นรอยตามด)",
+      "problem_zh": "换型2次-60件，BF8型号，DV泄漏工件，设备频繁重复检测-48件（QA检查确认Head板有压痕）",
+      "plan": 444,
+      "actual": 336,
+      "impact": -108,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "15:00-16:00",
+      "problem_th": "เปลี่ยนรุ่น จาก WLผลิค A SERIES ปรับตั้งเครื่องจักรและรองาน",
+      "problem_zh": "换型：从WL改为生产A系列，调整设备设定并等待物料到位。",
+      "plan": 370,
+      "actual": 185,
+      "impact": -185,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "16:00-17:00",
+      "problem_th": "ต่อเนื่องจาก ชม.7 งานยังออกไม่ต่อเนื่อง",
+      "problem_zh": "继7点班次后，作业仍不连续。",
+      "plan": 444,
+      "actual": 287,
+      "impact": -157,
       "shift": "day"
     }
   ],
   "problems_top": [
     {
-      "name": "电阻检测设备故障，无法使用，PE线导致设备停机维修。",
+      "name": "电阻检测设备故障无法使用，PE线导致设备停机维修。",
       "name_th": "เครื่องความต้านทานเสีย ใช้งานไม่ได้ pe หยุดเครื่องแก้ไข",
       "lines": [
         "PRO2·C"
@@ -208,31 +363,31 @@ window.__LIVE_DATA__ = {
       "total_impact": -358
     },
     {
-      "name": "INSERT S-coil 设备仍无法使用。",
-      "name_th": "เครื่อง INSERT S-coil  ยังใช้งานไม่ได้",
+      "name": "KV&MΩ检测机频繁报警，Out线连续停机（IP及中方人员正在处理中）(-40)。IP主管调整弹簧压紧设定，拆线机定位偏移(-43)。A线Final工位。",
+      "name_th": "เครื่องเช็ค KV&MΩ Alarm บ่อย line Out ต่อเนื่อง (IP และคนจีนกำลังเข้าแก้ไข)(-40) ip หัวหน้างาน เข้าปรับเซ็ตจิกกดสปริง เค",
       "lines": [
-        "RPO1·S系列"
-      ],
-      "times": [
-        "08:00-09:00",
-        "09:00-09:50",
-        "10:00-11:00"
-      ],
-      "count": 3,
-      "total_impact": -169
-    },
-    {
-      "name": "NO2缝焊机加热器故障，停机10:58-11:54，F系列。",
-      "name_th": "เครื่องเย็บNO2 ฮิตตอร์ขาดหยุด10:58 - 11:54 F-series",
-      "lines": [
-        "RPO1·F系列"
+        "PRO2·A"
       ],
       "times": [
         "10:00-11:00",
-        "11:00-12:00"
+        "11:00-12:00",
+        "13:00-14:00",
+        "14:00-15:00"
       ],
-      "count": 2,
-      "total_impact": -126
+      "count": 4,
+      "total_impact": -256
+    },
+    {
+      "name": "换型：从WL改为生产A系列，调整设备设定并等待物料到位。",
+      "name_th": "เปลี่ยนรุ่น จาก WLผลิค A SERIES ปรับตั้งเครื่องจักรและรองาน",
+      "lines": [
+        "PRO2·C"
+      ],
+      "times": [
+        "15:00-16:00"
+      ],
+      "count": 1,
+      "total_impact": -185
     }
   ],
   "first_hour": [
@@ -284,6 +439,15 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-09-02",
       "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 441,
+      "rate": 93.8
+    },
+    {
+      "date": "2026-09-02",
+      "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
       "target": 444,
@@ -292,6 +456,7 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
+
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
@@ -608,6 +773,7 @@ window.__HISTORY__ = [
       "RPO1·S系列": 78.1,
       "RPO1·WL系列": 110.7,
       "PRO2·A": 75.2,
+      "PRO2·B": 93.8,
       "PRO2·C": 90.5
     }
   }
