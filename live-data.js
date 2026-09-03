@@ -3,11 +3,50 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 12:40:11
+   最后写入: 2026-09-03 14:10:15
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "10:00-11:00",
+      "problem_th": "งานNG ออกจำนวนมาก S-series",
+      "problem_zh": "S系列NG件大量流出。",
+      "plan": 169,
+      "actual": 115,
+      "impact": -54,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "11:00-12:00",
+      "problem_th": "งานNG ออกต่อเนื่อง S-series",
+      "problem_zh": "S系列NG件连续流出。",
+      "plan": 169,
+      "actual": 131,
+      "impact": -38,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "13:00-14:00",
+      "problem_th": "เครื่องเย็บNo.2 ไม่เสถียร เย็บงานไม่หมด PE/IP กำลังแก้ไข งานออกไม่ต่อเนื่อง",
+      "problem_zh": "2号机不稳定，碰焊做不完，PE/IP正在处理，出料不连续。",
+      "plan": 169,
+      "actual": 81,
+      "impact": -88,
+      "shift": "day"
+    },
     {
       "date": "2026-09-03",
       "ws": "RPO1",
@@ -23,12 +62,51 @@ window.__LIVE_DATA__ = {
     },
     {
       "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "M Coil Winding NO 4-5 ลวดรั้งกันข้างใน หยุด 09:36 PEกำลังแก้ไข F-series",
+      "problem_zh": "M线绕线机4-5号机，内部线材互相拉扯卡滞，09:36停机，PE正在修复F系列。",
+      "plan": 141,
+      "actual": 132,
+      "impact": -9,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "11:00-12:00",
+      "problem_th": "Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข F-series",
+      "problem_zh": "Insert M Coil 工序断线，11:39停机，正在处理F系列。",
+      "plan": 141,
+      "actual": 106,
+      "impact": -35,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "13:00-14:00",
+      "problem_th": ": Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator",
+      "problem_zh": "Insert M Coil工位焊丝断裂，11:39停机维修中，已调员工支援。内部打磨/H工序/Rework定子。",
+      "plan": 141,
+      "actual": 13,
+      "impact": -128,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
       "ws": "PRO2",
       "series": "A",
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "พนักงานไม่มาทำงาน 4 คน -10 stopper จุดเช็คเก้ไม่ทำงาน -15 PE แก้ไขแล้ว เครื่องเช็ค KV Alarm - 25 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "缺勤4人 -10 stopper；检具点失效 -15 PE已修复；KV检测机报警 -25，已改用旧工件投产，跟进A线Final设备运行。",
+      "problem_zh": "缺勤4人 -10 stopper；检具检查点失效 -15 PE已修复；KV检测机报警 -25，将旧工件投入生产；跟进A线Final设备运行情况。",
       "plan": 431,
       "actual": 382,
       "impact": -49,
@@ -41,7 +119,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "เครื่องเช็ค KV Alarm - 17 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง",
-      "problem_zh": "KV检测机报警 - 17号线将旧工件投入生产，需跟踪设备运行状态。",
+      "problem_zh": "KV检测机报警 - 17号线混入旧工件生产，需跟踪设备运行状态。",
       "plan": 431,
       "actual": 414,
       "impact": -17,
@@ -67,7 +145,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "09:00-10:00",
       "problem_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
-      "problem_zh": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
+      "problem_zh": "气隙线连续报警（-56），焊丝缠绕打结，已剪断重装（-31），已修复。",
       "plan": 470,
       "actual": 383,
       "impact": -87,
@@ -80,7 +158,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
-      "problem_zh": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
+      "problem_zh": "Air gap线外（-39），DV泄漏线外（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
       "plan": 390,
       "actual": 261,
       "impact": -129,
@@ -93,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
-      "problem_zh": "1. 打标机SALES不工作-30（已修复），工件兆欧表检测读不到数值。\n2. 复检机频繁报警-36（已通知QA，待检查）。",
+      "problem_zh": "销售打标机不工作-30（已修复）；兆欧表检测作业漏检，复检机频繁报警-36（已通知QA待查）。",
       "plan": 443,
       "actual": 377,
       "impact": -66,
@@ -106,7 +184,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "10:00-11:00",
       "problem_th": "เปลี่ยนรุ่น1ครั้ง จาก A series > E SERIES",
-      "problem_zh": "更换型号1次，从A系列改为E系列。",
+      "problem_zh": "换型1次，从A系列改为E系列。",
       "plan": 379,
       "actual": 306,
       "impact": -73,
@@ -128,7 +206,20 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
+      "name": "Insert M Coil工位焊丝断裂，11:39停机维修中，已调员工支援。内部打磨/H工序/Rework定子。",
+      "name_th": ": Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator",
+      "lines": [
+        "RPO1·F系列"
+      ],
+      "times": [
+        "11:00-12:00",
+        "13:00-14:00"
+      ],
+      "count": 2,
+      "total_impact": -163
+    },
+    {
+      "name": "Air gap线外（-39），DV泄漏线外（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
       "name_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
       "lines": [
         "PRO2·B"
@@ -150,18 +241,6 @@ window.__LIVE_DATA__ = {
       ],
       "count": 1,
       "total_impact": -110
-    },
-    {
-      "name": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
-      "name_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
-      "lines": [
-        "PRO2·B"
-      ],
-      "times": [
-        "09:00-10:00"
-      ],
-      "count": 1,
-      "total_impact": -87
     }
   ],
   "first_hour": [
