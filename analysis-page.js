@@ -37,6 +37,11 @@
   WS_MAP.forEach(function (g) { g.lines.forEach(function (ln) { LINE2WS[ln] = g.ws; }); });
   var NORM2WS = {};
   Object.keys(LINE2WS).forEach(function (ln) { NORM2WS[String(ln).toLowerCase().replace(/\s+/g, "")] = ln; });
+  /* ★ v5.44 线名对齐: PDTIII 实际名 "Inspection A/B/C/D"(无 line 后缀) 与 "Rotor B/D Line"(大 L) 归一后补齐别名 */
+  NORM2WS["inspectiona"] = "Inspection A line";
+  NORM2WS["inspectionb"] = "Inspection B line";
+  NORM2WS["inspectionc"] = "Inspection C line";
+  NORM2WS["inspectiond"] = "Inspection D line";
   function normN(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
 
   function h2m(h, oldFmt) {
