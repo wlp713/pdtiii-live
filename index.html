@@ -1772,6 +1772,7 @@ function drawBar(main) {
   const ctx = cv.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
+  const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
   // ★ 2026-09-03 P0-1 首帧竞态修复: 分段小时图依赖 state.hourly(10分钟桶定格累计值差分)。
   //   脚本加载时(882行)会先 renderAll() 一次, 此时 fetch 尚未完成, state.hourly 是空对象 → valueAt 退回
