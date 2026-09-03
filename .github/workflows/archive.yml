@@ -1,0 +1,42 @@
+name: daily-archive
+
+# 纯云端每日归档: 不依赖任何开发机/数据端开机
+# 泰国 20:40 = UTC 13:40 (白班 20:20 收班 + 20:30 换班落库后, 当天 hourly 完整)
+# 一个文件 = 当天白班完整(正常+OT) + 前一夜班完整(正常+OT)  ← actual 跨0点不清零, 5:50/7:50 累计值天然含全夜
+on:
+  schedule:
+    - cron: "40 13 * * *"   # UTC 13:40 = Asia/Bangkok 20:40
+  workflow_dispatch: {}      # 支持手动触发(验证/补档)
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-archive
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Run archive snapshot
+        run: python3 scripts/archive_daily.py
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add history/
+          if git diff --cached --quiet; then
+            echo "no change, skip push"
+          else
+            git commit -m "archive: 每日数据快照 $(TZ=Asia/Bangkok date +%F)"
+            git pull --rebase origin main || true
+            git push origin main
+          fi
