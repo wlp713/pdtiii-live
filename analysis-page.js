@@ -29,7 +29,7 @@
     { ws: "Pro.1", tag: "", lines: ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
     { ws: "Pro.2", tag: "", lines: ["Final A line", "Final B line", "Final C line", "Final D line", "Inspection A line", "Inspection B line", "Inspection C line", "Inspection D line", "Water Line", "Rotor A line", "Rotor B line", "Rotor C line", "Rotor D line"] },
     { ws: "Pro.3", tag: "", lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line", "Press C-Shaft"] },
-    { ws: "Pro.4", tag: "", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Body C", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL"] },
+    { ws: "Pro.4", tag: "", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL"] },
     { ws: "Pro.5", tag: "", lines: ["Piston honing FL", "Cylinder Honing"] },
     { ws: "Pro.6", tag: "", lines: [] }
   ];
@@ -419,7 +419,9 @@
   }
 
   /* ═══════════ 数据加载 ═══════════ */
+  var loadSeq = 0; // ★ P0-4 竞态守卫: 快速切日期时旧响应(慢网络)不得覆盖新日期渲染
   function load(date, keepWs) {
+    var seq = ++loadSeq;
     state.date = date;
     var isToday = date === state.today;
     setStatus("加载中…");
@@ -428,6 +430,7 @@
       fetch(url + (isToday ? "?t=" + Date.now() : ""), { signal: AbortSignal.timeout(15000) }).then(function (r) { return r.json(); }),
       loadHC(date)
     ]).then(function (res) {
+      if (seq !== loadSeq) return; // 已被更新的 load() 取代 → 丢弃
       var d = res[0] || {};
       if (!d || !d.hourly || !Object.keys(d.hourly).length) {
         cntEl.textContent = "无数据";
@@ -436,8 +439,16 @@
       state.hourly = d.hourly;
       state.hc = res[1] || {};
       renderAll();
-      setStatus("更新于 " + (d.updatedAt ? String(d.updatedAt).substring(11, 16) : ""), "ok");
-    }).catch(function () { fail("加载失败，请重试"); });
+      /* P0-5 数据健康度: 线体覆盖提示 — hourly 里有但 WS_MAP 未配置的线 → 计数提示(说明上游新增线未加映射) */
+      var unknown = 0;
+      Object.keys(state.hourly).forEach(function (k) { if (!NORM2WS[normN(k)]) unknown++; });
+      var nLn = Object.keys(state.hourly).length;
+      setStatus("更新于 " + (d.updatedAt ? String(d.updatedAt).substring(11, 16) : "") +
+        " · 线体 " + nLn + (unknown ? " · ⚠️未映射 " + unknown + " 条" : ""), "ok");
+    }).catch(function () {
+      if (seq !== loadSeq) return;
+      fail("加载失败，请重试");
+    });
     function fail(t) {
       setStatus(t, "err");
       vsNnum.textContent = vsOnum.textContent = "--";

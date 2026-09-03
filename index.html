@@ -957,7 +957,7 @@ function updateWsBtns() {
   }
 }
 
-const state = { lines: [], updatedAt: null, hourly: {} };
+const state = { lines: [], updatedAt: null, hourly: {}, hourlyFmt: "HHMM" };
 
 function fmt(n) {
   if (n === null || n === undefined || isNaN(n)) return "-";
@@ -1459,16 +1459,35 @@ function sampleNow() {
   });
   saveSamps();
 }
-// ★ 快照桶时间解析: 旧格式 h=小时(如 21=21:00), 新格式 h=HHMM分钟数(如 2030=20:30, 后端10分钟桶)
+// ★ 快照桶时间解析: 统一口径函数(2026-09-03 P0-1) — 不再用单值 length 启发式!
+//   旧格式 h=小时(如 21=21:00, 历史 data.json/早期归档); 新格式 h=HHMM分钟数(2030=20:30)
+//   新格式凌晨 0:00-0:50 桶转 int 后是 0/10/.../50 (<100), 单值判断必误判 → 必须在数据加载时
+//   用整个数据集判定格式(detectHourlyFmt), snapMins 只做换算。
+function parseBucketMinute(h, fmt) {
+  const n = Number(h);
+  if (h === null || h === undefined || isNaN(n)) return null;
+  if (fmt === "HHMM") return Math.floor(n / 100) * 60 + (n % 100); // 0/10/..50 → 0..50(凌晨分钟) ✓
+  return n * 60; // 旧格式: 小时 → 分钟 (8 → 480, 21 → 1260)
+}
+// 数据集级格式探测: 存在任意 >=100 的桶 → HHMM(新); 全部 <100 → 小时(旧)。
+//   无法探测(空) → 默认 HHMM(当前数据端只产 HHMM)。
+function detectHourlyFmt(hourly, explicit) {
+  if (explicit === "HHMM" || explicit === "hour") return explicit;
+  const src = hourly || {};
+  for (const k in src) {
+    const arr = src[k];
+    if (!arr || !arr.length) continue;
+    for (let i = 0; i < arr.length; i++) {
+      if (Number(arr[i].h) >= 100) return "HHMM";
+    }
+  }
+  return "HHMM";
+}
 function snapMins(sn) {
   const raw = String(sn.h || "").trim();
   if (!raw) return 0;
-  if (raw.length >= 3) {
-    const hh = parseInt(raw.slice(0, raw.length - 2), 10) || 0;
-    const mm = parseInt(raw.slice(-2), 10) || 0;
-    return hh * 60 + mm; // 新格式 HHMM → 当天分钟 (2040 → 1240)
-  }
-  return (Number(raw) || 0) * 60; // 旧格式 小时 → 分钟
+  const m = parseBucketMinute(sn.h, state.hourlyFmt || "HHMM");
+  return m === null ? 0 : m;
 }
 // 采样所属班次日 (绝对时间戳): 8:00 前归前一天晚班, 8:00 起归当天白班
 // ★ 2026-08-31 修复: localStorage 采样保留48h, 昨天采样会被 valueAt 当成今天 → 今天所有时段
@@ -2102,6 +2121,7 @@ async function refresh() {
     });
     state.lines = [...dedupMap.values()];
     state.hourly = d.hourly || {};
+    state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
     state.updatedAt = d.updatedAt || null;
     sampleNow(); // ★ 2026-08-28 班次时段采样: 每60秒/线记一次实际累计 → 时段边界产量越算越准
     maybeSnapFirstHour(); // ★ v5.29 首小时快照自动定格: 首小时结束后记当天该班次达成率(幂等)
@@ -3671,5 +3691,5 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
 <!-- 2026-09-02: 车间产出分析独立页 (analysis-page.js, 全屏 overlay, 不影响主逻辑) -->
-<script src="analysis-page.js?v=20260903e"></script>
+<script src="analysis-page.js?v=20260903f"></script>
 </html>

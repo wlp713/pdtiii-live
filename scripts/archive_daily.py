@@ -69,6 +69,7 @@ def main():
         "snapAt": snap,
         "source": "gh-actions 每日归档 v6",
         "lines": d.get("lines"),
+        "hourlyFormat": d.get("hourlyFormat", "HHMM"),
         "hourly": hourly,
         "updatedAt": d.get("updatedAt"),
     }
@@ -88,8 +89,30 @@ def main():
     with open(old_path, "w", encoding="utf-8") as f:
         json.dump(doc, f, ensure_ascii=False, separators=(",", ":"))
 
+    # ── index.json 重建 (原子写): 扫 history/*.json, 按泰国日期降序, 只收录带 hourly 的归档 ──
+    idx = []
+    try:
+        for fn in sorted(os.listdir("history")):
+            if not fn.endswith(".json") or fn == "index.json":
+                continue
+            p = os.path.join("history", fn)
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    doc2 = json.load(f)
+                if doc2.get("hourly") and doc2.get("date"):
+                    idx.append(doc2["date"])
+            except Exception:
+                continue
+        idx.sort(reverse=True)
+        tmp_idx = os.path.join("history", "index.json.tmp")
+        with open(tmp_idx, "w", encoding="utf-8") as f:
+            json.dump(idx, f, ensure_ascii=False, separators=(",", ":"))
+        os.replace(tmp_idx, os.path.join("history", "index.json"))
+    except Exception as e:
+        print(f"INDEX WARN: {e}", file=sys.stderr)
+
     npts = sum(len(v) for v in hourly.values())
-    print(f"OK {date} snap={snap} lines={len(hourly)} points={npts} file={old_path}")
+    print(f"OK {date} snap={snap} lines={len(hourly)} points={npts} file={old_path} idx={len(idx)}")
 
 if __name__ == "__main__":
     main()
