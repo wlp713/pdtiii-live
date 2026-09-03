@@ -735,6 +735,31 @@
 
 <script>
 "use strict";
+// ============ ★ v5.42 缓存自愈: 各端自动同步到最新版(根治"不同端显示不同") ============
+// GitHub Pages HTML 有 600s 缓存 + 车间大屏/手机常驻不刷新 → 各端可能长期跑不同日期的旧代码
+// (9/1-9/2 连续发布 20+ 版: 时段口径/凌晨修复/UI 都在这两天变) → 小时图有的正常有的无时段/少时段/合并。
+// 机制: 每 3 分钟 HEAD 线上 index.html 对比 Last-Modified, 检测到新部署立即跳转 ?v= 强制拿最新。
+(function () {
+  var _lm = null;
+  function chk() {
+    try {
+      fetch(location.pathname, { method: "HEAD", cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) return;
+          var lm = r.headers.get("last-modified");
+          if (!lm) return;
+          if (_lm === null) { _lm = lm; return; }
+          if (lm !== _lm) {
+            console.log("[pdtiii] 检测到新版本, 自动刷新");
+            _lm = lm;
+            location.replace(location.pathname + "?v=" + Date.now());
+          }
+        })
+        .catch(function () {});
+    } catch (e) {}
+  }
+  if (location.protocol === "http:" || location.protocol === "https:") { chk(); setInterval(chk, 180000); }
+})();
 // ============ i18n 中英切换 ============
 const I18N = {
   zh: {
@@ -1156,8 +1181,7 @@ const FH_DAY_END = 540, FH_NIGHT_END = 1290;
 function fhKeyOf(dateStr, shift) { return String(dateStr) + "_" + (shift === "night" ? "night" : "day"); }
 // 判断当前时刻属于哪个班次(用于首小时定格): 白班 8:00-20:20; 夜班 20:30-次日8:00
 function fhShiftOfNow() {
-  const d = new Date();
-  const m = d.getHours() * 60 + d.getMinutes();
+  const m = bkkMins(); // ★ v5.42 泰国时间(与设备时区无关)
   if (m >= DAY_START && m < DAY_END) return "day";
   if (m >= NIGHT_START || m < NIGHT_END) return "night";
   return null; // 交班缝隙 20:20-20:30
@@ -1167,8 +1191,7 @@ function maybeSnapFirstHour() {
   try {
     const shift = fhShiftOfNow();
     if (!shift) return;
-    const now = new Date();
-    const m = now.getHours() * 60 + now.getMinutes();
+    const m = bkkMins(); // ★ v5.42 泰国时间(与设备时区无关)
     const endMin = shift === "day" ? FH_DAY_END : FH_NIGHT_END;
     if (m < endMin) return; // 首小时还没结束, 不记
     // 日期归属: 白班首小时(9:00后)属当天; 夜班首小时(21:30后)属当天; 凌晨(0-8点)是夜班尾巴, 首小时早已定格在昨天
@@ -1228,11 +1251,8 @@ function setFhShift(sh) {
 const HIST_KEY = "pdtiii_hist_v1";
 let histStore = {};
 try { histStore = JSON.parse(localStorage.getItem(HIST_KEY) || "{}") || {}; } catch (e) { histStore = {}; }
-function todayKey() {
-  const d = new Date();
-  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-}
-function dayKeyOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function todayKey() { return bkkDateStr(); } // ★ v5.42 泰国日历日
+function dayKeyOf(d) { return bkkDateStr(typeof d === "number" ? d : d.getTime()); }
 function recordToday() {
   const now = new Date();
   const k = todayKey();
@@ -1406,9 +1426,8 @@ function snapMins(sn) {
 // ★ 2026-08-31 修复: localStorage 采样保留48h, 昨天采样会被 valueAt 当成今天 → 今天所有时段
 //   p0=p1=昨天终值 → plan 差分全0 → 小时图只剩当前 live 段一根柱。按班次日过滤后互不污染。
 function sampDay(ts) {
-  const d = new Date(ts);
-  let day0 = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  if (d.getHours() < 8) day0 -= 24 * 3600 * 1000; // 凌晨 0-8点 属于前一天晚班
+  let day0 = bkkDay0(ts); // ★ v5.42 泰国日历日
+  if (bkkMins(ts) < 480) day0 -= 24 * 3600 * 1000; // 泰国凌晨 0-8点 属于前一天晚班
   return day0;
 }
 // ≤t 最近的已知累计值 (t=班次日0点基准分钟, 可>1440跨天; 优先采样, 其次hourly快照插值/外推, 最后实时)
@@ -1417,8 +1436,7 @@ function sampDay(ts) {
 // ★ v5.30 凌晨夜班窗口(0:00-8:00): 夜班段 t 是班次日基准(昨天20:30起), 查询时 dayOff=-1
 //   把 t 换算回真实日历时间 (如 t=1290 → 昨天21:30; t=1470 → 今天00:30), 采样按班次日过滤天然正确
 function valueAt(name, t, usePlan, dayOff) {
-  const now = new Date();
-  const day0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const day0 = bkkDay0(); // ★ v5.42 泰国当天 0 点(真实时间戳)
   const tMs = day0 + (t + (dayOff || 0) * 1440) * 60000;
   const store = loadSamps();
   const arr = store[name] || [];
@@ -1476,8 +1494,7 @@ function valueAt(name, t, usePlan, dayOff) {
 //   段号 lab = 时段号(1起); live 段 = 当前进行中; 休息中/交班空档 → 无 live 段(全部定格)
 //   时段表见 DAY_SEGS/NIGHT_SEGS (休息已剔除, 如午休 12:00-13:00 直接不在表内)
 function segsOf(name, curActual, curPlan) {
-  const now = new Date();
-  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const nowMins = bkkMins(); // ★ v5.42 泰国当前分钟(与设备时区无关)
   const sc = shiftSegAt(nowMins);
   const segs = [];
   const isNight = sc.shift === "night";
@@ -1599,10 +1616,11 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   }
 }
 
-// ★ 小时产出分段开关: 默认关闭(只显示全天累计)。勾选后实际柱/目标柱共用统一骨架逐段对齐对比
-const SEG_KEY = "pdtiii_seg_v1";
-let segShow = false;
-try { segShow = localStorage.getItem(SEG_KEY) === "1"; } catch (e) { segShow = false; }
+// ★ 小时产出分段开关: v5.42 起默认开启(逐段对齐对比), 可手动关闭(全天累计)。
+//   key bump v2: 清掉各端 localStorage 里旧的"关闭"记忆 → 所有端统一显示时段分段
+const SEG_KEY = "pdtiii_seg_v2";
+let segShow = true;
+try { segShow = localStorage.getItem(SEG_KEY) !== "0"; } catch (e) { segShow = true; }
 function toggleSeg() {
   segShow = document.getElementById("segToggle").checked;
   try { localStorage.setItem(SEG_KEY, segShow ? "1" : "0"); } catch (e) { /* ignore */ }
@@ -1704,6 +1722,15 @@ function setHead(name, v) {
 //     时段: [20:30,21:30)=1, [21:30,22:30)=2, [22:40,23:30)=3, [23:30,00:30)=4, [01:30,02:30)=5,
 //           [02:30,03:30)=6, [03:30,04:30)=7, [04:30,05:30)=8, [05:30,06:30)=9, [06:30,07:50)=10
 //   段产量 = 段末累计 - 段初累计 (若跨换班清零 → 段末值, 新班从0累计)
+// ============ ★ v5.42 时钟统一: 班次/时段/日期一律按泰国工厂时间(GMT+7) ============
+// 原代码用设备本地时区判"现在几点" → 中国时区设备(GMT+8)比泰国快 1 小时: 泰国 7:57=夜班尾,
+// 中国 8:57=白班头 → 同一时刻看到的时段段数/数据归属完全不同(少时段/错段)。
+const BKK_OFFSET = 7 * 3600 * 1000;
+function bkkClock(ts) { return new Date((ts == null ? Date.now() : ts) + BKK_OFFSET); } // UTC 分量 = 泰国钟表
+function bkkMins(ts) { var u = bkkClock(ts); return u.getUTCHours() * 60 + u.getUTCMinutes(); }
+function bkkParts(ts) { var u = bkkClock(ts); return { M: u.getUTCMonth() + 1, D: u.getUTCDate(), hh: String(u.getUTCHours()).padStart(2, "0"), mm: String(u.getUTCMinutes()).padStart(2, "0"), ss: String(u.getUTCSeconds()).padStart(2, "0"), mins: u.getUTCHours() * 60 + u.getUTCMinutes() }; }
+function bkkDay0(ts) { var u = bkkClock(ts); return Date.UTC(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate()) - BKK_OFFSET; } // 泰国当天0点(真实时间戳)
+function bkkDateStr(ts) { var u = bkkClock(ts); return u.getUTCFullYear() + "-" + String(u.getUTCMonth() + 1).padStart(2, "0") + "-" + String(u.getUTCDate()).padStart(2, "0"); }
 const DAY_START = 8 * 60;         // 白班 8:00 开始
 const DAY_END = 20 * 60 + 20;     // 白班 20:20 结束
 const NIGHT_START = 20 * 60 + 30; // 晚班 20:30 开始
@@ -1745,7 +1772,7 @@ function fmtSegMin(m) {
 }
 
 function workedHours(now) {
-  const mins = now.getHours() * 60 + now.getMinutes();
+  const mins = bkkMins(now ? now.getTime() : Date.now()); // ★ v5.42 泰国时间
   /* 班次识别: 白班 8:00–20:20 / 夜班 20:30–次日8:00 / 20:20-20:30 交班 → 0 */
   const DAY_START = 8 * 60, DAY_END = 20 * 60 + 20;
   const NIGHT_START = 20 * 60 + 30, NIGHT_END = 8 * 60; // 夜班跨天, 次日 8:00
@@ -1798,7 +1825,7 @@ function planNowOf(l, now) {
   const hourly = state.hourly || {};
   const arr = hourly[l.name.trim()];
   if (!Array.isArray(arr) || !arr.length) return null;
-  const h = now.getHours();
+  const h = bkkClock(now ? now.getTime() : Date.now()).getUTCHours(); // ★ v5.42 泰国当前小时
   let best = null, bestH = -1;
   for (const s of arr) {
     const sh = Number(s.h) || 0;
@@ -1982,16 +2009,14 @@ function drawEffSafe(main) {
 function updatePeriodLabel() {
   const pl = document.getElementById("periodLabel");
   if (!pl || pl.dataset.frozen === "1") return;
-  const now = new Date();
-  const hh = String(now.getHours()).padStart(2, "0");
-  const mm = String(now.getMinutes()).padStart(2, "0");
-  const ss = String(now.getSeconds()).padStart(2, "0");
+  const p = bkkParts(); // ★ v5.42 泰国时间(标题时钟 = 工厂时钟, 与设备时区无关)
+  const hh = p.hh, mm = p.mm, ss = p.ss;
   // ★ 2026-08-28 班次化: 显示当前班次+时段, 如 "8/28 晚班 第2段 21:40-22:40 22:23:10"
-  const sc = shiftSegAt(now.getHours() * 60 + now.getMinutes());
+  const sc = shiftSegAt(p.mins);
   const isZh = (typeof lang === "undefined") || lang === "zh";
   const shiftTxt = sc.shift === "night" ? (isZh ? "晚班" : "Night") : (isZh ? "白班" : "Day");
   const segTxt = (isZh ? "第" : "Seg ") + sc.idx + (isZh ? "段" : "");
-  pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftTxt + " " + segTxt + " " + fmtSegMin(sc.t0) + "-" + fmtSegMin(sc.t1) + " " + hh + ":" + mm + ":" + ss;
+  pl.textContent = p.M + "/" + p.D + " " + shiftTxt + " " + segTxt + " " + fmtSegMin(sc.t0) + "-" + fmtSegMin(sc.t1) + " " + hh + ":" + mm + ":" + ss;
 }
 
 async function refresh() {
@@ -2520,7 +2545,7 @@ setInterval(refresh, 10000);
 // ★ 标题秒表: 每秒刷新日期/班次/时段(精确到秒)
 setInterval(updatePeriodLabel, 1000);
 </script>
-<script src="live-data.js?v=20260825g"></script>
+<script src="live-data.js?v=20260903a"></script>
 <script>
 "use strict";
 /* ═══════════════════════════════════════════════════════════
@@ -3555,11 +3580,10 @@ attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同
 setInterval(attSyncFromRemote, 7200000); // 每2小时同步一次 (2026-08-21 11:46 用户要求: 60s太浪费资源)
 // ★ 每日17:00自动快照 (页面开着时): 检查是否到17:00且今天未快照过
 setInterval(function () {
-  const now = new Date();
-  if (now.getHours() === 17 && now.getMinutes() >= 0 && now.getMinutes() <= 5) {
+  const p = bkkParts(); // ★ v5.42 泰国时间
+  if (p.mins >= 17 * 60 && p.mins <= 17 * 60 + 5) {
     try {
-      const pad = n => String(n).padStart(2, "0");
-      const date = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+      const date = bkkDateStr(); // 泰国当日 YYYY-MM-DD
       const hist = getTrendHist();
       if (!hist.some(d => d.date === date)) saveDailySnapshot();
     } catch (e) {}
@@ -3594,5 +3618,5 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
 <!-- 2026-09-02: 车间产出分析独立页 (analysis-page.js, 全屏 overlay, 不影响主逻辑) -->
-<script src="analysis-page.js?v=20260902g"></script>
+<script src="analysis-page.js?v=20260903a"></script>
 </html>

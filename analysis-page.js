@@ -279,11 +279,10 @@
   var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: "day", win: 7, trend: null };
 
   function todayStr() {
-    var d = new Date();
-    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    return typeof bkkDateStr === "function" ? bkkDateStr() : (function () { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })(); // ★ v5.42 泰国日期
   }
   function setStatus(txt, k) { statusTxt.textContent = txt; statusEl.className = "st-" + (k || "idle"); }
-  function nowMins() { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function nowMins() { return typeof bkkMins === "function" ? bkkMins() : (function () { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); })(); } // ★ v5.42 泰国时间
   /* 夜班已过净时(20:30 起): 休息 22:30-22:40(10m) + 00:30-01:30(60m) 分段扣除 */
   function nightNetNow() {
     var m = nowMins();
