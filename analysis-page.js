@@ -76,7 +76,7 @@
       pts.push({ m: m, a: Number(p.actual) || 0, p: Number(p.plan) || 0 });
     });
     pts.sort(function (x, y) { return x.m - y.m; });
-    var res = { dayNorm: 0, dayOt: 0, nLive: 0, nNorm: 0, nOt: 0, planN: 0, hasDay: false, hasNight: false, lastDpM: null, lastNpM: null };
+    var res = { dayNorm: 0, dayOt: 0, nLive: 0, nNorm: 0, nOt: 0, planN: 0, hasDay: false, hasNight: false, lastDpM: null, lastNpM: null, lastTpM: null };
     var dp = pts.filter(function (x) { return x.m >= DAY_START && x.m <= DAY_END; });
     if (dp.length) {
       res.hasDay = true;
@@ -96,6 +96,7 @@
     var tp = pts.filter(function (x) { return x.m < DAY_START; });
     if (tp.length) {
       res.hasNight = true;
+      res.lastTpM = tp[tp.length - 1].m;   /* 凌晨段末桶分钟 (夜班 OT 时长基准) */
       var tCut = null;
       for (var j = 0; j < tp.length; j++) if (tp[j].m <= NIGHT_OT_START) tCut = tp[j];
       var tA = tp[tp.length - 1].a;
@@ -110,7 +111,7 @@
      nOtL/nOtN=凌晨OT线数 & 这些线自己的整夜正常产出 */
   function aggWs(wsMap, fmt) {
     function zero() {
-      return { dN: 0, dO: 0, nL: 0, nN: 0, nO: 0, dayL: 0, nightL: 0, lines: 0, dOtL: 0, dOtN: 0, nOtL: 0, nOtN: 0, planN: 0 };
+      return { dN: 0, dO: 0, nL: 0, nN: 0, nO: 0, dayL: 0, nightL: 0, lines: 0, dOtL: 0, dOtN: 0, nOtL: 0, nOtN: 0, planN: 0, lastDpM: null, lastTpM: null };
     }
     var out = {}, tot = zero();
     WS_MAP.forEach(function (g) { out[g.ws] = zero(); });
@@ -125,6 +126,8 @@
       g.lines++;
       if (s.hasDay) g.dayL++;
       if (s.hasNight) g.nightL++;
+      if (s.lastDpM !== null && s.lastDpM > (g.lastDpM || 0)) g.lastDpM = s.lastDpM;
+      if (s.lastTpM !== null && s.lastTpM > (g.lastTpM || 0)) g.lastTpM = s.lastTpM;
       if (s.dayOt > 0) { g.dOtL++; g.dOtN += s.dayNorm; }        /* 这条线今晚加了班 → 计入同批线集 */
       if (s.nOt > 0) { g.nOtL++; g.nOtN += s.nNorm; }           /* 这条线凌晨加了班 */
     });
@@ -134,6 +137,8 @@
       tot.lines += a.lines; tot.dayL += a.dayL; tot.nightL += a.nightL;
       tot.dOtL += a.dOtL; tot.dOtN += a.dOtN; tot.nOtL += a.nOtL; tot.nOtN += a.nOtN;
       tot.planN += a.planN;
+      if (a.lastDpM !== null && a.lastDpM > (tot.lastDpM || 0)) tot.lastDpM = a.lastDpM;
+      if (a.lastTpM !== null && a.lastTpM > (tot.lastTpM || 0)) tot.lastTpM = a.lastTpM;
     });
     return { ws: out, tot: tot };
   }
@@ -632,7 +637,7 @@
     '<div class="card" id="anaTblCard"><h3><span class="pl" style="background:#7c3aed"></span>人数填报 · 车间人数<span class="note" id="fillNote"></span></h3>' +
     '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div></div>' +
     /* ── 口径说明 (Codex UI §5.7: 可折叠, 默认收起) ── */
-    '<details class="footnote"><summary>数据口径说明</summary><div class="fn-body">白班正常 ≤17:20、白班加班 17:20–20:20；夜班正常 20:30–5:50、夜班加班 5:50–7:50。<b>正常人均小时效率 = 正常产出 ÷ 正常出勤人数 ÷ 8h</b>；<b>白班加班效率 = 加班产出 ÷ 加班人数 ÷ 3h</b>；<b>夜班加班效率 = 加班产出 ÷ 加班人数 ÷ 2h</b>。加班效率达成 = 加班效率 ÷ 正常效率。人数在本页按车间填报，保存到云端并通过实时流/轮询同步到其他设备。数据10分钟一档，历史数据按现有归档机制读取。</div></details>' +
+    '<details class="footnote"><summary>数据口径说明</summary><div class="fn-body">白班正常 ≤17:20、白班加班 17:20–20:20；夜班正常 20:30–5:50、夜班加班 5:50–7:50。<b>正常人均小时效率 = 正常产出 ÷ 正常出勤人数 ÷ 8h</b>；<b>白班加班效率 = 加班产出 ÷ 加班人数 ÷ 加班已过时长</b>（封顶 3h，进行中实时计算，避免整段稀释）；<b>夜班加班效率 = 加班产出 ÷ 加班人数 ÷ 加班已过时长</b>（封顶 2h）。加班效率达成 = 加班效率 ÷ 正常效率。人数在本页按车间填报，保存到云端并通过实时流/轮询同步到其他设备。数据10分钟一档，历史数据按现有归档机制读取。</div></details>' +
     "</div>";
   var dateInput = root.querySelector("#anaDate");
   var statusEl = root.querySelector("#anaStatus"), statusTxt = root.querySelector("#anaStatusTxt");
@@ -878,6 +883,7 @@
       dN: a.dN, dO: a.dO, nL: a.nL, nN: a.nN, nO: a.nO, planN: a.planN,
       lines: a.lines, dayL: a.dayL, nightL: a.nightL,
       dOtL: a.dOtL, dOtN: a.dOtN, nOtL: a.nOtL, nOtN: a.nOtN,
+      lastDpM: a.lastDpM, lastTpM: a.lastTpM,
       hcD: hcValue(hc, "d"), hcDO: hcValue(hc, "dO"), hcN: hcValue(hc, "n"), hcNO: hcValue(hc, "nO")
     };
   }
@@ -894,6 +900,19 @@
       if (n !== null) { sum += n; entered++; }
     });
     return { value: sum, entered: entered };
+  }
+  /* ★ 2026-09-03 v13.1 加班效率分母口径修正(用户 18:01 指出):
+     原口径 = 加班产出 ÷ 人数 ÷ 固定 3h/2h → 加班进行中(产出只累计到最新桶)
+     却被整段 3h 稀释(如 17:55 才加班 35min ÷ 3h ≈ 低估 5 倍)。
+     改为: 分母 = 截至最新数据桶的已过加班净时长 min(封顶 3h/2h)。
+     加班结束/历史完整档(末桶≈20:20/7:50)时自动等于 3h/2h, 与旧口径一致。 */
+  function otRealHours(t, isDay) {
+    var lastM = isDay ? (t && t.lastDpM) : (t && t.lastTpM);
+    var startM = isDay ? DAY_NORM_END : NIGHT_OT_START; /* 17:20 / 5:50 */
+    var cap = EFF_HOURS[isDay ? "dO" : "nO"];          /* 3 / 2 */
+    if (lastM === null || lastM === undefined || lastM <= startM) return null;
+    var h = (lastM - startM) / 60;
+    return Math.min(h, cap);
   }
   function efficiency(output, people, hours) {
     var o = Number(output);
@@ -917,9 +936,11 @@
     var normalPeople = sumHC(normalKey), otPeople = sumHC(otKey);
     var normalOutput = shiftNormalOutput(t, isDay), otRawOutput = isDay ? t.dO : t.nO;
     var started = otStarted(isDay), otOutput = started ? otRawOutput : null;
-    var normalHours = EFF_HOURS[isDay ? "dN" : "nN"], otHours = EFF_HOURS[isDay ? "dO" : "nO"];
+    var normalHours = EFF_HOURS[isDay ? "dN" : "nN"], otHours = otRealHours(t, isDay);
+    if (otHours === null) otHours = 0; /* 加班尚无产出桶(刚开始/数据滞后) */
+    var otEff = null;
+    if (otHours > 0) otEff = efficiency(otOutput, otPeople.value, otHours);
     var normalEff = efficiency(normalOutput, normalPeople.value, normalHours);
-    var otEff = efficiency(otOutput, otPeople.value, otHours);
     var rate = normalEff !== null && normalEff > 0 && otEff !== null ? otEff / normalEff : null;
     return {
       normalOutput: normalOutput, otOutput: otOutput, otRawOutput: otRawOutput, otStarted: started,
@@ -943,7 +964,7 @@
   /* ── v7 人均小时效率对比: 产出 ÷ 出勤人数 ÷ 标准工时 ── */
   function drawVs() {
     var t = state.wsAgg.tot, isDay = state.sh === "day", s = shiftSnapshot(t, isDay);
-    subHint.textContent = isDay ? "白班 · 正常效率按 8h · 加班效率按 3h · 单位：件/人·时" : "夜班 · 正常效率按 8h · 加班效率按 2h · 单位：件/人·时";
+    subHint.textContent = isDay ? "白班 · 正常效率按 8h · 加班效率按已过时长(≤3h) · 件/人·时" : "夜班 · 正常效率按 8h · 加班效率按已过时长(≤2h) · 件/人·时";
     vsNtag.textContent = isDay ? "白班正常 ≤17:20" : "夜班正常 20:30–5:50";
     vsOtag.textContent = isDay ? "白班加班 17:20–20:20" : "夜班加班 5:50–7:50";
     kpiValue(kpiNormEff, fmtEff(s.normalEff), "件/人·时");
@@ -951,17 +972,17 @@
     kpiValue(kpiOtRate, s.rate === null ? "—" : Math.round(s.rate * 100) + "%", "基准");
     kpiValue(kpiHead, s.normalPeople.entered || s.otPeople.entered ? s.normalPeople.value + " / " + s.otPeople.value : "—", "正常/加班");
     kpiNormMeta.textContent = fmt(s.normalOutput) + " 件 ÷ " + peopleText(s.normalPeople, "正常") + " ÷ " + s.normalHours + "h";
-    kpiOtMeta.textContent = !s.otStarted ? "加班时段尚未开始" : fmt(s.otOutput) + " 件 ÷ " + peopleText(s.otPeople, "加班") + " ÷ " + s.otHours + "h";
+    kpiOtMeta.textContent = !s.otStarted ? "加班时段尚未开始" : (s.otHours > 0 ? fmt(s.otOutput) + " 件 ÷ " + peopleText(s.otPeople, "加班") + " ÷ " + s.otHours + "h" : "加班产出未到(数据滞后)");
     kpiOtRateMeta.textContent = s.rate === null ? "先填写正常人数和加班人数" : "加班效率 ÷ 正常效率";
     kpiHeadMeta.textContent = (isDay ? "白班" : "夜班") + " · 正常 / 加班";
     kpiTone(kpiOtRate, s.rate === null ? "" : (s.rate >= 1.05 ? "good" : (s.rate >= .95 ? "warn" : "bad")));
     vsNnum.innerHTML = s.normalEff === null ? "—" : fmtEff(s.normalEff) + "<small>件/人·时</small>";
     vsOnum.innerHTML = s.otEff === null ? "—" : fmtEff(s.otEff) + "<small>件/人·时</small>";
     vsNsb.textContent = peopleText(s.normalPeople, "正常人数") + " · 标准 " + s.normalHours + "h";
-    vsOsb.textContent = !s.otStarted ? "加班时段尚未开始 · " + s.otHours + "h" : peopleText(s.otPeople, "加班人数") + " · 标准 " + s.otHours + "h";
+    vsOsb.textContent = !s.otStarted ? "加班时段尚未开始 · " + s.normalHours + "h" : peopleText(s.otPeople, "加班人数") + " · 已过 " + s.otHours + "h";
     if (s.rate === null) {
       diffChip.className = "flat";
-      diffChip.textContent = !s.otStarted ? "未开始" : (s.normalEff === null || s.otEff === null ? "待填人数" : "无法比较");
+      diffChip.textContent = !s.otStarted ? "未开始" : (s.otHours <= 0 ? "产出未到" : (s.normalEff === null || s.otEff === null ? "待填人数" : "无法比较"));
       setVerdict(isDay, s, null, false);
       return;
     }
@@ -1073,17 +1094,20 @@
     if (normalOutput + a.nOt > 0) tot = normalOutput + a.nOt;
     return { tot: tot, n: n, o: o };
   }
-  /* 车间行数值：车间正常/加班效率统一按“产出 ÷ 车间填报人数 ÷ 标准工时” */
+  /* 车间行数值：车间正常/加班效率统一按“产出 ÷ 车间填报人数 ÷ 工时”
+     加班工时 = 截至该车间最新桶的已过加班净时长(修正口径) */
   function wsRowCellsDay(d) {
     var n = d.dN > 0 ? d.dN : null, o = d.dO > 0 ? d.dO : null;
-    var eN = efficiency(d.dN, d.hcD, EFF_HOURS.dN), eO = efficiency(d.dO, d.hcDO, EFF_HOURS.dO);
+    var hO = otRealHours(d, true);
+    var eN = efficiency(d.dN, d.hcD, EFF_HOURS.dN), eO = hO !== null ? efficiency(d.dO, d.hcDO, hO) : null;
     var diff = eN !== null && eO !== null && eN > 0 ? (eO - eN) / eN * 100 : null;
     return { personMode: true, tot: d.dayL > 0 ? d.dN + d.dO : null, n: n, o: o, hN: d.hcD, hO: d.hcDO, effN: eN, effO: eO, diff: diff };
   }
   function wsRowCellsNight(d) {
     var normalOutput = state.date === state.today && d.nL > 0 ? d.nL : d.nN;
     var n = normalOutput > 0 ? normalOutput : null, o = d.nO > 0 ? d.nO : null;
-    var eN = efficiency(normalOutput, d.hcN, EFF_HOURS.nN), eO = efficiency(d.nO, d.hcNO, EFF_HOURS.nO);
+    var hO = otRealHours(d, false);
+    var eN = efficiency(normalOutput, d.hcN, EFF_HOURS.nN), eO = hO !== null ? efficiency(d.nO, d.hcNO, hO) : null;
     var diff = eN !== null && eO !== null && eN > 0 ? (eO - eN) / eN * 100 : null;
     return { personMode: true, tot: d.nightL > 0 ? normalOutput + d.nO : null, n: n, o: o, hN: d.hcN, hO: d.hcNO, effN: eN, effO: eO, diff: diff };
   }
