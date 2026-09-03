@@ -553,7 +553,32 @@
 "#vsBand .vs-side.ot{background:linear-gradient(180deg,rgba(217,119,6,.05),rgba(217,119,6,0) 85%)}",
 "#vsBand .vs-mid .vsw{font-size:11px;color:#475569}",
 "#diffChip{font-size:14px;padding:8px 18px}",
-"@keyframes tagPulse{0%,100%{opacity:.55}50%{opacity:1}}"
+"@keyframes tagPulse{0%,100%{opacity:.55}50%{opacity:1}}",
+/* v13: 明细表网格线+行距+分组视觉提升 */
+"#wsDetail{box-shadow:0 8px 26px rgba(37,99,235,.07)}",
+"#wsDetail .dgrid{grid-template-columns:minmax(190px,2fr) repeat(7,minmax(88px,1fr)) minmax(150px,1.7fr)}",
+"#wsDetail .wsrow{padding:12px 15px}",
+"#wsDetail .wsrow .nm{font-size:13.5px}",
+"#wsDetail .wsrow .cnt{background:rgba(37,99,235,.1);color:#2563eb;font-weight:700}",
+"#wsDetail .lrow{padding:10px 15px 10px 46px;font-size:12.5px}",
+"#wsDetail .lrow .nm{font-weight:600}",
+"#wsDetail .trow{padding:12px 15px;font-size:13px}",
+"#wsDetail .vl{padding:0 8px;font-size:12.5px}",
+"#wsDetail .dgrid>*+*{border-left:1px solid rgba(30,41,59,.05)}",
+"#wsDetail .lbox{padding:4px 0;border-bottom:1px solid rgba(30,41,59,.06)}",
+"#wsDetail .lbox .lrow:last-child{border-bottom-color:transparent}",
+"#wsDetail .lrow:hover{background:rgba(37,99,235,.05)}",
+"#wsDetail .trow .vl{font-weight:800}",
+/* v13: 人数填报卡 3 列聚焦填报, 居中窄卡 */
+"#anaTblCard .table-scroll{max-width:680px;margin:0 auto 16px;overflow:hidden}",
+"#anaTblCard #anaTable{width:100%;min-width:0;table-layout:fixed}",
+"#anaTblCard #anaTable th,#anaTblCard #anaTable td{padding:11px 14px}",
+"#anaTblCard #anaTable th:nth-child(1){width:36%}",
+"#anaTblCard #anaTable th:nth-child(2),#anaTblCard #anaTable th:nth-child(3){width:32%}",
+"#anaTblCard #anaTable th:nth-child(n+2),#anaTblCard #anaTable td:nth-child(n+2){text-align:center}",
+"#anaTblCard #anaTable th:nth-child(1),#anaTblCard #anaTable td:nth-child(1){text-align:left}",
+"#anaTblCard #anaTable td input.hc{width:96px;max-width:96px;height:33px;font-size:14px;font-weight:700;text-align:center}",
+"#anaTblCard #anaTable tr.s-row td{background:#eff6ff;border-top:2px solid #2563eb;font-weight:800}"
   ].join("\n");
 
   var st = document.createElement("style");
@@ -604,7 +629,7 @@
     '</div></div>' +
     "</div>" +
     /* ── v12: 人数填报明细表 (独立全宽模块, 独占一行) ── */
-    '<div class="card" id="anaTblCard"><h3><span class="pl" style="background:#7c3aed"></span>人数填报 · 车间产出明细<span class="note" id="fillNote"></span></h3>' +
+    '<div class="card" id="anaTblCard"><h3><span class="pl" style="background:#7c3aed"></span>人数填报 · 车间人数<span class="note" id="fillNote"></span></h3>' +
     '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div></div>' +
     /* ── 口径说明 (Codex UI §5.7: 可折叠, 默认收起) ── */
     '<details class="footnote"><summary>数据口径说明</summary><div class="fn-body">白班正常 ≤17:20、白班加班 17:20–20:20；夜班正常 20:30–5:50、夜班加班 5:50–7:50。<b>正常人均小时效率 = 正常产出 ÷ 正常出勤人数 ÷ 8h</b>；<b>白班加班效率 = 加班产出 ÷ 加班人数 ÷ 3h</b>；<b>夜班加班效率 = 加班产出 ÷ 加班人数 ÷ 2h</b>。加班效率达成 = 加班效率 ÷ 正常效率。人数在本页按车间填报，保存到云端并通过实时流/轮询同步到其他设备。数据10分钟一档，历史数据按现有归档机制读取。</div></details>' +
@@ -792,7 +817,10 @@
     var seen = 0;
     function finish() {
       var out = [];
-      days.forEach(function (dt) { if (trendCache[dt]) out.push(trendCache[dt]); });
+      days.forEach(function (dt) {
+        var c = trendCache[dt];
+        if (c && !c.skip) out.push(c);
+      });
       out.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
       state.trend = out; drawTrend();
     }
@@ -814,7 +842,20 @@
               f = anyHi ? "HHMM" : "hour";
             }
             var a = aggWs(d.hourly, f);
-            trendCache[dt] = { d: dt, dN: a.tot.dN, dO: a.tot.dO, hasD: a.tot.dayL > 0 };
+            /* v13: 历史归档完整性闸门 —— 旧快照(17:10 截断/无加班段/线体口径不一 35/12/34)不入趋势,
+               避免「正常vs加班」出现 0 加班、总量跳变的误导。完整 = 线体数达标 + 白班覆盖到日末 */
+            var cov = -1, nLn = 0;
+            Object.keys(d.hourly).forEach(function (rawName) {
+              var std = NORM2WS[normN(rawName)];
+              if (!std) return;
+              nLn++;
+              var s = aggLine(d.hourly[rawName], f);
+              if (s.hasDay && s.lastDpM !== null && s.lastDpM > cov) cov = s.lastDpM;
+            });
+            var full = nLn >= 30 && cov >= DAY_END - 10;   /* ~34 线全量 & 覆盖 ≥20:10 */
+            trendCache[dt] = full
+              ? { d: dt, dN: a.tot.dN, dO: a.tot.dO, hasD: a.tot.dayL > 0 }
+              : { d: dt, skip: true };
           }
           if (seen >= todo.length) finish();
         }).catch(function () { seen++; if (seen >= todo.length) finish(); });
@@ -1159,34 +1200,23 @@
     var isToday = state.date === state.today, isDay = state.sh === "day";
     var normalKey = isDay ? "d" : "n", otKey = isDay ? "dO" : "nO";
     var normalLabel = isDay ? "白班正常" : "夜班正常", otLabel = isDay ? "白班加班" : "夜班加班";
-    var hoursText = "正常 8h · 加班 " + (isDay ? "3h" : "2h");
-    var th = "<tr><th>车间</th><th>正常产出</th><th>加班产出</th><th>正常人数</th><th>加班人数</th><th>正常效率</th><th>加班效率</th><th>达成率</th></tr>";
+    var th = "<tr><th>车间</th><th>" + normalLabel + "人数</th><th>" + otLabel + "人数</th></tr>";
     var html = "";
     WS_MAP.forEach(function (g) {
-      var d = wsOf(g.ws), hc = state.hc[g.ws] || {};
-      var normalOutput = isDay ? d.dN : (state.date === state.today && d.nL > 0 ? d.nL : d.nN);
-      var otOutput = isDay ? d.dO : d.nO;
+      var hc = state.hc[g.ws] || {};
       var nPeople = hcValue(hc, normalKey), oPeople = hcValue(hc, otKey);
-      var eN = efficiency(normalOutput, nPeople, EFF_HOURS[isDay ? "dN" : "nN"]);
-      var eO = efficiency(otStarted(isDay) ? otOutput : null, oPeople, EFF_HOURS[isDay ? "dO" : "nO"]);
-      var rate = eN !== null && eN > 0 && eO !== null ? eO / eN : null;
       var disabled = isToday ? "" : " disabled";
       html += "<tr><td class='nmw'>" + g.ws + "</td>" +
-        "<td class='g'>" + (d.lines ? fmt(normalOutput) : "—") + "</td>" +
-        "<td class='o'>" + (d.lines ? fmt(otOutput) : "—") + "</td>" +
         "<td><input class='hc' type='number' min='0' step='1' placeholder='人数' value='" + inputVal(nPeople) + "' data-ws='" + g.ws + "' data-f='" + normalKey + "'" + disabled + "></td>" +
-        "<td><input class='hc' type='number' min='0' step='1' placeholder='人数' value='" + inputVal(oPeople) + "' data-ws='" + g.ws + "' data-f='" + otKey + "'" + disabled + "></td>" +
-        "<td class='" + (eN === null ? "pc2" : "") + "'>" + (eN === null ? "—" : fmtEff(eN) + " 件/人·时") + "</td>" +
-        "<td class='" + (eO === null ? "pc2" : "") + "'>" + (eO === null ? "—" : fmtEff(eO) + " 件/人·时") + "</td>" +
-        "<td>" + effRateChip(rate) + "</td></tr>";
+        "<td><input class='hc' type='number' min='0' step='1' placeholder='人数' value='" + inputVal(oPeople) + "' data-ws='" + g.ws + "' data-f='" + otKey + "'" + disabled + "></td></tr>";
     });
     var t = state.wsAgg.tot, s = shiftSnapshot(t, isDay);
-    html += "<tr class='s-row'><td>合计</td><td class='g'>" + fmt(s.normalOutput) + "</td><td class='o'>" + fmt(s.otOutput) + "</td>" +
-      "<td>" + (s.normalPeople.entered ? s.normalPeople.value : "—") + "</td><td>" + (s.otPeople.entered ? s.otPeople.value : "—") + "</td>" +
-      "<td>" + (s.normalEff === null ? "—" : fmtEff(s.normalEff) + " 件/人·时") + "</td><td>" + (s.otEff === null ? "—" : fmtEff(s.otEff) + " 件/人·时") + "</td><td>" + effRateChip(s.rate) + "</td></tr>";
+    html += "<tr class='s-row'><td>合计</td>" +
+      "<td>" + (s.normalPeople.entered ? s.normalPeople.value : "—") + "</td>" +
+      "<td>" + (s.otPeople.entered ? s.otPeople.value : "—") + "</td></tr>";
     tbl.querySelector("thead").innerHTML = th;
     tbl.querySelector("tbody").innerHTML = html;
-    fillNote.textContent = (isToday ? "当前填写：" + normalLabel + " / " + otLabel + " · " + hoursText + " · 修改后实时同步" : "历史日 · 数据只读，人数沿用该日提报");
+    fillNote.textContent = (isToday ? "填写 " + normalLabel + "/" + otLabel + "人数 · 修改后实时同步" : "历史日 · 数据只读，人数沿用该日提报");
     Array.prototype.forEach.call(tbl.querySelectorAll("input.hc"), function (inp) {
       inp.onchange = function () {
         if (!isToday) return;
@@ -1357,10 +1387,11 @@
     if (!hasD) {
       trendEmpty.style.display = "none";
       ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center"; ctx.font = "12.5px 'Segoe UI',sans-serif";
-      ctx.fillText("历史数据积累中", W / 2, H / 2 - 8);
+      ctx.fillText("历史趋势积累中", W / 2, H / 2 - 18);
       ctx.font = "11px 'Segoe UI',sans-serif";
       ctx.fillStyle = "#b6c2cf";
-      ctx.fillText("自 2026-09-03 起每日自动归档后可见趋势", W / 2, H / 2 + 12);
+      ctx.fillText("9-03 前旧快照已自动过滤(止于 17:00 · 无加班段 · 线体口径不一)", W / 2, H / 2 + 1);
+      ctx.fillText("今晚 20:40 起完整归档 → 每日自动累积趋势", W / 2, H / 2 + 19);
       return;
     }
     var list = tr.filter(function (x) { return x.dN > 0 || x.dO > 0; }).slice(-state.win);
