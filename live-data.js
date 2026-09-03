@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 11:20:08
+   最后写入: 2026-09-03 11:50:06
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเย็บNO2 ฮีตเตอร์ขาด หยุด08:00 กำลังแก้ไข F-series",
-      "problem_zh": "NO2碰焊机加热器损坏，08:00停机，正在维修F-series。",
+      "problem_zh": "NO2碰焊机加热器损坏，08:00停机，正在修复F系列。",
       "plan": 141,
       "actual": 146,
       "impact": 5,
@@ -28,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "พนักงานไม่มาทำงาน 4 คน -10 stopper จุดเช็คเก้ไม่ทำงาน -15 PE แก้ไขแล้ว เครื่องเช็ค KV Alarm - 25 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "缺勤4人 -10 stopper；检具点失效 -15 PE已修复；KV检测机报警 -25，用旧工件投产，跟进A线Final设备运行。",
+      "problem_zh": "缺勤4人 -10 stopper；检具点检未执行 -15 PE已修复；KV检测机报警 -25 将旧工件投入生产，跟进A线Final设备运行情况。",
       "plan": 431,
       "actual": 382,
       "impact": -49,
@@ -41,7 +41,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "เครื่องเช็ค KV Alarm - 17 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง",
-      "problem_zh": "KV检测机报警 - 17号机用旧工件生产，需跟踪设备运行状态。",
+      "problem_zh": "KV检测机报警 - 17号机混入旧工件生产，需跟踪设备运行状态。",
       "plan": 431,
       "actual": 414,
       "impact": -17,
@@ -67,10 +67,23 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "09:00-10:00",
       "problem_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
-      "problem_zh": "气隙线连续报警（-56），焊丝缠绕打结，已剪断重装（-31），已修复。",
+      "problem_zh": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
       "plan": 470,
       "actual": 383,
       "impact": -87,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
+      "problem_zh": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设定设备参数。",
+      "plan": 390,
+      "actual": 261,
+      "impact": -129,
       "shift": "day"
     },
     {
@@ -80,7 +93,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
-      "problem_zh": "销售打标机不工作-30（已修复）；兆欧表检测作业漏检，复检机频繁报警-36（已通知QA待查）。",
+      "problem_zh": "1. 打标机SALES不工作-30号机（已修复），工件需做兆欧表绝缘电阻检测。\n2. 复检机频繁报警-36号机（已通知QA，待检查确认）。",
       "plan": 443,
       "actual": 377,
       "impact": -66,
@@ -93,7 +106,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "10:00-11:00",
       "problem_th": "เปลี่ยนรุ่น1ครั้ง จาก A series > E SERIES",
-      "problem_zh": "换型1次，从A系列改为E系列。",
+      "problem_zh": "更换型号1次，从A系列改为E系列。",
       "plan": 379,
       "actual": 306,
       "impact": -73,
@@ -102,7 +115,19 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "气隙线连续报警（-56），焊丝缠绕打结，已剪断重装（-31），已修复。",
+      "name": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设定设备参数。",
+      "name_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "10:00-11:00"
+      ],
+      "count": 1,
+      "total_impact": -129
+    },
+    {
+      "name": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
       "name_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
       "lines": [
         "PRO2·B"
@@ -114,7 +139,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -87
     },
     {
-      "name": "换型1次，从A系列改为E系列。",
+      "name": "更换型号1次，从A系列改为E系列。",
       "name_th": "เปลี่ยนรุ่น1ครั้ง จาก A series > E SERIES",
       "lines": [
         "PRO2·C"
@@ -124,19 +149,6 @@ window.__LIVE_DATA__ = {
       ],
       "count": 1,
       "total_impact": -73
-    },
-    {
-      "name": "缺勤4人 -10 stopper；检具点失效 -15 PE已修复；KV检测机报警 -25，用旧工件投产，跟进A线Final设备运行。",
-      "name_th": "พนักงานไม่มาทำงาน 4 คน -10 stopper จุดเช็คเก้ไม่ทำงาน -15 PE แก้ไขแล้ว เครื่องเช็ค KV Alarm - 25 นำงานเก่าเข้าผลิต ติดตา",
-      "lines": [
-        "PRO2·A"
-      ],
-      "times": [
-        "08:00-09:00",
-        "09:00-10:00"
-      ],
-      "count": 2,
-      "total_impact": -66
     }
   ],
   "first_hour": [
