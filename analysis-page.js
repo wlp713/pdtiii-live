@@ -71,7 +71,7 @@
       pts.push({ m: m, a: Number(p.actual) || 0, p: Number(p.plan) || 0 });
     });
     pts.sort(function (x, y) { return x.m - y.m; });
-    var res = { dayNorm: 0, dayOt: 0, nLive: 0, nNorm: 0, nOt: 0, planN: 0, hasDay: false, hasNight: false };
+    var res = { dayNorm: 0, dayOt: 0, nLive: 0, nNorm: 0, nOt: 0, planN: 0, hasDay: false, hasNight: false, lastDpM: null, lastNpM: null };
     var dp = pts.filter(function (x) { return x.m >= DAY_START && x.m <= DAY_END; });
     if (dp.length) {
       res.hasDay = true;
@@ -79,13 +79,14 @@
       for (var i = 0; i < dp.length; i++) if (dp[i].m <= DAY_NORM_END) cut = dp[i];
       var normA = cut ? cut.a : 0;
       var totalA = dp[dp.length - 1].a;
+      res.lastDpM = dp[dp.length - 1].m;
       res.dayNorm = normA; res.dayOt = Math.max(0, totalA - normA);
       /* 白班正常窗口末点的当班计划累计(= 计划增量; plan 与 actual 同构, 8:00 清零) */
       res.planN = cut ? cut.p : 0;
     }
     /* 今晚 20:30 起实时段(累计到最新快照) */
     var np = pts.filter(function (x) { return x.m >= NIGHT_START; });
-    if (np.length) { res.hasNight = true; res.nLive = np[np.length - 1].a; }
+    if (np.length) { res.hasNight = true; res.lastNpM = np[np.length - 1].m; res.nLive = np[np.length - 1].a; }
     /* 凌晨 0:00–7:59 段(归前一夜班; 5:50 前=夜班正常, 5:50 后=夜班OT) */
     var tp = pts.filter(function (x) { return x.m < DAY_START; });
     if (tp.length) {
@@ -272,7 +273,63 @@
 "@media (max-width:1100px){.grid2{grid-template-columns:1fr}.vs-mid{min-width:150px;padding:0 14px}}",
 "@media (max-width:760px){#vsBand{flex-direction:column}.vs-side:first-child{border-right:0;border-bottom:1px solid rgba(255,255,255,.06)}.vs-side.ot{border-left:0;border-top:1px solid rgba(255,255,255,.06)}.vs-mid{padding:12px;flex-direction:row;min-width:0}.ana-top{flex-wrap:wrap}}",
 "#otEmpty{cursor:pointer;transition:color .15s}",
-"#otEmpty:hover{color:#8b949e}"
+"#otEmpty:hover{color:#8b949e}",
+"#vsVerdict{display:none;margin:-6px 0 14px;padding:11px 16px;border-radius:12px;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.22);color:#b9c2cc;font-size:12.5px;line-height:1.8}",
+"#vsVerdict.show{display:block}",
+"#vsVerdict b{color:#f0f6fc;font-weight:800}",
+"#vsVerdict .k{color:#e3b341;font-weight:800}",
+"#vsVerdict .ok{color:#4ade80;font-weight:800}",
+"#detailList{overflow-x:auto}",
+".dgrid{display:grid;grid-template-columns:minmax(210px,2.1fr) repeat(6,minmax(82px,1fr)) minmax(112px,1.5fr);align-items:center;gap:0;font-variant-numeric:tabular-nums}",
+".dh{padding:8px 14px;color:#6e7681;font-size:10.5px;font-weight:600;letter-spacing:.3px;border-bottom:1px solid rgba(255,255,255,.07)}",
+".dh>div{text-align:right;padding:0 6px;white-space:nowrap}",
+".dh>div:first-child{text-align:left;padding-left:8px}",
+".wsrow{padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.045);cursor:pointer;user-select:none;background:linear-gradient(90deg,rgba(255,255,255,.014),transparent)}",
+".wsrow:hover{background:rgba(88,166,255,.05)}",
+".wsrow .nm{display:flex;align-items:center;gap:8px;font-weight:800;color:#f0f6fc;font-size:13px;min-width:0}",
+".wsrow .acc{width:0;height:0;border-left:5px solid #8b949e;border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .18s;flex-shrink:0}",
+".wsrow.open .acc{transform:rotate(90deg)}",
+".cnt{font-size:10px;font-weight:700;color:#7d8894;background:rgba(255,255,255,.06);border-radius:20px;padding:2px 9px;letter-spacing:.2px;white-space:nowrap}",
+".lrow{padding:7px 14px 7px 44px;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px;cursor:default}",
+".lrow:hover{background:rgba(255,255,255,.016)}",
+".lrow .nm{color:#aab4c0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}",
+".trow{padding:11px 14px;font-weight:800;background:rgba(88,166,255,.07);border-top:1px solid rgba(88,166,255,.18)}",
+".trow .nm{color:#58a6ff}",
+".vl{text-align:right;padding:0 6px;white-space:nowrap;font-size:12px;color:#c9d1d9}",
+".v-n{color:#79b8ff}",
+".v-o{color:#e3b341}",
+".v-0{color:#545e69}",
+".trow .vl{color:#e6edf3;font-weight:800}",
+".st-tag{display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.3px;white-space:nowrap;justify-self:end}",
+".st-tag i{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}",
+".st-ot{background:rgba(210,153,34,.13);color:#e3b341;border:1px solid rgba(210,153,34,.35)}",
+".st-now{background:rgba(88,166,255,.12);color:#58a6ff;border:1px solid rgba(88,166,255,.35)}",
+".st-now i{animation:tagPulse 1.6s ease-in-out infinite}",
+".st-no{background:rgba(255,255,255,.04);color:#8b949e;border:1px solid rgba(255,255,255,.1)}",
+".st-none{background:transparent;color:#545e69;border:1px dashed rgba(255,255,255,.08)}",
+".st-mid{background:rgba(188,140,255,.13);color:#bc8cff;border:1px solid rgba(188,140,255,.35)}",
+"@keyframes tagPulse{0%,100%{opacity:.45}50%{opacity:1}}",
+".diff-u{font-weight:800;font-size:12px;text-align:right;padding:0 6px}",
+".diff-u.good{color:#4ade80}",
+".diff-u.bad{color:#ff7b72}",
+".diff-u.flat{color:#8b949e}",
+".rate-chip{display:inline-block;font-size:11px;font-weight:800;padding:3px 11px;border-radius:20px;letter-spacing:.2px;white-space:nowrap;justify-self:end;text-align:center}",
+".rate-chip.g{background:rgba(63,185,80,.13);color:#4ade80;border:1px solid rgba(63,185,80,.35)}",
+".rate-chip.b{background:rgba(88,166,255,.12);color:#79b8ff;border:1px solid rgba(88,166,255,.35)}",
+".rate-chip.y{background:rgba(210,153,34,.13);color:#e3b341;border:1px solid rgba(210,153,34,.35)}",
+".rate-chip.x{background:rgba(255,255,255,.03);color:#6e7681;border:1px solid rgba(255,255,255,.09)}",
+".footnote{margin-top:-6px;padding:9px 14px 12px;color:#5f6b76;font-size:10.5px;line-height:1.8;letter-spacing:.2px;border-top:1px dashed rgba(255,255,255,.07)}",
+".footnote b{color:#8b949e}",
+".chips-sm{transform:scale(.92);transform-origin:left center}",
+".fill-ot{padding:2px 0 2px;margin-bottom:8px;border-bottom:1px dashed rgba(255,255,255,.07)}",
+".fill-ot .fh3{font-size:11.5px;color:#9aa4b0;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:2px}",
+".fill-ot .fh3 .pl{width:8px;height:8px;border-radius:2.5px;flex-shrink:0}",
+".fill-ot .fh3 .lg{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#6e7681;font-weight:500;margin-left:10px}",
+".fill-ot .fh3 .lg i{width:9px;height:9px;border-radius:2.5px;display:inline-block}",
+".fill-ot canvas{width:100%;height:150px}",
+".sub-hint{margin-left:auto;font-size:10px;color:#5f6b76;letter-spacing:.2px;white-space:nowrap}",
+".lbox{display:none}",
+".wsrow.open+.lbox{display:block}"
   ].join("\n");
 
   var st = document.createElement("style");
@@ -291,29 +348,29 @@
     '<input type="date" id="anaDate">' +
     "</div></div>" +
     '<div class="subrow"><div class="chips" id="shiftChips"><button data-sh="day" class="on">白班</button><button data-sh="night">夜班</button></div>' +
-    '<div class="chips" id="winChips" style="display:none"><button data-w="7" class="on">7天</button><button data-w="14">14天</button><button data-w="30">30天</button></div></div>' +
+    '<span class="sub-hint" id="subHint">白班 8:00–20:20 · 正常 ≤17:20 · 加班 17:20–20:20</span></div>' +
     /* vs 对比带 */
     '<div id="vsBand">' +
     '<div class="vs-side" id="vsN"><div class="lb">正常时段 <span class="tag" id="vsNtag">白班 ≤17:20</span></div><div class="num" id="vsNnum">--</div><div class="sb" id="vsNsb"></div></div>' +
     '<div class="vs-mid"><span class="vsw">效率对比</span><span id="diffChip" class="flat">--</span></div>' +
     '<div class="vs-side ot" id="vsO"><div class="lb">加班时段 <span class="tag" id="vsOtag">白班 17:20–20:20</span></div><div class="num" id="vsOnum">--</div><div class="sb" id="vsOsb"></div></div>' +
+    '<div id="vsVerdict"></div>' +
     "</div>" +
-    /* 卡1 车间效率对比 */
-    '<div class="card"><h3><span class="pl" style="background:#58a6ff"></span>车间效率对比 <span class="hint-r">同批加班线 · 正常 vs 加班 · 件/线·时</span></h3><canvas id="cvCmp"></canvas></div>' +
-    '<div class="grid2">' +
-    /* 卡2 加班人力 */
-    '<div class="card"><h3><span class="pl" style="background:#d29922"></span>加班人力 · 提报人数 <span class="hint-r"><span class="lg"><i style="background:#d29922"></i>白班OT</span><span class="lg"><i style="background:#bc8cff"></i>夜班OT</span></span></h3>' +
-    '<canvas id="cvOt"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 — 点击展开下方「车间数据」填入，或待自动化数据源接入</div></div>' +
-    /* 卡3 加班性质 */
-    '<div class="card"><h3><span class="pl" style="background:#d29922"></span>加班性质 <span class="hint-r">条长=正常时段计划达成率 · OT+=加班增量件数</span></h3><div class="bar-list" id="depList"></div></div>' +
-    "</div>" +
-    /* 卡4 趋势 */
+    /* ── v7 主卡: 车间 · 线体产出明细 (手风琴) ── */
+    '<div class="card" id="wsDetail"><h3><span class="pl" style="background:#58a6ff"></span>车间 · 线体产出明细 <span class="hint-r">点击车间行展开线体 · 加班效率=加班线自己 vs 自己正常段</span></h3>' +
+    '<div id="detailHead" class="dgrid dh"></div><div id="detailList"></div></div>' +
+    /* ── v7 趋势卡: winChips 移入 h3 ── */
     '<div class="card"><h3><span class="pl" style="background:#39c5cf"></span>趋势 · 正常 vs 加班 日产出' +
+    '<span class="chips chips-sm" id="winChips"><button data-w="7" class="on">7天</button><button data-w="14">14天</button><button data-w="30">30天</button></span>' +
     '<span class="hint-r"><span class="lg"><i style="background:#58a6ff"></i>正常产出</span><span class="lg"><i style="background:#d29922"></i>加班产出</span></span></h3>' +
     '<canvas id="cvTrend"></canvas><div class="empty-tip" id="trendEmpty" style="display:none"></div></div>' +
-    /* 填报面板 */
+    /* ── v7 口径注脚 ── */
+    '<div class="footnote">口径：白班 8:00–20:20 · 正常段 ≤17:20(净 7.67h) · 加班段 17:20–20:20(净 3.0h)；夜班 20:30–次日 8:00 · 正常 20:30–5:50(净 8.17h) · 凌晨OT 5:50–7:50(净 2.0h)。<b>加班效率=实际加班的那批线, 加班段 ÷ 加班净时, 与它们自己正常段效率比</b>(不掺未加班线稀释)。正常达成率=正常段实际÷计划(同源当班清零)。数据10分钟一档, 归档每日20:40云端自动。</div>' +
+    /* ── v7 填报面板: 加班人力图入 fillBody 顶 ── */
     '<div id="fillPanel"><div id="fillHead"><div class="ch"></div><h3>车间数据 · 白班 / 夜班人数提报</h3><span class="note" id="fillNote"></span></div>' +
-    '<div id="fillBody"><div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div></div></div>' +
+    '<div id="fillBody"><div class="fill-ot"><div class="fh3"><span class="pl" style="background:#d29922"></span>加班人力 · 提报人数<span class="lg"><i style="background:#d29922"></i>白班OT</span><span class="lg"><i style="background:#bc8cff"></i>夜班OT</span></div>' +
+    '<canvas id="cvOt"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 — 点击在下方表格填入, 或待自动化数据源接入</div></div>' +
+    '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div></div></div>' +
     "</div>";
   var dateInput = root.querySelector("#anaDate");
   var statusEl = root.querySelector("#anaStatus"), statusTxt = root.querySelector("#anaStatusTxt");
@@ -321,17 +378,25 @@
   var vsNtag = root.querySelector("#vsNtag"), vsOtag = root.querySelector("#vsOtag");
   var vsNsb = root.querySelector("#vsNsb"), vsOsb = root.querySelector("#vsOsb");
   var diffChip = root.querySelector("#diffChip");
-  var cvCmp = root.querySelector("#cvCmp"), cvOt = root.querySelector("#cvOt"), cvTrend = root.querySelector("#cvTrend");
-  var depList = root.querySelector("#depList");
+  var cvOt = root.querySelector("#cvOt"), cvTrend = root.querySelector("#cvTrend");
   var otEmpty = root.querySelector("#otEmpty"), trendEmpty = root.querySelector("#trendEmpty");
+  var detailList = root.querySelector("#detailList"), detailHead = root.querySelector("#detailHead");
+  var vsVerdict = root.querySelector("#vsVerdict"), subHint = root.querySelector("#subHint");
   var fillPanel = root.querySelector("#fillPanel"), fillNote = root.querySelector("#fillNote");
   var tbl = root.querySelector("#anaTable");
   var cntEl = root.querySelector("#anacnt");
   var winChips = root.querySelector("#winChips");
 
   root.querySelector("#anaBack").onclick = function () { root.remove(); };
-  fillPanel.querySelector("#fillHead").onclick = function () { fillPanel.classList.toggle("open"); };
-  otEmpty.onclick = function () { fillPanel.classList.add("open"); fillPanel.scrollIntoView({ behavior: "smooth", block: "start" }); };
+  fillPanel.querySelector("#fillHead").onclick = function () { fillPanel.classList.toggle("open"); if (fillPanel.classList.contains("open")) drawOt(); };
+  otEmpty.onclick = function () { fillPanel.classList.add("open"); fillPanel.scrollIntoView({ behavior: "smooth", block: "start" }); drawOt(); };
+  /* v7: 手风琴展开委托(容器常驻, 只绑一次) */
+  detailList.addEventListener("click", function (e) {
+    var r = e.target.closest(".wsrow"); if (!r) return;
+    var ws = r.getAttribute("data-ws");
+    var op = r.classList.toggle("open");
+    state.openWs = state.openWs || {}; state.openWs[ws] = op ? 1 : 0;
+  });
 
   var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: "day", win: 7, trend: null };
 
@@ -402,7 +467,7 @@
   /* ═══════════ 渲染总入口 ═══════════ */
   function renderAll() {
     state.wsAgg = aggWs(state.hourly);
-    drawVs(); drawCmp(); drawOt(); drawDep(); drawTable();
+    drawVs(); drawOt(); drawTable(); renderDetail();
     cntEl.textContent = Object.keys(state.hourly).length + " 线";
   }
 
@@ -422,6 +487,7 @@
   function drawVs() {
     var t = state.wsAgg.tot;
     var isDay = state.sh === "day";
+    subHint.textContent = isDay ? "白班 8:00–20:20 · 正常 ≤17:20(净 7.67h) · 加班 17:20–20:20(净 3.0h)" : "夜班 20:30–次日 8:00 · 正常 20:30–5:50(净 8.17h) · 凌晨OT 5:50–7:50(净 2.0h)";
     var upN = null, upO = null, tagN = "", tagO = "", sbN = "", sbO = "";
     if (isDay) {
       tagN = "白班正常 ≤17:20"; tagO = "白班加班 17:20–20:20";
@@ -465,6 +531,7 @@
       vsOsb.textContent = sbO;
       diffChip.className = "flat";
       diffChip.textContent = upN === null ? "等待数据" : "—";
+      vsVerdict.className = ""; vsVerdict.innerHTML = "";
       return;
     }
     vsOnum.innerHTML = fmt(upO) + "<small>件/线·时</small>";
@@ -473,41 +540,7 @@
     var g = d >= 0;
     diffChip.className = Math.abs(d) < 3 ? "flat" : (g ? "good" : "bad");
     diffChip.textContent = (g ? "▲" : "▼") + " 加班" + (g ? "高" : "低") + " " + Math.abs(d).toFixed(0) + "%";
-  }
-
-  /* ── 卡1 车间效率对比柱 (v6 同批线: 正常 vs OT 只统计实际加班线; 不加班车间自然无柱) ── */
-  function drawCmp() {
-    var isDay = state.sh === "day";
-    var rows = [];
-    var any = false;
-    WS_MAP.forEach(function (g) {
-      var d = wsOf(g.ws);
-      var v1 = null, v2 = null;
-      if (isDay) {
-        if (d.dOtL > 0) {
-          var h = netOtH();
-          v1 = d.dOtN / (d.dOtL * NET.dN);
-          v2 = h ? d.dO / (d.dOtL * h) : null;
-        }
-      } else if (d.nL > 0 && d.nOtL === 0) { v1 = uphNightLive(d); }      /* 今晚实时 */
-      else if (d.nOtL > 0) { v1 = d.nOtN / (d.nOtL * NET.nN); v2 = d.nO / (d.nOtL * NET.nO); }
-      if (v1 !== null || v2 !== null) any = true;
-      rows.push({ nm: g.ws, v1: v1, v2: v2 });
-    });
-    if (!any) {
-      var cv = cvCmp;
-      var ctx = cv.getContext("2d");
-      ctx.clearRect(0, 0, cv.width, cv.height);
-      ctx.fillStyle = "#545e69"; ctx.font = "12px 'Segoe UI',sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(isDay ? (netOtH() === null ? "OT 17:20 后开始统计" : "该日无加班记录") : "夜班数据积累中…", cv.width / 2 / (window.devicePixelRatio || 1), 60);
-      return;
-    }
-    barChart(cvCmp, {
-      labels: rows.map(function (r) { return r.nm; }),
-      s1: rows.map(function (r) { return r.v1; }), s1c: "#58a6ff",
-      s2: rows.map(function (r) { return r.v2; }), s2c: "#d29922",
-      lg1: isDay ? "正常" : "夜正常", lg2: isDay ? "加班" : "凌晨OT", h: 208
-    });
+    setVerdict(isDay, t, d, g);
   }
 
   /* ── 卡2 加班人力柱: 每车间 白OT / 夜OT 人数 ── */
@@ -529,37 +562,231 @@
     });
   }
 
-  /* ── 卡3 加班性质 (v6): 正常时段计划达成率 + 加班增量件数 → 补缺 or 超产 ── */
-  function drawDep() {
-    var rows = [];
+  /* ═══════════ v7: 车间·线体明细 (renderDetail 全套) ═══════════ */
+  /* 行内显示名: 去 line/-Series 后缀 */
+  function shortStd(s) { return String(s).replace(/ line$/i, "").replace(/-Series$/i, ""); }
+  function fmtU(v) { return v >= 100 ? Math.round(v).toLocaleString("en-US") : v.toFixed(1); }
+  /* 数值 cell: null/NaN → 灰 — (0 不作数据上色) */
+  function cellV(v, cls, u) {
+    if (v === null || v === undefined || isNaN(v)) return '<span class="vl v-0">—</span>';
+    return '<span class="vl ' + (cls || "") + '">' + (u ? fmtU(v) : fmt(v)) + "</span>";
+  }
+  function diffTxt(d) {
+    if (d === null || d === undefined || isNaN(d)) return '<span class="diff-u flat">—</span>';
+    if (Math.abs(d) < 3) return '<span class="diff-u flat">≈0%</span>';
+    var g = d > 0;
+    return '<span class="diff-u ' + (g ? "good" : "bad") + '">' + (g ? "▲" : "▼") + " " + Math.abs(d).toFixed(0) + "%</span>";
+  }
+  /* 正常段计划达成率 chip: 超产绿/达标蓝/补缺金/无计划灰 */
+  function rateChip(rate) {
+    if (rate === null || rate === undefined || isNaN(rate)) return '<span class="rate-chip x">—</span>';
+    var p = Math.round(rate * 100);
+    if (rate >= 1) return '<span class="rate-chip g">超产 ' + (p - 100) + '%</span>';
+    if (rate >= 0.95) return '<span class="rate-chip b">达标 ' + p + '%</span>';
+    return '<span class="rate-chip y">补缺 ' + p + '%</span>';
+  }
+  function stTag(txt, k) { return '<span class="st-tag ' + k + '"><i></i>' + txt + "</span>"; }
+  /* 线体 白班状态: 加班中(脉冲)/加班/运行中/早停/未加班/无OT档/夜班线/无数据 */
+  function lineStatusDay(a) {
+    if (!a || !a.hasDay) {
+      if (a && a.hasNight) return stTag("夜班线", "st-no");
+      return stTag("无数据", "st-none");
+    }
+    var now = nowMins();
+    var isT = state.date === state.today;
+    if (a.dayOt > 0) {
+      if (isT && now > DAY_NORM_END && now <= DAY_END + 5) return stTag("加班中", "st-now");
+      return stTag("加班", "st-ot");
+    }
+    if (isT && now <= DAY_END + 5) {
+      var last = a.lastDpM;
+      if (last === null) return stTag("无数据", "st-none");
+      if (now <= DAY_NORM_END) {
+        if (now - last <= 65) return stTag("运行中", "st-now");
+        return stTag("早停", "st-no");
+      }
+      if (last < DAY_NORM_END - 20) return stTag("早停", "st-no");
+      return stTag("未加班", "st-no");
+    }
+    if (state.date < "2026-09-03") return stTag("无OT档", "st-none");
+    return stTag("未加班", "st-no");
+  }
+  /* 线体 夜班状态: 凌晨OT(金)/夜班实时(蓝脉冲)/夜班完成/白班线/无数据 */
+  function lineStatusNight(a) {
+    if (!a) return stTag("无数据", "st-none");
+    var live = state.date === state.today && a.lastNpM !== null && a.lastNpM >= NIGHT_START;
+    if (a.nOt > 0) return stTag("凌晨OT", "st-mid");
+    if (live) return stTag("夜班实时", "st-now");
+    if (a.hasNight) return stTag("夜班完成", "st-no");
+    if (a.hasDay) return stTag("白班线", "st-no");
+    return stTag("无数据", "st-none");
+  }
+  /* 线体行 数值(白班/夜班)。口径与 v6 顶带同源: 单线正常段=dayNorm/7.67h(今天实时=进度净时),
+     加班=dayOt/已过OT净时(netOtH); 夜班: 完整档案用 nNorm/nOt 归段, 今晚实时只计 nL */
+  function dayNormHBase() {
+    if (state.date !== state.today) return NET.dN;
+    var de = dayNetElapsed(nowMins());
+    return de ? Math.max(0.5, Math.min(de, NET.dN)) : NET.dN;
+  }
+  function lineRowDay(a) {
+    var tot = null, n = null, o = null, upN = null, upO = null, diff = null;
+    if (!a || !a.hasDay) return { tot: tot, n: n, o: o, upN: upN, upO: upO, diff: diff };
+    n = a.dayNorm > 0 ? a.dayNorm : null;
+    o = a.dayOt > 0 ? a.dayOt : null;
+    tot = a.dayNorm + a.dayOt;
+    if (a.dayOt > 0) {
+      var h = netOtH();
+      upN = a.dayNorm / NET.dN;
+      if (h) upO = a.dayOt / h;
+    } else {
+      upN = a.dayNorm / dayNormHBase();
+    }
+    if (upN && upO) diff = (upO - upN) / upN * 100;
+    return { tot: tot, n: n, o: o, upN: upN, upO: upO, diff: diff };
+  }
+  function lineRowNight(a) {
+    var tot = null, n = null, o = null, upN = null, upO = null, diff = null;
+    if (!a || !a.hasNight) return { tot: tot, n: n, o: o, upN: upN, upO: upO, diff: diff };
+    var live = state.date === state.today && a.lastNpM !== null && a.lastNpM >= NIGHT_START;
+    if (live) {
+      var h = nightNetNow();
+      if (a.nL > 0) { tot = a.nL; if (h) upN = a.nL / h; }
+    } else {
+      n = a.nNorm > 0 ? a.nNorm : null;
+      o = a.nOt > 0 ? a.nOt : null;
+      if (a.nL + a.nNorm + a.nOt > 0) tot = a.nL + a.nNorm + a.nOt;
+      if (n !== null) upN = a.nNorm / NET.nN;
+      if (o !== null) upO = a.nOt / NET.nO;
+    }
+    if (upN && upO) diff = (upO - upN) / upN * 100;
+    return { tot: tot, n: n, o: o, upN: upN, upO: upO, diff: diff };
+  }
+  /* 车间行 数值: 白班用 v6 同批集口径(dOtL>0 → 加班线自比; 未加班 → 全车间实时/全时段),
+     夜班同线体规则但聚合到车间 */
+  function wsRowCellsDay(d) {
+    var tot = null, n = null, o = null, upN = null, upO = null, diff = null;
+    if (d.dayL > 0) {
+      tot = d.dN + d.dO;
+      n = d.dN > 0 ? d.dN : null;
+      o = d.dO > 0 ? d.dO : null;
+      if (d.dOtL > 0) {
+        upN = uphNormOt(d);
+        upO = uphDayOt(d);
+      } else if (state.date === state.today) {
+        var de = dayNetElapsed(nowMins());
+        if (de && d.dayL) upN = d.dN / (d.dayL * de);
+      } else if (d.dayL) {
+        upN = d.dN / (d.dayL * NET.dN);
+      }
+    }
+    if (upN && upO) diff = (upO - upN) / upN * 100;
+    return { tot: tot, n: n, o: o, upN: upN, upO: upO, diff: diff };
+  }
+  function wsRowCellsNight(d) {
+    var tot = null, n = null, o = null, upN = null, upO = null, diff = null;
+    if (d.nightL > 0) {
+      var live = state.date === state.today && d.nL > 0;
+      if (live) {
+        var h = nightNetNow();
+        if (d.nL > 0) { tot = d.nL; if (h) upN = d.nL / (d.nightL * h); }
+      } else {
+        n = d.nN > 0 ? d.nN : null;
+        o = d.nO > 0 ? d.nO : null;
+        if (d.nL + d.nN + d.nO > 0) tot = d.nL + d.nN + d.nO;
+        if (d.nightL) upN = d.nN / (d.nightL * NET.nN);
+        if (d.nOtL) upO = d.nO / (d.nOtL * NET.nO);   /* 公平: 凌晨OT只除OT线数 */
+      }
+    }
+    if (upN && upO) diff = (upO - upN) / upN * 100;
+    return { tot: tot, n: n, o: o, upN: upN, upO: upO, diff: diff };
+  }
+  /* 车间行尾列: 白班=达成率chip; 夜班=状态tag */
+  function wsRowTag(d, isDay) {
+    if (isDay) return rateChip(d.planN > 0 ? d.dN / d.planN : null);
+    if (d.nOtL > 0) return stTag("凌晨OT " + d.nOtL + "线", "st-mid");
+    if (state.date === state.today && d.nL > 0) return stTag("夜班实时", "st-now");
+    if (d.nightL > 0) return stTag("夜班 " + d.nightL + "线", "st-no");
+    return stTag("无数据", "st-none");
+  }
+  /* 行 html: 8 格 [nm,tot,n,o,upN,upO,diff,尾列]; tag 列由调用方传 */
+  function rowCellsHtml(c) {
+    return cellV(c.tot, "", false) + cellV(c.n, "v-n", false) + cellV(c.o, "v-o", false) +
+      cellV(c.upN, "", true) + cellV(c.upO, "", true) + diffTxt(c.diff);
+  }
+  function wsRowHtml(ws, d, isDay, nmOverride) {
+    var c = isDay ? wsRowCellsDay(d) : wsRowCellsNight(d);
+    var otN = isDay ? d.dOtL : d.nOtL;
+    var nm = nmOverride || ('<span class="acc"></span>' + ws +
+      (d.lines ? '<span class="cnt">' + d.lines + "线" + (otN ? " · OT " + otN : "") + "</span>" : ""));
+    return '<div class="nm">' + nm + "</div>" + rowCellsHtml(c) + wsRowTag(d, isDay);
+  }
+  function trowHtml(d, isDay) {
+    var c = isDay ? wsRowCellsDay(d) : wsRowCellsNight(d);
+    var tag = isDay ? rateChip(d.planN > 0 ? d.dN / d.planN : null) : wsRowTag(d, isDay);
+    return '<div class="nm">全厂合计</div>' + rowCellsHtml(c) + tag;
+  }
+  /* verdict 结论条: 加班线与自身正常段对比 + 正常段计划达成 → 补缺/冲量 */
+  function setVerdict(isDay, t, d, g) {
+    var html = "";
+    var flat = Math.abs(d) < 3;
+    if (isDay && t.dOtL > 0) {
+      var cls = flat ? "k" : (g ? "ok" : "k");
+      var txt = flat ? "≈持平" : ((g ? "高" : "低") + " " + Math.abs(d).toFixed(0) + "%");
+      html = "共 <b>" + t.dOtL + "</b> 条线加班 · 加班效率比它们自己正常段 <b class=\"" + cls + "\">" + txt + "</b>";
+      if (t.planN > 0) {
+        var rate = t.dN / t.planN;
+        html += " · 正常时段计划达成 <b>" + Math.round(rate * 100) + "%</b>" +
+          (rate < 1 ? '<span class="k">(未达标 → 加班属补缺)</span>' : '<span class="ok">(已达标 → 加班属冲量)</span>');
+      }
+    } else if (!isDay && t.nOtL > 0) {
+      var cls2 = flat ? "k" : (g ? "ok" : "k");
+      var txt2 = flat ? "≈持平" : ((g ? "高" : "低") + " " + Math.abs(d).toFixed(0) + "%");
+      html = "凌晨 <b>" + t.nOtL + "</b> 条线 OT · 效率比同批线整夜正常段 <b class=\"" + cls2 + "\">" + txt2 + "</b>";
+    }
+    vsVerdict.className = html ? "show" : "";
+    vsVerdict.innerHTML = html;
+  }
+  /* 明细渲染入口: 填表头 → 车间行 + 展开线体行 → 全厂合计行 */
+  function renderDetail() {
+    var isDay = state.sh === "day";
+    var heads = isDay ?
+      ["车间 / 线体", "当日总产出", "正常时段", "加班时段", "正常UPH", "加班UPH", "加班效率", "达成率"] :
+      ["车间 / 线体", "夜班产出", "凌晨正常", "凌晨OT", "夜正常UPH", "凌晨OT UPH", "凌晨OT效率", "状态"];
+    detailHead.innerHTML = heads.map(function (c) { return "<div>" + c + "</div>"; }).join("");
+    /* 即时聚合(仅渲染所需): 每 raw 键 → aggLine; 与 aggWs 同一归并规则 */
+    var lineAgg = {};
+    Object.keys(state.hourly).forEach(function (rawName) {
+      var std = NORM2WS[normN(rawName)];
+      if (!std) return;
+      lineAgg[std] = aggLine(state.hourly[rawName]);
+    });
+    var html = "";
     WS_MAP.forEach(function (g) {
       var d = wsOf(g.ws);
-      /* 计划达成率: 白班正常段 实际/计划 (plan 与 actual 同构当班累计, 可横向公平比) */
-      var rate = d.planN > 0 ? d.dN / d.planN : null;
-      rows.push({ nm: g.ws, rate: rate, dN: d.dN, dO: d.dO, planN: d.planN, lines: d.lines });
+      if (d.lines === 0) return;                       /* 空车间(Pro.6)不显示 */
+      var open = state.openWs && state.openWs[g.ws] ? " open" : "";
+      html += '<div class="dgrid wsrow' + open + '" data-ws="' + g.ws + '">' + wsRowHtml(g.ws, d, isDay) + "</div>";
+      html += '<div class="lbox">';
+      g.lines.forEach(function (std) {
+        var a = lineAgg[std];
+        var c, tag;
+        if (!a) {
+          c = { tot: null, n: null, o: null, upN: null, upO: null, diff: null };
+          tag = stTag("无数据", "st-none");
+        } else {
+          c = isDay ? lineRowDay(a) : lineRowNight(a);
+          tag = isDay ? lineStatusDay(a) : lineStatusNight(a);
+        }
+        html += '<div class="dgrid lrow"><div class="nm">' + shortStd(std) + "</div>" +
+          rowCellsHtml(c) + tag + "</div>";
+      });
+      html += "</div>";
     });
-    /* 正常时段欠得最多的排前面 → 最依赖加班补缺的车间一眼可见 */
-    rows.sort(function (x, y) {
-      var rx = x.rate === null ? 2 : x.rate, ry = y.rate === null ? 2 : y.rate;
-      return rx - ry;
-    });
-    depList.innerHTML = rows.map(function (r) {
-      if (r.lines === 0) {
-        return '<div class="brow"><span class="nm">' + r.nm + '</span>' +
-          '<span class="barw"><span class="hb"></span><span class="pc off">—</span></span>' +
-          '<span class="num">—</span></div>';
-      }
-      var color, txt;
-      if (r.rate === null) { color = "#3d434d"; txt = "无计划"; }
-      else if (r.rate >= 1) { color = "#3fb950"; txt = "超产" + (r.rate * 100).toFixed(0) + "%"; }
-      else if (r.rate >= 0.95) { color = "#58a6ff"; txt = "达标" + (r.rate * 100).toFixed(0) + "%"; }
-      else { color = "#e3b341"; txt = "补缺" + (r.rate * 100).toFixed(0) + "%"; }
-      var w = r.rate === null ? 0 : Math.max(2, Math.min(100, r.rate * 100));
-      return '<div class="brow"><span class="nm">' + r.nm + '</span>' +
-        '<span class="barw"><span class="hb"><span style="background:' + color + ';width:' + w + '%"></span></span>' +
-        '<span class="pc" style="color:' + color + '">' + txt + '</span></span>' +
-        '<span class="num">OT +' + fmt(r.dO) + '</span></div>';
-    }).join("");
+    var tot = state.wsAgg ? state.wsAgg.tot : null;
+    if (tot) {
+      html += '<div class="dgrid trow" data-ws="__tot__">' + trowHtml(tot, isDay) + "</div>";
+    }
+    detailList.innerHTML = html;
   }
 
   /* ── 底部车间填报 ── */
@@ -814,8 +1041,7 @@
     var b = e.target.closest("button"); if (!b) return;
     state.sh = b.getAttribute("data-sh");
     root.querySelectorAll("#shiftChips button").forEach(function (x) { x.classList.toggle("on", x === b); });
-    winChips.style.display = state.sh === "day" ? "none" : "none";
-    if (state.wsAgg) { drawVs(); drawCmp(); }
+    if (state.wsAgg) { drawVs(); renderDetail(); }
   });
   winChips.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
