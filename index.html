@@ -1639,12 +1639,19 @@ function isOtNow(mins) {
   return mins >= (5 * 60 + 50) && mins < (7 * 60 + 50); // 凌晨 5:50-7:50
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
-  // ★ 柱顶 = plan 累计高度(两柱同 y, 数字统一标在柱顶上方)
-  const planTotalPix = segs.reduce((s, x) => s + (x.plan || 0), 0) / maxV * ch;
-  const topY = padT + ch - planTotalPix;
+  // ★ 2026-09-03 v6.2 灵活缩放基准: 段高骨架按该段 actual/plan 的较大者定位(而非只按 plan)。
+  //   目标: 实际≥目标(达成/超额)时, 以实际柱顶点为满格基准、目标柱按 plan/max(actual,plan) 降下来,
+  //   让「实际超额」凸显出来(实际柱满格、目标柱低一截 + 上方灰缺口); 实际<目标(未达成)时维持原状
+  //   (目标柱满格、实际柱短 + 灰缺口 = 未达成)。因两柱共用同一 segs/骨架公式, 段边界仍完全平行。
+  //   注: maxV 必须覆盖 actual(见 drawBar maxVl=max(1,plan,actual)), 否则超额柱会溢出画布。
+  // ★ 柱顶 = 骨架累计高度(两柱同 y, 数字统一标在柱顶上方)
+  let skelPix = 0;
+  segs.forEach(x => { skelPix += Math.max(0, Math.max(x.plan || 0, x.actual || 0) / maxV * ch); });
+  const topY = padT + ch - skelPix;
   const totalH = Math.max(0, (total || 0) / maxV * ch);
   // ★ v5.30 兜底: 有段但全部低于可画高度(如凌晨数据缺失/差分≈0) → 退回纯色累计柱, 避免柱子"消失"
-  const drawable = segs.some(function (s) { return ((s.plan || 0) / maxV) * ch >= 0.5; });
+  //   v6.2: drawable 判定改用 actual/plan 较大者, 否则纯超额段(actual≫plan)会因 plan/maxV 过小误判不可画
+  const drawable = segs.some(function (s) { return (Math.max(s.plan || 0, s.actual || 0) / maxV) * ch >= 0.5; });
   if (!segs.length || !drawable) {
     // 无分段数据: 纯色累计柱
     const base = padT + ch - totalH;
@@ -1653,15 +1660,18 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   } else {
     let yAcc = padT + ch;
     segs.forEach((s, idx) => {
-      const perH = Math.max(0, ((s.plan || 0) / maxV) * ch); // 段高 = 该时段目标(统一骨架)
+      // ★ v6.2: 段高 = 该时段的「较大者」骨架(actual/plan 取大) → 超额段有足够空间画实际柱顶点
+      const perH = Math.max(0, (Math.max(s.actual || 0, s.plan || 0) / maxV) * ch);
       yAcc -= perH;
       if (perH < 0.5) return;
       // ★ 灰色底 = 未达成缺口(目标 - 实际), 整段先铺灰; v6.0: 加班段用暖金色底 → 一眼识别加班时段
+      //   v6.2: 未达成时目标柱满格→灰底在被实际柱盖住的地方淡出; 超额时(actual大)实际柱满格→灰底只露在目标柱上
       ctx.fillStyle = s.ot ? "#4a3a15" : "#30363d";
       ctx.fillRect(cx, yAcc, bw, perH);
-      // ★ 实际值(蓝)从段底往上画; 目标值(橙)画满整段
-      const v = key === "plan" ? (s.plan || 0) : Math.min(s.actual || 0, s.plan || 0);
-      const vPix = Math.max(0, (v / maxV) * ch);
+      // ★ 值柱: 实际柱画实际达成值(可按超额画到超过目标), 目标柱画该时段目标值
+      //   v6.2: 实际柱不再被 min(actual, plan) 夹住下限 — 超额直接画满整段, 凸显比目标高
+      const v = key === "plan" ? (s.plan || 0) : (s.actual || 0);
+      const vPix = Math.max(0, Math.min((v / maxV) * ch, perH));
       if (vPix > 0.5) {
         // v6.0: 加班段实际(蓝)也用金色系强调
         ctx.fillStyle = s.ot ? (key === "plan" ? "#f0b93a" : "#f0a93a") : color;
@@ -1731,9 +1741,12 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
     });
   }
   if (totalH > 0) {
-    // ★ 柱顶数字统一标在 plan 累计高度上方(两柱同 y), 实际柱写实际累计, 目标柱写目标累计
+    // ★ v6.2: 柱顶数字标在「本 key 自身柱顶」而非骨架顶 — 超额段(实际>目标)实际柱满格、
+    //   目标柱按比例变短, 各自总数应贴各自柱顶, 才能准确反映各自达成量。
+    let keyPix = 0; segs.forEach(x => { keyPix += Math.max(0, (key === "plan" ? (x.plan || 0) : (x.actual || 0)) / maxV * ch); });
+    const keyTopY = padT + ch - keyPix;
     ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(fmt(total), cx + bw / 2, topY - 14);
+    ctx.fillText(fmt(total), cx + bw / 2, keyTopY - 14);
   }
 }
 
@@ -1797,7 +1810,11 @@ function drawBar(main) {
   const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
-    const maxVl = Math.max(1, l.plan || 0); // 该线自身目标 = 满格基准
+    // ★ v6.2 灵活基准: 满格基准覆盖 plan 与 actual 的较大者。
+    //   未达成段: 目标柱满格、实际柱短(灰缺口=未达成) — 与 v6.0 相同。
+    //   达成/超额段: 以实际柱顶点为满格基准, 目标柱按 plan/实际降下来, 超额才凸显。
+    //   maxV 必须覆盖 actual, 否则超额柱(actual>plan)会溢出画布。
+    const maxVl = Math.max(1, l.plan || 0, l.actual || 0); // 该线自身 plan/actual 较大者 = 满格基准
     if (segShow) {
       const segs = segsOf(l.name, l.actual, l.plan);
       drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
