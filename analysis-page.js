@@ -34,6 +34,7 @@
     { ws: "Pro.6", tag: "", lines: [] }
   ];
   var WS_ACC = { "Pro.1": "#3fb950", "Pro.2": "#58a6ff", "Pro.3": "#d29922", "Pro.4": "#bc8cff", "Pro.5": "#39c5cf", "Pro.6": "#f778ba" };
+  var WS_MAP_LINES = 0; WS_MAP.forEach(function (g) { WS_MAP_LINES += g.lines.length; }); // 应有线体数(34): 空车间不算
   var LINE2WS = {};
   WS_MAP.forEach(function (g) { g.lines.forEach(function (ln) { LINE2WS[ln] = g.ws; }); });
   var NORM2WS = {};
@@ -61,9 +62,16 @@
   };
 
   /* 单线聚合: 返回各窗口末点累计 → 产出(件) */
-  function aggLine(arr) {
+  function aggLine(arr, fmt) {
     var raw = arr || [];
-    var oldFmt = raw.some(function (p) { var h = Number(p.h); return h >= 8 && h <= 17 && h !== 10; });
+    /* ★ 2026-09-03 Codex §8.1: 桶格式优先级 = 显式参数(历史文件自身) > state.fmt(当前日期 load 读到的
+       hourlyFormat 字段) > 启发式推断(新 HHMM 凌晨桶 0/10/../50 转 int 后 <100, 启发式只认 8~17 小时值) */
+    var oldFmt;
+    if (fmt === "hour") oldFmt = true;
+    else if (fmt === "HHMM") oldFmt = false;
+    else if (state.fmt === "hour") oldFmt = true;
+    else if (state.fmt === "HHMM") oldFmt = false;
+    else oldFmt = raw.some(function (p) { var h = Number(p.h); return h >= 8 && h <= 17 && h !== 10; });
     var pts = [];
     raw.forEach(function (p) {
       var m = h2m(p.h, oldFmt);
@@ -103,7 +111,7 @@
   /* 车间聚合。字段: dN/dO=白班正常/OT产出, nL/nN/nO=夜班实时/凌晨正常/凌晨OT,
      planN=白班正常段计划累计; dOtL/dOtN=实际加班线数 & 这些线自己的正常产出(同集对比用),
      nOtL/nOtN=凌晨OT线数 & 这些线自己的整夜正常产出 */
-  function aggWs(wsMap) {
+  function aggWs(wsMap, fmt) {
     function zero() {
       return { dN: 0, dO: 0, nL: 0, nN: 0, nO: 0, dayL: 0, nightL: 0, lines: 0, dOtL: 0, dOtN: 0, nOtL: 0, nOtN: 0, planN: 0 };
     }
@@ -113,7 +121,7 @@
       var std = NORM2WS[normN(rawName)];
       if (!std) return;
       var ws = LINE2WS[std]; if (!ws) return;
-      var s = aggLine(wsMap[rawName]);
+      var s = aggLine(wsMap[rawName], fmt);
       var g = out[ws];
       g.dN += s.dayNorm; g.dO += s.dayOt; g.nL += s.nLive; g.nN += s.nNorm; g.nO += s.nOt;
       g.planN += s.planN;
@@ -161,8 +169,11 @@
     fetch(HC_URL + "/" + date + ".json?t=" + Date.now(), { signal: AbortSignal.timeout(6000) })
       .then(function (r) { return r.json(); }).then(function (j) { cb(j || {}); }).catch(function () { cb({}); });
   }
-  function saveHC(date, hc) {
-    fetch(HC_URL + "/" + date + ".json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(hc) }).catch(function () { });
+  function saveHC(date, hc, cb) {
+    /* ★ Codex §8.6: 返回成功/失败回调(网络错误/非 2xx 均视为失败) */
+    fetch(HC_URL + "/" + date + ".json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(hc) })
+      .then(function (r) { cb && cb(r.ok); })
+      .catch(function () { cb && cb(false); });
   }
 
   /* ═══════════ CSS ═══════════ */
@@ -398,7 +409,7 @@
     state.openWs = state.openWs || {}; state.openWs[ws] = op ? 1 : 0;
   });
 
-  var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: "day", win: 7, trend: null };
+  var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: "day", win: 7, trend: null, fmt: null };
 
   function todayStr() {
     return typeof bkkDateStr === "function" ? bkkDateStr() : (function () { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })(); // ★ v5.42 泰国日期
@@ -419,6 +430,7 @@
   }
 
   /* ═══════════ 数据加载 ═══════════ */
+  var lastGoodDate = null; // ★ Codex §8.4: 失败时标注仍在显示的旧数据日期
   var loadSeq = 0; // ★ P0-4 竞态守卫: 快速切日期时旧响应(慢网络)不得覆盖新日期渲染
   function load(date, keepWs) {
     var seq = ++loadSeq;
@@ -433,45 +445,95 @@
       if (seq !== loadSeq) return; // 已被更新的 load() 取代 → 丢弃
       var d = res[0] || {};
       if (!d || !d.hourly || !Object.keys(d.hourly).length) {
-        cntEl.textContent = "无数据";
+        cntEl.textContent = lastGoodDate ? "旧数据" : "无数据";
         return fail("该日无生产数据");
       }
       state.hourly = d.hourly;
+      state.fmt = d.hourlyFormat || null;   /* ★ Codex §8.1: hourlyFormat 字段优先, aggLine 据此解析桶 */
       state.hc = res[1] || {};
+      lastGoodDate = state.date;
       renderAll();
       /* P0-5 数据健康度: 线体覆盖提示 — hourly 里有但 WS_MAP 未配置的线 → 计数提示(说明上游新增线未加映射) */
       var unknown = 0;
       Object.keys(state.hourly).forEach(function (k) { if (!NORM2WS[normN(k)]) unknown++; });
       var nLn = Object.keys(state.hourly).length;
-      setStatus("更新于 " + (d.updatedAt ? String(d.updatedAt).substring(11, 16) : "") +
-        " · 线体 " + nLn + (unknown ? " · ⚠️未映射 " + unknown + " 条" : ""), "ok");
+      var nowTxt = d.updatedAt ? String(d.updatedAt).substring(11, 16) : "";
+      var srcTxt = isToday ? "实时" : "历史";
+      /* 数据延迟: 今天实时源才有意义(历史归档无延迟概念) */
+      var lagTxt = "";
+      if (isToday && d.updatedAt) {
+        var ts = new Date(String(d.updatedAt).replace(" ", "T") + "+07:00").getTime();
+        var lag = ts ? Math.round((Date.now() - ts) / 60000) : -1;
+        if (lag >= 0) lagTxt = (lag <= 1 ? "实时" : "延迟 " + lag + " 分") + " · ";
+      }
+      setStatus("[" + srcTxt + "] " + (d.updatedAt ? String(d.updatedAt).substring(0, 10) + " " + nowTxt : "") +
+        " · " + lagTxt + "线体 " + nLn + "/" + WS_MAP_LINES + (unknown ? " · ⚠️未映射 " + unknown + " 条" : ""), "ok");
     }).catch(function () {
       if (seq !== loadSeq) return;
       fail("加载失败，请重试");
     });
     function fail(t) {
-      setStatus(t, "err");
+      setStatus(t + (lastGoodDate && lastGoodDate !== state.date ? " · 保留 " + lastGoodDate + " 数据" : ""), "err");
       vsNnum.textContent = vsOnum.textContent = "--";
     }
   }
 
+  /* 趋势缓存: {date: {dN,dO,hasD}} — 会话内不重复请求历史归档 (2026-09-03 Codex §8.5) */
+  var trendCache = {};
   function loadTrend() {
-    /* 历史 = 仓库 history/*.json (仅白班完整: 归档 17:00). 今天实时不参与历史轴 */
-    var last = [];
+    /* 数据源: history/index.json 列出可用日期 → 只请求存在的日期(不再盲目并发 40 个文件) */
+    fetch("history/index.json?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; })
+      .then(function (dates) {
+        if (!dates || !dates.length) { trendByDays(); return; }  /* index 缺失(旧部署) → 降级按日扫描 */
+        var last = [];
+        dates.forEach(function (dt) {
+          if (dt >= state.today) return;                        /* 今天实时不参与历史轴(同原行为) */
+          if (last.length >= 40) return;
+          last.push(dt);
+        });
+        loadTrendDates(last);
+      });
+  }
+  /* 降级路径: 无 index.json 时, 从昨天往前逐个探测(与旧版同行为, 仅作兜底) */
+  function trendByDays() {
     var d0 = new Date(state.today); d0.setDate(d0.getDate() - 1);
+    function iso(x) { return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
     var days = [];
     for (var i = 1; i <= 40; i++) { var x = new Date(d0); x.setDate(d0.getDate() - (i - 1)); days.push(iso(x)); }
-    function iso(x) { return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
+    loadTrendDates(days);
+  }
+  function loadTrendDates(days) {
+    var todo = days.filter(function (dt) { return !trendCache[dt]; });
     var seen = 0;
-    days.forEach(function (dt) {
-      fetch("history/" + dt + ".json").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
-        seen++;
-        if (d && d.hourly) {
-          var a = aggWs(d.hourly);
-          last.push({ d: dt, dN: a.tot.dN, dO: a.tot.dO, hasD: a.tot.dayL > 0 });
-        }
-        if (seen >= days.length) { last.sort(function (a, b) { return a.d < b.d ? -1 : 1; }); state.trend = last; drawTrend(); }
-      }).catch(function () { seen++; if (seen >= days.length) { state.trend = last; drawTrend(); } });
+    function finish() {
+      var out = [];
+      days.forEach(function (dt) { if (trendCache[dt]) out.push(trendCache[dt]); });
+      out.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
+      state.trend = out; drawTrend();
+    }
+    if (!todo.length) { finish(); return; }
+    todo.forEach(function (dt) {
+      fetch("history/" + dt + ".json?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          seen++;
+          if (d && d.hourly) {
+            /* ★ Codex §8.1 per-file: 历史文件各自独立判定格式(不能用 state.fmt — 那是当前选中日期的) */
+            var f = d.hourlyFormat || null;
+            if (!f) {
+              var anyHi = false;
+              Object.keys(d.hourly).some(function (k) {
+                var arr = d.hourly[k];
+                for (var i = 0; i < arr.length; i++) if (Number(arr[i].h) >= 100) { anyHi = true; return true; }
+                return false;
+              });
+              f = anyHi ? "HHMM" : "hour";
+            }
+            var a = aggWs(d.hourly, f);
+            trendCache[dt] = { d: dt, dN: a.tot.dN, dO: a.tot.dO, hasD: a.tot.dayL > 0 };
+          }
+          if (seen >= todo.length) finish();
+        }).catch(function () { seen++; if (seen >= todo.length) finish(); });
     });
   }
 
@@ -740,19 +802,26 @@
   function setVerdict(isDay, t, d, g) {
     var html = "";
     var flat = Math.abs(d) < 3;
+    /* ★ Codex §5.7/9.4 数据不足保护: 补缺/冲量结论必须基于正常段计划(planN>0); 无计划/无OT数据时
+       只陈述事实, 不伪装判断; 覆盖线数太少(有效线 < 应有34的一半)也降级为数据不足 */
+    var cov = (t.dayL || 0) + (t.nightL || 0);
+    var covLow = t.dayL === 0 && t.nightL === 0;
     if (isDay && t.dOtL > 0) {
       var cls = flat ? "k" : (g ? "ok" : "k");
       var txt = flat ? "≈持平" : ((g ? "高" : "低") + " " + Math.abs(d).toFixed(0) + "%");
       html = "共 <b>" + t.dOtL + "</b> 条线加班 · 加班效率比它们自己正常段 <b class=\"" + cls + "\">" + txt + "</b>";
-      if (t.planN > 0) {
+      if (t.planN > 0 && !covLow) {
         var rate = t.dN / t.planN;
         html += " · 正常时段计划达成 <b>" + Math.round(rate * 100) + "%</b>" +
           (rate < 1 ? '<span class="k">(未达标 → 加班属补缺)</span>' : '<span class="ok">(已达标 → 加班属冲量)</span>');
+      } else {
+        html += " · <span class=\"k\">计划数据不足, 暂不判断补缺/冲量</span>";
       }
     } else if (!isDay && t.nOtL > 0) {
       var cls2 = flat ? "k" : (g ? "ok" : "k");
       var txt2 = flat ? "≈持平" : ((g ? "高" : "低") + " " + Math.abs(d).toFixed(0) + "%");
       html = "凌晨 <b>" + t.nOtL + "</b> 条线 OT · 效率比同批线整夜正常段 <b class=\"" + cls2 + "\">" + txt2 + "</b>";
+      if (covLow) html += " · <span class=\"k\">数据不足</span>";
     }
     vsVerdict.className = html ? "show" : "";
     vsVerdict.innerHTML = html;
@@ -837,7 +906,11 @@
         var hc = state.hc[ws] || {};
         hc[f] = inp.value === "" ? null : Number(inp.value);
         state.hc[ws] = hc;
-        saveHC(state.date, state.hc);
+        /* ★ Codex §8.6: 保存状态反馈 — 成功/失败可见, 不再静默 */
+        fillNote.textContent = "⏳ 保存中…";
+        saveHC(state.date, state.hc, function (ok) {
+          fillNote.textContent = ok ? "✅ 已保存 " + state.date + " · 云端同步" : "⚠️ 保存失败(网络?) · 请重试";
+        });
         drawOt();
       };
     });
