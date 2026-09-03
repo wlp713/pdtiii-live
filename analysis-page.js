@@ -138,15 +138,33 @@
     return { ws: out, tot: tot };
   }
 
+  /* ★ v10.2 Firebase key 安全化: RTDB key 禁止 . # $ / [ ] — 车间名 Pro.1~Pro.6 含点号导致 400.
+     方案: 车间名 ↔ 云端固定别名(ws1..ws6) 双向映射, 云端用别名做 key, 本地 state.hc 仍用原名 */
+  var HC_ALIAS = {}, HC_ALIAS_R = {};
+  WS_MAP.forEach(function (g, i) { var a = "ws" + (i + 1); HC_ALIAS[g.ws] = a; HC_ALIAS_R[a] = g.ws; });
+  function hcKey(ws) { return HC_ALIAS[ws] || ws; }
+  function hcUnkey(k) { return HC_ALIAS_R[k] || k; }
+  /* 云端节点(别名key) → 本地(原名key) */
+  function hcLoadMap(j) {
+    var out = {}, k;
+    if (!j || typeof j !== "object") return out;
+    for (k in j) if (Object.prototype.hasOwnProperty.call(j, k)) out[hcUnkey(k)] = j[k];
+    return out;
+  }
+  var hcSaving = 0; /* 保存中的车间计数: 轮询/同步期间跳过覆盖, 防"填了就消失" */
   function loadHC(date, cb) {
-    fetch(HC_URL + "/" + date + ".json?t=" + Date.now(), { signal: AbortSignal.timeout(6000) })
-      .then(function (r) { return r.json(); }).then(function (j) { cb(j || {}); }).catch(function () { cb({}); });
+    /* promise 风格(load 内 Promise.all 用) + cb 可选(pollHC 用) */
+    return fetch(HC_URL + "/" + date + ".json?t=" + Date.now(), { signal: AbortSignal.timeout(6000) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { var out = hcLoadMap(j); if (cb) cb(out); return out; })
+      .catch(function () { if (cb) cb({}); return {}; });
   }
   function saveHC(date, ws, hc, cb) {
-    /* 按车间写入，避免两台设备同时填写不同车间时互相覆盖 */
-    fetch(HC_URL + "/" + date + "/" + encodeURIComponent(ws) + ".json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(hc) })
-      .then(function (r) { cb && cb(r.ok); })
-      .catch(function () { cb && cb(false); });
+    /* 按车间写入(别名key), 避免两台设备同时填写不同车间时互相覆盖 */
+    hcSaving++;
+    fetch(HC_URL + "/" + date + "/" + hcKey(ws) + ".json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(hc), signal: AbortSignal.timeout(8000) })
+      .then(function (r) { hcSaving = Math.max(0, hcSaving - 1); cb && cb(r.ok); })
+      .catch(function () { hcSaving = Math.max(0, hcSaving - 1); cb && cb(false); });
   }
 
   /* ═══════════ CSS ═══════════ */
@@ -501,11 +519,12 @@
     state.hc = state.hc || {};
     var path = String(msg.path || "/").split("/").filter(function (x) { return x !== ""; });
     if (!path.length) {
-      state.hc = msg.data || {};
+      /* 整树推送: 云端是别名key, 需要映射回原名 */
+      state.hc = hcLoadMap(msg.data) || {};
       renderHCDependent();
       return;
     }
-    var ws = decodeURIComponent(path[0]);
+    var ws = hcUnkey(decodeURIComponent(path[0]));
     if (path.length === 1) {
       if (msg.data === null) delete state.hc[ws];
       else state.hc[ws] = msg.data || {};
@@ -538,6 +557,7 @@
 
   function pollHC() {
     if (!root.parentNode || !state.date || hcPollBusy) return;
+    if (hcSaving > 0) return; /* 有车间正在保存: 跳过本轮, 防云端旧值覆盖刚输入的数 */
     hcPollBusy = true;
     loadHC(state.date, function (hc) {
       hcPollBusy = false;
