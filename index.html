@@ -407,19 +407,17 @@
     background: linear-gradient(90deg, #58a6ff, #79c0ff);
     border-radius: 8px; min-width: 3px;
   }
-  .hbar .plan {
-    /* ★ v6.0: 目标线不再按 maxV 缩放 — 固定铺满整格 = 自身目标 100% 满格基准(弱化背景槽) */
-    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    width: 100%; height: 6px; background: rgba(210,153,34,.22);
-    border-radius: 3px;
+  /* 未达成缺口: 红色(主题色), 从蓝条右侧延伸 — 蓝=达成, 红=未达成 */
+  .hbar .gap {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: rgba(248,81,73,.55);
+    border-radius: 8px;
   }
-  /* 超额达成: 蓝条渐变叠加金色高亮边, 表示已超自身目标(数字标签显示真实量) */
-  .hbar.over .act { background: linear-gradient(90deg, #58a6ff, #7ee787); box-shadow: 0 0 6px rgba(126,231,135,.55); }
   .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
   .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
   .hbar-leg i { font-style: normal; }
   .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
-  .hbar-leg .p::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--orange); margin-right: 3px; vertical-align: -1px; }
+  .hbar-leg .g::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: rgba(248,81,73,.55); margin-right: 3px; vertical-align: -1px; }
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
@@ -1084,17 +1082,17 @@ function lineNameCls(l) {
 }
 
 // ---- 主表: 每行横向条形图 (Actual vs Plan) ----
-// ★ 2026-09-03 v6.0 去统一刻度: 进度条不再按全表最大产量(maxV)缩放, 而是以「各线体自身目标(plan)为 100% 满格基准」。
-//   蓝条宽 = 达成率(actual/plan, 0-100%), p100 虚线 = 自身目标 100% → 所有线体在同一水平基准上, 看的是各自进度而非绝对产量。
-//   超额(actual>plan)时蓝条满格 + 显示真实数量(数据标签为准), 不再被全局尺度压扁低产线。
+// ★ 2026-09-03 v6.0 去统一刻度: 进度条以「各线体自身目标(plan)为 100% 满格基准」。
+//   蓝条 = 已达成部分(actual), 红条 = 未达成缺口(plan-actual) → 红色=未达成, 蓝色=达成(主题色)。
+//   所有线体在同一水平基准上, 看各自进度而非绝对产量; 超额(actual>plan)时蓝条满格。
 function hbarHtml(l) {
   const plan = Number(l.plan) || 0;
   const act = Number(l.actual) || 0;
   const aw = plan > 0 ? Math.max(0, Math.min(100, act / plan * 100)) : 0;
-  const over = plan > 0 && act > plan;
+  const gw = plan > 0 ? Math.max(0, Math.min(100, (plan - act) / plan * 100)) : 0; // 未达成缺口(红色)
   const stalledCls = isPlannedOff(l) ? " style=\"border:1px solid rgba(139,148,158,.45)\"" : (isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "");
-  return `<div class="hbar${over ? " over" : ""}"${stalledCls}><div class="p100"></div>` +
-    `<div class="plan"></div>` +
+  return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
+    (gw > 0 ? `<div class="gap" style="width:${gw}%"></div>` : "") +
     `<div class="act" style="width:${aw}%"></div></div>`;
 }
 
@@ -1774,8 +1772,22 @@ function drawBar(main) {
   const ctx = cv.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
+  // ★ 2026-09-03 P0-1 首帧竞态修复: 分段小时图依赖 state.hourly(10分钟桶定格累计值差分)。
+  //   脚本加载时(882行)会先 renderAll() 一次, 此时 fetch 尚未完成, state.hourly 是空对象 → valueAt 退回
+  //   lines 整日 plan/actual 满值 → 段差分只有段1有值、段2..11 全0 → drawStacked 把矮段(perH<0.5px)跳过,
+  //   画成"一根高柱+柱顶总数"(新开端口/浏览器首屏见到的分段合并/消失+柱矮+总数堆顶)。数据到位后 refresh
+  //   会再 renderAll 恢复正常, 所以一直开着/刷新后就正常。修复: seg 模式 hourly 未就绪时本帧不画小时图,
+  //   等 refresh 数据到位再画分段, 避免错误兜底单柱。非 seg(全天累计)模式不受影响。
+  if (segShow) {
+    const anyBucket = Object.keys(state.hourly || {}).length > 0 &&
+      Object.values(state.hourly || {}).some(arr => (arr || []).length > 0);
+    if (!anyBucket) {
+      ctx.fillStyle = "#8b949e"; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(t("loading") + "…", W / 2, H / 2);
+      return;
+    }
+  }
   const padL = 8, padB = 34, padT = 26; // v6.0: 去掉 y 轴刻度/网格 → 左侧空间收回给柱子
   const cw = W - padL - 12, ch = H - padT - padB;
   // ★ v6.0 去统一刻度: 不再用全表 maxV(高产量线会把低产线压扁)。改为每条线体以「自身 plan 为目标满格基准」
