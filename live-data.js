@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 17:30:24
+   最后写入: 2026-09-03 17:50:25
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -28,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "11:00-12:00",
       "problem_th": "งานNG ออกต่อเนื่อง S-series",
-      "problem_zh": "S系列连续出现NG品。",
+      "problem_zh": "S系列NG件连续流出。",
       "plan": 169,
       "actual": 131,
       "impact": -38,
@@ -54,7 +54,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเย็บNO2 ฮีตเตอร์ขาด หยุด08:00 กำลังแก้ไข F-series",
-      "problem_zh": "NO2碰焊机加热器损坏，08:00停机，正在修复F系列。",
+      "problem_zh": "NO2碰焊机加热器损坏，08:00停机，正在修复F-series。",
       "plan": 141,
       "actual": 146,
       "impact": 5,
@@ -67,7 +67,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "10:00-11:00",
       "problem_th": "M Coil Winding NO 4-5 ลวดรั้งกันข้างใน หยุด 09:36 PEกำลังแก้ไข F-series",
-      "problem_zh": "M线圈绕线4-5号线，内部线材互相拉扯，09:36停机，PE正在修复F系列。",
+      "problem_zh": "M线圈绕线4-5号线，内部线材互相拉扯卡滞，09:36停机，PE正在修复F系列。",
       "plan": 141,
       "actual": 132,
       "impact": -9,
@@ -80,7 +80,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "11:00-12:00",
       "problem_th": "Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข F-series",
-      "problem_zh": "Insert M Coil 工序断线，11:39停机，正在处理F系列。",
+      "problem_zh": "Insert M Coil 断线，11:39停机，正在修复F系列。",
       "plan": 141,
       "actual": 106,
       "impact": -35,
@@ -93,7 +93,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "13:00-14:00",
       "problem_th": ": Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator F-series",
-      "problem_zh": "Insert M Coil工序断线，11:39停机处理中，已调员工支援。内部打磨/H工序/F系列定子返工。",
+      "problem_zh": "Insert M Coil工序断线，11:39停机处理中，已调员工支援。内部打磨/H工序/Rework F系列定子。",
       "plan": 141,
       "actual": 13,
       "impact": -128,
@@ -106,7 +106,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "14:00-14:50",
       "problem_th": ": Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator",
-      "problem_zh": "Insert M Coil工位焊丝断裂，11:39停机维修中，已调员工协助处理内部打磨/H工序/定子返工。",
+      "problem_zh": "Insert M Coil工序断线，11:39停机处理中，已调员工协助清理内部 / H线 / 定子返工。",
       "plan": 116,
       "actual": 0,
       "impact": -116,
@@ -119,7 +119,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "15:00-16:00",
       "problem_th": ": Insert M Coil ทำลวดขาด หยุด 11:39-16:18 เปิดSlot-เพรส M coil ยกลงรถ นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator FG=505",
-      "problem_zh": "Insert M Coil工序焊丝断裂，停机11:39-16:18。开启Slot-冲压M线圈下线装车，调员工支援内部打磨/H线/Rework定子成品，FG=505。",
+      "problem_zh": "Insert M Coil工序焊丝断裂，停机11:39-16:18。开启Slot-压机M coil工位，将工件吊下小车，调派人员支援内部打磨/H工序/Rework定子FG=505返工。",
       "plan": 141,
       "actual": 0,
       "impact": -141,
@@ -132,7 +132,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "พนักงานไม่มาทำงาน 4 คน -10 stopper จุดเช็คเก้ไม่ทำงาน -15 PE แก้ไขแล้ว เครื่องเช็ค KV Alarm - 25 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "缺勤4人 -10 stopper；检漏点不工作 -15 PE已修复；KV检测机报警 -25，将旧工件投入生产，跟进A线Final设备运行情况。",
+      "problem_zh": "缺勤4人 -10 stopper；检具点失效 -15 PE已修复；KV检测机报警 -25，将旧工件投入生产，跟进A线Final设备运行。",
       "plan": 431,
       "actual": 382,
       "impact": -49,
@@ -145,7 +145,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "เครื่องเช็ค KV Alarm - 17 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "KV检测机报警 - 17：将旧工件投入生产，需跟踪A线Final设备运行情况。",
+      "problem_zh": "KV检测机报警 - 17，旧工件混入生产，跟进A线Final设备运行情况。",
       "plan": 431,
       "actual": 414,
       "impact": -17,
@@ -171,7 +171,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "จากปัญหางาน Air gap ทำให้ต้องสลับเบรค -275 A Line Final",
-      "problem_zh": "Air gap问题导致需在-275 A线Final工位倒换刹车件。",
+      "problem_zh": "Air gap 作业问题导致 -275 A Line Final 需切换刹车。",
       "plan": 431,
       "actual": 156,
       "impact": -275,
@@ -184,7 +184,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "13:00-14:00",
       "problem_th": "เครื่องเช็ค KV Alarm A Line Final",
-      "problem_zh": "A线终检KV报警器报警。",
+      "problem_zh": "A线终检KV报警。",
       "plan": 431,
       "actual": 408,
       "impact": -23,
@@ -197,7 +197,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "14:00-15:00",
       "problem_th": "เครื่องเชื่อม Pipe สายไฟขาด PEแก้ไขแล้ว",
-      "problem_zh": "碰焊机电源线破损，PE线已修复。",
+      "problem_zh": "Pipe焊接机电线破损，PE已修复。",
       "plan": 431,
       "actual": 345,
       "impact": -86,
@@ -210,7 +210,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "08:00-09:00",
       "problem_th": "รองานจาก rotor line ผลกระทบจากงาน air gap line out",
-      "problem_zh": "等待rotor line来料，受air gap line停产影响。",
+      "problem_zh": "等待转子线来料，受气隙线停产影响。",
       "plan": 470,
       "actual": 426,
       "impact": -44,
@@ -262,7 +262,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "13:00-14:00",
       "problem_th": "รองานจาก rotor line ผลกระทบจาก เครื่องวาง MUF COVER A ไม่ตรง ทำให้งานขาดความต่อเนื่อง",
-      "problem_zh": "待料转子线，因MUF COVER A放置机定位不准导致断料，作业连续性受影响。",
+      "problem_zh": "待料于转子线，因MUF COVER A放置机定位不准，导致作业连续性中断。",
       "plan": 470,
       "actual": 444,
       "impact": -26,
@@ -297,11 +297,24 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-09-03",
       "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "16:00-17:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบต่อเนื่องจากเครื่อง TDC ไม่อ่านค่า",
+      "problem_zh": "等待转子线来料，受TDC设备读不到数值影响，造成后续工序中断。",
+      "plan": 470,
+      "actual": 445,
+      "impact": -25,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
-      "problem_zh": "销售打标机-30不工作（已修复）；兆欧表检测作业出现漏检，复检机-36频繁报警（已通知QA待查）。",
+      "problem_zh": "销售打标机-30号机不工作（已修复）；兆欧表检测作业出现漏检，复检机-36号机频繁报警（已通知QA待查）。",
       "plan": 443,
       "actual": 377,
       "impact": -66,
@@ -327,7 +340,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "11:00-12:00",
       "problem_th": "งาน gap ยาก-40 งานมาไม่ต่อเนื่อง ตู้ coolling ทำงานติดขัด-70 (PE กำลังแก้ไข)",
-      "problem_zh": "作业gap难-40，来料不连续；冷却柜运行卡滞-70（PE正在处理中）。",
+      "problem_zh": "作业gap难-40，来料不连续；冷却柜运行卡滞-70（PE正在修复中）",
       "plan": 444,
       "actual": 334,
       "impact": -110,
@@ -340,7 +353,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "13:00-14:00",
       "problem_th": "ต่อเนื่องจาก ตู้ coolling ติดขัด ทำให้ stock ระหว่างไลน์หมด-40 งาน gap ยากงานออกไม่ต่อเนื่อง-70 (IP เข้าตรวจสอบหน้างานและPRO1 ส่งพนักงานมากระแทกยังไม่ดีขึ้น)",
-      "problem_zh": "冷却柜卡滞，导致线间库存耗尽-40件；作业间隙大，产出不连续-70件（IP已到现场检查，PRO1派员工敲击处理，仍未改善）。",
+      "problem_zh": "冷却柜卡滞，导致线间库存耗尽-40件，作业间隙难消除，产出不连续-70件（IP已到现场检查，PRO1派员工敲击处理，仍未改善）。",
       "plan": 444,
       "actual": 334,
       "impact": -110,
@@ -353,7 +366,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "14:00-15:00",
       "problem_th": "งาน gap ยากงานมาไม่ต่อเนื่อง-118 (เปลี่ยน ROTOR กล่องใหม่แล้วติด gap น้อยลง)",
-      "problem_zh": "作业间隙难调，来料不连续-118（已更换新ROTOR盒，但间隙仍偏小）",
+      "problem_zh": "作业间隙难调，来料不连续-118（已更换新ROTOR盒，间隙卡滞减少）",
       "plan": 444,
       "actual": 326,
       "impact": -118,
@@ -388,7 +401,7 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": [
     {
-      "name": "Insert M Coil工序焊丝断裂，停机11:39-16:18。开启Slot-冲压M线圈下线装车，调员工支援内部打磨/H线/Rework定子成品，FG=505。",
+      "name": "Insert M Coil工序焊丝断裂，停机11:39-16:18。开启Slot-压机M coil工位，将工件吊下小车，调派人员支援内部打磨/H工序/Rework定子FG=505返工。",
       "name_th": ": Insert M Coil ทำลวดขาด หยุด 11:39-16:18 เปิดSlot-เพรส M coil ยกลงรถ นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator FG=50",
       "lines": [
         "RPO1·F系列"
@@ -403,7 +416,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -420
     },
     {
-      "name": "Air gap问题导致需在-275 A线Final工位倒换刹车件。",
+      "name": "Air gap 作业问题导致 -275 A Line Final 需切换刹车。",
       "name_th": "จากปัญหางาน Air gap ทำให้ต้องสลับเบรค -275 A Line Final",
       "lines": [
         "PRO2·A"
@@ -416,7 +429,7 @@ window.__LIVE_DATA__ = {
       "total_impact": -371
     },
     {
-      "name": "作业间隙难调，来料不连续-118（已更换新ROTOR盒，但间隙仍偏小）",
+      "name": "作业间隙难调，来料不连续-118（已更换新ROTOR盒，间隙卡滞减少）",
       "name_th": "งาน gap ยากงานมาไม่ต่อเนื่อง-118 (เปลี่ยน ROTOR กล่องใหม่แล้วติด gap น้อยลง)",
       "lines": [
         "PRO2·C"
