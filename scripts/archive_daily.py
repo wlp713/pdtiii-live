@@ -28,10 +28,20 @@ DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json"
 BKK = ZoneInfo("Asia/Bangkok")
 KEEP_OLD_KEYS = ("eff", "first_hour", "problems", "attendance", "source")
 
-def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "gh-actions-archive"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.load(r)
+def fetch(url, tries=3):
+    """拉取带重试 (GH runner 偶发网络抖动自愈)"""
+    import time
+    last = None
+    for i in range(tries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "gh-actions-archive"})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.load(r)
+        except Exception as e:
+            last = e
+            if i < tries - 1:
+                time.sleep(5 * (i + 1))
+    raise last
 
 def normalize_hourly(h):
     """Firebase 连续 key 返回数组、稀疏 key 返回 dict → 统一为 线名→按 key 升序的数组"""
