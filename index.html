@@ -295,6 +295,18 @@
   }
   .btn:hover { background: rgba(88,166,255,.15); }
   .btn-sm { padding: 2px 8px; font-size: 10.5px; }
+  .ws-btns { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+  .ws-btn {
+    background: var(--panel2); color: var(--gray); border: 1px solid var(--border);
+    border-radius: 11px; padding: 1px 9px; font-size: 10.5px; cursor: pointer; white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s; line-height: 1.7;
+  }
+  .ws-btn:hover { background: rgba(88,166,255,.12); color: var(--blue); }
+  .ws-btn.on { background: rgba(88,166,255,.18); color: var(--blue); border-color: rgba(88,166,255,.6); font-weight: 700; }
+  .ws-btn:disabled { opacity: .38; cursor: not-allowed; }
+  .ws-btn .wc { opacity: .65; font-size: 9.5px; margin-left: 3px; }
+  .ws-sel-label { margin-left: 8px; font-size: 11px; color: var(--blue); font-weight: 700; letter-spacing: .3px; }
+  .ws-empty-hint { color: var(--gray); font-size: 11px; padding: 10px 4px; text-align: center; }
   .head-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; }
   .head-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
   .head-item .hn { flex: 1; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -520,8 +532,8 @@
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2 data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 点击列头排序</h2>
-      <button class="btn" id="otherBtn" data-i18n="otherLines">其他线体 (0)</button>
+      <h2><span data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 点击列头排序</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
+      <div class="ws-btns" id="wsBtns"></div>
     </div>
     <div class="table-scroll">
       <table id="mainTable">
@@ -639,27 +651,7 @@
   </div>
 </div>
 
-<!-- 其他线体模态 -->
-<div class="modal-overlay" id="otherModal">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modalTitle" data-i18n="otherLines">其他线体</h3>
-      <span class="hint" style="margin-left:10px" data-i18n="sortByUph">点击列头排序</span>
-      <button class="modal-close" id="modalClose">✕</button>
-    </div>
-    <div class="modal-body">
-      <table id="otherTable">
-        <thead>
-          <tr>
-            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="target" data-i18n="thTargetDay">目标/日</th><th data-sort="plan">Plan</th><th data-sort="actual">Actual</th>
-            <th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </div>
-</div>
+<!-- 2026-09-03: 其他线体弹窗已移除 — 改为标题栏 PRO1~PRO6 车间按钮, 点击后主表/人数表按车间过滤 -->
 
 <!-- 历史统计模态 -->
 <div class="modal-overlay" id="histModal">
@@ -782,7 +774,7 @@ const I18N = {
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
-    noData: "暂无数据", am: "上午", pm: "下午", setPeople: "设人数",
+    noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
     shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
     useHttp: "⚠️ 请用 http://localhost:8080 打开",
@@ -825,7 +817,7 @@ const I18N = {
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
     kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
-    noData: "No data", am: "AM", pm: "PM", setPeople: "Set HC",
+    noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
     shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
     useHttp: "⚠️ Open via http://localhost:8080",
@@ -894,6 +886,76 @@ function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, "");
 const FINAL_SET = new Set(["final a line", "final b line", "final c line", "final d line"].map(normName));
 const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"].map(normName));
 const MAIN_SET = new Set(MAIN_LINES.map(normName));
+
+// ★ 2026-09-03 车间分类: 34 条线上线体全部按车间分组 (与 9/2 定稿映射一致, 名称用线上实测名)
+//   Pro.1=6 Motor / Pro.2=13 Final+Inspection+Water+Rotor / Pro.3=5 Welding+Press / Pro.4=8 C-Shaft系 / Pro.5=2 Honing / Pro.6 空
+const WS_GROUPS = [
+  { ws: "PRO1", lines: ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
+  { ws: "PRO2", lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Inspection A", "Inspection B", "Inspection C", "Inspection D", "Water Line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
+  { ws: "PRO3", lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line", "Press C-Shaft"] },
+  { ws: "PRO4", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL"] },
+  { ws: "PRO5", lines: ["Piston honing FL", "Cylinder Honing"] },
+  { ws: "PRO6", lines: [] }
+];
+// 线体名(norm) → 车间; 供快速反查 (重复名以先出现车间为准, 不会重复定义)
+const LINE2WS = {};
+WS_GROUPS.forEach(g => g.lines.forEach(ln => { LINE2WS[normName(ln)] = g.ws; }));
+// 当前选中车间; null = 默认(主要线体视图)
+let wsSel = null;
+function wsGroupOf(l) { return LINE2WS[normName(l && l.name)] || null; }
+function wsLinesOf(ws) { return state.lines.filter(l => wsGroupOf(l) === ws); }
+// 车间视图总览: 主要 8 条 + 其余归到各车间; wsSel 为空 → 保持原"主要线体"面板
+function tableLinesOf() {
+  if (!wsSel) { const { main } = splitLines(); return main; }
+  return wsLinesOf(wsSel);
+}
+// ---- 车间按钮: 一次性构建(避免周期性重建闪烁), 每次数据刷新只更新计数/高亮 ----
+function buildWsBtns() {
+  const box = document.getElementById("wsBtns");
+  if (!box || box.dataset.built) return;
+  box.dataset.built = "1";
+  WS_GROUPS.forEach(g => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "ws-btn";
+    b.dataset.ws = g.ws;
+    b.innerHTML = g.ws + ' <span class="wc">0</span>';
+    b.addEventListener("click", function () {
+      // 再点当前车间 → 取消回到默认(主要线体)
+      wsSel = (wsSel === g.ws) ? null : g.ws;
+      renderAll();
+    });
+    box.appendChild(b);
+  });
+  updateWsBtns();
+}
+function updateWsBtns() {
+  const box = document.getElementById("wsBtns");
+  if (!box) return;
+  // 计数 = 当前云端实际存在的该车间线体数 (wsSel 空时主视图只显示 8 条主线, 但车间仍可切换)
+  const alive = {};
+  state.lines.forEach(l => {
+    const ws = wsGroupOf(l);
+    if (ws) alive[ws] = (alive[ws] || 0) + 1;
+  });
+  box.querySelectorAll(".ws-btn").forEach(b => {
+    const ws = b.dataset.ws;
+    const n = alive[ws] || 0;
+    b.querySelector(".wc").textContent = n;
+    b.classList.toggle("on", wsSel === ws);
+    b.disabled = n === 0;   // PRO6 等无线体车间禁用
+  });
+  // 标题标签: 选中车间时补充显示
+  const lab = document.getElementById("wsSelLabel");
+  if (lab) {
+    if (wsSel) {
+      const n = alive[wsSel] || 0;
+      lab.textContent = " · " + wsSel + " (" + n + ")";
+    } else {
+      lab.textContent = "";
+    }
+  }
+}
 
 const state = { lines: [], updatedAt: null, hourly: {} };
 
@@ -1012,15 +1074,20 @@ function hbarHtml(l, maxV) {
 
 function renderTable() {
   const now = new Date(); // ★ v5.17.2 修复: uphTxt(l, now) 需要 now — 之前未定义导致渲染抛错, 误报"连接失败"
+  // ★ 2026-09-03: 车间过滤 — 选中车间(wsSel)时只显示该车间线体; 默认=主要线体视图
   const { main, other } = splitLines();
-  // ★ 表格按用户所选列排序(副本), 图表仍用 splitLines 的 UPH 顺序
-  const mainSorted = sortLines(main);
-  const otherSorted = sortLines(other);
+  const viewSrc = wsSel ? wsLinesOf(wsSel) : main;
+  const view = sortLines(viewSrc);
   // 全表最大产量用于条宽比例
-  const maxV = Math.max(1, ...mainSorted.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  const maxV = Math.max(1, ...view.map(l => Math.max(l.actual || 0, l.plan || 0)));
   const tb = document.querySelector("#mainTable tbody");
   tb.innerHTML = "";
-  mainSorted.forEach((l, idx) => {
+  if (!view.length) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = '<td colspan="8" class="ws-empty-hint">' + (wsSel ? wsSel + " " + t("wsEmpty") : t("noData")) + "</td>";
+    tb.appendChild(tr);
+  }
+  view.forEach((l, idx) => {
     const tr = document.createElement("tr");
     const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
     if (isPlannedOff(l)) tr.className = "planned-off";
@@ -1038,27 +1105,8 @@ function renderTable() {
       `<td class="uph-cell">${uphTxt(l, now)}</td>`;
     tb.appendChild(tr);
   });
-  const otb = document.querySelector("#otherTable tbody");
-  otb.innerHTML = "";
-  otherSorted.forEach((l, idx) => {
-    const tr = document.createElement("tr");
-    const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-    if (isPlannedOff(l)) tr.className = "planned-off";
-    else if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
-    else if (miss) tr.className = "miss";
-    const dot = isPlannedOff(l) ? '<span class="stall-dot"></span>' : (isStalled(l) ? '<span class="stall-dot"></span>' : "");
-    tr.innerHTML =
-      `<td class="rank">${idx + 1}</td>` +
-      `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
-      `<td>${fmt(l.target)}</td>` +
-      `<td>${fmt(l.plan)}</td>` +
-      `<td>${fmt(l.actual)}</td>` +
-      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
-      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>`;
-    otb.appendChild(tr);
-  });
-  document.getElementById("otherBtn").textContent = t("otherLinesFmt").replace("{n}", other.length);
-  document.getElementById("modalTitle").textContent = t("otherLinesFmt").replace("{n}", other.length);
+  // 车间按钮计数/高亮随每次数据渲染同步 (渲染可能晚于 state.lines 更新)
+  if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
   return { main, other };
 }
 
@@ -1923,9 +1971,17 @@ function drawEff(main) {
 function openHeadModal() {
   const grid = document.getElementById("headGrid");
   grid.innerHTML = "";
+  // ★ 2026-09-03: 车间视图下只编辑当前车间线体; 未选车间=全部
+  const pool = wsSel ? wsLinesOf(wsSel) : state.lines;
   const names = [];
-  state.lines.forEach(l => { if (!names.includes(l.name)) names.push(l.name); });
+  pool.forEach(l => { if (!names.includes(l.name)) names.push(l.name); });
   names.sort();
+  if (!names.length) {
+    const p = document.createElement("p");
+    p.className = "ws-empty-hint";
+    p.textContent = wsSel ? (wsSel + " " + t("wsEmpty")) : t("noData");
+    grid.appendChild(p);
+  }
   names.forEach(name => {
     const item = document.createElement("div");
     item.className = "head-item";
@@ -2508,10 +2564,6 @@ function mkAvg(agg) { return wkAvg(agg); }
 
 // 模态开关
 (function initModal() {
-  const overlay = document.getElementById("otherModal");
-  document.getElementById("otherBtn").addEventListener("click", () => overlay.classList.add("open"));
-  document.getElementById("modalClose").addEventListener("click", () => overlay.classList.remove("open"));
-  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
   // 历史统计弹窗
   const hmod = document.getElementById("histModal");
   const hbtn = document.getElementById("histBtn");
@@ -2537,6 +2589,7 @@ function mkAvg(agg) { return wkAvg(agg); }
     segT.addEventListener("change", toggleSeg);
   }
   setupSort();   // 列头点击排序
+  buildWsBtns(); // 2026-09-03: 车间分组按钮 (PRO1~PRO6, 静态构建一次)
 })();
 
 initNotif();
