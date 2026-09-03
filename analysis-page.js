@@ -387,9 +387,9 @@
 "#fillPanel.open #fillHead{border-bottom-color:var(--ana-border)}",
 "#fillPanel #fillHead h3{color:var(--ana-text-muted);font-size:13px}",
 "#fillPanel #fillBody{padding:4px 14px 14px;flex:1}",
-"#fillPanel .table-scroll{flex:1;border:1px solid var(--ana-border);border-radius:var(--ana-radius-sm)}",
-"#fillPanel #anaTable{min-width:0;table-layout:fixed}",
-"#fillPanel input.hc{width:56px;height:28px;background:var(--ana-surface-2);border-color:var(--ana-border-strong)}",
+"#anaTblCard .table-scroll{margin:0 auto 14px;max-width:1120px;border:1px solid var(--ana-border);border-radius:var(--ana-radius-sm)}",
+"#anaTblCard #anaTable{min-width:0;table-layout:fixed}",
+"#anaTblCard input.hc{width:64px;height:30px;background:var(--ana-surface-2);border-color:var(--ana-border-strong)}",
 /* 口径说明: 可折叠 details */
 "#anaRoot .footnote{display:block;margin:4px 0 0;padding:0;border:1px solid var(--ana-border);border-radius:var(--ana-radius-md);background:var(--ana-surface);font-size:12px;line-height:1.85;color:var(--ana-text-dim)}",
 "#anaRoot .footnote summary{cursor:pointer;user-select:none;padding:11px 16px;color:var(--ana-text-muted);font-weight:700;font-size:12.5px;letter-spacing:.3px;display:flex;align-items:center;gap:8px;list-style:none}",
@@ -464,7 +464,7 @@
 "#anaRoot .footnote summary{color:#475569}",
 "#anaRoot .footnote .fn-body{color:#64748b;background:#f8fafc;border-radius:0 0 10px 10px}",
 "#anaRoot .footnote b{color:#334155}",
-"#fillPanel .table-scroll{border:1px solid #e5eaf1;background:#f8fafc;border-radius:10px;overflow-x:hidden}",
+"#anaTblCard .table-scroll{border:1px solid #e5eaf1;background:#f8fafc;border-radius:12px;overflow-x:auto}",
 "#anaTable th{color:#64748b;background:#f1f5f9;border-bottom:1px solid #e2e8f0}",
 "#anaTable thead tr:first-child th{background:#f1f5f9;color:#475569;border-bottom:1px solid #e2e8f0}",
 "#anaTable td{border-bottom:1px solid #eef2f7;color:#334155}",
@@ -538,6 +538,21 @@
 "#anaRoot .ic{background:#fff;border-color:#e2e8f0;color:#64748b}",
 "#anaRoot .ic:hover{background:#eff6ff}",
 "#anaRoot .tt{color:#94a3b8}",
+"#anaTblCard h3 .note{margin-left:auto;font-size:11px;color:#94a3b8;font-weight:500;letter-spacing:.2px}",
+"#anaTblCard #anaTable th,#anaTblCard #anaTable td{white-space:nowrap}",
+"#fillPanel .fill-ot .fh3{display:flex;justify-content:flex-end;gap:14px;align-items:center;font-size:11px;font-weight:600;color:#64748b;padding:6px 2px 10px}",
+"#vsBand .vs-side .lb{font-size:15px;font-weight:800;color:#0f172a;letter-spacing:.4px;gap:10px}",
+"#vsBand .vs-side .lb .tag{font-size:11px;font-weight:700;padding:3px 11px;background:rgba(37,99,235,.12);color:#1d4ed8;border-radius:20px;letter-spacing:.3px}",
+"#vsBand .vs-side.ot .lb .tag{background:rgba(217,119,6,.13);color:#b45309}",
+"#vsBand .vs-side .num{font-size:40px;font-weight:900;color:#0f172a;letter-spacing:.6px}",
+"#vsBand .vs-side .num small{font-size:13px;font-weight:700;color:#64748b}",
+"#vsBand .vs-side .sb{font-size:11.5px;color:#64748b}",
+"#vsBand .vs-side .sb b{color:#334155;font-weight:800}",
+"#vsBand .vs-side{padding:18px 26px 17px}",
+"#vsBand .vs-side:first-child{background:linear-gradient(180deg,rgba(37,99,235,.05),rgba(37,99,235,0) 85%)}",
+"#vsBand .vs-side.ot{background:linear-gradient(180deg,rgba(217,119,6,.05),rgba(217,119,6,0) 85%)}",
+"#vsBand .vs-mid .vsw{font-size:11px;color:#475569}",
+"#diffChip{font-size:14px;padding:8px 18px}",
 "@keyframes tagPulse{0%,100%{opacity:.55}50%{opacity:1}}"
   ].join("\n");
 
@@ -583,11 +598,14 @@
     '<span class="hint-r"><span class="lg"><i style="background:#2563eb"></i>正常产出</span><span class="lg"><i style="background:#d97706"></i>加班产出</span></span></h3>' +
     '<canvas id="cvTrend"></canvas><div class="empty-tip" id="trendEmpty" style="display:none"></div></div>' +
     /* ── 填报面板: 加班人力图 + 人数提报表 (右栏) ── */
-    '<div id="fillPanel" class="open"><div id="fillHead"><div class="ch"></div><h3>人员投入 · 人数填报</h3><span class="note" id="fillNote"></span></div>' +
-    '<div id="fillBody"><div class="fill-ot"><div class="fh3"><span class="pl" style="background:#2563eb"></span>班次人数对比<span class="lg"><i style="background:#2563eb"></i>正常人数</span><span class="lg"><i style="background:#d97706"></i>加班人数</span></div>' +
-    '<canvas id="cvOt"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 — 点击在下方表格填入, 或待自动化数据源接入</div></div>' +
-    '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div></div></div>' +
+    '<div id="fillPanel" class="open"><div id="fillHead"><div class="ch"></div><h3>班次人数对比</h3></div>' +
+    '<div id="fillBody"><div class="fill-ot"><div class="fh3"><span class="lg"><i style="background:#2563eb"></i>正常人数</span><span class="lg"><i style="background:#d97706"></i>加班人数</span></div>' +
+    '<canvas id="cvOt"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 — 点击下方填报表格填入</div></div>' +
+    '</div></div>' +
     "</div>" +
+    /* ── v12: 人数填报明细表 (独立全宽模块, 独占一行) ── */
+    '<div class="card" id="anaTblCard"><h3><span class="pl" style="background:#7c3aed"></span>人数填报 · 车间产出明细<span class="note" id="fillNote"></span></h3>' +
+    '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div></div>' +
     /* ── 口径说明 (Codex UI §5.7: 可折叠, 默认收起) ── */
     '<details class="footnote"><summary>数据口径说明</summary><div class="fn-body">白班正常 ≤17:20、白班加班 17:20–20:20；夜班正常 20:30–5:50、夜班加班 5:50–7:50。<b>正常人均小时效率 = 正常产出 ÷ 正常出勤人数 ÷ 8h</b>；<b>白班加班效率 = 加班产出 ÷ 加班人数 ÷ 3h</b>；<b>夜班加班效率 = 加班产出 ÷ 加班人数 ÷ 2h</b>。加班效率达成 = 加班效率 ÷ 正常效率。人数在本页按车间填报，保存到云端并通过实时流/轮询同步到其他设备。数据10分钟一档，历史数据按现有归档机制读取。</div></details>' +
     "</div>";
@@ -612,7 +630,7 @@
 
   root.querySelector("#anaBack").onclick = function () { closeHCStream(); root.remove(); };
   fillPanel.querySelector("#fillHead").onclick = function () { fillPanel.classList.toggle("open"); if (fillPanel.classList.contains("open")) drawOt(); };
-  otEmpty.onclick = function () { fillPanel.classList.add("open"); fillPanel.scrollIntoView({ behavior: "smooth", block: "start" }); drawOt(); };
+  otEmpty.onclick = function () { var tc = root.querySelector("#anaTblCard"); if (tc) tc.scrollIntoView({ behavior: "smooth", block: "start" }); drawOt(); };
   /* v7: 手风琴展开委托(容器常驻, 只绑一次) */
   detailList.addEventListener("click", function (e) {
     var r = e.target.closest(".wsrow"); if (!r) return;
@@ -1241,7 +1259,7 @@
       var ctx = cv.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      var padL = 46, padR = 14, padT = 20, padB = 26;
+      var padL = 46, padR = 14, padT = 26, padB = 26;
       var n = cfg.labels.length;
       var allV = cfg.s1.concat(cfg.s2).filter(function (v) { return v !== null && v !== undefined; });
       var maxV = allV.length ? Math.max.apply(null, allV) : 1;
@@ -1257,6 +1275,14 @@
       }
       var group = cw / n;
       var bw = Math.max(26, Math.min(54, group * 0.3));
+      /* v12: 柱顶数值标签 (成对柱向外分列避免重叠; 矮柱不标) */
+      function barLbl(v, cx, cy, col, al) {
+        if (v === null || v === undefined) return;
+        ctx.font = "700 8.5px 'Segoe UI',sans-serif";
+        ctx.textAlign = al || "center";
+        ctx.fillStyle = col;
+        ctx.fillText(cfg.int ? fmt(v) : String(Math.round(v)), cx, cy);
+      }
       var has2 = cfg.s2 && cfg.s2.some(function (v) { return v !== null && v !== undefined; });
       var hitRects = [];
       cfg.labels.forEach(function (lb, i) {
@@ -1268,6 +1294,7 @@
           if (h1 > 0.5) {
             var x1 = has2 ? gx - bw - 2 : gx - bw / 2;
             barFill(ctx, x1, base - h1, bw, h1, cfg.s1c, 3);
+            barLbl(cfg.s1[i], has2 ? gx - bw / 2 - 1 : gx, base - h1 - 6, cfg.s1c, has2 ? "right" : "center");
             hitRects.push([x1, base - h1, bw, h1, lb, cfg.lg1 + "  " + (cfg.int ? fmt(cfg.s1[i]) : Math.round(cfg.s1[i]))]);
           }
         }
@@ -1276,6 +1303,7 @@
           if (h2 > 0.5) {
             var x2 = has2 ? gx + 2 : gx - bw / 2;
             barFill(ctx, x2, base - h2, bw, h2, cfg.s2c, 3);
+            barLbl(cfg.s2[i], has2 ? gx + bw / 2 + 1 : gx, base - h2 - 6, cfg.s2c, has2 ? "left" : "center");
             hitRects.push([x2, base - h2, bw, h2, lb, cfg.lg2 + "  " + (cfg.int ? fmt(cfg.s2[i]) : Math.round(cfg.s2[i]))]);
           }
         }
@@ -1336,7 +1364,7 @@
       return;
     }
     var list = tr.filter(function (x) { return x.dN > 0 || x.dO > 0; }).slice(-state.win);
-    var padL = 46, padR = 14, padT = 18, padB = 28;
+    var padL = 46, padR = 14, padT = 24, padB = 28;
     var cw = W - padL - padR, ch = H - padT - padB;
     var allV = [];
     list.forEach(function (x) { allV.push(x.dN, x.dO); });
@@ -1350,7 +1378,8 @@
       ctx.fillText(fmt(maxV * i / 4), padL - 8, y + 3);
     }
     var X = function (i) { return list.length === 1 ? padL + cw / 2 : padL + cw * i / (list.length - 1); };
-    function series(key, color) {
+    var step = Math.max(1, Math.ceil(list.length / 8));
+    function series(key, color, dir) {
       var vals = list.map(function (x) { return x[key] || 0; });
       /* 线下渐变面积 */
       var ag = ctx.createLinearGradient(0, padT, 0, padT + ch);
@@ -1381,12 +1410,23 @@
         ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.4;
         ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.stroke();
+        /* v12: 数值标签, 与日期标签同抽稀节奏; 正常上/加班下, 白描边防重叠 */
+        if (i % step === 0 || i === vals.length - 1) {
+          var lbTxt = fmt(v);
+          var lbY = dir < 0 ? y - 8 : y + 15;
+          if (lbY < 10) lbY = y + 15; else if (lbY > H - 9) lbY = y - 8;
+          ctx.font = "600 8.5px 'Segoe UI',sans-serif";
+          ctx.textAlign = "center";
+          ctx.lineWidth = 3; ctx.strokeStyle = "rgba(255,255,255,.9)";
+          ctx.strokeText(lbTxt, x, lbY);
+          ctx.fillStyle = color;
+          ctx.fillText(lbTxt, x, lbY);
+        }
       });
     }
-    series("dN", "#2563eb");
-    series("dO", "#d97706");
+    series("dN", "#2563eb", -1);
+    series("dO", "#d97706", 1);
     ctx.fillStyle = "#64748b"; ctx.textAlign = "center"; ctx.font = "10px 'Segoe UI',sans-serif";
-    var step = Math.max(1, Math.ceil(list.length / 8));
     list.forEach(function (x, i) {
       if (i % step !== 0 && i !== list.length - 1) return;
       ctx.fillText(x.d.substring(5), X(i), H - 11);
