@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 11:50:06
+   最后写入: 2026-09-03 12:40:11
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -28,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "พนักงานไม่มาทำงาน 4 คน -10 stopper จุดเช็คเก้ไม่ทำงาน -15 PE แก้ไขแล้ว เครื่องเช็ค KV Alarm - 25 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "缺勤4人 -10 stopper；检具点检未执行 -15 PE已修复；KV检测机报警 -25 将旧工件投入生产，跟进A线Final设备运行情况。",
+      "problem_zh": "缺勤4人 -10 stopper；检具点失效 -15 PE已修复；KV检测机报警 -25，已改用旧工件投产，跟进A线Final设备运行。",
       "plan": 431,
       "actual": 382,
       "impact": -49,
@@ -41,7 +41,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "เครื่องเช็ค KV Alarm - 17 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง",
-      "problem_zh": "KV检测机报警 - 17号机混入旧工件生产，需跟踪设备运行状态。",
+      "problem_zh": "KV检测机报警 - 17号线将旧工件投入生产，需跟踪设备运行状态。",
       "plan": 431,
       "actual": 414,
       "impact": -17,
@@ -80,7 +80,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
-      "problem_zh": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设定设备参数。",
+      "problem_zh": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
       "plan": 390,
       "actual": 261,
       "impact": -129,
@@ -93,7 +93,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·C",
       "time": "08:00-09:00",
       "problem_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
-      "problem_zh": "1. 打标机SALES不工作-30号机（已修复），工件需做兆欧表绝缘电阻检测。\n2. 复检机频繁报警-36号机（已通知QA，待检查确认）。",
+      "problem_zh": "1. 打标机SALES不工作-30（已修复），工件兆欧表检测读不到数值。\n2. 复检机频繁报警-36（已通知QA，待检查）。",
       "plan": 443,
       "actual": 377,
       "impact": -66,
@@ -111,11 +111,24 @@ window.__LIVE_DATA__ = {
       "actual": 306,
       "impact": -73,
       "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "11:00-12:00",
+      "problem_th": "งาน gap ยาก-40 งานมาไม่ต่อเนื่อง ตู้ coolling ทำงานติดขัด-70 (PE กำลังแก้ไข)",
+      "problem_zh": "作业gap难-40，来料不连续；冷却柜运行卡滞-70（PE正在处理中）。",
+      "plan": 444,
+      "actual": 334,
+      "impact": -110,
+      "shift": "day"
     }
   ],
   "problems_top": [
     {
-      "name": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设定设备参数。",
+      "name": "气隙线超出（-39），DV泄漏线超出（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
       "name_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
       "lines": [
         "PRO2·B"
@@ -125,6 +138,18 @@ window.__LIVE_DATA__ = {
       ],
       "count": 1,
       "total_impact": -129
+    },
+    {
+      "name": "作业gap难-40，来料不连续；冷却柜运行卡滞-70（PE正在处理中）。",
+      "name_th": "งาน gap ยาก-40 งานมาไม่ต่อเนื่อง ตู้ coolling ทำงานติดขัด-70 (PE กำลังแก้ไข)",
+      "lines": [
+        "PRO2·C"
+      ],
+      "times": [
+        "11:00-12:00"
+      ],
+      "count": 1,
+      "total_impact": -110
     },
     {
       "name": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
@@ -137,18 +162,6 @@ window.__LIVE_DATA__ = {
       ],
       "count": 1,
       "total_impact": -87
-    },
-    {
-      "name": "更换型号1次，从A系列改为E系列。",
-      "name_th": "เปลี่ยนรุ่น1ครั้ง จาก A series > E SERIES",
-      "lines": [
-        "PRO2·C"
-      ],
-      "times": [
-        "10:00-11:00"
-      ],
-      "count": 1,
-      "total_impact": -73
     }
   ],
   "first_hour": [
