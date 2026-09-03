@@ -1527,19 +1527,10 @@ function sampDay(ts) {
 //   把 t 换算回真实日历时间 (如 t=1290 → 昨天21:30; t=1470 → 今天00:30), 采样按班次日过滤天然正确
 function valueAt(name, t, usePlan, dayOff) {
   const day0 = bkkDay0(); // ★ v5.42 泰国当天 0 点(真实时间戳)
-  const tMs = day0 + (t + (dayOff || 0) * 1440) * 60000;
-  const store = loadSamps();
-  const arr = store[name] || [];
-  let best = null;
-  const qDay = sampDay(tMs); // 查询时刻的班次日
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i].ts > tMs) break;
-    if (sampDay(arr[i].ts) !== qDay) continue; // ★ 只取同班次日的采样, 昨天的数据不污染今天
-    // 采样含 actual(a) 和 plan(p); 旧采样(无 p) 在要 plan 时跳过, 避免用 actual 冒充 plan
-    if (usePlan) { if (arr[i].p != null) best = arr[i].p; }
-    else best = arr[i].a;
-  }
-  if (best != null) return best;
+  // ★ 2026-09-03 v6.3 去浏览器依赖: 旧版第一优先读 localStorage 采样(sampStore),
+  //   而采样是各浏览器自己 refresh 时攒的(开得久/后台挂起/刚打开 → 采样集完全不同),
+  //   同一份 Firebase 数据会被不同浏览器差分出不同的段值/段数 → 小时图"人人不一样"。
+  //   修复: 段计算一律只认 state.hourly(Firebase 快照桶, 全浏览器同一份), 不再读采样。
   const snaps = (state.hourly || {})[name] || [];
   if (snaps.length) {
     const pts = [];
@@ -1572,8 +1563,11 @@ function valueAt(name, t, usePlan, dayOff) {
       return Math.max(0, hi.v - (hi.m - tAbs) * slope);
     }
   }
-  const ln = state.lines.find(x => x.name === name) || {};
-  return usePlan ? (Number(ln.plan) || 0) : (Number(ln.actual) || 0);
+  // ★ 2026-09-03 v6.3: 无 hourly 桶时返回 0(不拿 lines 整日值冒充)。
+  //   旧版兜底 state.lines 整日 plan/actual 是首帧竞态"单柱/矮柱/总挂顶"的另一来源:
+  //   某线 hourly 未就绪时会把整日累计当该时刻值 → 差分失真。统一返回 0,
+  //   由 drawBar 的 loading 守卫/纯色柱兜底处理, 保证全浏览器一致。
+  return 0;
 }
 // ★ 统一骨架: 每段同时含 actual(该时段实际产量) 与 plan(该时段目标)
 //   plan/actual 均来自 hourly 快照的定格累计值差分 → 时段一过即定格, 不再随实时数据变化
@@ -2200,7 +2194,9 @@ async function refresh() {
     state.hourly = d.hourly || {};
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
     state.updatedAt = d.updatedAt || null;
-    sampleNow(); // ★ 2026-08-28 班次时段采样: 每60秒/线记一次实际累计 → 时段边界产量越算越准
+    // ★ 2026-09-03 v6.3: 停用 sampleNow 本地采样 — 段计算已不读它(见 valueAt)。
+    //   每个浏览器各自攒采样 → 同一 Firebase 数据不同浏览器差分出不同段值, 正是"小时图依赖浏览器"的根源。
+    // sampleNow();
     maybeSnapFirstHour(); // ★ v5.29 首小时快照自动定格: 首小时结束后记当天该班次达成率(幂等)
     // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
     //   ⚠️ data.json 的 updatedAt 是字符串 "YYYY-MM-DD HH:MM:SS", 必须先转时间戳再相减
