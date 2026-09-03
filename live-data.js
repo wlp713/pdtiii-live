@@ -3,11 +3,24 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 09:30:00
+   最后写入: 2026-09-03 10:00:05
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "08:00-09:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบจากงาน air gap line out",
+      "problem_zh": "等待转子线来料，受气隙线停产影响。",
+      "plan": 470,
+      "actual": 426,
+      "impact": -44,
+      "shift": "day"
+    },
     {
       "date": "2026-09-03",
       "ws": "PRO2",
@@ -22,7 +35,32 @@ window.__LIVE_DATA__ = {
       "shift": "day"
     }
   ],
-  "problems_top": null,
+  "problems_top": [
+    {
+      "name": "销售打标机-30号机不工作（已修复）；兆欧表检测作业出现不良，复检机-36号机频繁报警（已通知QA待查）。",
+      "name_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
+      "lines": [
+        "PRO2·C"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -66
+    },
+    {
+      "name": "等待转子线来料，受气隙线停产影响。",
+      "name_th": "รองานจาก rotor line ผลกระทบจากงาน air gap line out",
+      "lines": [
+        "PRO2·B"
+      ],
+      "times": [
+        "08:00-09:00"
+      ],
+      "count": 1,
+      "total_impact": -44
+    }
+  ],
   "first_hour": [
     {
       "date": "2026-09-03",
@@ -41,6 +79,24 @@ window.__LIVE_DATA__ = {
       "target": 169,
       "actual": 192,
       "rate": 113.6
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "WL系列",
+      "line": "RPO1·WL系列",
+      "target": 150,
+      "actual": 183,
+      "rate": 122.0
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 426,
+      "rate": 90.6
     },
     {
       "date": "2026-09-03",
@@ -379,6 +435,8 @@ window.__HISTORY__ = [
     "first_hour": {
       "RPO1·H系列": 111.3,
       "RPO1·S系列": 113.6,
+      "RPO1·WL系列": 122.0,
+      "PRO2·B": 90.6,
       "PRO2·C": 85.1
     }
   }
