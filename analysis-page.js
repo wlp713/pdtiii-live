@@ -1,20 +1,21 @@
 /* ============================================================
- * 车间产出分析页 v5 — 效率仪表盘 (独立模块, 零侵入主看板)
- * 叙事主线: 「加班到底值不值」 → 正常时段效率 vs 加班时段效率
+ * 车间产出分析页 v6 — 效率仪表盘 (独立模块, 零侵入主看板)
+ * 叙事主线: 「加班到底值不值」 → 同批加班线自己的 加班效率 vs 正常时段效率
  *
  * 口径(用户 2026-09-02 确认):
  *   白班 8:00–20:20 | 正常 ≤17:20 | 加班 17:20–20:20 (净3.0h)
  *   夜班 20:30–次日8:00 | 正常 20:30–5:50(净8.17h) | 加班 5:50–7:50(净2.0h)
  *   白班正常净时 7.67h(8:00–17:20 扣 4 段休 100min)
- *   UPH(线·小时) = 车间/全厂该窗产出 ÷ (当日有数据线数 × 窗净时)
- *      → 不依赖人数也能比效率; 提报人数后另算人均
- *   人数: 车间级 4 字段(白正常/白OT/夜正常/夜OT) → analysis/hc/{date}.json
- *     待接自动化数据源(用户提供路径后写提取脚本 → 自动 PUT)
+ *   v6 公平对比口径: 全厂混合 UPH 无意义(有的线不加班/产品节拍不同会稀释)
+ *     → 加班侧分母只计「实际加班的同批线」(dOtL/nOtL), 并与其自身正常段效率比
+ *   v6 卡3: 废弃"加班占比=OT/(正常+OT)"(3h窗 vs 7.67h窗 不可比)
+ *     → 改看 ①正常时段计划达成率(actual/plan, plan 与 actual 同构当班累计)
+ *       ②加班增量件数 → 判断加班是"补缺"还是"冲超产"
+ *   人数: 车间级 4 字段 → analysis/hc/{date}.json (待接自动化数据源)
  *
+ * 2026-09-03 v5.45: 归档改云端 GitHub Actions 每日 20:40(泰)拉全量 → history/
+ *   含完整白班OT + 前夜班(actual 跨 0 点不清零, 凌晨累计含前晚, 一夜=一整段)
  * 2026-09-02 v5: 仪表盘化重设计(首屏 KPI 对比带 + 4 卡 + 底部折叠填报)
- *   删除 v4: 车间 tag 小字 / 条形图下说明小字 / 线级明细展开 / 灰字注释
- *   新增: vs 对比带(白/夜 tab)、车间效率对比柱图、加班人力柱图(双班)、
- *         加班依赖度条、趋势折线(读 history/ 每日归档, 近7/14/30天)
  * ============================================================ */
 (function () {
   "use strict";
@@ -70,7 +71,7 @@
       pts.push({ m: m, a: Number(p.actual) || 0, p: Number(p.plan) || 0 });
     });
     pts.sort(function (x, y) { return x.m - y.m; });
-    var res = { dayNorm: 0, dayOt: 0, nLive: 0, nNorm: 0, nOt: 0, hasDay: false, hasNight: false };
+    var res = { dayNorm: 0, dayOt: 0, nLive: 0, nNorm: 0, nOt: 0, planN: 0, hasDay: false, hasNight: false };
     var dp = pts.filter(function (x) { return x.m >= DAY_START && x.m <= DAY_END; });
     if (dp.length) {
       res.hasDay = true;
@@ -79,6 +80,8 @@
       var normA = cut ? cut.a : 0;
       var totalA = dp[dp.length - 1].a;
       res.dayNorm = normA; res.dayOt = Math.max(0, totalA - normA);
+      /* 白班正常窗口末点的当班计划累计(= 计划增量; plan 与 actual 同构, 8:00 清零) */
+      res.planN = cut ? cut.p : 0;
     }
     /* 今晚 20:30 起实时段(累计到最新快照) */
     var np = pts.filter(function (x) { return x.m >= NIGHT_START; });
@@ -96,10 +99,15 @@
     return res;
   }
 
-  /* 车间聚合 (dayL/nightL = 当日该车间有 白/夜 数据的线数, 作 UPH 分母) */
+  /* 车间聚合。字段: dN/dO=白班正常/OT产出, nL/nN/nO=夜班实时/凌晨正常/凌晨OT,
+     planN=白班正常段计划累计; dOtL/dOtN=实际加班线数 & 这些线自己的正常产出(同集对比用),
+     nOtL/nOtN=凌晨OT线数 & 这些线自己的整夜正常产出 */
   function aggWs(wsMap) {
-    var out = {}, tot = { dN: 0, dO: 0, nL: 0, nN: 0, nO: 0, dayL: 0, nightL: 0, lines: 0 };
-    WS_MAP.forEach(function (g) { out[g.ws] = { dN: 0, dO: 0, nL: 0, nN: 0, nO: 0, dayL: 0, nightL: 0, lines: 0 }; });
+    function zero() {
+      return { dN: 0, dO: 0, nL: 0, nN: 0, nO: 0, dayL: 0, nightL: 0, lines: 0, dOtL: 0, dOtN: 0, nOtL: 0, nOtN: 0, planN: 0 };
+    }
+    var out = {}, tot = zero();
+    WS_MAP.forEach(function (g) { out[g.ws] = zero(); });
     Object.keys(wsMap).forEach(function (rawName) {
       var std = NORM2WS[normN(rawName)];
       if (!std) return;
@@ -107,24 +115,46 @@
       var s = aggLine(wsMap[rawName]);
       var g = out[ws];
       g.dN += s.dayNorm; g.dO += s.dayOt; g.nL += s.nLive; g.nN += s.nNorm; g.nO += s.nOt;
+      g.planN += s.planN;
       g.lines++;
       if (s.hasDay) g.dayL++;
       if (s.hasNight) g.nightL++;
+      if (s.dayOt > 0) { g.dOtL++; g.dOtN += s.dayNorm; }        /* 这条线今晚加了班 → 计入同批线集 */
+      if (s.nOt > 0) { g.nOtL++; g.nOtN += s.nNorm; }           /* 这条线凌晨加了班 */
     });
     WS_MAP.forEach(function (g) {
       var a = out[g.ws];
       tot.dN += a.dN; tot.dO += a.dO; tot.nL += a.nL; tot.nN += a.nN; tot.nO += a.nO;
       tot.lines += a.lines; tot.dayL += a.dayL; tot.nightL += a.nightL;
+      tot.dOtL += a.dOtL; tot.dOtN += a.dOtN; tot.nOtL += a.nOtL; tot.nOtN += a.nOtN;
+      tot.planN += a.planN;
     });
     return { ws: out, tot: tot };
   }
 
-  /* UPH(线·小时) = 窗产出 ÷ (当日有数据线数 × 窗净时); null=无数据 */
-  function uphDayNorm(a) { return a.dayL ? a.dN / (a.dayL * NET.dN) : null; }
-  function uphDayOt(a) { return a.dayL ? a.dO / (a.dayL * NET.dO) : null; }
+  /* UPH(件/线·净时)。v6 公平口径: 加班效率只与「实际加班的同批线」比 ——
+     分母 = 加班线数(dOtL/nOtL), 不再用全厂/全车间所有白班线稀释(有的线不加班) */
+  /* 白班 8:00→m 已过净时(扣休息): 休息 10:00-10:10/12:00-13:00/15:00-15:10/17:00-17:20 */
+  function dayNetElapsed(m) {
+    if (m <= DAY_START) return null;
+    var rest = 0;
+    [[600, 610], [720, 780], [900, 910], [1020, 1040]].forEach(function (r) {
+      if (m > r[0]) rest += Math.min(m, r[1]) - r[0];
+    });
+    var e = (m - DAY_START - rest) / 60;
+    return e > 0.05 ? e : null;
+  }
+  function netOtH() { /* 白班OT已过净时: 历史/结束后=3h; 今天实时窗口内按已过净时渐进 */
+    if (state.date !== state.today) return NET.dO;
+    var m = nowMins();
+    if (m <= DAY_NORM_END) return null;              /* 还没到 OT 窗口(17:20) */
+    return Math.min(Math.max((m - DAY_NORM_END) / 60, 0.05), NET.dO);
+  }
+  function uphNormOt(a) { return a.dOtL ? a.dOtN / (a.dOtL * NET.dN) : null; }  /* 同批加班线: 白班正常段效率 */
+  function uphDayOt(a) { var h = netOtH(); return (a.dOtL && h) ? a.dO / (a.dOtL * h) : null; }
   function uphNightLive(a) { var h = nightNetNow(); return (h && a.nightL) ? a.nL / (a.nightL * h) : null; }
-  function uphNightNorm(a) { return a.nightL ? a.nN / (a.nightL * NET.nN) : null; }
-  function uphNightOt(a) { return a.nightL ? a.nO / (a.nightL * NET.nO) : null; }
+  function uphNightNormOt(a) { return a.nOtL ? a.nOtN / (a.nOtL * NET.nN) : null; } /* 同批凌晨OT线: 整夜正常段效率 */
+  function uphNightOt(a) { return a.nOtL ? a.nO / (a.nOtL * NET.nO) : null; }
 
   function loadHC(date, cb) {
     fetch(HC_URL + "/" + date + ".json?t=" + Date.now(), { signal: AbortSignal.timeout(6000) })
@@ -202,7 +232,7 @@
 ".brow .barw{flex:1;min-width:0;display:flex;align-items:center;gap:10px}",
 ".brow .hb{flex:1;height:11px;background:#141922;border-radius:6px;overflow:hidden;display:flex;box-shadow:inset 0 1px 2px rgba(0,0,0,.4)}",
 ".brow .hb span{height:100%}",
-".brow .pc{width:46px;text-align:right;font-size:12px;font-weight:800;color:#e3b341;flex-shrink:0}",
+".brow .pc{width:58px;text-align:right;font-size:12px;font-weight:800;color:#e3b341;flex-shrink:0;white-space:nowrap}",
 ".brow .pc.off{color:#545e69;font-weight:600}",
 ".brow .num{width:74px;text-align:right;font-size:11.5px;color:#8b949e;flex-shrink:0}",
 "#fillPanel{border:1px solid rgba(255,255,255,.08);border-radius:16px;background:linear-gradient(180deg,#0d1015 0%,#090c10 100%);overflow:hidden;margin-top:14px}",
@@ -252,7 +282,6 @@
   var root = document.createElement("div");
   root.id = "anaRoot";
   root.innerHTML =
-  root.innerHTML =
     '<div class="ana-in">' +
     '<div class="ana-top">' +
     '<button class="ic" id="anaBack" title="返回看板">←</button>' +
@@ -270,13 +299,13 @@
     '<div class="vs-side ot" id="vsO"><div class="lb">加班时段 <span class="tag" id="vsOtag">白班 17:20–20:20</span></div><div class="num" id="vsOnum">--</div><div class="sb" id="vsOsb"></div></div>' +
     "</div>" +
     /* 卡1 车间效率对比 */
-    '<div class="card"><h3><span class="pl" style="background:#58a6ff"></span>车间效率对比 <span class="hint-r">单位 件/线·时</span></h3><canvas id="cvCmp"></canvas></div>' +
+    '<div class="card"><h3><span class="pl" style="background:#58a6ff"></span>车间效率对比 <span class="hint-r">同批加班线 · 正常 vs 加班 · 件/线·时</span></h3><canvas id="cvCmp"></canvas></div>' +
     '<div class="grid2">' +
     /* 卡2 加班人力 */
     '<div class="card"><h3><span class="pl" style="background:#d29922"></span>加班人力 · 提报人数 <span class="hint-r"><span class="lg"><i style="background:#d29922"></i>白班OT</span><span class="lg"><i style="background:#bc8cff"></i>夜班OT</span></span></h3>' +
     '<canvas id="cvOt"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 — 点击展开下方「车间数据」填入，或待自动化数据源接入</div></div>' +
-    /* 卡3 加班依赖度 */
-    '<div class="card"><h3><span class="pl" style="background:#d29922"></span>加班依赖度 <span class="hint-r">加班产出 ÷ 白班产出</span></h3><div class="bar-list" id="depList"></div></div>' +
+    /* 卡3 加班性质 */
+    '<div class="card"><h3><span class="pl" style="background:#d29922"></span>加班性质 <span class="hint-r">条长=正常时段计划达成率 · OT+=加班增量件数</span></h3><div class="bar-list" id="depList"></div></div>' +
     "</div>" +
     /* 卡4 趋势 */
     '<div class="card"><h3><span class="pl" style="background:#39c5cf"></span>趋势 · 正常 vs 加班 日产出' +
@@ -382,28 +411,51 @@
     var a = state.wsAgg.ws[ws];
     var hc = state.hc[ws] || {};
     return {
-      dN: a.dN, dO: a.dO, nL: a.nL, nN: a.nN, nO: a.nO,
+      dN: a.dN, dO: a.dO, nL: a.nL, nN: a.nN, nO: a.nO, planN: a.planN,
       lines: a.lines, dayL: a.dayL, nightL: a.nightL,
+      dOtL: a.dOtL, dOtN: a.dOtN, nOtL: a.nOtL, nOtN: a.nOtN,
       hcD: Number(hc.d) || 0, hcDO: Number(hc.dO) || 0, hcN: Number(hc.n) || 0, hcNO: Number(hc.nO) || 0
     };
   }
 
-  /* ── vs 对比带 ── */
+  /* ── vs 对比带 (v6 同集口径: 加班 vs 同批加班线自己的正常段) ── */
   function drawVs() {
     var t = state.wsAgg.tot;
     var isDay = state.sh === "day";
-    var upN, upO, tagN, tagO, sbN, sbO;
+    var upN = null, upO = null, tagN = "", tagO = "", sbN = "", sbO = "";
     if (isDay) {
-      upN = uphDayNorm(t); upO = uphDayOt(t);
-      tagN = "白班 ≤17:20"; tagO = "白班 17:20–20:20";
-      sbN = "净时段 7.67h · " + t.dayL + " 线"; sbO = "净时段 3.0h · " + t.dayL + " 线";
+      tagN = "白班正常 ≤17:20"; tagO = "白班加班 17:20–20:20";
+      if (t.dOtL > 0) {
+        var h = netOtH();
+        upN = uphNormOt(t);
+        if (h) upO = t.dO / (t.dOtL * h);
+        sbN = "同批加班线 " + t.dOtL + " 条 · 净 7.67h";
+        sbO = (h && h < NET.dO) ? "同批线加班 · 净" + h.toFixed(1) + "h 进行中" : "同批线加班 · 净 3.0h";
+      } else if (state.date === state.today) {
+        /* OT 尚未开始: 左侧给白班实时进度, 不空窗 */
+        var de = dayNetElapsed(nowMins());
+        upN = (de && t.dayL) ? t.dN / (t.dayL * de) : null;
+        sbN = "白班进行中 · 净" + (de ? de.toFixed(1) : "-") + "h · " + t.dayL + " 线";
+        sbO = "OT 17:20 后统计";
+      } else {
+        sbN = "白班 " + t.dayL + " 线 · 净 7.67h";
+        sbO = t.dayL === 0 ? "暂无生产数据" : "该日无OT记录(归档升级前)";
+      }
     } else {
-      var live = (t.nL > 0);
-      upN = live ? uphNightLive(t) : uphNightNorm(t);
-      upO = (t.nO > 0) ? uphNightOt(t) : null;
-      tagN = "夜班 20:30–5:50"; tagO = "凌晨 5:50–7:50";
-      sbN = live ? "今晚实时 · 净" + (nightNetNow() ? nightNetNow().toFixed(1) : "-") + "h" : "净时段 8.17h · " + t.nightL + " 线";
-      sbO = (t.nO > 0) ? "净时段 2.0h · " + t.nightL + " 线" : "凌晨段于次日 8:00 前记账";
+      tagN = "夜班正常 20:30–5:50"; tagO = "夜班加班 5:50–7:50";
+      var live = (state.date === state.today && t.nL > 0 && t.nOtL === 0);
+      if (live) {
+        upN = uphNightLive(t);
+        sbN = "今晚实时 · 净" + (nightNetNow() ? nightNetNow().toFixed(1) : "-") + "h";
+        sbO = "凌晨OT 5:50 后记账";
+      } else if (t.nOtL > 0) {
+        upN = uphNightNormOt(t); upO = uphNightOt(t);
+        sbN = "同批OT线 " + t.nOtL + " 条 · 整夜净 8.17h";
+        sbO = "同批线凌晨OT · 净 2.0h";
+      } else {
+        sbN = t.nightL ? "夜班 " + t.nightL + " 线" : "暂无夜班数据";
+        sbO = "数据不足";
+      }
     }
     vsNtag.textContent = tagN; vsOtag.textContent = tagO;
     vsNnum.innerHTML = upN === null ? "--" : fmt(upN) + "<small>件/线·时</small>";
@@ -423,15 +475,22 @@
     diffChip.textContent = (g ? "▲" : "▼") + " 加班" + (g ? "高" : "低") + " " + Math.abs(d).toFixed(0) + "%";
   }
 
-  /* ── 卡1 车间效率对比柱 (白班: 正常 vs OT UPH; 夜班: 实时/凌晨正常 vs 凌晨OT) ── */
+  /* ── 卡1 车间效率对比柱 (v6 同批线: 正常 vs OT 只统计实际加班线; 不加班车间自然无柱) ── */
   function drawCmp() {
     var isDay = state.sh === "day";
     var rows = [];
     var any = false;
     WS_MAP.forEach(function (g) {
       var d = wsOf(g.ws);
-      var v1 = isDay ? uphDayNorm(d) : (d.nL > 0 ? uphNightLive(d) : uphNightNorm(d));
-      var v2 = isDay ? uphDayOt(d) : uphNightOt(d);
+      var v1 = null, v2 = null;
+      if (isDay) {
+        if (d.dOtL > 0) {
+          var h = netOtH();
+          v1 = d.dOtN / (d.dOtL * NET.dN);
+          v2 = h ? d.dO / (d.dOtL * h) : null;
+        }
+      } else if (d.nL > 0 && d.nOtL === 0) { v1 = uphNightLive(d); }      /* 今晚实时 */
+      else if (d.nOtL > 0) { v1 = d.nOtN / (d.nOtL * NET.nN); v2 = d.nO / (d.nOtL * NET.nO); }
       if (v1 !== null || v2 !== null) any = true;
       rows.push({ nm: g.ws, v1: v1, v2: v2 });
     });
@@ -440,7 +499,7 @@
       var ctx = cv.getContext("2d");
       ctx.clearRect(0, 0, cv.width, cv.height);
       ctx.fillStyle = "#545e69"; ctx.font = "12px 'Segoe UI',sans-serif"; ctx.textAlign = "center";
-      ctx.fillText(isDay ? "—" : "夜班 20:30 后开始统计", cv.width / 2 / (window.devicePixelRatio || 1), 60);
+      ctx.fillText(isDay ? (netOtH() === null ? "OT 17:20 后开始统计" : "该日无加班记录") : "夜班数据积累中…", cv.width / 2 / (window.devicePixelRatio || 1), 60);
       return;
     }
     barChart(cvCmp, {
@@ -470,40 +529,51 @@
     });
   }
 
-  /* ── 卡3 加班依赖度(横向条: 白班正常/OT 构成 + OT占白班%) ── */
+  /* ── 卡3 加班性质 (v6): 正常时段计划达成率 + 加班增量件数 → 补缺 or 超产 ── */
   function drawDep() {
     var rows = [];
     WS_MAP.forEach(function (g) {
       var d = wsOf(g.ws);
-      var dayTot = d.dN + d.dO;
-      rows.push({ nm: g.ws, dN: d.dN, dO: d.dO, dayTot: dayTot, lines: d.lines });
+      /* 计划达成率: 白班正常段 实际/计划 (plan 与 actual 同构当班累计, 可横向公平比) */
+      var rate = d.planN > 0 ? d.dN / d.planN : null;
+      rows.push({ nm: g.ws, rate: rate, dN: d.dN, dO: d.dO, planN: d.planN, lines: d.lines });
     });
+    /* 正常时段欠得最多的排前面 → 最依赖加班补缺的车间一眼可见 */
     rows.sort(function (x, y) {
-      var px = x.dayTot > 0 ? x.dO / x.dayTot : 0, py = y.dayTot > 0 ? y.dO / y.dayTot : 0;
-      return py - px;
+      var rx = x.rate === null ? 2 : x.rate, ry = y.rate === null ? 2 : y.rate;
+      return rx - ry;
     });
     depList.innerHTML = rows.map(function (r) {
-      var pct = r.dayTot > 0 ? r.dO / r.dayTot * 100 : null;
-      var segN = r.dN > 0 ? '<span style="background:#58a6ff;width:' + (r.dN / r.dayTot * 100) + '%"></span>' : "";
-      var segO = r.dO > 0 ? '<span style="background:#d29922;width:' + (r.dO / r.dayTot * 100) + '%"></span>' : "";
+      if (r.lines === 0) {
+        return '<div class="brow"><span class="nm">' + r.nm + '</span>' +
+          '<span class="barw"><span class="hb"></span><span class="pc off">—</span></span>' +
+          '<span class="num">—</span></div>';
+      }
+      var color, txt;
+      if (r.rate === null) { color = "#3d434d"; txt = "无计划"; }
+      else if (r.rate >= 1) { color = "#3fb950"; txt = "超产" + (r.rate * 100).toFixed(0) + "%"; }
+      else if (r.rate >= 0.95) { color = "#58a6ff"; txt = "达标" + (r.rate * 100).toFixed(0) + "%"; }
+      else { color = "#e3b341"; txt = "补缺" + (r.rate * 100).toFixed(0) + "%"; }
+      var w = r.rate === null ? 0 : Math.max(2, Math.min(100, r.rate * 100));
       return '<div class="brow"><span class="nm">' + r.nm + '</span>' +
-        '<span class="barw"><span class="hb">' + segN + segO + "</span>" +
-        '<span class="pc' + (pct === null || r.lines === 0 ? " off" : "") + '">' + (r.lines === 0 ? "—" : pct.toFixed(0) + "%") + "</span></span>" +
-        '<span class="num">' + fmt(r.dayTot) + "</span></div>";
+        '<span class="barw"><span class="hb"><span style="background:' + color + ';width:' + w + '%"></span></span>' +
+        '<span class="pc" style="color:' + color + '">' + txt + '</span></span>' +
+        '<span class="num">OT +' + fmt(r.dO) + '</span></div>';
     }).join("");
   }
 
   /* ── 底部车间填报 ── */
   function drawTable() {
     var isToday = state.date === state.today;
-    var th = "<tr><th rowspan='2'>车间</th><th colspan='3'>当日产出 · 件</th><th colspan='4'>提报人数</th><th rowspan='2'>加班占比</th></tr>" +
+    var th = "<tr><th rowspan='2'>车间</th><th colspan='3'>当日产出 · 件</th><th colspan='4'>提报人数</th><th rowspan='2'>正常达成率</th></tr>" +
       "<tr><th>白班正常</th><th>白班加班</th><th>夜班 · 实时+凌晨</th><th>白班 正常</th><th>白班 OT</th><th>夜班 正常</th><th>夜班 OT</th></tr>";
     var html = "";
     WS_MAP.forEach(function (g) {
       var d = wsOf(g.ws);
       var hc = state.hc[g.ws] || {};
       var empty = d.lines === 0;
-      var pct = d.dN + d.dO > 0 ? d.dO / (d.dN + d.dO) * 100 : null;
+      /* 正常达成率 = 白班正常段实际 ÷ 计划 (替代原"加班占比": 3h窗/7.67h窗不可比) */
+      var rate = d.planN > 0 ? d.dN / d.planN * 100 : null;
       var nt = d.nL + d.nN + d.nO;
       html += "<tr><td class='nmw'>" + g.ws + "</td>" +
         "<td class='g'>" + (empty ? "—" : fmt(d.dN)) + "</td>" +
@@ -513,12 +583,12 @@
         "<td><input class='hc' type='number' min='0' placeholder='0' value='" + (hc.dO || "") + "' data-ws='" + g.ws + "' data-f='dO'></td>" +
         "<td><input class='hc' type='number' min='0' placeholder='0' value='" + (hc.n || "") + "' data-ws='" + g.ws + "' data-f='n'></td>" +
         "<td><input class='hc' type='number' min='0' placeholder='0' value='" + (hc.nO || "") + "' data-ws='" + g.ws + "' data-f='nO'></td>" +
-        "<td class='" + (pct === null ? "pc2" : "o") + "'>" + (pct === null ? "—" : pct.toFixed(0) + "%") + "</td></tr>";
+        "<td class='" + (rate === null ? "pc2" : (rate >= 100 ? "g" : "o")) + "'>" + (rate === null ? "—" : rate.toFixed(0) + "%") + "</td></tr>";
     });
     var t = state.wsAgg.tot;
-    var tp = t.dN + t.dO > 0 ? t.dO / (t.dN + t.dO) * 100 : 0;
+    var trate = t.planN > 0 ? t.dN / t.planN * 100 : null;
     html += "<tr class='s-row'><td>合计</td><td class='g'>" + fmt(t.dN) + "</td><td class='o'>" + fmt(t.dO) + "</td><td class='tot-r'>" + fmt(t.nL + t.nN + t.nO) +
-      "</td><td colspan='4'></td><td class='o'>" + tp.toFixed(0) + "%</td></tr>";
+      "</td><td colspan='4'></td><td class='" + (trate !== null && trate >= 100 ? "g" : "o") + "'>" + (trate === null ? "—" : trate.toFixed(0) + "%") + "</td></tr>";
     tbl.querySelector("thead").innerHTML = th;
     tbl.querySelector("tbody").innerHTML = html;
     fillNote.textContent = (isToday ? "提报即存云端 · 自动化数据源接入后将自动填充" : "历史日 · 数据只读，人数沿用该日提报");
