@@ -408,10 +408,13 @@
     border-radius: 8px; min-width: 3px;
   }
   .hbar .plan {
+    /* ★ v6.0: 目标线不再按 maxV 缩放 — 固定铺满整格 = 自身目标 100% 满格基准(弱化背景槽) */
     position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    height: 6px; background: rgba(210,153,34,.9);
-    border-radius: 3px; min-width: 2px;
+    width: 100%; height: 6px; background: rgba(210,153,34,.22);
+    border-radius: 3px;
   }
+  /* 超额达成: 蓝条渐变叠加金色高亮边, 表示已超自身目标(数字标签显示真实量) */
+  .hbar.over .act { background: linear-gradient(90deg, #58a6ff, #7ee787); box-shadow: 0 0 6px rgba(126,231,135,.55); }
   .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
   .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
   .hbar-leg i { font-style: normal; }
@@ -497,6 +500,22 @@
     .kpis { grid-template-columns: repeat(3, 1fr); }
   }
   @media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+  /* ★★★ v6.0 加班时段整页特效 (2026-09-03 追加数组尾部, 不用 !important, 不加流动动画) ★★★ */
+  /* 顶部金色光晕条: 到加班时段整页出现, 简单变色+辉光, 不流动 */
+  body.ot-live #scale-stage::before {
+    content: "";
+    position: fixed; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, transparent, #f0b93a, #ffd479, #f0b93a, transparent);
+    box-shadow: 0 0 18px 4px rgba(255,176,50,.55);
+    z-index: 2000; pointer-events: none;
+  }
+  /* 标题栏 / 看板主面板柔和金色光晕(加班中提示, 不干扰阅读) */
+  body.ot-live .header h1,
+  body.ot-live #periodLabel { color: #ffd479; text-shadow: 0 0 10px rgba(255,186,60,.8); }
+  body.ot-live .panel { box-shadow: 0 0 24px 2px rgba(255,176,50,.28); }
+  /* 图表图例提示加班段含义 */
+  .ot-legend-hint { display: inline-flex; align-items: center; gap: 4px; margin-left: 2px; }
+  .ot-legend-hint .sw { width: 9px; height: 9px; border-radius: 2px; background: #f0a93a; box-shadow: 0 0 5px rgba(255,176,50,.9); display: inline-block; }
 </style>
 </head>
 <body>
@@ -551,7 +570,7 @@
     <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span></div>
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span><span class="ot-legend-hint" data-i18n="otSegHint"><span class="sw"></span> 加班时段</span></div>
         <canvas id="chartBar"></canvas>
       </div>
       <div class="chart-box small">
@@ -766,6 +785,7 @@ const I18N = {
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
     hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
+    otSegHint: "加班时段",
     lgEff: "UPPH 达成率 (实际÷目标)", hintUpph: "UPPH = 产量÷工时÷人数", editHead: "✏️ 编辑人数",
     sortByUph: "点击列头排序", thTargetDay: "目标/日",
     editHeadTitle: "✏️ 编辑各线出勤人数",
@@ -809,6 +829,7 @@ const I18N = {
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
     hintSeg: "Bars aligned · Blue=met · Gray=gap",
+    otSegHint: "OT period",
     lgEff: "UPPH Rate (Actual÷Target)", hintUpph: "UPPH = Output÷Hours÷Manpower", editHead: "✏️ Edit Manpower",
     sortByUph: "Click header to sort", thTargetDay: "Target/Day",
     editHeadTitle: "✏️ Edit Line Headcount",
@@ -1063,12 +1084,17 @@ function lineNameCls(l) {
 }
 
 // ---- 主表: 每行横向条形图 (Actual vs Plan) ----
-function hbarHtml(l, maxV) {
-  const aw = maxV > 0 ? Math.max(0, (Number(l.actual) || 0) / maxV * 100) : 0;
-  const pw = maxV > 0 ? Math.max(0, (Number(l.plan) || 0) / maxV * 100) : 0;
+// ★ 2026-09-03 v6.0 去统一刻度: 进度条不再按全表最大产量(maxV)缩放, 而是以「各线体自身目标(plan)为 100% 满格基准」。
+//   蓝条宽 = 达成率(actual/plan, 0-100%), p100 虚线 = 自身目标 100% → 所有线体在同一水平基准上, 看的是各自进度而非绝对产量。
+//   超额(actual>plan)时蓝条满格 + 显示真实数量(数据标签为准), 不再被全局尺度压扁低产线。
+function hbarHtml(l) {
+  const plan = Number(l.plan) || 0;
+  const act = Number(l.actual) || 0;
+  const aw = plan > 0 ? Math.max(0, Math.min(100, act / plan * 100)) : 0;
+  const over = plan > 0 && act > plan;
   const stalledCls = isPlannedOff(l) ? " style=\"border:1px solid rgba(139,148,158,.45)\"" : (isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "");
-  return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
-    `<div class="plan" style="width:${pw}%"></div>` +
+  return `<div class="hbar${over ? " over" : ""}"${stalledCls}><div class="p100"></div>` +
+    `<div class="plan"></div>` +
     `<div class="act" style="width:${aw}%"></div></div>`;
 }
 
@@ -1078,8 +1104,7 @@ function renderTable() {
   const { main, other } = splitLines();
   const viewSrc = wsSel ? wsLinesOf(wsSel) : main;
   const view = sortLines(viewSrc);
-  // 全表最大产量用于条宽比例
-  const maxV = Math.max(1, ...view.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  // ★ 2026-09-03 v6.0 去全表统一刻度: 不再计算全表 maxV, 每行进度条以自身 plan 为满格基准
   const tb = document.querySelector("#mainTable tbody");
   tb.innerHTML = "";
   if (!view.length) {
@@ -1097,7 +1122,7 @@ function renderTable() {
     tr.innerHTML =
       `<td class="rank">${idx + 1}</td>` +
       `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
-      `<td class="bar-cell">${hbarHtml(l, maxV)}</td>` +
+      `<td class="bar-cell">${hbarHtml(l)}</td>` +
       `<td>${fmt(l.actual)}</td>` +
       `<td>${fmt(l.plan)}</td>` +
       `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
@@ -1590,7 +1615,7 @@ function segsOf(name, curActual, curPlan) {
     if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
     if (plan < 0) plan = p1;
     segs.push({ h: t1 / 60, lab: k + 1, live: t1 > cmpMins, base: false, pm: false,
-      actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1 });
+      actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1, ot: segIsOt(isNight, t0, t1) });
   }
   return segs;
 }
@@ -1599,6 +1624,22 @@ function segsOf(name, curActual, curPlan) {
 //   实际柱(key='actual'): 每段 = 蓝色(实际达成, 从段底向上) + 灰色(未达成缺口)
 //   目标柱(key='plan'): 每段 = 橙色(目标达成, 画满整段)
 //   ★ 两柱段边界线 y 位置相同(都由 plan 累计决定) → 完全平行, 逐段对比 = 蓝 vs 橙 + 灰缺口
+// ★ v6.0 加班时段识别: 白班 OT = 17:20 起的段(t0>=1040); 夜班加班 5:50-7:50(跨天基准 1790-1910)
+//   段与加班窗口有重叠即标记 ot → 小时产出图上用暖金色换色 + 发光边框框出加班段。
+const OT_DAY_START = 17 * 60 + 20;            // 白班加班起点 17:20
+const OT_NIGHT_START = 5 * 60 + 50 + 1440;    // 夜班加班起点 5:50 (跨天基准)
+const OT_NIGHT_END = 7 * 60 + 50 + 1440;      // 夜班加班终点 7:50 (跨天基准)
+function segIsOt(isNight, t0, t1) {
+  if (!isNight) return t0 >= OT_DAY_START;      // 白班 t0>=1040 三段(17:20-20:20)整段加班
+  return t1 > OT_NIGHT_START && t0 < OT_NIGHT_END; // 夜班: 段与 5:50-7:50 窗口重叠
+}
+// ★ 当前时刻是否处于加班时段(整页特效用)
+function isOtNow(mins) {
+  const sc = segFor(mins);
+  if (!sc) return false;
+  if (sc.shift === "day") return mins >= OT_DAY_START; // 17:20-20:20
+  return mins >= (5 * 60 + 50) && mins < (7 * 60 + 50); // 凌晨 5:50-7:50
+}
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   // ★ 柱顶 = plan 累计高度(两柱同 y, 数字统一标在柱顶上方)
   const planTotalPix = segs.reduce((s, x) => s + (x.plan || 0), 0) / maxV * ch;
@@ -1617,19 +1658,34 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       const perH = Math.max(0, ((s.plan || 0) / maxV) * ch); // 段高 = 该时段目标(统一骨架)
       yAcc -= perH;
       if (perH < 0.5) return;
-      // ★ 灰色底 = 未达成缺口(目标 - 实际), 整段先铺灰
-      ctx.fillStyle = "#30363d";
+      // ★ 灰色底 = 未达成缺口(目标 - 实际), 整段先铺灰; v6.0: 加班段用暖金色底 → 一眼识别加班时段
+      ctx.fillStyle = s.ot ? "#4a3a15" : "#30363d";
       ctx.fillRect(cx, yAcc, bw, perH);
       // ★ 实际值(蓝)从段底往上画; 目标值(橙)画满整段
       const v = key === "plan" ? (s.plan || 0) : Math.min(s.actual || 0, s.plan || 0);
       const vPix = Math.max(0, (v / maxV) * ch);
       if (vPix > 0.5) {
-        ctx.fillStyle = color;
+        // v6.0: 加班段实际(蓝)也用金色系强调
+        ctx.fillStyle = s.ot ? (key === "plan" ? "#f0b93a" : "#f0a93a") : color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
+      } else if (s.ot) {
+        // 加班段且该段无达成量: 铺一层金色浅底以示仍在加班窗口
+        ctx.fillStyle = "rgba(240,169,58,.30)";
+        ctx.fillRect(cx, yAcc, bw, perH);
       }
       // ★ 分割线: 段边界 (v5.40: 用户要求加粗, 1px→2px)
       ctx.fillStyle = "#000000";
       ctx.fillRect(cx - 1.5, yAcc - 1, bw + 3, 2);
+      // ★ v6.0 加班段: 发光边框框出加班时段(用户: 若数据标签看不清就用发光边框框出来)
+      if (s.ot) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(255,196,84,.95)";
+        ctx.lineWidth = 1.6;
+        ctx.shadowColor = "rgba(255,176,50,.9)";
+        ctx.shadowBlur = 7;
+        ctx.strokeRect(cx - 0.75, yAcc - 0.75, bw + 1.5, perH + 1.5);
+        ctx.restore();
+      }
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
@@ -1720,37 +1776,26 @@ function drawBar(main) {
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
-  const padL = 46, padB = 34, padT = 26;
+  const padL = 8, padB = 34, padT = 26; // v6.0: 去掉 y 轴刻度/网格 → 左侧空间收回给柱子
   const cw = W - padL - 12, ch = H - padT - padB;
-  // ★ maxV 基于各线 plan 累计(目标柱骨架)取最大 — 两柱共用同一骨架, 柱顶=plan 累计, 完全平行
-  //   (若某线 actual 超额超过 plan, 段内蓝色画满后不再延伸, 柱顶数字仍显示真实实际值)
-  const nowH = new Date().getHours();
-  const maxV = Math.max(1, ...lines.map(l => Math.max(l.plan || 0, l.actual || 0)));
-  const step = Math.ceil(maxV / 4 / 10) * 10;
-  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
-  for (let i = 0; i <= 4; i++) {
-    const y = padT + ch - (ch * i / 4);
-    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
-    ctx.fillText(fmt(step * i), 4, y + 3);
-  }
+  // ★ v6.0 去统一刻度: 不再用全表 maxV(高产量线会把低产线压扁)。改为每条线体以「自身 plan 为目标满格基准」
+  //   各自独立缩放 → 所有线体柱顶在同一水平线(自身目标100%), 柱高表达「达成进度」, 真实数量以段/柱顶数据标签为准。
   const n = lines.length, slot = cw / n;
   const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
-    // ★ 小时产出开关: 开启后实际柱/目标柱共用同一份 segs(统一骨架) → 段边界完全一致, 逐段对比差异
+    const maxVl = Math.max(1, l.plan || 0); // 该线自身目标 = 满格基准
     if (segShow) {
       const segs = segsOf(l.name, l.actual, l.plan);
-      // 实际柱(蓝): 每段画实际产量, 段内写该时段实际达成数
-      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff", "actual");
-      // 目标柱(橙): 同一份 segs, 每段画目标产量(均匀), 段内写该时段目标数 → 与实际柱逐段对齐
-      drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxV, ch, padT, "#d29922", "plan");
+      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
+      drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
     } else {
-      // 关闭分段: 全天累计纯色柱(柱顶=累计值), 不画横线不画编号 → 上午缺数据时显示统一
-      const aH = Math.max(0, (l.actual || 0) / maxV * ch);
+      const mL = Math.max(1, l.plan || 0, l.actual || 0); // 非分段: 以自身 plan/actual 较大者为满格
+      const aH = Math.max(0, (l.actual || 0) / mL * ch);
       ctx.fillStyle = "#58a6ff";
       ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
       const pCum = l.plan || 0;
-      const pH = Math.max(0, pCum / maxV * ch);
+      const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
       ctx.fillStyle = "#d29922";
       ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
       ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
@@ -2092,6 +2137,8 @@ function updatePeriodLabel() {
   const shiftTxt = sc.shift === "night" ? (isZh ? "晚班" : "Night") : (isZh ? "白班" : "Day");
   const segTxt = (isZh ? "第" : "Seg ") + sc.idx + (isZh ? "段" : "");
   pl.textContent = p.M + "/" + p.D + " " + shiftTxt + " " + segTxt + " " + fmtSegMin(sc.t0) + "-" + fmtSegMin(sc.t1) + " " + hh + ":" + mm + ":" + ss;
+  // ★ v6.0 加班时段整页特效: 到加班时段给 body 加 .ot-live → CSS 变色/顶部金色光晕(简单特效, 不流动)
+  document.body.classList.toggle("ot-live", isOtNow(p.mins));
 }
 
 async function refresh() {
