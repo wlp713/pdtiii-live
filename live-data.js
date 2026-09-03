@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 15:30:19
+   最后写入: 2026-09-03 17:00:20
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -28,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "11:00-12:00",
       "problem_th": "งานNG ออกต่อเนื่อง S-series",
-      "problem_zh": "S系列连续出现NG品。",
+      "problem_zh": "S系列NG件连续流出。",
       "plan": 169,
       "actual": 131,
       "impact": -38,
@@ -54,7 +54,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเย็บNO2 ฮีตเตอร์ขาด หยุด08:00 กำลังแก้ไข F-series",
-      "problem_zh": "NO2碰焊机加热器损坏，08:00停机，正在修复F-series。",
+      "problem_zh": "NO2碰焊机加热器损坏，08:00停机，正在修复F系列。",
       "plan": 141,
       "actual": 146,
       "impact": 5,
@@ -67,7 +67,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "10:00-11:00",
       "problem_th": "M Coil Winding NO 4-5 ลวดรั้งกันข้างใน หยุด 09:36 PEกำลังแก้ไข F-series",
-      "problem_zh": "M线圈绕线4-5号线，内部线材相互拉扯卡滞，09:36停机，PE正在修复F系列。",
+      "problem_zh": "M线圈绕线机4-5号线材内部缠绕卡滞，09:36停机，PE正在修复F系列。",
       "plan": 141,
       "actual": 132,
       "impact": -9,
@@ -80,7 +80,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "11:00-12:00",
       "problem_th": "Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข F-series",
-      "problem_zh": "Insert M Coil 拉线断裂，11:39停机，正在修复F系列。",
+      "problem_zh": "Insert M Coil 断线，11:39停机，正在修复F系列。",
       "plan": 141,
       "actual": 106,
       "impact": -35,
@@ -93,7 +93,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "13:00-14:00",
       "problem_th": ": Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator",
-      "problem_zh": "Insert M Coil工位断线，11:39停机维修中，已调员工支援。内部打磨/H线/Rework定子。",
+      "problem_zh": "Insert M Coil工位焊丝断裂，11:39停机维修中。已调员工支援，处理H/Rework Stator内部打磨。",
       "plan": 141,
       "actual": 13,
       "impact": -128,
@@ -106,7 +106,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "08:00-09:00",
       "problem_th": "พนักงานไม่มาทำงาน 4 คน -10 stopper จุดเช็คเก้ไม่ทำงาน -15 PE แก้ไขแล้ว เครื่องเช็ค KV Alarm - 25 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "缺勤4人 -10 stopper；检具检查点失效 -15 PE已修复；KV检测机报警 -25，将旧工件投入生产，跟进A线Final设备运行情况。",
+      "problem_zh": "缺勤4人 -10 stopper；检漏点失效 -15 PE已修复；KV检测机报警 -25，已投入旧工件生产，跟进A线Final设备运行。",
       "plan": 431,
       "actual": 382,
       "impact": -49,
@@ -119,7 +119,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "09:00-10:00",
       "problem_th": "เครื่องเช็ค KV Alarm - 17 นำงานเก่าเข้าผลิต ติดตามการทำงานของเครื่อง A Line Final",
-      "problem_zh": "KV检测机报警-17，混入旧工件投产，需跟踪A线Final设备运行状态。",
+      "problem_zh": "KV检测机报警 - 17，将旧工件投入生产，跟进A线Final设备运行情况。",
       "plan": 431,
       "actual": 414,
       "impact": -17,
@@ -145,7 +145,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "11:00-12:00",
       "problem_th": "จากปัญหางาน Air gap ทำให้ต้องสลับเบรค -275 A Line Final",
-      "problem_zh": "Air gap问题导致需在-275 A线Final工位倒换刹车件。",
+      "problem_zh": "Air gap 问题导致需在 A Line Final 倒换 -275 制动器。",
       "plan": 431,
       "actual": 156,
       "impact": -275,
@@ -158,7 +158,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·A",
       "time": "13:00-14:00",
       "problem_th": "เครื่องเช็ค KV Alarm A Line Final",
-      "problem_zh": "A线终检KV报警。",
+      "problem_zh": "A线终检KV报警器报警。",
       "plan": 431,
       "actual": 408,
       "impact": -23,
@@ -197,7 +197,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "09:00-10:00",
       "problem_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
-      "problem_zh": "1. 气隙线连续报警（-56），焊丝缠绕打结，已剪断重装（-31），已修复。",
+      "problem_zh": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
       "plan": 470,
       "actual": 383,
       "impact": -87,
@@ -210,7 +210,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
-      "problem_zh": "air gap线外(-39)，dv泄漏线外(-10)。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
+      "problem_zh": "air gap线外（-39），dv泄漏线外（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
       "plan": 390,
       "actual": 261,
       "impact": -129,
@@ -236,7 +236,98 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "13:00-14:00",
       "problem_th": "รองานจาก rotor line ผลกระทบจาก เครื่องวาง MUF COVER A ไม่ตรง ทำให้งานขาดความต่อเนื่อง",
-      "problem_zh": "待料转子线，因MUF COVER A放置机定位偏移导致断料，作业连续性中断。",
+      "problem_zh": "等待转子线来料，受MUF COVER A放置机定位不准影响，作业连续性中断。",
+      "plan": 470,
+      "actual": 444,
+      "impact": -26,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "14:00-15:00",
+      "problem_th": "รองานจากตู้ cooling ทำความเย็นไม่ทัน ผลกระทบต่อเนื่องจากเครื่องขัน MUF COVER A SENSOR ขาด ไม่มีอะไหล่เปลี่ยน (-41) ติดตาม",
+      "problem_zh": "等待冷却柜制冷不及时，连带影响MUF COVER A工位拧紧机传感器缺失，无备件可换（-41），持续跟进中。",
+      "plan": 470,
+      "actual": 429,
+      "impact": -41,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "15:00-16:00",
+      "problem_th": "รองานจาก rotor line มาไม่ต่อเนื่อง",
+      "problem_zh": "等待转子线来料，供应不连续。",
+      "plan": 390,
+      "actual": 356,
+      "impact": -34,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบจากงาน air gap line out",
+      "problem_zh": "等待转子线来料，受气隙线停产影响。",
+      "plan": 470,
+      "actual": 426,
+      "impact": -44,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
+      "problem_zh": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
+      "plan": 470,
+      "actual": 383,
+      "impact": -87,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "10:00-11:00",
+      "problem_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
+      "problem_zh": "air gap线外（-39），dv泄漏线外（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设定设备参数。",
+      "plan": 390,
+      "actual": 261,
+      "impact": -129,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "11:00-12:00",
+      "problem_th": "dv leak line out",
+      "problem_zh": "dv leak line out",
+      "plan": 470,
+      "actual": 461,
+      "impact": -9,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "13:00-14:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบจาก เครื่องวาง MUF COVER A ไม่ตรง ทำให้งานขาดความต่อเนื่อง",
+      "problem_zh": "待料于转子线，受MUF COVER A放置机定位偏差影响，作业连续性中断。",
       "plan": 470,
       "actual": 444,
       "impact": -26,
@@ -247,57 +338,18 @@ window.__LIVE_DATA__ = {
       "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
-      "time": "08:00-09:00",
-      "problem_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
-      "problem_zh": "1. 打标机SALES不工作-30（已修复），工件兆欧表检测异常，设备频繁重复检测-36（已通知QA，待检查）。",
-      "plan": 443,
-      "actual": 377,
-      "impact": -66,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-03",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "10:00-11:00",
-      "problem_th": "เปลี่ยนรุ่น1ครั้ง จาก A series > E SERIES",
-      "problem_zh": "更换型号1次，从A系列改为E系列。",
-      "plan": 379,
-      "actual": 306,
-      "impact": -73,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-03",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "11:00-12:00",
-      "problem_th": "งาน gap ยาก-40 งานมาไม่ต่อเนื่อง ตู้ coolling ทำงานติดขัด-70 (PE กำลังแก้ไข)",
-      "problem_zh": "作业gap难-40，来料不连续；冷却柜运行卡滞-70（PE正在修复中）。",
-      "plan": 444,
-      "actual": 334,
-      "impact": -110,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-03",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "13:00-14:00",
-      "problem_th": "ต่อเนื่องจาก ตู้ coolling ติดขัด ทำให้ stock ระหว่างไลน์หมด-40 งาน gap ยากงานออกไม่ต่อเนื่อง-70 (IP เข้าตรวจสอบหน้างานและPRO1 ส่งพนักงานมากระแทกยังไม่ดีขึ้น)",
-      "problem_zh": "冷却柜卡滞，导致线间库存耗尽-40件，作业间隙难消除，产出不连续-70件（IP已到现场检查，PRO1派员敲击处理，仍未改善）。",
-      "plan": 444,
-      "actual": 334,
-      "impact": -110,
+      "time": "14:00-15:00",
+      "problem_th": "รองานจากตู้ cooling ทำความเย็นไม่ทัน ผลกระทบต่อเนื่องจากเครื่องขัน MUF COVER A SENSOR ขาด ไม่มีอะไหล่เปลี่ยน (-41) ติดตาม",
+      "problem_zh": "等待冷却柜降温，制冷来不及，连带影响MUF COVER A工位拧紧机传感器缺失，无备件可换（-41），持续跟进。",
+      "plan": 470,
+      "actual": 429,
+      "impact": -41,
       "shift": "day"
     }
   ],
   "problems_top": [
     {
-      "name": "Air gap问题导致需在-275 A线Final工位倒换刹车件。",
+      "name": "Air gap 问题导致需在 A Line Final 倒换 -275 制动器。",
       "name_th": "จากปัญหางาน Air gap ทำให้ต้องสลับเบรค -275 A Line Final",
       "lines": [
         "PRO2·A"
@@ -310,30 +362,30 @@ window.__LIVE_DATA__ = {
       "total_impact": -371
     },
     {
-      "name": "作业gap难-40，来料不连续；冷却柜运行卡滞-70（PE正在修复中）。",
-      "name_th": "งาน gap ยาก-40 งานมาไม่ต่อเนื่อง ตู้ coolling ทำงานติดขัด-70 (PE กำลังแก้ไข)",
+      "name": "air gap线外（-39），dv泄漏线外（-10）。按计划换型FZ75HMH-JYBL、EZ65H1X-UQCL，调整设备设定值。",
+      "name_th": "air gap line out (-39) dv leak line out (-10) เปลี่ยนรุ่นตามแผน FZ75HMH-JYBL EZ65H1X-UQCL ปรับเซ็ตค่าเครื่องจักร",
       "lines": [
+        "PRO2·B",
         "PRO2·C"
       ],
       "times": [
-        "11:00-12:00",
-        "13:00-14:00"
+        "10:00-11:00"
       ],
       "count": 2,
-      "total_impact": -220
+      "total_impact": -258
     },
     {
-      "name": "Insert M Coil工位断线，11:39停机维修中，已调员工支援。内部打磨/H线/Rework定子。",
-      "name_th": ": Insert M Coil ทำลวดขาด หยุด 11:39กำลังแก้ไข นำพนักงานไปช่วย ขัดภายใน / H / Rework Stator",
+      "name": "气隙线连续报警（-56），焊丝缠绕打结，已剪断并更换新焊丝（-31），已修复。",
+      "name_th": "air gap line out ต่อเนื่อง (-56) ลวดเชื่อมพันกัน ตัดแล้วใส่ใหม่ (-31) แก้ไขแล้ว",
       "lines": [
-        "RPO1·F系列"
+        "PRO2·B",
+        "PRO2·C"
       ],
       "times": [
-        "11:00-12:00",
-        "13:00-14:00"
+        "09:00-10:00"
       ],
       "count": 2,
-      "total_impact": -163
+      "total_impact": -174
     }
   ],
   "first_hour": [
@@ -396,9 +448,9 @@ window.__LIVE_DATA__ = {
       "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
-      "target": 443,
-      "actual": 377,
-      "rate": 85.1
+      "target": 470,
+      "actual": 426,
+      "rate": 90.6
     }
   ]
 };
@@ -732,7 +784,7 @@ window.__HISTORY__ = [
       "RPO1·WL系列": 122.0,
       "PRO2·A": 88.6,
       "PRO2·B": 90.6,
-      "PRO2·C": 85.1
+      "PRO2·C": 90.6
     }
   }
 ];
