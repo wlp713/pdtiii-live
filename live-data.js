@@ -3,13 +3,55 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-03 08:00:03
+   最后写入: 2026-09-03 09:30:00
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องมาร์ค sales ไม่ทำงาน-30 (แก้ไขแล้ว) งานออกค่าเมคกาโอม เครื่องเช็คซ้ำบ่อย-36 (แจ้ง QA แล้วรอตรวจสอบ)",
+      "problem_zh": "销售打标机-30号机不工作（已修复）；兆欧表检测作业出现不良，复检机-36号机频繁报警（已通知QA待查）。",
+      "plan": 443,
+      "actual": 377,
+      "impact": -66,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 187,
+      "rate": 111.3
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 192,
+      "rate": 113.6
+    },
+    {
+      "date": "2026-09-03",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 443,
+      "actual": 377,
+      "rate": 85.1
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -330,6 +372,14 @@ window.__HISTORY__ = [
       "PRO2·A": 75.2,
       "PRO2·B": 93.8,
       "PRO2·C": 90.5
+    }
+  },
+  {
+    "date": "2026-09-03",
+    "first_hour": {
+      "RPO1·H系列": 111.3,
+      "RPO1·S系列": 113.6,
+      "PRO2·C": 85.1
     }
   }
 ];
