@@ -490,6 +490,9 @@
   .legend .lg-actual::before { background: var(--blue); }
   .legend .lg-plan::before { background: var(--orange); }
   .legend .lg-eff::before { background: var(--green); }
+  /* 2026-09-04: 小时分段图 欠产缺口(红)/超额产出(绿) 图例色块 (与主表达成条/达成率同语言) */
+  .legend .lg-gap::before { background: rgba(248, 81, 73, .85); }
+  .legend .lg-over::before { background: rgba(63, 185, 80, .85); }
   .legend .hint { color: #6e7681; font-size: 10px; }
   .legend .seg-toggle { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #8b949e; cursor: pointer; user-select: none; }
   .legend .seg-toggle input { width: 12px; height: 12px; accent-color: var(--blue); cursor: pointer; }
@@ -612,7 +615,7 @@
     <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率</h2><span id="chartWsLabel" class="chart-ws-label"></span></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span><span class="ot-legend-hint" data-i18n="otSegHint"><span class="sw"></span> 加班时段</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><span class="lg-gap" data-i18n="lgGap">Shortfall 欠产缺口</span><span class="lg-over" data-i18n="lgOver">Overtarget 超额</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">蓝橙两柱逐段对比 · 红=欠产缺口(实际<目标) · 绿=超额(实际>目标)</span><span class="ot-legend-hint" data-i18n="otSegHint"><span class="sw"></span> 加班时段</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
         <canvas id="chartBar"></canvas>
       </div>
     </div>
@@ -823,8 +826,9 @@ const I18N = {
     thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
+    lgGap: "Shortfall 欠产缺口", lgOver: "Overtarget 超额",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
-    hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
+    hintSeg: "蓝橙两柱逐段对比 · 红=欠产缺口(实际<目标) · 绿=超额(实际>目标)",
     otSegHint: "加班时段",
     lgEff: "UPPH 达成率 (实际÷目标)", hintUpph: "UPPH = 产量÷工时÷人数", editHead: "✏️ 编辑人数",
     sortByUph: "点击列头排序", thTargetDay: "目标/日",
@@ -869,8 +873,9 @@ const I18N = {
     thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
+    lgGap: "Shortfall", lgOver: "Overtarget",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
-    hintSeg: "Bars aligned · Blue=met · Gray=gap",
+    hintSeg: "Blue/Orange bars per segment · Red=shortfall (actual<plan) · Green=overtarget (actual>plan)",
     otSegHint: "OT period",
     lgEff: "UPPH Rate (Actual÷Target)", hintUpph: "UPPH = Output÷Hours÷Manpower", editHead: "✏️ Edit Manpower",
     sortByUph: "Click header to sort", thTargetDay: "Target/Day",
@@ -1886,9 +1891,14 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       const perH = Math.max(0, (Math.max(s.actual || 0, s.plan || 0) / maxV) * ch);
       yAcc -= perH;
       if (perH < 0.5) return;
-      // ★ 灰色底 = 未达成缺口(目标 - 实际), 整段先铺灰; v6.0: 加班段用暖金色底 → 一眼识别加班时段
-      //   v6.2: 未达成时目标柱满格→灰底在被实际柱盖住的地方淡出; 超额时(actual大)实际柱满格→灰底只露在目标柱上
-      ctx.fillStyle = s.ot ? "#4a3a15" : "#30363d";
+      // ★ 2026-09-04 超产/欠产等级色: 底色按该段 actual vs plan 染语义色, 短柱上方露出的底色 = 差异区
+      //   欠产(actual<plan): 红底 → 实际柱(蓝)短, 蓝上方露红 = 欠产缺口 (与主表达成条缺口红同语言)
+      //   超产(actual>plan): 绿底 → 目标柱(橙)短, 橙上方露绿 = 超额产出 (与达成率≥100%绿同语言)
+      //   相等: 两柱都满格盖满, 底色不外露; v6.0: 加班段保持暖金底(加班=金色独立语义, 不与红绿混用)
+      ctx.fillStyle = s.ot ? "#4a3a15"
+        : (s.actual || 0) < (s.plan || 0) ? "rgba(248,81,73,.55)"
+        : (s.actual || 0) > (s.plan || 0) ? "rgba(63,185,80,.5)"
+        : "#30363d";
       ctx.fillRect(cx, yAcc, bw, perH);
       // ★ 值柱: 实际柱画实际达成值(可按超额画到超过目标), 目标柱画该时段目标值
       //   v6.2: 实际柱不再被 min(actual, plan) 夹住下限 — 超额直接画满整段, 凸显比目标高
