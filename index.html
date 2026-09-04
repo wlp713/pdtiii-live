@@ -1917,16 +1917,6 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       // ★ 分割线: 段边界 (v5.40: 用户要求加粗, 1px→2px)
       ctx.fillStyle = "#000000";
       ctx.fillRect(cx - 1.5, yAcc - 1, bw + 3, 2);
-      // ★ v6.0 加班段: 发光边框框出加班时段(用户: 若数据标签看不清就用发光边框框出来)
-      if (s.ot) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(255,196,84,.95)";
-        ctx.lineWidth = 1.6;
-        ctx.shadowColor = "rgba(255,176,50,.9)";
-        ctx.shadowBlur = 7;
-        ctx.strokeRect(cx - 0.75, yAcc - 0.75, bw + 1.5, perH + 1.5);
-        ctx.restore();
-      }
       // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
       //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
       ctx.textAlign = "center";
