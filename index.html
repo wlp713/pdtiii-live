@@ -373,13 +373,15 @@
   th[data-sort].sorted.desc::after { content: " ▼"; font-size: 9px; }
   th[data-sort].sorted.asc::after { content: " ▲"; font-size: 9px; }
   td { text-align: right; padding: 8px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
-  /* ★ 2026-09-04 数据列表行距自适应: 随视口高度平滑变化
-     大屏(高分辨率)行距自动加宽避免"很空", 小屏自动收紧避免"拥挤"
-     clamp(最小值, 期望值, 最大值)  — 期望值随 100vh 线性增长 */
-  #mainTable td { padding: clamp(4px, 1.15vh, 15px) clamp(6px, 1vw, 12px); }
-  #mainTable th { padding-top: clamp(3px, 0.6vh, 8px); padding-bottom: clamp(3px, 0.6vh, 8px); }
-  #mainTable td.bar-cell { padding-top: 3px; padding-bottom: 3px; }
-  #mainTable td.line-name { padding-top: clamp(4px, 1.15vh, 15px); padding-bottom: clamp(4px, 1.15vh, 15px); }
+  /* ★ 2026-09-04 数据列表行高自适应(布满屏幕):
+     主表行高由 fitMainTable() 动态计算 = 面板可用高度 ÷ 行数, 行少→拉高填满, 行多/小屏→压缩
+     内容用 vertical-align:middle 垂直居中; padding 用固定小值(高度交给行)而非 clamp */
+  #mainTable td { padding: 3px 6px; }
+  #mainTable th { padding: 3px 6px; }
+  #mainTable td, #mainTable th { vertical-align: middle; }
+  #mainTable tr { height: var(--row-h, auto); }  /* fitMainTable() 设置 --row-h=可用高度/行数, 布凒屏幕 */
+  #mainTable td.bar-cell { padding: 2px 6px; min-width: 200px; }
+  #mainTable td.line-name { padding: 2px 6px; }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
@@ -1147,8 +1149,30 @@ function renderTable() {
   if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
   // ★ 2026-09-04 同步更新小时产出图的车问标签 (选中车间时显示车间名, 未选中时显示线体数)
   try { updateChartWsLabel(wsSel, view); } catch (e) {}
+  // ★ 2026-09-04 数据表行高自适应布满屏幕 (随面板高度/行数重新均分)
+  try { fitMainTable(); } catch (e) {}
   // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
   return { main, other, view };
+}
+
+// ★ 2026-09-04 数据列表行高自适应=布满屏幕:
+//   测量 .table-scroll 的可用高度(去掉表头), 除以当前行数 = 每行高度, 使表格恰好撑满面板可用空间
+//   行少→行高拉大填满(不空); 行多/小屏→行高压缩(不挤)。受限上/下限避免畸形。
+function fitMainTable() {
+  const wrap = document.querySelector(".table-scroll");
+  const table = document.getElementById("mainTable");
+  if (!wrap || !table) return;
+  const thead = table.querySelector("thead");
+  const tbody = table.tbody;
+  const rows = tbody ? tbody.rows : [];
+  if (!rows.length) return;
+  const avail = wrap.clientHeight - (thead ? thead.clientHeight : 0);
+  if (!avail || avail < 30) return;
+  const n = rows.length;
+  // 每行目标高度 = 可用高度/行数, 限制在 [22px, 72px] 之间保底(避免极小数行被拉伸过大/大量行被压缩过挤)
+  const per = Math.max(22, Math.min(72, Math.floor(avail / n)));
+  // 以 CSS 变量下发给 td, 行内 padding 用 var(); 若面板比内容矮则交给 .table-scroll overflow-y 滚动
+  table.style.setProperty("--row-h", per + "px");
 }
 
 // 小时产出图标题栏的车问标签 (跟随车间切换)
@@ -3759,7 +3783,7 @@ Object.keys(collapseMap).forEach(id => {
 // 初始化: 模式显示 + 渲染 + 定时刷新
 setViewMode(viewMode);
 initTrendResize();
-window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); });
+window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); try { fitMainTable(); } catch (e) {} });
 setInterval(renderExtra, 60000);
 attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同步)
 setInterval(attSyncFromRemote, 7200000); // 每2小时同步一次 (2026-08-21 11:46 用户要求: 60s太浪费资源)
