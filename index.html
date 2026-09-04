@@ -1907,7 +1907,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       const vPix = Math.max(0, Math.min((v / maxV) * ch, perH));
       if (vPix > 0.5) {
         // v6.0: 加班段实际(蓝)也用金色系强调
-        ctx.fillStyle = s.ot ? (key === "plan" ? "#f0b93a" : "#f0a93a") : color;
+        ctx.fillStyle = s.ot ? (key === "plan" ? "#f0b93a" : "#2d7dff") : color;
         ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
       } else if (s.ot) {
         // 加班段且该段无达成量: 铺一层金色浅底以示仍在加班窗口
@@ -2047,18 +2047,18 @@ function drawBar(main) {
     const maxVl = Math.max(1, l.plan || 0, l.actual || 0); // 该线自身 plan/actual 较大者 = 满格基准
     if (segShow) {
       const segs = segsOf(l.name, l.actual, l.plan);
-      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#2d7dff", "actual");
+      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
       drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
     } else {
       const mL = Math.max(1, l.plan || 0, l.actual || 0); // 非分段: 以自身 plan/actual 较大者为满格
       const aH = Math.max(0, (l.actual || 0) / mL * ch);
-      ctx.fillStyle = "#2d7dff";
+      ctx.fillStyle = "#58a6ff";
       ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
       const pCum = l.plan || 0;
       const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
       ctx.fillStyle = "#d29922";
       ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
-      ctx.fillStyle = "#2d7dff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+      ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
       if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - aH - 3);
       ctx.fillStyle = "#d29922";
       if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, padT + ch - pH - 3);
