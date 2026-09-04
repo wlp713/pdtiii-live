@@ -4096,6 +4096,11 @@ function reloadLiveData() {
   fetch("live-data.js?t=" + Date.now(), { cache: "no-store", signal: AbortSignal.timeout(20000) })
     .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
     .then(function (txt) {
+      // 健壮性校验: 坏响应/写入中间态可能以 '<' 开头(HTML错误页/残缺快照) → 直接丢弃等下轮, 避免异步执行报 Unexpected token '<' 且 try/catch 抓不住
+      var first = txt.replace(/^\s+/, "").charAt(0);
+      if (txt.indexOf("window.__LIVE_DATA__") < 0 || (first !== "/" && first !== "w" && !/[$A-Za-z_]/.test(first))) {
+        return; // 无效内容, 保持旧数据, 下轮重试
+      }
       try {
         var sc = document.createElement("script");
         var closeTag = "<" + "/script"; // 拼接避免源码出现 script 闭合标签字面量 (HTML解析器会提前结束本块)
