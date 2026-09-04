@@ -122,45 +122,47 @@
   }
 
   /* ── UI 结构 ── */
+  /* ── 构建窗口: 内嵌在产出分析页顶栏的按钮 + 大弹窗 ── */
+  /* 注: UI 仅由产出分析页触发创建, 不自动挂载到主看板 */
+  var ui;                          // 当前 UI 引用 (addMsg/initSpeech/askAI 共用)
+  var _panel, _msgs, _input, _mic, _send, _anaBtn;
+  var _isMacroOpen = false;
+
   function buildUI() {
+    if (_panel) return;
     var btn = document.createElement("button");
-    btn.id = "aiWidgetBtn";
-    btn.textContent = "🤖";
-    btn.title = "AI 产出分析助手";
-    btn.style.cssText = "position:fixed;right:14px;bottom:96px;z-index:999999;width:52px;height:52px;" +
-      "border-radius:50%;border:none;background:linear-gradient(135deg,#2b5cbf,#1e3a8a);color:#fff;" +
-      "font-size:24px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.35);transition:transform .15s;";
-    btn.addEventListener("mouseenter", function () { btn.style.transform = "scale(1.08)"; });
-    btn.addEventListener("mouseleave", function () { btn.style.transform = "scale(1)"; });
+    btn.className = "btn";
+    btn.id = "aiAnaBtn";
+    btn.textContent = "🤖 AI 助手";
+    btn.title = "AI 智能问答: 询问产出/达成率/欠产/趋势";
+    btn.style.cssText = "margin-left:6px;padding:8px 14px;border-radius:10px;border:1px solid #4b5d78;" +
+      "background:rgba(43,92,191,.14);color:inherit;font-size:13px;font-weight:800;cursor:pointer;" +
+      "line-height:1;white-space:nowrap;letter-spacing:.3px;";
 
     var panel = document.createElement("div");
     panel.id = "aiWidgetPanel";
-    panel.style.cssText = "position:fixed;right:14px;bottom:154px;z-index:999999;width:420px;max-width:92vw;" +
-      "height:560px;max-height:72vh;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.3);" +
-      "display:none;flex-direction:column;overflow:hidden;font-family:'Segoe UI','Microsoft YaHei',sans-serif;";
+    panel.style.cssText = "position:fixed;inset:0;margin:auto;z-index:999999;width:min(860px,94vw);" +
+      "height:min(82vh,780px);display:none;flex-direction:column;overflow:hidden;background:#f8fafc;" +
+      "border-radius:18px;box-shadow:0 20px 70px rgba(0,0,0,.45);font-family:'Segoe UI','Microsoft YaHei',sans-serif;";
 
     panel.innerHTML =
-      '<div style="background:#1e293b;color:#fff;padding:12px 16px;font-size:14px;font-weight:700;' +
+      '<div style="background:linear-gradient(135deg,#1e3a8a,#2b5cbf);color:#fff;padding:14px 18px;font-size:15px;font-weight:800;' +
       'display:flex;justify-content:space-between;align-items:center;">' +
-      '<span>🤖 AI 产出分析助手</span><span style="display:flex;align-items:center;gap:10px;">' +
-      '<button id="aiWidgetReset" title="清除上下文记忆, 开启新对话" style="background:none;border:1px solid #556;color:#ccd;border-radius:6px;font-size:11px;padding:2px 8px;cursor:pointer;">新对话</button>' +
-      '<span id="aiWidgetClose" style="cursor:pointer;font-size:18px;padding:0 4px;">✕</span></span></div>' +
-      '<div id="aiWidgetMsgs" style="flex:1;overflow-y:auto;padding:12px;background:#f8fafc;font-size:13px;line-height:1.6;"></div>' +
-      '<div style="border-top:1px solid #e2e8f0;padding:10px;display:flex;gap:8px;align-items:flex-end;background:#fff;">' +
-      '<textarea id="aiWidgetInput" rows="2" placeholder="问我产出数据, 例如: 哪条线欠产最多? 今天总达成率多少?"' +
-      ' style="flex:1;resize:none;border:1px solid #cbd5e1;border-radius:10px;padding:8px 10px;font-size:13px;font-family:inherit;"></textarea>' +
-      '<button id="aiWidgetMic" title="语音输入" style="width:38px;height:38px;border-radius:50%;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:18px;flex-shrink:0;">🎤</button>' +
-      '<button id="aiWidgetSend" style="width:46px;height:38px;border-radius:10px;border:none;background:#2b5cbf;color:#fff;cursor:pointer;font-size:16px;flex-shrink:0;">➤</button>' +
+      '<span>🤖 AI 智能问答 · 产出数据分析</span><span style="display:flex;align-items:center;gap:12px;">' +
+      '<button id="aiWidgetReset" title="清除上下文记忆, 开启新对话" style="background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;font-size:12px;padding:4px 10px;cursor:pointer;">新对话</button>' +
+      '<span id="aiWidgetClose" style="cursor:pointer;font-size:20px;padding:0 4px;line-height:1;">✕</span></span></div>' +
+      '<div id="aiWidgetMsgs" style="flex:1;overflow-y:auto;padding:16px 18px;background:#f8fafc;font-size:14px;line-height:1.7;"></div>' +
+      '<div style="border-top:1px solid #e2e8f0;padding:12px 16px;display:flex;gap:10px;align-items:flex-end;background:#fff;">' +
+      '<textarea id="aiWidgetInput" rows="2" placeholder="问我产出数据, 例如: 哪些线欠产超1000? 各车间达成率? 与昨天相比?"' +
+      ' style="flex:1;resize:none;border:1px solid #cbd5e1;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;"></textarea>' +
+      '<button id="aiWidgetMic" title="语音输入" style="width:42px;height:42px;border-radius:50%;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:20px;flex-shrink:0;">🎤</button>' +
+      '<button id="aiWidgetSend" style="width:50px;height:42px;border-radius:10px;border:none;background:#2b5cbf;color:#fff;cursor:pointer;font-size:18px;flex-shrink:0;">➤</button>' +
       '</div>';
 
-    document.body.appendChild(btn);
     document.body.appendChild(panel);
+    _panel = panel;
     return { btn: btn, panel: panel };
   }
-
-  var ui;
-  var recording = false;
-  var recognition = null;
 
   function addMsg(text, who) {
     var m = ui.msgs;
@@ -253,29 +255,37 @@
   }
 
   /* ── 初始化 ── */
-  function init() {
-    if (document.getElementById("aiWidgetBtn")) return;
-    ui = buildUI();
-    ui.btn = ui.btn;
-    ui.panel = ui.panel;
-    var b = ui; // buildUI 已返回 {btn,panel}; 补 query
-    ui.msgs = document.getElementById("aiWidgetMsgs");
-    ui.input = document.getElementById("aiWidgetInput");
-    ui.mic = document.getElementById("aiWidgetMic");
-    ui.send = document.getElementById("aiWidgetSend");
-    document.getElementById("aiWidgetClose").onclick = function () { ui.panel.style.display = "none"; ui.btn.style.display = "flex"; };
+  /* ── 初始化: 由产出分析页调用, 把按钮放进其顶栏 ── */
+  function initAnaUI() {
+    // 幂等: 已建则直接返回引用
+    buildUI();
+    ui = {
+      btn: _anaBtn,
+      panel: _panel,
+      msgs: document.getElementById("aiWidgetMsgs"),
+      input: document.getElementById("aiWidgetInput"),
+      mic: document.getElementById("aiWidgetMic"),
+      send: document.getElementById("aiWidgetSend")
+    };
+    ui.btn = _anaBtn;
+    ui.panel = _panel;
+
+    document.getElementById("aiWidgetClose").onclick = function () {
+      ui.panel.style.display = "none";
+      ui.btn.style.visibility = "visible";
+      ui.btn.style.pointerEvents = "auto";
+    };
     document.getElementById("aiWidgetReset").onclick = function () {
       if (ui.msgs) ui.msgs.innerHTML = "";
       clearConvId();
       addMsg("👋 已开启新对话, 之前的问题不会影响本次。", "ai");
     };
-
     ui.btn.addEventListener("click", function () {
       ui.panel.style.display = "flex";
-      ui.btn.style.display = "none";
+      ui.btn.style.visibility = "hidden";
+      ui.btn.style.pointerEvents = "none";
       ui.input.focus();
     });
-
     function send() {
       var q = ui.input.value.trim();
       if (!q) return;
@@ -285,14 +295,27 @@
     }
     ui.send.addEventListener("click", send);
     ui.input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
-
-    addMsg("👋 我是你的产出分析助手。直接问我产量、达成率、欠产线体等问题，我会结合当前看板数据回答。", "ai");
+    addMsg("👋 我是产出分析 AI 助手。可问各车间/线体产出的达成率、欠产、逐时走势、历史趋势。", "ai");
     initSpeech();
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  /* ── 对外入口: 在产出分析页顶栏挂载 AI 按钮 ── */
+  window.initAIForAnaPage = function (anaRoot) {
+    var top = anaRoot && anaRoot.querySelector ? anaRoot.querySelector(".ana-top") : null;
+    if (!top) return;
+    if (!_anaBtn) {
+      buildUI();
+      _anaBtn = document.createElement("button");
+      _anaBtn.className = "btn";
+      _anaBtn.id = "aiAnaBtn";
+      _anaBtn.textContent = "🤖 AI 助手";
+      _anaBtn.title = "AI 智能问答: 询问产出/达成率/欠产/趋势";
+      _anaBtn.style.cssText = "margin-left:6px;padding:8px 14px;border-radius:10px;border:1px solid #4b5d78;" +
+        "background:rgba(43,92,191,.14);color:inherit;font-size:13px;font-weight:800;cursor:pointer;" +
+        "line-height:1;white-space:nowrap;letter-spacing:.3px;";
+    }
+    top.appendChild(_anaBtn);
+    initAnaUI();
+  };
+
 })();

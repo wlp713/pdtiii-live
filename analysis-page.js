@@ -1535,6 +1535,8 @@
     document.body.appendChild(root);
     load(dateInput.value || state.today);
     loadTrend();
+    /* AI 助手: 挂载到本页顶栏 (仅产出分析页显示) */
+    if (window.initAIForAnaPage) window.initAIForAnaPage(root);
   };
   window.closeAnaPage = function () { closeHCStream(); if (root.parentNode) root.remove(); };
   setInterval(function () {
