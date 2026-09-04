@@ -391,9 +391,37 @@
   #mainTable td, #mainTable th { vertical-align: middle; }
   #mainTable td { padding: 3px 6px; font-weight: 700; }  /* ★ 2026-09-04: 产出数据加粗与详细页一致(原缺, detail 有 #pages-wrap td 700) */
   /* ★ 2026-09-04: 产出数字(Actual/Plan/差异/达成率/UPH)加大字号, 更清晰 */
+  /* ★ 2026-09-04 v2: 再加大一号 — 数字列 13px→15px, 线体名 14px(原继承表 11.5px) */
   #mainTable td:nth-child(4), #mainTable td:nth-child(5), #mainTable td:nth-child(6),
-  #mainTable td:nth-child(7), #mainTable td:nth-child(8) { font-size: 13px; }
+  #mainTable td:nth-child(7), #mainTable td:nth-child(8) { font-size: 15px; }
+  body.battle-mode #mainTable td:nth-child(4), body.battle-mode #mainTable td:nth-child(5),
+  body.battle-mode #mainTable td:nth-child(6), body.battle-mode #mainTable td:nth-child(7),
+  body.battle-mode #mainTable td:nth-child(8) { font-size: 13px; }  /* detail模式较窄, 保持13px不溢出 */
   #mainTable th { padding: 3px 6px; }
+  /* ★ 2026-09-04 v2: 线体名加大 (基础模式 14px; detail 模式 12.5px) */
+  #mainTable td.line-name { font-size: 14px; }
+  body.battle-mode #mainTable td.line-name { font-size: 12.5px; }
+  /* ★ 2026-09-04 v2: 列间渐变分割线 — 容器上层画 7 条贯穿竖线(前7列右缘), 上蓝下绿垂直渐变淡入淡出
+     画在 .table-scroll 伪元素上而非逐格 ::after: ① 连续贯穿不被行高/行底色切断 ② 不被 hover/停滞着色遮住 */
+  body:not(.battle-mode) .table-scroll { position: relative; }
+  body:not(.battle-mode) .table-scroll::before {
+    content: ""; position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+    pointer-events: none; z-index: 3;
+    background-image:
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
+      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%);
+    background-size: 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%;
+    background-repeat: no-repeat;
+    background-position:
+      /* 列宽合计 91%, table-layout:fixed 等比放大至 100% → 实际列缝 = 累计右缘×(100/91)
+         = 4.4%, 24.2%, 50.5%, 60.4%, 70.3%, 79.1%, 91.2% (改列宽需重算) */
+      4.4% 0, 24.2% 0, 50.5% 0, 60.4% 0, 70.3% 0, 79.1% 0, 91.2% 0;
+  }
   #mainTable td.bar-cell { padding: 2px 6px; min-width: 0; }
   #mainTable td.line-name { padding: 2px 6px; }
   tr:hover td { background: var(--panel2); }
@@ -572,10 +600,10 @@
 
 <div class="kpis">
   <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
   <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
@@ -805,6 +833,8 @@ const I18N = {
     kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体·计划量加权",
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
+    kpiWsOutLbl: "🔵 车间累计产出", kpiWsOutSub: "全部线体 · 今日累计", kpiWsPlanLbl: "🟠 车间计划量", kpiWsPlanSub: "全部线体 · 今日计划",
+    kpiWsEffSub: "车间线体·计划量加权",
     panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "其他线体",
     thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率",
@@ -818,7 +848,7 @@ const I18N = {
     headHint: "UPPH达成率 = 实际UPPH÷目标UPPH；实际UPPH = 累计产出÷累计工时÷人数；目标UPPH = 累计目标(实时计划)÷累计工时÷人数。每天人数可改，保存后自动生效。",
     save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
-    kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
+    kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", kpiWsRunFmt: "车间 {n} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
@@ -849,6 +879,8 @@ const I18N = {
     kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
+    kpiWsOutLbl: "🔵 WS Output", kpiWsOutSub: "All lines · cum.", kpiWsPlanLbl: "🟠 WS Plan", kpiWsPlanSub: "All lines · plan",
+    kpiWsEffSub: "WS lines weighted",
     panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "Other Lines",
     thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency",
@@ -862,7 +894,7 @@ const I18N = {
     headHint: "UPPH rate = Actual UPPH ÷ Target UPPH; Actual UPPH = Output ÷ Worked hrs ÷ Manpower; Target UPPH = Plan output ÷ Worked hrs ÷ Manpower. Manpower editable daily, applied automatically.",
     save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
-    kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
+    kpiRunSubFmt: "Main {m} · Total {a}", kpiWsRunFmt: "WS {n} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
@@ -1133,37 +1165,112 @@ function renderTable() {
   const { main, other } = splitLines();
   const viewSrc = wsSel ? wsLinesOf(wsSel) : main;
   const view = sortLines(viewSrc);
-  // ★ 2026-09-03 v6.0 去全表统一刻度: 不再计算全表 maxV, 每行进度条以自身 plan 为满格基准
   const tb = document.querySelector("#mainTable tbody");
-  tb.innerHTML = "";
-  if (!view.length) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = '<td colspan="8" class="ws-empty-hint">' + (wsSel ? wsSel + " " + t("wsEmpty") : t("noData")) + "</td>";
-    tb.appendChild(tr);
-  }
-  view.forEach((l, idx) => {
-    const tr = document.createElement("tr");
-    const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-    if (isPlannedOff(l)) tr.className = "planned-off";
-    else if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
-    else if (miss) tr.className = "miss";
-    const dot = isPlannedOff(l) ? '<span class="stall-dot"></span>' : (isStalled(l) ? '<span class="stall-dot"></span>' : "");
-    tr.innerHTML =
-      `<td class="rank">${idx + 1}</td>` +
-      `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
-      `<td class="bar-cell">${hbarHtml(l)}</td>` +
-      `<td>${fmt(l.actual)}</td>` +
-      `<td>${fmt(l.plan)}</td>` +
-      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
-      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
-      `<td class="uph-cell">${uphTxt(l, now)}</td>`;
-    tb.appendChild(tr);
+  if (!tb) return { main, other, view };
+  // ★ 2026-09-04 闪烁优化: 行复用 diff — 不再每次 tb.innerHTML="" 全清重建。
+  //   整表销毁重建会丢 td 内联行高(fitMainTable 设的) → 每 10s 行高塌回 21px 再 rAF 弹回 = 闪烁。
+  //   改为按线体名 normName 为 key 复用现有 tr: 顺序变化只移动节点(appendChild), 内容没变的格不写 DOM。
+  //   只有行集合真正变化(切车间/排序/首次)才重建个别行。
+  const keyOf = function (l) { return normName(l.name); };
+  const rowsByKey = new Map();
+  Array.from(tb.rows).forEach(function (tr) {
+    const k = tr.getAttribute("data-line");
+    if (k) rowsByKey.set(k, tr);
   });
+  const empty = !view.length;
+  const keepKeys = new Set();
+  view.forEach(function (l) { keepKeys.add(keyOf(l)); });
+  // 行集合完全一致 + 顺序一致 → 只逐格更新, 不碰 tr
+  let reuseOrder = true;
+  const existing = Array.from(tb.rows);
+  if (empty || existing.length !== view.length) reuseOrder = false;
+  else {
+    for (let i = 0; i < existing.length; i++) {
+      if (existing[i].getAttribute("data-line") !== keyOf(view[i])) { reuseOrder = false; break; }
+    }
+  }
+  if (!empty && reuseOrder) {
+    // ── 同集合同顺序: 行节点/内联高度全保留, 只更新变化的单元格 ──
+    existing.forEach(function (tr, idx) {
+      const l = view[idx];
+      const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+      let cls = "";
+      if (isPlannedOff(l)) cls = "planned-off";
+      else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
+      else if (miss) cls = "miss";
+      if (tr.className !== cls) tr.className = cls;
+      const dot = (isPlannedOff(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+      const htmls = [
+        String(idx + 1),
+        dot + l.name.trim(),
+        hbarHtml(l),
+        fmt(l.actual),
+        fmt(l.plan),
+        fmt(l.cb),
+        fmt1(l.eff),
+        uphTxt(l, now)
+      ];
+      const clses = ["rank", "line-name " + lineNameCls(l), "bar-cell", "", "", signClass(l.cb), effClass(l.eff), "uph-cell"];
+      Array.from(tr.cells).forEach(function (td, ci) {
+        if (ci >= 8) return;
+        if (td.className !== clses[ci]) td.className = clses[ci];
+        if (td.innerHTML !== htmls[ci]) td.innerHTML = htmls[ci];
+      });
+    });
+  } else {
+    // ── 行集合/顺序变了(切车间/排序/首次): 按 key 复用已有 tr, 新线体新建, 多余移除 ──
+    // ★ 2026-09-04 闪烁优化: 重建行丢了内联行高, 行数+容器高可能未变(sig 命中) → 先清幂等标记强制重算
+    fitMainTable._sig = "";
+    if (empty) {
+      tb.innerHTML = "";
+      const tr = document.createElement("tr");
+      tr.innerHTML = '<td colspan="8" class="ws-empty-hint">' + (wsSel ? wsSel + " " + t("wsEmpty") : t("noData")) + "</td>";
+      tb.appendChild(tr);
+    } else {
+      const frag = document.createDocumentFragment();
+      view.forEach(function (l, idx) {
+        const key = keyOf(l);
+        let tr = rowsByKey.get(key);
+        if (!tr) {
+          tr = document.createElement("tr");
+          tr.setAttribute("data-line", key);
+        }
+        const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+        let cls = "";
+        if (isPlannedOff(l)) cls = "planned-off";
+        else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
+        else if (miss) cls = "miss";
+        if (tr.className !== cls) tr.className = cls;
+        const dot = (isPlannedOff(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+        tr.innerHTML =
+          `<td class="rank">${idx + 1}</td>` +
+          `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+          `<td class="bar-cell">${hbarHtml(l)}</td>` +
+          `<td>${fmt(l.actual)}</td>` +
+          `<td>${fmt(l.plan)}</td>` +
+          `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+          `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+          `<td class="uph-cell">${uphTxt(l, now)}</td>`;
+        frag.appendChild(tr);
+      });
+      // 移除不再显示的旧行(留在 tb 里但不在 view 集合)
+      Array.from(tb.rows).forEach(function (tr) {
+        const k = tr.getAttribute("data-line");
+        if (k && !keepKeys.has(k)) tr.remove();
+      });
+      // 空提示行也要清掉(有数据时)
+      Array.from(tb.querySelectorAll(".ws-empty-hint")).forEach(function (td) {
+        const tr = td.closest("tr"); if (tr) tr.remove();
+      });
+      tb.appendChild(frag);
+    }
+  }
   // 车间按钮计数/高亮随每次数据渲染同步 (渲染可能晚于 state.lines 更新)
   if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
   // ★ 2026-09-04 同步更新小时产出图的车问标签 (选中车间时显示车间名, 未选中时显示线体数)
   try { updateChartWsLabel(wsSel, view); } catch (e) {}
   // ★ 2026-09-04 数据表行高自适应布满屏幕 (随面板高度/行数重新均分)
+  //   行复用 diff 时行高已在 tr 上保留; 集合/顺序变化后需重算 → 由 fitMainTable 幂等跳过逻辑兜底
   try { scheduleFitMainTable(); } catch (e) {}
   // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
   return { main, other, view };
@@ -1194,6 +1301,10 @@ function fitMainTable() {
   const baseHeight = canFill ? Math.floor(available / count) : minHeight;
   // 除不尽时的剩余像素: 前 remainder 行各多 1px, 避免底部细缝
   const remainder = canFill ? available - baseHeight * count : 0;
+  // ★ 2026-09-04 闪烁优化: 幂等跳过 — 行数+可用高没变时行高已正确, 不再重设
+  //   (行复用 diff 后行节点/内联高度保留; 每 10s 刷新无谓重设会触发重排/闪烁)
+  if (fitMainTable._sig === count + "x" + available) return;
+  fitMainTable._sig = count + "x" + available;
   rows.forEach(function (row, index) {
     const h = baseHeight + (index < remainder ? 1 : 0);
     row.style.height = h + "px";
@@ -1249,29 +1360,53 @@ function setupSort() {
   renderSortArrows();
 }
 
-function renderKPIs(main) {
-  const running = main.filter(l => l.status === "RUNNING" || l.status === "运行");
-  document.getElementById("kpiRun").textContent = running.length;
-  document.getElementById("kpiRunSub").textContent = t("kpiRunSubFmt").replace("{m}", main.length).replace("{a}", state.lines.length);
+function renderKPIs(view) {
+  const lines = Array.isArray(view) ? view : [];
+  const wsMode = !!wsSel;                      // ★ 2026-09-04: 车间模式(选中车间按钮)
+  const setTxt = (el, v) => { if (el && el.textContent !== String(v)) el.textContent = String(v); };
+  const setCls = (el, c) => { if (el && el.className !== c) el.className = c; };
+  const running = lines.filter(l => l.status === "RUNNING" || l.status === "运行");
+  setTxt(document.getElementById("kpiRun"), running.length);
+  // ★ 2026-09-04: 车间模式下副标题改为车间 n 条·全部 a 条 (默认=主要 m 条·全部 a 条)
+  setTxt(document.getElementById("kpiRunSub"), wsMode
+    ? t("kpiWsRunFmt").replace("{n}", lines.length).replace("{a}", state.lines.length)
+    : t("kpiRunSubFmt").replace("{m}", lines.length).replace("{a}", state.lines.length));
   // ★ v8.7.1 修复: 平均效率不能用"只算 RUNNING 的简单平均"——主要线多数 STALLED 时只剩 1 条在算, 严重失真
-  //   改为: 主要线中有效率(实际>0 或有 plan)的全部参与, 按计划量加权平均 = Σ(actual)/Σ(plan)
-  const pool = main.filter(l => l.eff !== null && !isNaN(l.eff) && (Number(l.plan) > 0 || Number(l.actual) > 0));
+  //   改为: 当前视图线中有效率(实际>0 或有 plan)的全部参与, 按计划量加权平均 = Σ(actual)/Σ(plan)
+  const pool = lines.filter(l => l.eff !== null && !isNaN(l.eff) && (Number(l.plan) > 0 || Number(l.actual) > 0));
   const totAct = pool.reduce((s, l) => s + (Number(l.actual) || 0), 0);
   const totPlan = pool.reduce((s, l) => s + (Number(l.plan) || 0), 0);
   const avgEff = totPlan > 0 ? (totAct / totPlan) * 100 : (pool.length ? pool.reduce((s, l) => s + l.eff, 0) / pool.length : 0);
   const el = document.getElementById("kpiEff");
-  el.textContent = avgEff ? avgEff.toFixed(1) + "%" : "-";
-  el.className = "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : "");
+  setTxt(el, avgEff ? avgEff.toFixed(1) + "%" : "-");
+  setCls(el, "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : ""));
+  setTxt(document.getElementById("kpiEffSub"), wsMode ? t("kpiWsEffSub") : t("kpiEffSub"));
   const hit = running.filter(l => hitEff(l.eff));
   const eh = document.getElementById("kpiHit");
-  eh.textContent = hit.length;
-  eh.className = "value " + (hit.length > 0 ? "green" : "orange");
+  setTxt(eh, hit.length);
+  setCls(eh, "value " + (hit.length > 0 ? "green" : "orange"));
   const hitNames = hit.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
-  document.getElementById("kpiHitSub").textContent = hitNames || t("noHit");
-  const totalFinal = main.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
-  const totalMotor = main.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
-  document.getElementById("kpiFinal").textContent = totalFinal ? fmt(totalFinal) : "-";
-  document.getElementById("kpiMotor").textContent = totalMotor ? fmt(totalMotor) : "-";
+  setTxt(document.getElementById("kpiHitSub"), hitNames || t("noHit"));
+  if (wsMode) {
+    // ★ 2026-09-04 车间模式: 卡4/5 从产品族(Final/Motor)切换为车间通用口径 — 车间累计产出 + 车间计划量
+    const cumSum = lines.reduce((s, l) => s + (Number(l.cum) || 0), 0);
+    const planSum = lines.reduce((s, l) => s + (Number(l.plan) || 0), 0);
+    setTxt(document.getElementById("kpiFinalLbl"), t("kpiWsOutLbl"));
+    setTxt(document.getElementById("kpiFinalSub"), t("kpiWsOutSub"));
+    setTxt(document.getElementById("kpiMotorLbl"), t("kpiWsPlanLbl"));
+    setTxt(document.getElementById("kpiMotorSub"), t("kpiWsPlanSub"));
+    setTxt(document.getElementById("kpiFinal"), cumSum ? fmt(cumSum) : "-");
+    setTxt(document.getElementById("kpiMotor"), planSum ? fmt(planSum) : "-");
+  } else {
+    const totalFinal = lines.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+    const totalMotor = lines.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+    setTxt(document.getElementById("kpiFinalLbl"), t("kpiFinal"));
+    setTxt(document.getElementById("kpiFinalSub"), t("kpiFinalSub"));
+    setTxt(document.getElementById("kpiMotorLbl"), t("kpiMotor"));
+    setTxt(document.getElementById("kpiMotorSub"), t("kpiMotorSub"));
+    setTxt(document.getElementById("kpiFinal"), totalFinal ? fmt(totalFinal) : "-");
+    setTxt(document.getElementById("kpiMotor"), totalMotor ? fmt(totalMotor) : "-");
+  }
 }
 
 // ---- 停滞分级告警 v5.18: 追踪每条主要线 actual 最后变化时刻 → 停滞时长 + 分级 ----
@@ -2199,7 +2334,7 @@ function saveHeads() {
 function renderAll() {
   try {
     const { main, view } = renderTable();
-    renderKPIs(main);
+    renderKPIs(view); // ★ 2026-09-04: KPI 跟随车间 — 传当前视图 view(车间选中时=该车间线体)
     // ★ 2026-08-21 14:35 修复: 图表绘制包 try/catch — 数据异常时不至于中断整个刷新链
     //   (旧: drawBar 内 clearRect 后抛异常 → canvas 空白 + 后续模块全不执行 = 图表"消失")
     // ★ 2026-09-04 小时产出图跟随车间切换: 用列表当前视图 view(wsSel 时=所选车间线体)而非固定 main 8条
@@ -2274,14 +2409,20 @@ async function refresh() {
   if (location.protocol === "file:") {
     const pl = document.getElementById("periodLabel");
     if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("useHttp"); }
-    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("fileErr"); }
+    if (cs) {
+      const fHtml = "<span class='dot'></span> " + t("fileErr");
+      if (cs.className !== "conn-status err" || cs.innerHTML !== fHtml) { cs.className = "conn-status err"; cs.innerHTML = fHtml; }
+    }
     return;
   }
   // ★ fetch 加 8s 超时(AbortController): 服务器卡住时不再无限等待
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 8000);
   try {
-    if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> " + t("connConnecting"); }
+    // ★ 2026-09-04 防闪: 仅当当前不是 ok/warn/err(即首次/断线重连)才显示"连接中", 避免每 10s ok→connecting→ok 闪点
+    if (cs && !cs.classList.contains("ok") && !cs.classList.contains("warn") && !cs.classList.contains("err")) {
+      cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> " + t("connConnecting");
+    }
     const r = await fetch(DATA_URL + "?t=" + Date.now(), { signal: ctrl.signal });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const d = await r.json();
@@ -2309,9 +2450,14 @@ async function refresh() {
         ? new Date(state.updatedAt.replace(" ", "T") + "+07:00").getTime()
         : (state.updatedAt || 0);
       const age = ts ? (Date.now() - ts) : Infinity;
-      if (age <= 90000) { cs.className = "conn-status ok"; cs.innerHTML = "<span class='dot'></span> " + t("connOk"); }
-      else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> " + t("connDelay").replace("{s}", Math.round(age / 1000)); }
-      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + (ts ? t("connDown").replace("{m}", Math.round(age / 60000)) : t("connNoData")); }
+      // ★ 2026-09-04 防闪: 状态+文本变化才写 DOM (innerHTML 重写会重启 dot 动画)
+      let nextCls = "conn-status", nextHtml = "";
+      if (age <= 90000) { nextCls = "conn-status ok"; nextHtml = "<span class='dot'></span> " + t("connOk"); }
+      else if (age <= 300000) { nextCls = "conn-status warn"; nextHtml = "<span class='dot'></span> " + t("connDelay").replace("{s}", Math.round(age / 1000)); }
+      else { nextCls = "conn-status err"; nextHtml = "<span class='dot'></span> " + (ts ? t("connDown").replace("{m}", Math.round(age / 60000)) : t("connNoData")); }
+      if (cs.className !== nextCls || cs.innerHTML !== nextHtml) {
+        cs.className = nextCls; cs.innerHTML = nextHtml;
+      }
     }
     // ★ 标题: 日期 + 班次 + 时段(含秒) — 正常状态解冻并更新
     const pl = document.getElementById("periodLabel");
@@ -2333,7 +2479,11 @@ async function refresh() {
   } catch (e) {
     const pl = document.getElementById("periodLabel");
     if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("connFailed"); }
-    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("connFailedMsg").replace("{m}", (e && e.message ? e.message : String(e))); }
+    // ★ 2026-09-04 防闪: 错误文本变化才写
+    if (cs) {
+      const errHtml = "<span class='dot'></span> " + t("connFailedMsg").replace("{m}", (e && e.message ? e.message : String(e)));
+      if (cs.className !== "conn-status err" || cs.innerHTML !== errHtml) { cs.className = "conn-status err"; cs.innerHTML = errHtml; }
+    }
   } finally {
     clearTimeout(timer);
   }
