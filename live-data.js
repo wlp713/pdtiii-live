@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-04 16:20:32
+   最后写入: 2026-09-04 16:30:15
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -253,6 +253,19 @@ window.__LIVE_DATA__ = {
       "plan": 444,
       "actual": 422,
       "impact": -22,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-04",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "15:00-16:00",
+      "problem_th": "งานรั่ว DV line out-30 เครื่องความต้านทานเช็คซ้ำ2รอบ",
+      "problem_zh": "漏电工作，DV line out-30，电阻机，双重检查。",
+      "plan": 370,
+      "actual": 318,
+      "impact": -52,
       "shift": "day"
     }
   ],
