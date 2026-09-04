@@ -145,6 +145,8 @@
   var ui;                          // 当前 UI 引用 (addMsg/initSpeech/askAI 共用)
   var _panel, _msgs, _input, _mic, _send, _anaBtn;
   var _isMacroOpen = false;
+  var recognition;                 // 语音识别实例
+  var recording = false;           // 语音录制状态
 
   function buildUI() {
     if (_panel) return;
