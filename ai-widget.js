@@ -117,6 +117,24 @@
       });
     }
 
+    /* E. 产出分析页数据: 出勤人数/加班效率/车间明细 (由 analysis-page 导出) */
+    var A = (typeof window.__ANA_DATA__ !== "undefined") ? window.__ANA_DATA__ : null;
+    if (A) {
+      out.push("\n[E. 产出分析页数据 (日期 " + (A.date||"-") + " · " + (A.shift||"-") + ")]");
+      if (A.wsRows && A.wsRows.length) {
+        A.wsRows.forEach(function(r){
+          out.push("  车间"+r.ws+" 线数"+r.lines+" 正常人数"+(r.normalPeople===null?"未填":r.normalPeople)+" 加班人数"+(r.otPeople===null?"未填":r.otPeople)+
+            " 正常效率"+(r.normalEff===null?"-":r.normalEff+"件/人·时")+" 加班效率"+(r.otEff===null?"-":r.otEff+"件/人·时")+
+            (r.otRate!==null?" 加班相对正常"+r.otRate+"%":""));
+        });
+      }
+      if (A.totNormalPeople!==null || A.totOtPeople!==null) {
+        out.push("  合计: 正常出勤"+(A.totNormalPeople===null?"未填":A.totNormalPeople+"人")+" 加班出勤"+(A.totOtPeople===null?"未填":A.totOtPeople+"人")+
+          " 正常产出"+(A.normalOutput??"-")+" 加班产出"+(A.otOutput??"-")+
+          (A.otVsNormalRate!==null?" 加班效率/正常效率="+A.otVsNormalRate+"%":""));
+      }
+    }
+
     out.push("\n(数据为网页当前已加载快照, 如需最新请刷新页面)");
     return out.join("\n");
   }

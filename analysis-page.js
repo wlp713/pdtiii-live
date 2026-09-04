@@ -1240,6 +1240,43 @@
       html += '<div class="dgrid trow" data-ws="__tot__">' + trowHtml(tot, isDay) + "</div>";
     }
     detailList.innerHTML = html;
+    exportAnaData(isDay);
+  }
+
+  /* ── 数据桥: 把产出分析页出勤/加班效率等数据导出, 供 AI 助手读取 ── */
+  function exportAnaData(isDay) {
+    if (!state.wsAgg) return;
+    var out = { date: state.date, shift: isDay ? "白班" : "夜班" };
+    var normalKey = isDay ? "d" : "n", otKey = isDay ? "dO" : "nO";
+    /* 车间级明细: 人数/产出/效率 */
+    var rows = [];
+    WS_MAP.forEach(function (g) {
+      var dd = wsOf(g.ws);
+      if (!dd || dd.lines === 0) return;
+      var c = isDay ? wsRowCellsDay(dd) : wsRowCellsNight(dd);
+      rows.push({
+        ws: g.ws, lines: dd.lines,
+        normalPeople: c.hN, otPeople: c.hO,
+        normalEff: c.effN !== null && isFinite(c.effN) ? Math.round(c.effN) : null,
+        otEff: c.effO !== null && isFinite(c.effO) ? Math.round(c.effO) : null,
+        otRate: c.diff !== null && isFinite(c.diff) ? Math.round(c.diff) : null,  /* 加班效率相对正常% */
+        output: c.tot
+      });
+    });
+    out.wsRows = rows;
+    /* 全局: 出勤总人数 + 综合加班效率达成 */
+    var tot = state.wsAgg.tot;
+    if (tot) {
+      var ss = shiftSnapshot(tot, isDay);
+      out.totNormalPeople = ss.normalPeople.entered ? ss.normalPeople.value : null;
+      out.totOtPeople = ss.otPeople.entered ? ss.otPeople.value : null;
+      out.normalOutput = ss.normalOutput;
+      out.otOutput = ss.otOutput;
+      out.normalHours = ss.normalHours;
+      out.otHours = ss.otHours;
+      out.otVsNormalRate = ss.rate !== null && isFinite(ss.rate) ? Math.round(ss.rate * 100) : null;  /* 加班效率/正常效率% */
+    }
+    try { window.__ANA_DATA__ = out; } catch(e){}
   }
 
   /* ── 车间人数填报 + 人均效率联动 ── */
