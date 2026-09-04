@@ -402,14 +402,6 @@
 "#anaRoot .footnote summary::before{content:'▸';color:var(--ana-text-dim);font-size:11px;transition:transform .18s}",
 "#anaRoot .footnote[open] summary::before{transform:rotate(90deg)}",
 "#anaRoot .footnote .fn-body{padding:0 16px 13px;border-top:1px solid var(--ana-border)}",
-/* 2026-09-04: AI 智能问答折叠卡 (默认收起, 展开才加载 iframe) */
-"#anaRoot .aicard{display:block;margin:14px 0 0;padding:0;border:1px solid var(--ana-border);border-radius:var(--ana-radius-md);background:var(--ana-surface);overflow:hidden}",
-"#anaRoot .aicard summary{cursor:pointer;user-select:none;padding:13px 16px;color:var(--ana-text-muted);font-weight:700;font-size:13px;letter-spacing:.3px;display:flex;align-items:center;gap:8px;list-style:none;background:var(--ana-surface)}",
-"#anaRoot .aicard summary::-webkit-details-marker{display:none}",
-"#anaRoot .aicard summary::before{content:'▸';color:var(--ana-text-dim);font-size:11px;transition:transform .18s;margin-right:2px}",
-"#anaRoot .aicard[open] summary::before{transform:rotate(90deg)}",
-"#anaRoot .aicard .ai-wrap{height:540px;border-top:1px solid var(--ana-border);position:relative;background:#fff}",
-"#anaRoot .aicard .ai-wrap iframe{width:100%;height:100%;border:0;display:block}",
 "#anaRoot .footnote b{color:var(--ana-text-muted)}",
 "#anaRoot .footnote summary:hover{color:var(--ana-text)}",
 "#anaRoot .footnote summary:focus-visible{outline:2px solid var(--ana-blue);outline-offset:-2px;border-radius:var(--ana-radius-sm)}",
@@ -662,10 +654,6 @@
     '<div class="hc-head"><h3><span class="pl" style="background:#6a28b8"></span>人数填报 · 车间人数<span class="note" id="fillNote"></span></h3>' +
     '<button class="ic hc-x" id="hcClose" title="关闭">✕</button></div>' +
     '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div>' +
-    /* 2026-09-04: AI 智能问答折叠卡 (懒加载 iframe, 展开才加载) */
-    '<details class="aicard" id="aiChat"><summary>🤖 AI 智能问答 · Qwen</summary>' +
-    "<div class='ai-wrap'><iframe id='aiFrame' title='AI 智能问答' allow='microphone' sandbox='allow-scripts allow-same-origin allow-forms allow-popups'></iframe></div>" +
-    '</details>' +
     '</div>' +
     "</div>";
   var dateInput = root.querySelector("#anaDate");
@@ -1554,14 +1542,4 @@
   }, 600000);
   /* Firebase REST 流实时推送;每 8 秒轮询作为浏览器/网络不支持流式连接时的兜底 */
   setInterval(function () { if (root.parentNode && state.date) pollHC(); }, 8000);
-  /* 2026-09-04: AI 智能问答折叠卡 - 打开时才加载 iframe (懒加载, 不影响主看板/数据刷新) */
-  var aiCard = root.querySelector("#aiChat");
-  if (aiCard) {
-    aiCard.addEventListener("toggle", function () {
-      var f = root.querySelector("#aiFrame");
-      if (aiCard.open && f && !f.getAttribute("src")) {
-        f.setAttribute("src", "https://aigc.midea.com/dify/chatbot/uKS2qpJIVy4LaP61?hideSidebar=true");
-      }
-    });
-  }
 })();

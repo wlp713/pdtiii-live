@@ -1,0 +1,12 @@
+# wrangler.toml — 美的 AI 代理部署配置
+# 用法: npx wrangler deploy
+name = "midea-ai-proxy"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+# 生产环境私密变量 (建议在 Dashboard 设置, 而非写死在这, 防泄露)
+# 若首次部署想用 CLI 设置, 运行:
+#   npx wrangler secret put Midea_apiKey
+#   npx wrangler secret put AIGC_USER
+[vars]
+# 不要在此写真实 key! 用 wrangler secret put 或 Dashboard 设置
