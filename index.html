@@ -361,7 +361,7 @@
     margin-bottom: 4px; flex-shrink: 0;
   }
   .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 700; letter-spacing: .5px; }
-  .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+  .table-scroll { overflow-y: hidden; flex: 1; min-height: 0; }  /* ★ 2026-09-04: 去滚轮 — 行高由 fitMainTable 均分填满, 永不溢出 */
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
     text-align: right; padding: 3px 6px; color: var(--gray);
@@ -390,6 +390,9 @@
   body:not(.battle-mode) #mainTable th { white-space: nowrap; }
   #mainTable td, #mainTable th { vertical-align: middle; }
   #mainTable td { padding: 3px 6px; font-weight: 700; }  /* ★ 2026-09-04: 产出数据加粗与详细页一致(原缺, detail 有 #pages-wrap td 700) */
+  /* ★ 2026-09-04: 产出数字(Actual/Plan/差异/达成率/UPH)加大字号, 更清晰 */
+  #mainTable td:nth-child(4), #mainTable td:nth-child(5), #mainTable td:nth-child(6),
+  #mainTable td:nth-child(7), #mainTable td:nth-child(8) { font-size: 13px; }
   #mainTable th { padding: 3px 6px; }
   #mainTable td.bar-cell { padding: 2px 6px; min-width: 0; }
   #mainTable td.line-name { padding: 2px 6px; }
