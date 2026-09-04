@@ -1159,7 +1159,7 @@ function renderTable() {
   // ★ 2026-09-04 同步更新小时产出图的车问标签 (选中车间时显示车间名, 未选中时显示线体数)
   try { updateChartWsLabel(wsSel, view); } catch (e) {}
   // ★ 2026-09-04 数据表行高自适应布满屏幕 (随面板高度/行数重新均分)
-  try { requestAnimationFrame(fitMainTable); } catch (e) {}
+  try { scheduleFitMainTable(); } catch (e) {}
   // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
   return { main, other, view };
 }
@@ -1176,14 +1176,8 @@ function fitMainTable() {
   const tbody = table ? table.tBodies[0] : null;
   const rows = tbody ? Array.from(tbody.rows) : [];
   if (!wrap || !table || !rows.length) return;
-  // 作战/detail 模式: 清理日常模式留下的内联高度, 恢复紧凑布局
-  if (document.body.classList.contains("battle-mode")) {
-    rows.forEach(function (row) {
-      row.style.height = "";
-      Array.from(row.cells).forEach(function (cell) { cell.style.height = ""; });
-    });
-    return;
-  }
+  // ★ 2026-09-04 10:40: 取消 battle-mode 跳过——detail 模式行数与日常相同(4~8条),
+  //   同样需要均分填满容器; 之前的紧凑分支导致 detail 模式大片空白。
   // 表头高度(用 getBoundingClientRect 比 clientHeight 稳)
   const headEl = table.tHead;
   const headHeight = headEl ? headEl.getBoundingClientRect().height : 0;
@@ -1199,6 +1193,16 @@ function fitMainTable() {
     const h = baseHeight + (index < remainder ? 1 : 0);
     row.style.height = h + "px";
     Array.from(row.cells).forEach(function (cell) { cell.style.height = h + "px"; });
+  });
+}
+
+// ★ 2026-09-04 10:40: 统一调度入口(防抖 rAF), 任何布局变化后调用一次即可
+let _fitTableFrame = 0;
+function scheduleFitMainTable() {
+  cancelAnimationFrame(_fitTableFrame);
+  _fitTableFrame = requestAnimationFrame(function () {
+    // 双 rAF: 第一帧让布局变化(模式切换/折叠/flex)生效, 第二帧拿到新容器高度再均分
+    requestAnimationFrame(function () { fitMainTable(); });
   });
 }
 
@@ -2839,6 +2843,8 @@ function applyScale() {
       try { if (typeof drawBar === "function") drawBar(_main); } catch (e) { try { drawBarSafe(_main); } catch (e2) {} }
       try { if (typeof drawEff === "function") drawEff(_main); } catch (e) { try { drawEffSafe(_main); } catch (e2) {} }
       try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
+      // ★ 2026-09-04 10:40: 模式切换/模块折叠后容器高度变化 → 双 rAF 重算表格行高铺满
+      try { scheduleFitMainTable(); } catch (e) {}
     });
   });
 }
@@ -3810,7 +3816,17 @@ Object.keys(collapseMap).forEach(id => {
 // 初始化: 模式显示 + 渲染 + 定时刷新
 setViewMode(viewMode);
 initTrendResize();
-window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); try { requestAnimationFrame(fitMainTable); } catch (e) {} });
+window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); try { scheduleFitMainTable(); } catch (e) {} });
+// ★ 2026-09-04 10:40: ResizeObserver 兜底 —— 模式切换/模块折叠/缩放/全屏等不影响 window.resize 的
+//   布局变化, 只要 .table-scroll 尺寸变了就自动重算行高, 保证任何分辨率/任何布局都铺满
+(function () {
+  const _wrap = document.querySelector(".table-scroll");
+  if (_wrap && window.ResizeObserver) {
+    try {
+      new ResizeObserver(function () { try { scheduleFitMainTable(); } catch (e) {} }).observe(_wrap);
+    } catch (e) {}
+  }
+})();
 setInterval(renderExtra, 60000);
 attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同步)
 setInterval(attSyncFromRemote, 7200000); // 每2小时同步一次 (2026-08-21 11:46 用户要求: 60s太浪费资源)
