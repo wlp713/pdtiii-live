@@ -1138,8 +1138,10 @@ function hbarHtml(l) {
   const aw = plan > 0 ? Math.max(0, Math.min(100, act / plan * 100)) : 0;
   const gw = plan > 0 ? Math.max(0, Math.min(100, (plan - act) / plan * 100)) : 0; // 未达成缺口(红色)
   const stalledCls = isPlannedOff(l) ? " style=\"border:1px solid rgba(139,148,158,.45)\"" : (isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "");
+  // ★ 2026-09-04 修复: gap 必须从蓝条右端(aw%)向右延伸到 100% (缺口=目标-实际)。
+  //   旧代码 gap 也 left:0 → 整条被后插入且不透明的 .act 盖住 → 未达成看不出红色。
   return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
-    (gw > 0 ? `<div class="gap" style="width:${gw}%"></div>` : "") +
+    (gw > 0 ? `<div class="gap" style="left:${aw}%;width:${gw}%"></div>` : "") +
     `<div class="act" style="width:${aw}%"></div></div>`;
 }
 
