@@ -1155,9 +1155,9 @@ function renderTable() {
   return { main, other, view };
 }
 
-// ★ 2026-09-04 数据列表行高自适应=布满屏幕:
+// ★ 2026-09-04 数据列表行高自适应=布满屏幕(铺满模块边界):
 //   测量 .table-scroll 的可用高度(去掉表头), 除以当前行数 = 每行高度, 使表格恰好撑满面板可用空间
-//   行少→行高拉大填满(不空); 行多/小屏→行高压缩(不挤)。受限上/下限避免畸形。
+//   不管几条线体都刚好铺满: 行少→每行很高填满边界; 行多→自动压缩填满。不限上限。
 function fitMainTable() {
   const wrap = document.querySelector(".table-scroll");
   const table = document.getElementById("mainTable");
@@ -1169,9 +1169,8 @@ function fitMainTable() {
   const avail = wrap.clientHeight - (thead ? thead.clientHeight : 0);
   if (!avail || avail < 30) return;
   const n = rows.length;
-  // 每行目标高度 = 可用高度/行数, 限制在 [22px, 72px] 之间保底(避免极小数行被拉伸过大/大量行被压缩过挤)
-  const per = Math.max(22, Math.min(72, Math.floor(avail / n)));
-  // 以 CSS 变量下发给 td, 行内 padding 用 var(); 若面板比内容矮则交给 .table-scroll overflow-y 滚动
+  // 每行高度 = 可用高度/行数: 恰好铺满模块边界。只设 26px 保底下限(防极端压缩溢出), 不限上限。
+  const per = Math.max(26, Math.floor(avail / n));
   table.style.setProperty("--row-h", per + "px");
 }
 
