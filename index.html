@@ -313,6 +313,8 @@
   .ws-btn:disabled { opacity: .38; cursor: not-allowed; }
   .ws-btn .wc { opacity: .65; font-size: 9.5px; margin-left: 3px; }
   .ws-sel-label { margin-left: 8px; font-size: 11px; color: var(--blue); font-weight: 700; letter-spacing: .3px; }
+  /* ★ 2026-09-04 小时产出图当前车间标签 (随车间切换) */
+  .chart-ws-label { margin-left: 8px; font-size: 11px; color: var(--green); font-weight: 700; letter-spacing: .3px; }
   .ws-empty-hint { color: var(--gray); font-size: 11px; padding: 10px 4px; text-align: center; }
   .head-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; }
   .head-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
@@ -579,7 +581,7 @@
     </div>
   </div>
   <div class="panel">
-    <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率 (主要线体)</h2></div>
+    <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率</h2><span id="chartWsLabel" class="chart-ws-label"></span></div>
     <div class="chart-col">
       <div class="chart-box">
         <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span><span class="ot-legend-hint" data-i18n="otSegHint"><span class="sw"></span> 加班时段</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
@@ -789,7 +791,7 @@ const I18N = {
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
     panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "其他线体",
     thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
-    panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
+    panelChartTitle: "📊 每小时产量 / 效率",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
     hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
@@ -833,7 +835,7 @@ const I18N = {
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
     panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "Other Lines",
     thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
-    panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
+    panelChartTitle: "📊 Hourly Output / Efficiency",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
     hintSeg: "Bars aligned · Blue=met · Gray=gap",
@@ -1143,8 +1145,23 @@ function renderTable() {
   });
   // 车间按钮计数/高亮随每次数据渲染同步 (渲染可能晚于 state.lines 更新)
   if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
+  // ★ 2026-09-04 同步更新小时产出图的车问标签 (选中车间时显示车间名, 未选中时显示线体数)
+  try { updateChartWsLabel(wsSel, view); } catch (e) {}
   // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
   return { main, other, view };
+}
+
+// 小时产出图标题栏的车问标签 (跟随车间切换)
+function updateChartWsLabel(sel, view) {
+  const el = document.getElementById("chartWsLabel");
+  if (!el) return;
+  if (sel) {
+    el.textContent = " · " + (WS_LABEL[sel] || sel);
+    el.style.display = "";
+  } else {
+    el.textContent = (lang === "zh" ? "· " + (view ? view.length : 8) + " 条主要线体" : "· " + (view ? view.length : 8) + " main lines");
+    el.style.display = "";
+  }
 }
 
 // ---- 列头排序交互: 点列头切换排序键/方向, 箭头用 CSS ::after 渲染(不占 textContent, 语言切换不丢) ----
