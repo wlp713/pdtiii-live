@@ -371,6 +371,13 @@
   th[data-sort].sorted.desc::after { content: " ▼"; font-size: 9px; }
   th[data-sort].sorted.asc::after { content: " ▲"; font-size: 9px; }
   td { text-align: right; padding: 8px 8px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  /* ★ 2026-09-04 数据列表行距自适应: 随视口高度平滑变化
+     大屏(高分辨率)行距自动加宽避免"很空", 小屏自动收紧避免"拥挤"
+     clamp(最小值, 期望值, 最大值)  — 期望值随 100vh 线性增长 */
+  #mainTable td { padding: clamp(4px, 1.15vh, 15px) clamp(6px, 1vw, 12px); }
+  #mainTable th { padding-top: clamp(3px, 0.6vh, 8px); padding-bottom: clamp(3px, 0.6vh, 8px); }
+  #mainTable td.bar-cell { padding-top: 3px; padding-bottom: 3px; }
+  #mainTable td.line-name { padding-top: clamp(4px, 1.15vh, 15px); padding-bottom: clamp(4px, 1.15vh, 15px); }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
@@ -437,8 +444,8 @@
   .zero { color: var(--gray); }
   /* 右侧图表: 上下叠 */
   .chart-col { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 8px; }
-  .chart-box { flex: 2.2; min-height: 0; display: flex; flex-direction: column; }
-  .chart-box.small { flex: 0.8; }
+  .chart-box { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  /* UPPH图已移除(2026-09-04): 小时产出图独占图表栏 */
   .chart-box canvas { flex: 1; width: 100%; height: 0; min-height: 60px; }
   /* 2026-08-21 14:20 fix: 首帧 flex 未撑开时 clientHeight=0, 给 canvas 显式最小高度保证可见 */
   /* 2026-08-24 fix: 原 min-height:140px 导致容器被压小时 canvas 不肯缩小, UPPH图溢出右侧面板底部;
@@ -575,12 +582,8 @@
     <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率 (主要线体)</h2></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span><span class="ot-legend-hint" data-i18n="otSegHint"><span class="sw"></span> 加班时段</span></div>
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span><span class="ot-legend-hint" data-i18n="otSegHint"><span class="sw"></span> 加班时段</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
         <canvas id="chartBar"></canvas>
-      </div>
-      <div class="chart-box small">
-        <div class="legend"><span class="lg-eff" data-i18n="lgEff">UPPH 达成率 (实际÷目标)</span><span class="hint" data-i18n="hintUpph">UPPH = 产量÷工时÷人数</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
-        <canvas id="chartEff"></canvas>
       </div>
     </div>
   </div>
@@ -2742,9 +2745,8 @@ function applyScale() {
   if (extra) extra.style.display = battle ? "flex" : "none";
   const modeBtn = document.getElementById("modeBtn");
   if (modeBtn) modeBtn.textContent = battle ? t("modeDaily") : t("modeDetail");
-  // ★ 2026-08-20 14:39 作战模式隐藏 UPPH 效率图, 小时产出图独占图表空间; 日常模式恢复
-  const effBox = document.querySelector(".chart-box.small");
-  if (effBox) effBox.style.display = battle ? "none" : "";
+  // ★ 2026-09-04 UPPH 效率图已删除, 小时产出图独占图表空间; 不再需要隐藏逻辑
+  // (旧: 作战模式隐藏 UPPH 图; 现常驻只有小时产出图)
   // ③ 触发原看板 resize 重绘 (canvas 随容器尺寸自适应) + 趋势图重绘
   // ★ 2026-08-20 15:30 修Bug: display 切换后必须强制 reflow + rAF 延迟重绘
   // ★ 2026-08-20 16:20 二次修: 单帧 rAF 时 flex/字体布局未必稳定 → 双 rAF 等两帧;
