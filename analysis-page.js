@@ -42,7 +42,7 @@
   NORM2WS["inspectionb"] = "Inspection B line";
   NORM2WS["inspectionc"] = "Inspection C line";
   NORM2WS["inspectiond"] = "Inspection D line";
-  function normN(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
+  function normN(n) { return String(n || "").toLowerCase().replace(/[\s.]+/g, ""); }
 
   function h2m(h, oldFmt) {
     if (h === null || h === undefined) return null;
