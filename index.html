@@ -2047,18 +2047,18 @@ function drawBar(main) {
     const maxVl = Math.max(1, l.plan || 0, l.actual || 0); // 该线自身 plan/actual 较大者 = 满格基准
     if (segShow) {
       const segs = segsOf(l.name, l.actual, l.plan);
-      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
+      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#2d7dff", "actual");
       drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
     } else {
       const mL = Math.max(1, l.plan || 0, l.actual || 0); // 非分段: 以自身 plan/actual 较大者为满格
       const aH = Math.max(0, (l.actual || 0) / mL * ch);
-      ctx.fillStyle = "#58a6ff";
+      ctx.fillStyle = "#2d7dff";
       ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
       const pCum = l.plan || 0;
       const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
       ctx.fillStyle = "#d29922";
       ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
-      ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+      ctx.fillStyle = "#2d7dff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
       if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - aH - 3);
       ctx.fillStyle = "#d29922";
       if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, padT + ch - pH - 3);
