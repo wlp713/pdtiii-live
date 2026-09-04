@@ -379,7 +379,7 @@
   #mainTable td { padding: 3px 6px; }
   #mainTable th { padding: 3px 6px; }
   #mainTable td, #mainTable th { vertical-align: middle; }
-  #mainTable tr { height: var(--row-h, auto); }  /* fitMainTable() 设置 --row-h=可用高度/行数, 布凒屏幕 */
+  /* 行高由 fitMainTable() 用 JS 直接设到每个 td (td height 是表格行高的可靠控制点) */
   #mainTable td.bar-cell { padding: 2px 6px; min-width: 200px; }
   #mainTable td.line-name { padding: 2px 6px; }
   tr:hover td { background: var(--panel2); }
@@ -1150,14 +1150,15 @@ function renderTable() {
   // ★ 2026-09-04 同步更新小时产出图的车问标签 (选中车间时显示车间名, 未选中时显示线体数)
   try { updateChartWsLabel(wsSel, view); } catch (e) {}
   // ★ 2026-09-04 数据表行高自适应布满屏幕 (随面板高度/行数重新均分)
-  try { fitMainTable(); } catch (e) {}
+  try { requestAnimationFrame(fitMainTable); } catch (e) {}
   // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
   return { main, other, view };
 }
 
 // ★ 2026-09-04 数据列表行高自适应=布满屏幕(铺满模块边界):
-//   测量 .table-scroll 的可用高度(去掉表头), 除以当前行数 = 每行高度, 使表格恰好撑满面板可用空间
-//   不管几条线体都刚好铺满: 行少→每行很高填满边界; 行多→自动压缩填满。不限上限。
+//   测量 .table-scroll 的可用高度(去掉表头), 除以当前行数 = 每行高度,
+//   用 JS 直接设到每个 td 的 height(表格行高最可靠的控制点), 比 CSS var+tr height 稳。
+//   不管几条线体都刚好铺满: 行少→每行很高填满边界; 行多→自动压缩填满。
 function fitMainTable() {
   const wrap = document.querySelector(".table-scroll");
   const table = document.getElementById("mainTable");
@@ -1171,7 +1172,17 @@ function fitMainTable() {
   const n = rows.length;
   // 每行高度 = 可用高度/行数: 恰好铺满模块边界。只设 26px 保底下限(防极端压缩溢出), 不限上限。
   const per = Math.max(26, Math.floor(avail / n));
-  table.style.setProperty("--row-h", per + "px");
+  for (let i = 0; i < rows.length; i++) {
+    const cells = rows[i].cells;
+    for (let j = 0; j < cells.length; j++) {
+      cells[j].style.height = per + "px";
+    }
+  }
+  // 表头固定高度, 保证 thead 不占额外 (与其它行一致的计算基线)
+  if (thead && thead.rows[0]) {
+    const hcells = thead.rows[0].cells;
+    for (let j = 0; j < hcells.length; j++) { hcells[j].style.height = ""; }
+  }
 }
 
 // 小时产出图标题栏的车问标签 (跟随车间切换)
