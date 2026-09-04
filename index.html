@@ -556,7 +556,7 @@
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2><span data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 点击列头排序</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
+      <h2><span data-i18n="panelMainTitle">📋 Main Lines · Output vs Plan</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
       <div class="ws-btns" id="wsBtns"></div>
     </div>
     <div class="table-scroll">
@@ -784,7 +784,7 @@ const I18N = {
     kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体·计划量加权",
     kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
     kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
-    panelMainTitle: "📋 主要线体 · 产量对比 · 点击列头排序", otherLines: "其他线体",
+    panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "其他线体",
     thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
     panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
     lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
@@ -828,7 +828,7 @@ const I18N = {
     kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
     kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
     kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
-    panelMainTitle: "📋 Main Lines · Output vs Plan · Click to sort", otherLines: "Other Lines",
+    panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "Other Lines",
     thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
     panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
@@ -913,16 +913,19 @@ const FINAL_SET = new Set(["final a line", "final b line", "final c line", "fina
 const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"].map(normName));
 const MAIN_SET = new Set(MAIN_LINES.map(normName));
 
-// ★ 2026-09-03 车间分类: 34 条线上线体全部按车间分组 (与 9/2 定稿映射一致, 名称用线上实测名)
-//   Pro.1=6 Motor / Pro.2=13 Final+Inspection+Water+Rotor / Pro.3=5 Welding+Press / Pro.4=8 C-Shaft系 / Pro.5=2 Honing / Pro.6 空
+// ★ 2026-09-04 按表格七类重新分组 (名称用线上/生产库实测名, 全部对应当天有数据的线)
+//   Pro1=Motor6 / Pro2行1=Rotor+Final8 / Pro2行2=Shipping(=Inspection)4 / Pro3=Welding4
+//   Pro4行1=Frogh No.1-5(=Honning1-5)+Piston+Rod+Press C-Shaft ... Pro4行2=Body+Pin / Pro5=Frame/Piston/Cylinder Honing
 const WS_GROUPS = [
-  { ws: "PRO1", lines: ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
-  { ws: "PRO2", lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Inspection A", "Inspection B", "Inspection C", "Inspection D", "Water Line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
-  { ws: "PRO3", lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line", "Press C-Shaft"] },
-  { ws: "PRO4", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL"] },
-  { ws: "PRO5", lines: ["Piston honing FL", "Cylinder Honing"] },
-  { ws: "PRO6", lines: [] }
+  { ws: "PRO1",   label: "PRO1",            lines: ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
+  { ws: "PRO2R",  label: "PRO2·Rotor/Fin",  lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
+  { ws: "PRO2S",  label: "PRO2·Shipping",   lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D"] },
+  { ws: "PRO3",   label: "PRO3",            lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line"] },
+  { ws: "PRO4H",  label: "PRO4·Hon/Pist",   lines: ["Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5", "Piston Grinding", "Rod Pispin", "Press C-Shaft"] },
+  { ws: "PRO4B",  label: "PRO4·Body/Pin",   lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Body C", "C-Shaft Pin A", "C-Shft Pin B", "C-Shaft Pin C"] },
+  { ws: "PRO5",   label: "PRO5",            lines: ["Frame Honing FL", "Piston honing FL", "Cylinder Honing"] }
 ];
+let WS_LABEL = {}; WS_GROUPS.forEach(g => { WS_LABEL[g.ws] = g.label; });
 // 线体名(norm) → 车间; 供快速反查 (重复名以先出现车间为准, 不会重复定义)
 const LINE2WS = {};
 WS_GROUPS.forEach(g => g.lines.forEach(ln => { LINE2WS[normName(ln)] = g.ws; }));
@@ -945,7 +948,7 @@ function buildWsBtns() {
     b.type = "button";
     b.className = "ws-btn";
     b.dataset.ws = g.ws;
-    b.innerHTML = g.ws + ' <span class="wc">0</span>';
+    b.innerHTML = g.label + ' <span class="wc">0</span>';
     b.addEventListener("click", function () {
       // 再点当前车间 → 取消回到默认(主要线体)
       wsSel = (wsSel === g.ws) ? null : g.ws;
@@ -976,7 +979,7 @@ function updateWsBtns() {
   if (lab) {
     if (wsSel) {
       const n = alive[wsSel] || 0;
-      lab.textContent = " · " + wsSel + " (" + n + ")";
+      lab.textContent = " · " + (WS_LABEL[wsSel] || wsSel) + " (" + n + ")";
     } else {
       lab.textContent = "";
     }
@@ -3771,7 +3774,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
 <!-- 2026-09-02: 车间产出分析独立页 (analysis-page.js, 全屏 overlay, 不影响主逻辑) -->
-<script src="analysis-page.js?v=20260903m"></script>
+<script src="analysis-page.js?v=20260904hc"></script>
 <!-- ★ 2026-09-03 v6.4 PWA: 添加到主屏幕后全屏独立运行, 效果同 App; SW 网络优先, 不缓存 Firebase 数据 -->
 <script>
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
