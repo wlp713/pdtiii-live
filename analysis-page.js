@@ -27,7 +27,7 @@
     { ws: "Pro.1", tag: "", lines: ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
     { ws: "Pro.2", tag: "", lines: ["Final A line", "Final B line", "Final C line", "Final D line", "Inspection A line", "Inspection B line", "Inspection C line", "Inspection D line", "Water Line", "Rotor A line", "Rotor B line", "Rotor C line", "Rotor D line"] },
     { ws: "Pro.3", tag: "", lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line", "Press C-Shaft"] },
-    { ws: "Pro.4", tag: "", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL"] },
+    { ws: "Pro.4", tag: "", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL", "Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5"] },
     { ws: "Pro.5", tag: "", lines: ["Piston honing FL", "Cylinder Honing"] },
     { ws: "Pro.6", tag: "", lines: [] }
   ];
@@ -36,7 +36,7 @@
   var LINE2WS = {};
   WS_MAP.forEach(function (g) { g.lines.forEach(function (ln) { LINE2WS[ln] = g.ws; }); });
   var NORM2WS = {};
-  Object.keys(LINE2WS).forEach(function (ln) { NORM2WS[String(ln).toLowerCase().replace(/\s+/g, "")] = ln; });
+  Object.keys(LINE2WS).forEach(function (ln) { NORM2WS[String(ln).toLowerCase().replace(/[\s.]+/g, "")] = ln; });
   /* ★ v5.44 线名对齐: PDTIII 实际名 "Inspection A/B/C/D"(无 line 后缀) 与 "Rotor B/D Line"(大 L) 归一后补齐别名 */
   NORM2WS["inspectiona"] = "Inspection A line";
   NORM2WS["inspectionb"] = "Inspection B line";
