@@ -3,7 +3,8 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-04 16:30:15
+   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
+   最后写入: 2026-09-04 17:10:06
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -327,7 +328,6 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
-
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
@@ -676,19 +676,51 @@ window.__HISTORY__ = [
       "Welding B line": 94.6,
       "Welding C line": 96.5,
       "Welding D line": 94.7
-    },
-    "first_hour": {
-      "RPO1·F系列": 103.5,
-      "RPO1·H系列": 111.3,
-      "RPO1·S系列": 113.6,
-      "RPO1·WL系列": 122.0,
-      "PRO2·A": 88.6,
-      "PRO2·B": 90.6,
-      "PRO2·C": 85.1
     }
   },
   {
     "date": "2026-09-04",
+    "lines": {
+      "Final A line": 89.2,
+      "Final B Line": 91.9,
+      "Final C line": 94.9,
+      "Final D line": 88.8,
+      "Motor H-Series": 95.9,
+      "Motor S-Series": 68.8,
+      "Motor F-Series": 12.7,
+      "Motor WL": 0.0,
+      "Inspection A": 69.7,
+      "Inspection B": 81.2,
+      "Inspection C": 57.7,
+      "Inspection D": 18.8,
+      "C-Shaft Body A": 52.1,
+      "C-Shaft Body B": 76.0,
+      "C-Shaft Pin A": 79.8,
+      "C-Shaft Pin C": 0.0,
+      "C-Shft Pin B": 31.7,
+      "Cylinder Honing": 84.9,
+      "Frame Honing FL": 75.9,
+      "Piston Grinding": 94.1,
+      "Piston honing FL": 83.9,
+      "Press C-Shaft": 91.1,
+      "Rod Pispin": 5.2,
+      "Water Line": 73.9,
+      "Motor AC": 82.0,
+      "Motor CL": 52.6,
+      "Rotor A line": 105.9,
+      "Rotor B Line": 92.1,
+      "Rotor C line": 93.0,
+      "Rotor D Line": 89.1,
+      "Welding A line": 99.4,
+      "Welding B line": 61.6,
+      "Welding C line": 76.3,
+      "Welding D line": 67.7,
+      "Frame No.1": 69.4,
+      "Frame No.2": 57.1,
+      "Frame No.3": 102.3,
+      "Frame No.4": 100.2,
+      "Frame No.5": 53.2
+    },
     "first_hour": {
       "RPO1·F系列": 57.4,
       "RPO1·H系列": 122.0,
