@@ -290,6 +290,8 @@
   .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
   .conn-status.warn .dot { background: #d29922; }
   .conn-status.err .dot { background: #f85149; box-shadow: 0 0 6px rgba(248,81,73,.6); }
+  .conn-status.rest .dot { background: #8b949e; }
+  .conn-status.rest { color: #8b949e; border-style: dashed; }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
     70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
@@ -842,6 +844,7 @@ const I18N = {
     fileErr: "⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板",
     connOk: "已连接 · 数据实时", connDelay: "数据延迟 {s}s", connDown: "数据断线 {m}min", connNoData: "无数据",
     connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})",
+    restPause: "休息时段暂停刷新", connRestPause: "休息暂停刷新",
     histBtn: "📊 历史统计", histTitle: "📊 历史统计 · 周/月对比 · 站擂排名",
     histReplayTitle: "📅 历史日期回看", histLoad: "加载", histReplayHint: "快照每日17:00自动归档 → history/日期.json",
     modeDaily: "基础", modeDetail: "详情", modeTitle: "切换 基础/详情 模式",
@@ -889,6 +892,7 @@ const I18N = {
     fileErr: "⚠️ file:// cannot load data — open via http://localhost:8080",
     connOk: "Connected · Live", connDelay: "Data delay {s}s", connDown: "Data offline {m}min", connNoData: "No data",
     connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})",
+    restPause: "Refresh paused during break", connRestPause: "Paused (break)",
     histBtn: "📊 History", histTitle: "📊 History · Weekly/Monthly · Rankings",
     histReplayTitle: "📅 Date Replay", histLoad: "Load", histReplayHint: "Snapshots archived daily 17:00 → history/date.json",
     modeDaily: "Basic", modeDetail: "Detail", modeTitle: "Toggle Basic/Detail mode",
@@ -2129,6 +2133,68 @@ const DAY_START = 8 * 60;         // 白班 8:00 开始
 const DAY_END = 20 * 60 + 20;     // 白班 20:20 结束
 const NIGHT_START = 20 * 60 + 30; // 晚班 20:30 开始
 const NIGHT_END = 8 * 60;         // 晚班次日 8:00 结束
+
+// ============ ★ 2026-09-04 流量止血: 刷新调度 ============
+// 休息时段完全停止拉数(数据端也停更), 休息结束前 REST_EARLY_RETURN_MIN 分钟恢复拉取
+// 时制说明: 分钟数以泰国当天 0 点为基准(与 DAY_SEGS 同制):
+//   午休 12:00-13:00 → [720, 780]; 晚休 00:30-01:30 → [30, 90] (凌晨窗口落在当天 0 点后)
+const REFRESH_MS = 60000;                        // 拉数周期: 60s (原 10s, 2026-09-04 降频止血)
+const REST_EARLY_RETURN_MIN = 5;                 // 休息结束前 N 分钟恢复拉取 (避免卡点)
+const REST_WINDOWS = [                           // 休息窗口 [开始分钟, 结束分钟)
+  [720, 780],  // 午休 12:00-13:00
+  [30, 90]     // 晚休 00:30-01:30
+];
+// 暂停区间 = 窗口内但距结束 > 提前量 → [s, e-REST_EARLY_RETURN_MIN) 内不拉数
+function inRestPause(mins) {
+  if (mins == null) mins = bkkMins();
+  for (var i = 0; i < REST_WINDOWS.length; i++) {
+    var s = REST_WINDOWS[i][0], e = REST_WINDOWS[i][1];
+    if (mins >= s && mins < e - REST_EARLY_RETURN_MIN) return true;
+  }
+  return false;
+}
+// 距恢复拉取还剩多少 ms (当前处于暂停区间时)
+function restRemainMs(mins) {
+  if (mins == null) mins = bkkMins();
+  for (var i = 0; i < REST_WINDOWS.length; i++) {
+    var s = REST_WINDOWS[i][0], e = REST_WINDOWS[i][1];
+    if (mins >= s && mins < e - REST_EARLY_RETURN_MIN) return (e - REST_EARLY_RETURN_MIN - mins) * 60000 + 500;
+  }
+  return 0;
+}
+function restUi() {
+  // 休息中: 状态区显示“休息暂停刷新”且不闪连接状态; 标题冻结显示休息文案
+  // (无条件覆盖 — 此前可能是正常时间/连接失败, 休息结束恢复后 refresh 成功路径会解冻重写)
+  var cs = document.getElementById("connStatus");
+  if (cs) {
+    var h = "<span class='dot'></span> " + t("connRestPause");
+    if (cs.className !== "conn-status rest" || cs.innerHTML !== h) {
+      cs.className = "conn-status rest"; cs.innerHTML = h;
+    }
+  }
+  var pl = document.getElementById("periodLabel");
+  if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("restPause"); }
+}
+let refreshTimer = null;
+function scheduleNextRefresh() {
+  if (document.hidden) return;               // 页面隐藏/最小化: 完全暂停, 回前台时再恢复
+  if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+  var m = bkkMins();
+  if (inRestPause(m)) {
+    restUi();
+    refreshTimer = setTimeout(function () { refresh(); scheduleNextRefresh(); }, restRemainMs(m));
+    return;
+  }
+  refreshTimer = setTimeout(function () { refresh(); scheduleNextRefresh(); }, REFRESH_MS);
+}
+function onVisibility() {
+  if (document.hidden) {
+    if (refreshTimer) { clearTimeout(refreshTimer); refreshTimer = null; }
+  } else {
+    refresh();            // 回前台立即拉一次最新数据
+    scheduleNextRefresh();
+  }
+}
 // 白班时段表 (分钟, 当天0点基准) — 休息/午休已剔除
 const DAY_SEGS = [
   [480, 540], [540, 600], [610, 660], [660, 720], [780, 840], [840, 900],
@@ -2426,6 +2492,11 @@ function updatePeriodLabel() {
 
 async function refresh() {
   const cs = document.getElementById("connStatus");
+  // ★ 2026-09-04 流量止血: 午休/晚休窗口内完全不发请求 (数据端也停更, 拉也是重复数据)
+  if (typeof inRestPause === "function" && inRestPause()) {
+    restUi();
+    return;
+  }
   // ★ file:// 直接打开会无法 fetch 数据(浏览器拦截) — 给出明确指引而非模糊的"连接失败"
   if (location.protocol === "file:") {
     const pl = document.getElementById("periodLabel");
@@ -2961,9 +3032,15 @@ function mkAvg(agg) { return wkAvg(agg); }
 
 initNotif();
 refresh();
-setInterval(refresh, 10000);
+scheduleNextRefresh();          // ★ 2026-09-04 流量止血: 60s + 午/晚休停 + 回前台立即刷
+document.addEventListener("visibilitychange", onVisibility);
 // ★ 标题秒表: 每秒刷新日期/班次/时段(精确到秒)
-setInterval(updatePeriodLabel, 1000);
+setInterval(function () {
+  // 休息中冻结标题(不跳秒); 正常状态解冻并更新
+  var pl = document.getElementById("periodLabel");
+  if (pl && pl.dataset.frozen === "1") { /* 休息中, 保持冻结 */ }
+  else { updatePeriodLabel(); }
+}, 1000);
 </script>
 <script src="live-data.js?v=20260903a"></script>
 <script>
