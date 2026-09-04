@@ -2061,8 +2061,23 @@ function drawBar(main) {
       if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, padT + ch - pH - 3);
     }
     // ★ 2026-09-04: 线体名加粗提亮 (与主表加粗风格一致)
-    ctx.fillStyle = "#c9d1d9"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(shortName(l.name), cx, H - 10);
+    // ★ 2026-09-04 12:31: 名称自适应 — PRO4 多线体时槽宽窄, 固定 11px 会重叠/挤出。
+    //   按槽宽逐级降字号 (11→7px), 仍超宽则测宽截断加省略号。
+    ctx.fillStyle = "#c9d1d9"; ctx.textAlign = "center";
+    const labelMaxW = Math.max(14, slot - 5);
+    let lfs = 11;
+    let label = shortName(l.name);
+    ctx.font = "bold " + lfs + "px sans-serif";
+    while (lfs > 7 && ctx.measureText(label).width > labelMaxW) {
+      lfs -= 1;
+      ctx.font = "bold " + lfs + "px sans-serif";
+    }
+    if (ctx.measureText(label).width > labelMaxW) {
+      let cut = label;
+      while (cut.length > 1 && ctx.measureText(cut + "…").width > labelMaxW) cut = cut.slice(0, -1);
+      label = cut + "…";
+    }
+    ctx.fillText(label, cx, H - 10);
   });
   ctx.textAlign = "left";
 }
