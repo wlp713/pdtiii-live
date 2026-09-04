@@ -49,7 +49,7 @@ export default {
     }
 
     try {
-      const { query = "", context = "" } = await request.json();
+      const { query = "", context = "", conversation_id = "" } = await request.json();
       if (!String(query).trim()) {
         return new Response(JSON.stringify({ error: "query 不能为空" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -70,7 +70,7 @@ export default {
           inputs: {},
           query: prompt,
           response_mode: "streaming",
-          conversation_id: "",
+          conversation_id: String(conversation_id || ""),
           user: AIGC_USER,
           files: [],
         }),
@@ -86,6 +86,7 @@ export default {
       // 聚和 streaming SSE → 完整 answer
       const text = await difyRes.text();
       let answer = "";
+      let cid = String(conversation_id || "");
       for (const line of text.split("\n")) {
         const t = line.trim();
         if (!t.startsWith("data:")) continue;
@@ -94,11 +95,12 @@ export default {
         try {
           const o = JSON.parse(json);
           if (o.event === "agent_message" && typeof o.answer === "string") answer += o.answer;
-          if (o.event === "message_end") break;
+          if (o.event === "message_end") { if (o.conversation_id) cid = o.conversation_id; break; }
+          if (o.conversation_id && !cid) cid = o.conversation_id;
         } catch (e) { /* 忽略单行解析失败 */ }
       }
 
-      return new Response(JSON.stringify({ answer }), {
+      return new Response(JSON.stringify({ answer, conversation_id: cid }), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     } catch (e) {

@@ -28,50 +28,96 @@
     theme: { bg: "#1e293b", accent: "#2b5cbf", userBubble: "#2b5cbf", aiBubble: "#f1f5f9" },
   };
 
-  /* ── 数据采集: 把当前看板的产出数据拼成文本上下文 ── */
+  /* ── 车间分组 (与 index.html 的 WS_GROUPS 一致) ── */
+  var WS_GROUPS = [
+    { ws: "PRO1",  label: "PRO1",           lines: ["Motor AC","Motor CL","Motor WL","Motor F-Series","Motor H-Series","Motor S-Series"] },
+    { ws: "PRO2R", label: "PRO2·Rotor/Fin", lines: ["Final A line","Final B Line","Final C line","Final D line","Rotor A line","Rotor B Line","Rotor C line","Rotor D Line"] },
+    { ws: "PRO2S", label: "PRO2·Shipping",  lines: ["Inspection A","Inspection B","Inspection C","Inspection D"] },
+    { ws: "PRO3",  label: "PRO3",           lines: ["Welding A line","Welding B line","Welding C line","Welding D line"] },
+    { ws: "PRO4H", label: "PRO4·Hon/Pist",  lines: ["Frame No.1","Frame No.2","Frame No.3","Frame No.4","Frame No.5","Piston Grinding","Rod Pispin","Press C-Shaft"] },
+    { ws: "PRO4B", label: "PRO4·Body/Pin",  lines: ["C-Shaft Body A","C-Shaft Body B","C-Shaft Body C","C-Shaft Pin A","C-Shft Pin B","C-Shaft Pin C"] },
+    { ws: "PRO5",  label: "PRO5",           lines: ["Frame Honing FL","Piston honing FL","Cylinder Honing"] },
+    { ws: "AUX",   label: "辅助/其他",   lines: ["Water Line","True B"] }
+  ];
+  function wsLabelOf(lineName) {
+    var n = String(lineName||"").toLowerCase().replace(/\s+/g,"");
+    for (var i=0;i<WS_GROUPS.length;i++){
+      for (var j=0;j<WS_GROUPS[i].lines.length;j++){
+        if (String(WS_GROUPS[i].lines[j]).toLowerCase().replace(/\s+/g,"")===n) return WS_GROUPS[i].label;
+      }
+    }
+    return "其他";
+  }
+  function getStateRef() {
+    try { if (typeof state !== "undefined") return state; } catch(e){}
+    try { if (typeof window !== "undefined" && window.state) return window.state; } catch(e){}
+    return null;
+  }
+
+  /* ── 数据采集: 从网页已加载的数据(零新增请求)组全量上下文 ── */
   function collectContext() {
     var out = [];
     var now = new Date();
     out.push("当前本地时间: " + now.toLocaleString("zh-CN", { hour12: false }));
 
-    var D = (typeof window.__LIVE_DATA__ !== "undefined") ? window.__LIVE_DATA__ : null;
-    if (D) {
-      // 当天产出明细 (first_hour)
-      if (D.first_hour && D.first_hour.length) {
-        var date = D.first_hour[0].date || "";
-        out.push("\n【当天产出明细 " + date + " 各线达成率】");
-        D.first_hour.forEach(function (r) {
-          out.push("  " + r.ws + "·" + (r.series || r.line) +
-            "  目标 " + r.target + "  实际 " + r.actual + "  达成率 " + r.rate + "%");
-        });
-      }
-      // 问题点
-      if (D.problems && D.problems.length) {
-        out.push("\n【今日问题点 " + D.problems.length + " 条】");
-        D.problems.forEach(function (p) {
-          out.push("  [" + (p.ws||"") + " " + (p.series||"") + " " + (p.time||"") + "] " +
-            "计划 " + (p.plan||"-") + "/实际 " + (p.actual||"-") + "/缺口 " + (p.impact||"-") +
-            " — " + (p.problem_zh || p.problem_th || ""));
-        });
-      }
-      // 出勤
-      if (D.attendance) {
-        out.push("\n【出勤】" + JSON.stringify(D.attendance));
-      }
-    } else {
-      out.push("\n(当前无 __LIVE_DATA__ 实时数据)");
+    var st = getStateRef();
+    if (!st || (!st.lines || !st.lines.length)) {
+      out.push("\n(⚠️ 网页数据尚未加载完成, 请稍候再问)");
     }
 
-    // 历史达成率
-    var H = (typeof window.__HISTORY__ !== "undefined") ? window.__HISTORY__ : null;
-    if (H && H.length) {
-      out.push("\n【历史达成率最近 [" + Math.min(H.length, 10) + " 天]】");
-      H.slice(-10).forEach(function (d) {
-        var ls = d.lines || {};
-        var parts = Object.keys(ls).slice(0, 8).map(function (k) { return k + ":" + ls[k] + "%"; });
-        out.push("  " + d.date + " — " + parts.join(" , "));
+    /* A. 当天全部线体完整产出汇总 */
+    if (st && st.lines && st.lines.length) {
+      var lines = st.lines.slice();
+      lines.sort(function(a,b){ return (b.cb!==undefined?b.cb:0)-(a.cb!==undefined?a.cb:0); });
+      out.push("\n[A. 当天"+st.lines.length+"条线体产出汇总 更新时间 "+(st.updatedAt||"-")+"]");
+      lines.forEach(function(l){
+        var nm=l.name, ws=wsLabelOf(nm);
+        var eff=(l.eff!==undefined?l.eff:0); if (typeof eff==="number") eff=eff.toFixed(1);
+        var cb=(l.cb!==undefined?l.cb:(l.plan!==undefined?(l.actual||0)-l.plan:0));
+        out.push("  "+(ws?"["+ws+"]":"[无车间]")+" "+nm+" 目标"+(l.target||"-")+" 计划"+(l.plan||"-")+" 实际"+(l.actual||"-")+" 达成率"+eff+"% 欠产"+(cb>0?"+":"")+cb+(l.status?" "+l.status:""));
       });
     }
+
+    /* B. 关键线逐小时走势 (达成率最低的5条) */
+    if (st && st.hourly) {
+      var fk=[];
+      if (st.lines && st.lines.length) {
+        fk=st.lines.slice().sort(function(a,b){return (a.eff||0)-(b.eff||0);}).slice(0,5).map(function(l){return l.name;});
+      }
+      if (fk.length) {
+        out.push("\n[B. 关键线逐小时走势(达成率最低的"+fk.length+"条)]");
+        fk.forEach(function(nm){
+          var arr=st.hourly[nm];
+          if (!arr||!arr.length) return;
+          var pts=arr.map(function(p){return ((p.h!==undefined?p.h:"")+":"+(p.actual!==undefined?p.actual:"-")+"/"+(p.plan!==undefined?p.plan:"-"));});
+          if (pts.length>14){ pts=pts.slice(0,7).concat(["…"]).concat(pts.slice(-6)); }
+          out.push("  "+nm+" → "+pts.join(" "));
+        });
+      }
+    }
+
+    /* C. 历史趋势 */
+    var H=(typeof window.__HISTORY__!=="undefined")?window.__HISTORY__:null;
+    if (H&&H.length) {
+      out.push("\n[C. 历史达成率(最近"+Math.min(H.length,14)+"天)]");
+      H.slice(-14).forEach(function(d){
+        var ls=d.lines||{}; var names=Object.keys(ls);
+        var parts=names.map(function(k){return k+":"+(typeof ls[k]==="number"?ls[k].toFixed(1):ls[k])+"%";});
+        if (parts.length>16){ parts=parts.slice(0,16).concat(["…("+(parts.length-16)+"条线)"]); }
+        out.push("  "+d.date+" — "+parts.join(" , "));
+      });
+    }
+
+    /* D. 其它: 问题点 */
+    var D=(typeof window.__LIVE_DATA__!=="undefined")?window.__LIVE_DATA__:null;
+    if (D&&D.problems&&D.problems.length) {
+      out.push("\n[D. 今日问题点 "+D.problems.length+" 条]");
+      D.problems.slice(0,8).forEach(function(p){
+        out.push("  ["+(p.ws||"")+" "+(p.series||"")+" "+(p.time||"")+"] 计划"+(p.plan||"-")+"/实际"+(p.actual||"-")+"/缺口"+(p.impact||"-")+" — "+(p.problem_zh||p.problem_th||""));
+      });
+    }
+
+    out.push("\n(数据为网页当前已加载快照, 如需最新请刷新页面)");
     return out.join("\n");
   }
 
@@ -96,8 +142,9 @@
     panel.innerHTML =
       '<div style="background:#1e293b;color:#fff;padding:12px 16px;font-size:14px;font-weight:700;' +
       'display:flex;justify-content:space-between;align-items:center;">' +
-      '<span>🤖 AI 产出分析助手</span>' +
-      '<span id="aiWidgetClose" style="cursor:pointer;font-size:18px;padding:0 4px;">✕</span></div>' +
+      '<span>🤖 AI 产出分析助手</span><span style="display:flex;align-items:center;gap:10px;">' +
+      '<button id="aiWidgetReset" title="清除上下文记忆, 开启新对话" style="background:none;border:1px solid #556;color:#ccd;border-radius:6px;font-size:11px;padding:2px 8px;cursor:pointer;">新对话</button>' +
+      '<span id="aiWidgetClose" style="cursor:pointer;font-size:18px;padding:0 4px;">✕</span></span></div>' +
       '<div id="aiWidgetMsgs" style="flex:1;overflow-y:auto;padding:12px;background:#f8fafc;font-size:13px;line-height:1.6;"></div>' +
       '<div style="border-top:1px solid #e2e8f0;padding:10px;display:flex;gap:8px;align-items:flex-end;background:#fff;">' +
       '<textarea id="aiWidgetInput" rows="2" placeholder="问我产出数据, 例如: 哪条线欠产最多? 今天总达成率多少?"' +
@@ -132,12 +179,24 @@
     if (flag) { s.disabled = true; s.textContent = "…"; } else { s.disabled = false; s.textContent = "➤"; }
   }
 
+  /* ── 会话记忆: 用 conversation_id 实现多轮上下文 (仅当前会话) ── */
+  function loadConvId() {
+    try { return localStorage.getItem("aiWidget_convId") || ""; } catch(e){ return ""; }
+  }
+  function saveConvId(id) {
+    try { if (id) localStorage.setItem("aiWidget_convId", id); } catch(e){}
+  }
+  function clearConvId() {
+    try { localStorage.removeItem("aiWidget_convId"); } catch(e){}
+  }
+
   /* ── 实际调用代理 (转发到美的 Dify) ── */
   function askAI(query) {
     var ctx = collectContext();
     var payload = {
       query: query,
-      context: ctx             // 产出数据上下文
+      context: ctx,
+      conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
     };
     addMsg("🤖 思考中…", "ai");
     setBusy(true);
@@ -152,6 +211,7 @@
         // 替换占位消息
         var last = ui.msgs.lastElementChild;
         if (last && last.textContent === "🤖 思考中…") last.remove();
+        if (data && data.conversation_id) saveConvId(data.conversation_id);
         var answer = (data && (data.answer || data.reply)) || (data && data.error) || "无响应";
         addMsg(String(answer), "ai");
       })
@@ -204,6 +264,11 @@
     ui.mic = document.getElementById("aiWidgetMic");
     ui.send = document.getElementById("aiWidgetSend");
     document.getElementById("aiWidgetClose").onclick = function () { ui.panel.style.display = "none"; ui.btn.style.display = "flex"; };
+    document.getElementById("aiWidgetReset").onclick = function () {
+      if (ui.msgs) ui.msgs.innerHTML = "";
+      clearConvId();
+      addMsg("👋 已开启新对话, 之前的问题不会影响本次。", "ai");
+    };
 
     ui.btn.addEventListener("click", function () {
       ui.panel.style.display = "flex";
