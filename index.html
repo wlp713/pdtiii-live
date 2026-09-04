@@ -401,27 +401,11 @@
   /* ★ 2026-09-04 v2: 线体名加大 (基础模式 14px; detail 模式 12.5px) */
   #mainTable td.line-name { font-size: 14px; }
   body.battle-mode #mainTable td.line-name { font-size: 12.5px; }
-  /* ★ 2026-09-04 v2: 列间渐变分割线 — 容器上层画 7 条贯穿竖线(前7列右缘), 上蓝下绿垂直渐变淡入淡出
-     画在 .table-scroll 伪元素上而非逐格 ::after: ① 连续贯穿不被行高/行底色切断 ② 不被 hover/停滞着色遮住 */
-  body:not(.battle-mode) .table-scroll { position: relative; }
-  body:not(.battle-mode) .table-scroll::before {
-    content: ""; position: absolute; top: 0; bottom: 0; left: 0; right: 0;
-    pointer-events: none; z-index: 3;
-    background-image:
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%),
-      linear-gradient(180deg, rgba(88,166,255,0) 0%, rgba(88,166,255,.45) 14%, rgba(88,166,255,.3) 45%, rgba(63,185,80,.3) 60%, rgba(63,185,80,0) 100%);
-    background-size: 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%, 1px 100%;
-    background-repeat: no-repeat;
-    background-position:
-      /* 列宽合计 91%, table-layout:fixed 等比放大至 100% → 实际列缝 = 累计右缘×(100/91)
-         = 4.4%, 24.2%, 50.5%, 60.4%, 70.3%, 79.1%, 91.2% (改列宽需重算) */
-      4.4% 0, 24.2% 0, 50.5% 0, 60.4% 0, 70.3% 0, 79.1% 0, 91.2% 0;
-  }
+  /* ★ 2026-09-04 v3: 分割线方向修正 — 删掉列间竖线(用户确认不要竖着的线), 改为行与行之间的横向分割线
+     横向线用 td 底部 2px 柔和亮线(替代全局 1px 暗线#21262d 几乎不可见), 基础模式生效; 末行收口不画线
+     detail(battle) 模式保持原 1px 暗线, 不打扰紧凑布局 */
+  body:not(.battle-mode) #mainTable td { border-bottom: 2px solid rgba(163,173,187,.32); }
+  body:not(.battle-mode) #mainTable tr:last-child td { border-bottom: none; }
   #mainTable td.bar-cell { padding: 2px 6px; min-width: 0; }
   #mainTable td.line-name { padding: 2px 6px; }
   tr:hover td { background: var(--panel2); }
