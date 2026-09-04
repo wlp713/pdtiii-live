@@ -1143,7 +1143,8 @@ function renderTable() {
   });
   // 车间按钮计数/高亮随每次数据渲染同步 (渲染可能晚于 state.lines 更新)
   if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
-  return { main, other };
+  // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
+  return { main, other, view };
 }
 
 // ---- 列头排序交互: 点列头切换排序键/方向, 箭头用 CSS ::after 渲染(不占 textContent, 语言切换不丢) ----
@@ -1765,7 +1766,14 @@ try { segShow = localStorage.getItem(SEG_KEY) !== "0"; } catch (e) { segShow = t
 function toggleSeg() {
   segShow = document.getElementById("segToggle").checked;
   try { localStorage.setItem(SEG_KEY, segShow ? "1" : "0"); } catch (e) { /* ignore */ }
-  drawBar(splitLines().main);
+  drawBar(viewLines()); // 2026-09-04: 跟随当前车间视图
+}
+
+// ★ 2026-09-04 当前视图线体: 车间选中(wsSel)时=该车间线体; 未选中=8条主要线体
+//   供右侧小时产出图(drawBar/toggleSeg/applyScale)跟随数据列表的车间切换, 复用同一份成熟逻辑
+function viewLines() {
+  if (wsSel) return sortLines(wsLinesOf(wsSel));
+  return sortLines(splitLines().main);
 }
 
 function drawBar(main) {
@@ -2110,11 +2118,13 @@ function saveHeads() {
 
 function renderAll() {
   try {
-    const { main } = renderTable();
+    const { main, view } = renderTable();
     renderKPIs(main);
     // ★ 2026-08-21 14:35 修复: 图表绘制包 try/catch — 数据异常时不至于中断整个刷新链
     //   (旧: drawBar 内 clearRect 后抛异常 → canvas 空白 + 后续模块全不执行 = 图表"消失")
-    try { drawBar(main); } catch (e) { drawBarSafe(main); }
+    // ★ 2026-09-04 小时产出图跟随车间切换: 用列表当前视图 view(wsSel 时=所选车间线体)而非固定 main 8条
+    try { drawBar(view); } catch (e) { drawBarSafe(view); }
+    // drawEff(UPPH图)已删除, 保留守卫调用无害
     try { drawEff(main); } catch (e) { drawEffSafe(main); }
     checkStalls();
     // ★ 扩展模块: 问题点嵌入线体行下方 (每次数据刷新后重新嵌入)
@@ -2757,7 +2767,7 @@ function applyScale() {
       syncHandlePos();
       // ★ 2026-08-21 14:35 修复: 无参 drawBar() → main=undefined → lines.length 抛异常被吞,
       //   模式切换/折叠时图表不重绘(可能空白)。必须传 splitLines().main
-      const _main = splitLines().main;
+      const _main = viewLines();   // 2026-09-04: 跟随当前车间视图(wsSel)而非固定 main
       try { if (typeof drawBar === "function") drawBar(_main); } catch (e) { try { drawBarSafe(_main); } catch (e2) {} }
       try { if (typeof drawEff === "function") drawEff(_main); } catch (e) { try { drawEffSafe(_main); } catch (e2) {} }
       try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
