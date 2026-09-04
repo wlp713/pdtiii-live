@@ -1724,6 +1724,20 @@ function snapMins(sn) {
   const m = parseBucketMinute(sn.h, state.hourlyFmt || "HHMM");
   return m === null ? 0 : m;
 }
+// 取某线体的小时桶数组。★ 2026-09-04 修复: 数据端 hourly 键名与 lines 名可能不一致
+//   (Frame No.1 带点 vs Frame No1 无点) → 精确查失败时做归一化兜底 (去点/空格/大小写)。
+function hourlyArrOf(name) {
+  const h = state.hourly || {};
+  const direct = h[name];
+  if (Array.isArray(direct)) return direct;
+  const target = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (target) {
+    for (const k in h) {
+      if (k.toLowerCase().replace(/[^a-z0-9]/g, "") === target) return h[k];
+    }
+  }
+  return null;
+}
 // 采样所属班次日 (绝对时间戳): 8:00 前归前一天晚班, 8:00 起归当天白班
 // ★ 2026-08-31 修复: localStorage 采样保留48h, 昨天采样会被 valueAt 当成今天 → 今天所有时段
 //   p0=p1=昨天终值 → plan 差分全0 → 小时图只剩当前 live 段一根柱。按班次日过滤后互不污染。
@@ -1743,7 +1757,7 @@ function valueAt(name, t, usePlan, dayOff) {
   //   而采样是各浏览器自己 refresh 时攒的(开得久/后台挂起/刚打开 → 采样集完全不同),
   //   同一份 Firebase 数据会被不同浏览器差分出不同的段值/段数 → 小时图"人人不一样"。
   //   修复: 段计算一律只认 state.hourly(Firebase 快照桶, 全浏览器同一份), 不再读采样。
-  const snaps = (state.hourly || {})[name] || [];
+  const snaps = hourlyArrOf(name) || [];
   if (snaps.length) {
     const pts = [];
     for (const sn of snaps) {
@@ -2178,8 +2192,7 @@ function uphTxt(l, now) {
 function planNowOf(l, now) {
   const live = Number(l.plan) || 0;
   if (live > 0) return live;
-  const hourly = state.hourly || {};
-  const arr = hourly[l.name.trim()];
+  const arr = hourlyArrOf(l.name);
   if (!Array.isArray(arr) || !arr.length) return null;
   const h = bkkClock(now ? now.getTime() : Date.now()).getUTCHours(); // ★ v5.42 泰国当前小时
   let best = null, bestH = -1;
