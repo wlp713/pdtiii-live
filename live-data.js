@@ -3,13 +3,62 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-05 15:50:02
+   最后写入: 2026-09-05 16:20:08
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-05",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "13:00-14:00",
+      "problem_th": "ไม่มี stock wip งานออกไม่ต่อเนื่อง H-Series",
+      "problem_zh": "无库存在制品，作品持续发布，H 系列",
+      "plan": 168,
+      "actual": 128,
+      "impact": -40,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-05",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "14:00-14:50",
+      "problem_th": "ไม่มี stock wip เปลี่ยนรุ่นหัวไลน์ 35 นาที H-Series",
+      "problem_zh": "无库存在制品，35 分钟内更换线头型号，H 系列",
+      "plan": 144,
+      "actual": 66,
+      "impact": -78,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-05",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "15:00-16:00",
+      "problem_th": "ไม่มี stock wip เปลี่ยนรุ่นกลางไลน์ และปรับเซ็ทเครื่องจักร",
+      "problem_zh": "无库存在制品，在生产线中间更改型号并调整机器设置",
+      "plan": 168,
+      "actual": 71,
+      "impact": -97,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
   "first_hour": [
+    {
+      "date": "2026-09-05",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 176,
+      "rate": 104.8
+    },
     {
       "date": "2026-09-05",
       "ws": "RPO1",
@@ -427,6 +476,7 @@ window.__HISTORY__ = [
   {
     "date": "2026-09-05",
     "first_hour": {
+      "RPO1·H系列": 104.8,
       "RPO1·S系列": 79.9
     }
   }
