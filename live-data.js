@@ -3,13 +3,23 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-05 10:20:02
+   最后写入: 2026-09-05 15:10:02
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-05",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 135,
+      "rate": 79.9
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -412,6 +422,12 @@ window.__HISTORY__ = [
       "PRO2·A": 99.5,
       "PRO2·B": 82.3,
       "PRO2·C": 99.5
+    }
+  },
+  {
+    "date": "2026-09-05",
+    "first_hour": {
+      "RPO1·S系列": 79.9
     }
   }
 ];
