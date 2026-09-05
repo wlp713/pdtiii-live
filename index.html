@@ -996,6 +996,8 @@ function buildWsBtns() {
       // 再点当前车间 → 取消回到默认(主要线体)
       wsSel = (wsSel === g.ws) ? null : g.ws;
       renderAll();
+      // ★ 2026-09-05: 车间切换时重建趋势线体选择(仅该车间), 趋势图跟随
+      try { if (typeof renderTrend === "function") renderTrend(); } catch (e) {}
     });
     box.appendChild(b);
   });
@@ -3385,10 +3387,19 @@ function renderTrend() {
   const hint = document.getElementById("trendModeHint");
   if (hint) hint.textContent = trendMode === "first" ? ((typeof lang !== "undefined" && lang === "zh") ? "首小时=8-9点" : "first hour 8-9am") : "";
   // 默认展示线体: rate 模式按 MAIN_TREND_LINES 名单前7条; first 模式直接取最新一天全部 Excel 线体前7条 (2026-08-25)
+  // ★ 2026-09-05: 车间切换联动 — wsSel 选中时只显示该车间线体(按 normName 匹配已有趋势数据)
   const last = hist[hist.length - 1] || {};
   const lineNamesAll = Object.keys(trendValsOf(last));
   let avail = [];
-  if (trendMode === "first") {
+  if (wsSel && (typeof WS_GROUPS !== "undefined")) {
+    const g = WS_GROUPS.find(x => x.ws === wsSel);
+    const gLines = g ? g.lines : [];
+    gLines.forEach(gl => {
+      const gn = normName(gl);
+      const hit = lineNamesAll.find(n => normName(n) === gn);
+      if (hit && TREND_EXCLUDE.indexOf(hit) < 0 && avail.indexOf(hit) < 0) avail.push(hit);
+    });
+  } else if (trendMode === "first") {
     lineNamesAll.forEach(n => { if (TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 7) avail.push(n); });
   } else {
     MAIN_TREND_LINES.forEach(n => { if (lineNamesAll.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 7) avail.push(n); });
