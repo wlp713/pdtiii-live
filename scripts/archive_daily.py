@@ -21,11 +21,12 @@ import json
 import os
 import sys
 import urllib.request
-from datetime import datetime
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
+
+from history_analytics import write_analytics
 
 DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json"
-BKK = ZoneInfo("Asia/Bangkok")
+BKK = timezone(timedelta(hours=7), name="Asia/Bangkok")
 KEEP_OLD_KEYS = ("eff", "first_hour", "problems", "attendance", "source")
 
 def fetch(url, tries=3):
@@ -120,6 +121,19 @@ def main():
         os.replace(tmp_idx, os.path.join("history", "index.json"))
     except Exception as e:
         print(f"INDEX WARN: {e}", file=sys.stderr)
+
+    # 由完整日快照生成轻量静态分析索引。网页只读该文件，不重复请求 Firebase。
+    try:
+        analytics = write_analytics(os.path.join(root, "history"))
+        print(
+            "ANALYTICS "
+            f"days={analytics['quality']['archivedDays']} "
+            f"usableDay={analytics['quality']['usableDayDays']} "
+            f"usableNight={analytics['quality']['usableNightDays']}"
+        )
+    except Exception as e:
+        print(f"ANALYTICS FAILED: {e}", file=sys.stderr)
+        sys.exit(1)
 
     npts = sum(len(v) for v in hourly.values())
     print(f"OK {date} snap={snap} lines={len(hourly)} points={npts} file={old_path} idx={len(idx)}")

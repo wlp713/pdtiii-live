@@ -28,6 +28,8 @@ jobs:
           python-version: "3.11"
       - name: Run archive snapshot
         run: python3 scripts/archive_daily.py
+      - name: Validate history analytics
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"

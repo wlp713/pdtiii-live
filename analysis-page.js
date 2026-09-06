@@ -1,6 +1,6 @@
 /* ============================================================
- * 车间产出分析页 v6 - 效率仪表盘 (独立模块, 零侵入主看板)
- * 叙事主线: 「加班到底值不值」 → 加班人均小时效率 vs 正常人均小时效率
+ * 车间产出分析页 v16 - 经营分析中心 (独立模块, 零侵入主看板)
+ * 叙事主线: 历史经营分析 + 班次效率专题
  *
  * 口径(用户 2026-09-02 确认):
  *   白班 8:00-20:20 | 正常 ≤17:20 | 加班 17:20-20:20 (净3.0h)
@@ -32,7 +32,7 @@
     { ws: "Pro.6", tag: "", lines: [] }
   ];
   var WS_ACC = { "Pro.1": "#3fb950", "Pro.2": "#58a6ff", "Pro.3": "#d29922", "Pro.4": "#bc8cff", "Pro.5": "#39c5cf", "Pro.6": "#f778ba" };
-  var WS_MAP_LINES = 0; WS_MAP.forEach(function (g) { WS_MAP_LINES += g.lines.length; }); // 应有线体数(34): 空车间不算
+  var WS_MAP_LINES = 0; WS_MAP.forEach(function (g) { WS_MAP_LINES += g.lines.length; }); // 应有线体数(39): 空车间不算
   var LINE2WS = {};
   WS_MAP.forEach(function (g) { g.lines.forEach(function (ln) { LINE2WS[ln] = g.ws; }); });
   var NORM2WS = {};
@@ -702,6 +702,83 @@
   "#anaRoot input.hc{height:34px;background:#f7f9fc;border-color:var(--ana-line-strong);font-size:13px}",
   "#anaRoot button,#anaRoot input,#anaRoot summary{transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s,transform .16s}",
   "#anaRoot button:focus-visible,#anaRoot input:focus-visible,#anaRoot summary:focus-visible{outline:3px solid rgba(79,134,255,.42);outline-offset:2px}",
+  "#anaRoot #historyOpsMount{margin-bottom:18px}",
+  "#anaRoot .hist-shell{padding:0;background:#fff;border:1px solid var(--ana-line);border-radius:16px;box-shadow:var(--ana-shadow);overflow:hidden}",
+  "#anaRoot .hist-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px;background:linear-gradient(110deg,#0e2448 0%,#123b75 100%);color:#fff}",
+  "#anaRoot .hist-head>div{min-width:0}",
+  "#anaRoot .hist-eyebrow{display:block;margin-bottom:4px;color:#8fb5ff;font-size:9px;font-weight:900;letter-spacing:1.8px}",
+  "#anaRoot .hist-head h2{font-size:18px;line-height:1.25;color:#fff;font-weight:900}",
+  "#anaRoot .hist-head p{margin-top:4px;color:#b8c7da;font-size:11px}",
+  "#anaRoot .hist-static{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:8px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;color:#dce7f6;font-size:10.5px;font-weight:700}",
+  "#anaRoot .hist-static i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.12)}",
+  "#anaRoot .hist-controls{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:14px 18px;background:#f8fafc;border-bottom:1px solid var(--ana-line)}",
+  "#anaRoot .hist-controls label,#anaRoot .hist-period{display:flex;flex-direction:column;gap:5px}",
+  "#anaRoot .hist-controls label>span,#anaRoot .hist-period>span{color:var(--ana-muted);font-size:9.5px;font-weight:900;letter-spacing:.35px}",
+  "#anaRoot .hist-controls select{min-width:150px;height:36px;padding:0 32px 0 11px;background:#fff;border:1px solid var(--ana-line-strong);border-radius:9px;color:var(--ana-ink);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer}",
+  "#anaRoot .hist-period>div{display:flex;padding:2px;background:#e9eef5;border-radius:9px}",
+  "#anaRoot .hist-period button{min-width:52px;height:32px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--ana-muted);font-size:11px;font-weight:800;cursor:pointer}",
+  "#anaRoot .hist-period button.on{background:#fff;color:var(--ana-primary);box-shadow:0 2px 7px rgba(16,35,63,.12)}",
+  "#anaRoot .hist-partial{flex-direction:row!important;align-items:center;gap:8px!important;min-height:36px;margin-left:auto;padding:0 10px;border:1px solid var(--ana-line);border-radius:9px;background:#fff;cursor:pointer}",
+  "#anaRoot .hist-partial input{width:16px;height:16px;accent-color:var(--ana-primary)}",
+  "#anaRoot .hist-partial span{font-size:10.5px!important;letter-spacing:0!important;white-space:nowrap}",
+  "#anaRoot .hist-quality{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:43px;padding:9px 18px;border-bottom:1px solid var(--ana-line);background:#fff}",
+  "#anaRoot .hist-q-label{padding-right:10px;border-right:1px solid var(--ana-line);color:var(--ana-ink);font-size:11px;font-weight:900}",
+  "#anaRoot .hist-q{padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:800}",
+  "#anaRoot .hist-q.good{background:#eaf7ee;color:#166534}#anaRoot .hist-q.info{background:#eaf1ff;color:#234f9e}#anaRoot .hist-q.warn{background:#fff5e5;color:#92510b}#anaRoot .hist-q.stale{background:#fff1eb;color:#9a3412}",
+  "#anaRoot .hist-q-range{margin-left:auto;color:var(--ana-muted);font-size:10.5px}",
+  "#anaRoot .hist-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-bottom:1px solid var(--ana-line)}",
+  "#anaRoot .hist-kpi{position:relative;min-height:112px;padding:16px 18px;border-right:1px solid var(--ana-line);overflow:hidden}",
+  "#anaRoot .hist-kpi:last-child{border-right:0}",
+  "#anaRoot .hist-kpi::after{content:attr(data-code);position:absolute;right:14px;top:15px;color:#a6b2c2;font-size:8.5px;font-weight:900;letter-spacing:1.2px}",
+  "#anaRoot .hist-kpi>span{display:block;color:var(--ana-muted);font-size:10.5px;font-weight:800}",
+  "#anaRoot .hist-kpi strong{display:block;margin-top:12px;color:var(--ana-ink);font-size:27px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums}",
+  "#anaRoot .hist-kpi strong small{margin-left:4px;color:var(--ana-dim);font-size:10px}",
+  "#anaRoot .hist-kpi p{margin-top:9px;color:var(--ana-dim);font-size:9.5px}",
+  "#anaRoot .hist-kpi.blue{box-shadow:inset 3px 0 #2563eb}#anaRoot .hist-kpi.green{box-shadow:inset 3px 0 #15803d}#anaRoot .hist-kpi.amber{box-shadow:inset 3px 0 #d97706}#anaRoot .hist-kpi.red{box-shadow:inset 3px 0 #c2410c}",
+  "#anaRoot .hist-kpi.blue strong{color:#1d4ed8}#anaRoot .hist-kpi.green strong{color:#15803d}#anaRoot .hist-kpi.amber strong{color:#b45309}#anaRoot .hist-kpi.red strong{color:#c2410c}",
+  "#anaRoot .hist-insights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px 18px;background:#f8fafc;border-bottom:1px solid var(--ana-line)}",
+  "#anaRoot .hist-insight{min-width:0;padding:11px 13px;background:#fff;border:1px solid var(--ana-line);border-radius:10px}",
+  "#anaRoot .hist-insight span{display:block;margin-bottom:5px;color:var(--ana-dim);font-size:9px;font-weight:900;letter-spacing:.5px}",
+  "#anaRoot .hist-insight strong{display:block;overflow:hidden;color:var(--ana-ink);font-size:11.5px;line-height:1.45;text-overflow:ellipsis;white-space:nowrap}",
+  "#anaRoot .hist-insight.focus{border-left:3px solid #d97706}#anaRoot .hist-insight.up{border-left:3px solid #15803d}#anaRoot .hist-insight.risk{border-left:3px solid #c2410c}",
+  "#anaRoot .hist-visual-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(360px,.85fr);gap:12px;padding:14px 14px 0}",
+  "#anaRoot .hist-card{position:relative;min-width:0;background:#fff;border:1px solid var(--ana-line);border-radius:12px;overflow:hidden}",
+  "#anaRoot .hist-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;min-height:58px;padding:13px 15px;border-bottom:1px solid var(--ana-line)}",
+  "#anaRoot .hist-card-head h3{color:var(--ana-ink);font-size:12.5px;font-weight:900}",
+  "#anaRoot .hist-card-head p{margin-top:4px;color:var(--ana-dim);font-size:9.5px;line-height:1.4}",
+  "#anaRoot .hist-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;color:var(--ana-muted);font-size:9px}",
+  "#anaRoot .hist-legend span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}",
+  "#anaRoot .hist-legend i{width:12px;height:7px;border-radius:2px;background:#2563eb}#anaRoot .hist-legend i.ot{background:#d97706}#anaRoot .hist-legend i.plan{height:0;border-top:2px dashed #334155;border-radius:0;background:none}",
+  "#anaRoot .hist-card canvas{display:block;width:100%;height:254px;padding:0 4px 4px}",
+  "#anaRoot .hist-empty{position:absolute;inset:59px 0 0;display:none;place-items:center;background:#fff;color:var(--ana-dim);font-size:11px}",
+  "#anaRoot .hist-rank{margin:12px 14px 14px}",
+  "#anaRoot .hist-rank #histRankCount{color:var(--ana-dim);font-size:9.5px;white-space:nowrap}",
+  "#anaRoot .hist-table-wrap{overflow-x:auto}",
+  "#anaRoot .hist-rank table{width:100%;min-width:920px;border-collapse:collapse;font-size:10.5px}",
+  "#anaRoot .hist-rank th{padding:9px 12px;background:#f6f8fb;border-bottom:1px solid var(--ana-line);color:var(--ana-muted);font-size:9px;font-weight:900;text-align:right;white-space:nowrap}",
+  "#anaRoot .hist-rank th:first-child,#anaRoot .hist-rank th:nth-child(2){text-align:left}",
+  "#anaRoot .hist-rank td{padding:10px 12px;border-bottom:1px solid #edf1f6;color:#475569;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}",
+  "#anaRoot .hist-rank tbody tr:last-child td{border-bottom:0}",
+  "#anaRoot .hist-rank tbody tr:hover{background:#f7faff}",
+  "#anaRoot .hist-rank td:first-child,#anaRoot .hist-rank td:nth-child(2){text-align:left}#anaRoot .hist-rank td strong{color:var(--ana-ink);font-weight:800}",
+  "#anaRoot .hist-pill{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:3px 7px;border-radius:7px;font-size:9px;font-weight:800}",
+  "#anaRoot .hist-pill.good{background:#eaf7ee;color:#166534}#anaRoot .hist-pill.info{background:#eaf1ff;color:#234f9e}#anaRoot .hist-pill.bad{background:#fff1eb;color:#9a3412}#anaRoot .hist-pill.muted{background:#f1f4f8;color:#7a8798}",
+  "#anaRoot .hist-delta.good{color:#15803d}#anaRoot .hist-delta.bad{color:#c2410c}#anaRoot .hist-delta.muted{color:var(--ana-dim)}",
+  "#anaRoot .hist-no-row{padding:28px!important;text-align:center!important;color:var(--ana-dim)!important}",
+  "#anaRoot .hist-method{margin:0 14px 14px;border:1px solid var(--ana-line);border-radius:10px;background:#f8fafc}",
+  "#anaRoot .hist-method summary{min-height:42px;padding:11px 14px;color:var(--ana-muted);font-size:10.5px;font-weight:800;cursor:pointer}",
+  "#anaRoot .hist-method>div{padding:12px 14px;border-top:1px solid var(--ana-line);color:var(--ana-muted);font-size:10.5px;line-height:1.75}",
+  "#anaRoot .hist-method b{color:var(--ana-ink)}",
+  "#anaRoot .hist-loading{display:flex;align-items:center;justify-content:center;gap:14px;min-height:150px;color:var(--ana-muted)}",
+  "#anaRoot .hist-loading>span{width:28px;height:28px;border:3px solid #dbe7fb;border-top-color:var(--ana-primary);border-radius:50%;animation:histSpin .8s linear infinite}",
+  "#anaRoot .hist-loading strong{color:var(--ana-ink);font-size:12px}#anaRoot .hist-loading p{margin-top:4px;font-size:10px}",
+  "#anaRoot .hist-load-error{padding:28px;text-align:center}#anaRoot .hist-load-error h2{font-size:15px}#anaRoot .hist-load-error p{margin:7px 0 13px;color:var(--ana-muted)}#anaRoot .hist-load-error button{min-height:36px;padding:0 14px;border:0;border-radius:8px;background:var(--ana-primary);color:#fff;font-weight:800;cursor:pointer}",
+  "#anaRoot .ana-topic-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:4px 0 11px;padding:0 3px}",
+  "#anaRoot .ana-topic-head span{display:block;margin-bottom:3px;color:#6d83a0;font-size:9px;font-weight:900;letter-spacing:1.5px}#anaRoot .ana-topic-head h2{color:var(--ana-ink);font-size:16px;font-weight:900}#anaRoot .ana-topic-head p{color:var(--ana-muted);font-size:10.5px}",
+  "@keyframes histSpin{to{transform:rotate(360deg)}}",
+  "@media (max-width:1100px){#anaRoot .hist-visual-grid{grid-template-columns:1fr}#anaRoot .hist-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#anaRoot .hist-kpi:nth-child(2){border-right:0}#anaRoot .hist-kpi:nth-child(-n+2){border-bottom:1px solid var(--ana-line)}}",
+  "@media (max-width:820px){#anaRoot .hist-head{align-items:flex-start;flex-direction:column}#anaRoot .hist-static{align-self:flex-start}#anaRoot .hist-controls>*{flex:1 1 160px}#anaRoot .hist-controls select{width:100%;min-width:0}#anaRoot .hist-partial{margin-left:0}#anaRoot .hist-q-range{width:100%;margin-left:0}#anaRoot .hist-insights{grid-template-columns:1fr}#anaRoot .hist-visual-grid{padding:10px 10px 0}#anaRoot .hist-rank,#anaRoot .hist-method{margin-left:10px;margin-right:10px}#anaRoot .ana-topic-head{align-items:flex-start;flex-direction:column}}",
+  "@media (max-width:480px){#anaRoot .hist-head{padding:16px}#anaRoot .hist-controls{padding:12px}#anaRoot .hist-period>div{width:100%}#anaRoot .hist-period button{flex:1;min-width:0}#anaRoot .hist-kpis{grid-template-columns:1fr}#anaRoot .hist-kpi{min-height:96px;border-right:0;border-bottom:1px solid var(--ana-line)}#anaRoot .hist-kpi:last-child{border-bottom:0}#anaRoot .hist-insights{padding:10px 12px}#anaRoot .hist-legend{justify-content:flex-start}#anaRoot .hist-card-head{align-items:flex-start;flex-direction:column}#anaRoot .hist-empty{inset:82px 0 0}}",
   "@media (max-width:1100px){#anaRoot .ana-lower-grid{grid-template-columns:1fr}#anaRoot #vsBand{grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr)}}",
   "@media (max-width:820px){#anaRoot{padding:0 14px 28px}#anaRoot .ana-top{margin:0 -14px 12px;padding:12px 14px;flex-wrap:wrap}#anaRoot .ana-heading{flex:1}#anaRoot .ana-rt{width:100%;justify-content:flex-start}#anaRoot #anaStatus{flex:1;min-width:180px}#anaRoot .subrow{align-items:flex-start;flex-wrap:wrap}#anaRoot .sub-hint{width:100%;margin-left:0;padding-left:13px}#anaRoot .ana-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#anaRoot #vsBand{grid-template-columns:1fr}#anaRoot #vsBand::before{display:none}#anaRoot #vsBand .vs-side{padding:16px 18px}#anaRoot #vsBand .vs-side:first-child{border-right:0;border-bottom:1px solid var(--ana-line)}#anaRoot #vsBand .vs-side.ot{border-left:0;border-top:1px solid var(--ana-line)}#anaRoot #vsBand .vs-mid{padding:10px 14px;flex-direction:row}#anaRoot .section-head{align-items:flex-start;flex-wrap:wrap}#anaRoot .section-head .hint-r{width:100%;margin-left:17px}#anaRoot .dgrid.dh{top:126px}}",
   "@media (max-width:480px){#anaRoot{padding:0 10px 24px}#anaRoot .ana-top{margin:0 -10px;padding:10px}#anaRoot .ana-top h1{font-size:19px}#anaRoot .ana-top .ic{width:38px;height:38px}#anaRoot .ana-rt{gap:7px}#anaRoot #anaStatus{order:3;width:100%}#anaRoot input[type=date]{flex:1}#anaRoot .btn-hc{padding:0 12px}#anaRoot .scope-label{width:100%}#anaRoot .ana-kpis{grid-template-columns:1fr 1fr;gap:8px}#anaRoot .ana-kpi{min-height:106px;padding:14px 12px 12px 15px}#anaRoot .ana-kpi .k-value{font-size:23px}#anaRoot #vsBand .vs-side .num{font-size:31px}#anaRoot .section-head .hint-r{display:none}#anaRoot .chips-sm{transform:none}#anaRoot #winChips{margin-left:auto}#anaRoot #winChips button{min-width:48px;padding:6px 8px}#anaRoot .hc-modal .table-scroll{padding:12px}}",
@@ -726,6 +803,8 @@
     "</div></div>" +
     '<div class="subrow"><span class="scope-label">班次视图</span><div class="chips" id="shiftChips" role="group" aria-label="选择班次"><button type="button" data-sh="day" class="on" aria-pressed="true">白班</button><button type="button" data-sh="night" aria-pressed="false">夜班</button></div>' +
     '<span class="sub-hint" id="subHint">白班 8:00-20:20 · 正常 ≤17:20 · 加班 17:20-20:20</span></div>' +
+    '<div id="historyOpsMount"></div>' +
+    '<div class="ana-topic-head"><div><span>SHIFT EFFICIENCY</span><h2>班次效率专题</h2></div><p>当前班次出勤、正常效率与加班效率对比</p></div>' +
     '<div class="ana-kpis" id="anaKpis">' +
     '<div class="ana-kpi k-n" data-code="NORMAL"><div class="k-label">正常人均小时效率</div><div class="k-value" id="kpiNormEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiNormMeta">正常产出 ÷ 正常人数 ÷ 8h</div></div>' +
     '<div class="ana-kpi k-o" data-code="OVERTIME"><div class="k-label">加班人均小时效率</div><div class="k-value" id="kpiOtEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiOtMeta">加班产出 ÷ 加班人数 ÷ 工时</div></div>' +
@@ -746,7 +825,7 @@
     /* ── 双栏区: 趋势 | 加班人力 (Codex UI §5.6: 1100px 以下单栏) ── */
     '<div class="ana-lower-grid">' +
     /* ── 趋势卡: winChips 移入 h3 ── */
-    '<section class="card ana-trend-card" aria-labelledby="trendTitle"><div class="section-head"><h2 id="trendTitle"><span class="pl" style="background:#2563eb"></span>正常 vs 加班日产出趋势</h2>' +
+    '<section class="card ana-trend-card" aria-labelledby="trendTitle"><div class="section-head"><h2 id="trendTitle"><span class="pl" style="background:#2563eb"></span><span id="anaShiftTrendTitleText">白班正常 vs 加班日产出趋势</span></h2>' +
     '<span class="chips chips-sm" id="winChips" role="group" aria-label="选择趋势周期"><button type="button" data-w="7" class="on" aria-pressed="true">7天</button><button type="button" data-w="14" aria-pressed="false">14天</button><button type="button" data-w="30" aria-pressed="false">30天</button></span>' +
     '<span class="hint-r"><span class="lg"><i style="background:#2563eb"></i>正常产出</span><span class="lg"><i style="background:#d97706"></i>加班产出</span></span></div>' +
     '<canvas id="cvTrend" role="img" aria-label="正常产出与加班产出的每日趋势图"></canvas><div class="empty-tip" id="trendEmpty" style="display:none"></div></section>' +
@@ -973,79 +1052,23 @@
     }
   }
 
-  /* 趋势缓存: {date: {dN,dO,hasD}} - 会话内不重复请求历史归档 (2026-09-03 Codex §8.5) */
-  var trendCache = {};
+  /* 历史趋势只读静态轻量索引；禁止失败后批量扫描每日大快照。 */
   function loadTrend() {
-    /* 数据源: history/index.json 列出可用日期 → 只请求存在的日期(不再盲目并发 40 个文件) */
-    fetch("history/index.json?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
-      .catch(function () { return null; })
-      .then(function (dates) {
-        if (!dates || !dates.length) { trendByDays(); return; }  /* index 缺失(旧部署) → 降级按日扫描 */
-        var last = [];
-        dates.forEach(function (dt) {
-          if (dt >= state.today) return;                        /* 今天实时不参与历史轴(同原行为) */
-          if (last.length >= 40) return;
-          last.push(dt);
-        });
-        loadTrendDates(last);
-      });
-  }
-  /* 降级路径: 无 index.json 时, 从昨天往前逐个探测(与旧版同行为, 仅作兜底) */
-  function trendByDays() {
-    var d0 = new Date(state.today); d0.setDate(d0.getDate() - 1);
-    function iso(x) { return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0"); }
-    var days = [];
-    for (var i = 1; i <= 40; i++) { var x = new Date(d0); x.setDate(d0.getDate() - (i - 1)); days.push(iso(x)); }
-    loadTrendDates(days);
-  }
-  function loadTrendDates(days) {
-    var todo = days.filter(function (dt) { return !trendCache[dt]; });
-    var seen = 0;
-    function finish() {
-      var out = [];
-      days.forEach(function (dt) {
-        var c = trendCache[dt];
-        if (c && !c.skip) out.push(c);
-      });
-      out.sort(function (a, b) { return a.d < b.d ? -1 : 1; });
-      state.trend = out; drawTrend();
+    if (window.PDTIIIHistoryModule && window.PDTIIIHistoryModule.loadAnalytics) {
+      window.PDTIIIHistoryModule.loadAnalytics("history/analytics.json")
+        .then(function (payload) {
+          state.trend = (payload.days || []).filter(function (day) { return day.date < state.today; }).map(function (day) {
+            return {
+              d: day.date,
+              dN: day.totals.day.normal, dO: day.totals.day.overtime,
+              nN: day.totals.night.normal, nO: day.totals.night.overtime,
+              dayStatus: day.quality.dayStatus, nightStatus: day.quality.nightStatus
+            };
+          });
+          drawTrend();
+        })
+        .catch(function () { state.trend = []; drawTrend(); });
     }
-    if (!todo.length) { finish(); return; }
-    todo.forEach(function (dt) {
-      fetch("history/" + dt + ".json?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (d) {
-          seen++;
-          if (d && d.hourly) {
-            /* ★ Codex §8.1 per-file: 历史文件各自独立判定格式(不能用 state.fmt - 那是当前选中日期的) */
-            var f = d.hourlyFormat || null;
-            if (!f) {
-              var anyHi = false;
-              Object.keys(d.hourly).some(function (k) {
-                var arr = d.hourly[k];
-                for (var i = 0; i < arr.length; i++) if (Number(arr[i].h) >= 100) { anyHi = true; return true; }
-                return false;
-              });
-              f = anyHi ? "HHMM" : "hour";
-            }
-            var a = aggWs(d.hourly, f);
-            /* v13: 历史归档完整性闸门 -- 旧快照(17:10 截断/无加班段/线体口径不一 35/12/34)不入趋势,
-               避免「正常vs加班」出现 0 加班、总量跳变的误导。完整 = 线体数达标 + 白班覆盖到日末 */
-            var cov = -1, nLn = 0;
-            Object.keys(d.hourly).forEach(function (rawName) {
-              var std = NORM2WS[normN(rawName)];
-              if (!std) return;
-              nLn++;
-              var s = aggLine(d.hourly[rawName], f);
-              if (s.hasDay && s.lastDpM !== null && s.lastDpM > cov) cov = s.lastDpM;
-            });
-            var full = nLn >= 30 && cov >= DAY_END - 10;   /* ~34 线全量 & 覆盖 ≥20:10 */
-            trendCache[dt] = full
-              ? { d: dt, dN: a.tot.dN, dO: a.tot.dO, hasD: a.tot.dayL > 0 }
-              : { d: dt, skip: true };
-          }
-          if (seen >= todo.length) finish();
-        }).catch(function () { seen++; if (seen >= todo.length) finish(); });
-    });
   }
 
   /* ═══════════ 渲染总入口 ═══════════ */
@@ -1625,22 +1648,26 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, H);
     var tr = state.trend || [];
-    var hasD = tr.some(function (x) { return x.dN > 0 || x.dO > 0; });
+    var isDayTrend = state.sh === "day";
+    var normalKey = isDayTrend ? "dN" : "nN", overtimeKey = isDayTrend ? "dO" : "nO";
+    var statusKey = isDayTrend ? "dayStatus" : "nightStatus";
+    root.querySelector("#anaShiftTrendTitleText").textContent = (isDayTrend ? "白班" : "夜班") + "正常 vs 加班日产出趋势";
+    var hasD = tr.some(function (x) { return x[statusKey] !== "partial" && (x[normalKey] > 0 || x[overtimeKey] > 0); });
     if (!hasD) {
       trendEmpty.style.display = "none";
       ctx.fillStyle = "#94a3b8"; ctx.textAlign = "center"; ctx.font = "12.5px 'Segoe UI',sans-serif";
-      ctx.fillText("历史趋势积累中", W / 2, H / 2 - 18);
+      ctx.fillText("暂无可用的完整 / 可比历史趋势", W / 2, H / 2 - 18);
       ctx.font = "11px 'Segoe UI',sans-serif";
       ctx.fillStyle = "#b6c2cf";
-      ctx.fillText("9-03 前旧快照已自动过滤(止于 17:00 · 无加班段 · 线体口径不一)", W / 2, H / 2 + 1);
-      ctx.fillText("今晚 20:40 起完整归档 → 每日自动累积趋势", W / 2, H / 2 + 19);
+      ctx.fillText("部分归档已自动过滤，避免不完整数据影响判断", W / 2, H / 2 + 1);
+      ctx.fillText("每日 20:40 静态归档后自动更新", W / 2, H / 2 + 19);
       return;
     }
-    var list = tr.filter(function (x) { return x.dN > 0 || x.dO > 0; }).slice(-state.win);
+    var list = tr.filter(function (x) { return x[statusKey] !== "partial" && (x[normalKey] > 0 || x[overtimeKey] > 0); }).slice(-state.win);
     var padL = 46, padR = 14, padT = 24, padB = 28;
     var cw = W - padL - padR, ch = H - padT - padB;
     var allV = [];
-    list.forEach(function (x) { allV.push(x.dN, x.dO); });
+    list.forEach(function (x) { allV.push(x[normalKey], x[overtimeKey]); });
     var maxV = Math.max(1, Math.ceil(Math.max.apply(null, allV) / 10) * 10);
     ctx.font = "10px 'Segoe UI',sans-serif";
     for (var i = 0; i <= 4; i++) {
@@ -1697,8 +1724,8 @@
         }
       });
     }
-    series("dN", "#2563eb", -1);
-    series("dO", "#d97706", 1);
+    series(normalKey, "#2563eb", -1);
+    series(overtimeKey, "#d97706", 1);
     ctx.fillStyle = "#64748b"; ctx.textAlign = "center"; ctx.font = "10px 'Segoe UI',sans-serif";
     list.forEach(function (x, i) {
       if (i % step !== 0 && i !== list.length - 1) return;
@@ -1715,6 +1742,8 @@
       x.classList.toggle("on", on);
       x.setAttribute("aria-pressed", on ? "true" : "false");
     });
+    if (window.PDTIIIHistoryModule) window.PDTIIIHistoryModule.setShift(state.sh);
+    drawTrend();
     if (state.wsAgg) { drawVs(); drawOt(); drawTable(); renderDetail(); }
   });
   winChips.addEventListener("click", function (e) {
@@ -1737,6 +1766,10 @@
     document.body.appendChild(root);
     load(dateInput.value || state.today);
     loadTrend();
+    if (window.PDTIIIHistoryModule) {
+      window.PDTIIIHistoryModule.mount(root.querySelector("#historyOpsMount"), { url: "history/analytics.json" });
+      window.PDTIIIHistoryModule.setShift(state.sh);
+    }
     /* AI 助手: 挂载到本页顶栏 (仅产出分析页显示) */
     if (window.initAIForAnaPage) window.initAIForAnaPage(root);
   };
