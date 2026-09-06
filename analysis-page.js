@@ -596,6 +596,116 @@
 "#anaRoot .hc-modal .hc-x{margin-left:auto;width:32px;height:32px;font-size:14px;line-height:1}",
 "#anaRoot .hc-modal .table-scroll{overflow-y:auto;padding:14px 18px 18px}",
 "#anaRoot .hc-modal #anaTable{max-width:560px;margin:0 auto}",
+  /* v15: UI UX Pro Max + 工厂运营驾驶舱视觉系统 */
+  "#anaRoot{--ana-canvas:#f2f5fa;--ana-panel:#fff;--ana-panel-soft:#f7f9fc;--ana-ink:#10233f;--ana-muted:#607086;--ana-dim:#8795a8;--ana-line:#dce4ef;--ana-line-strong:#c8d4e3;--ana-primary:#155eef;--ana-primary-soft:#eaf1ff;--ana-normal:#2563eb;--ana-ot:#d97706;--ana-success:#15803d;--ana-danger:#c2410c;--ana-navy:#0b1730;--ana-radius:14px;--ana-radius-sm:10px;--ana-shadow:0 8px 24px rgba(16,35,63,.07);background:var(--ana-canvas);color:var(--ana-ink);font-family:'Segoe UI Variable','Segoe UI','Microsoft YaHei','PingFang SC',sans-serif;font-size:13px;padding:0 24px 36px}",
+  "#anaRoot::before{content:'';position:fixed;inset:0 0 auto;height:108px;background:var(--ana-navy);pointer-events:none;z-index:-1}",
+  "#anaRoot .ana-in{max-width:1600px}",
+  "#anaRoot .ana-top{margin:0 -24px 16px;padding:14px 24px;min-height:72px;background:rgba(11,23,48,.98);border:0;color:#fff;box-shadow:0 8px 24px rgba(11,23,48,.18);backdrop-filter:blur(12px)}",
+  "#anaRoot .ana-heading{display:flex;flex-direction:column;gap:2px;min-width:0}",
+  "#anaRoot .ana-heading .eyebrow{font-size:10px;line-height:1.2;font-weight:800;letter-spacing:1.8px;color:#8fb5ff;text-transform:uppercase}",
+  "#anaRoot .ana-top h1{font-size:22px;line-height:1.2;color:#fff;letter-spacing:.2px}",
+  "#anaRoot .ana-top h1 .cnt{padding:3px 9px;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#b9c7da;font-size:10px}",
+  "#anaRoot .ana-top .ic{width:40px;height:40px;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.14);color:#fff;border-radius:10px}",
+  "#anaRoot .ana-top .ic:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.26);color:#fff;transform:translateX(-2px)}",
+  "#anaRoot .ana-top .ic svg,#anaRoot .btn-hc svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}",
+  "#anaRoot .ana-rt{gap:10px;flex-wrap:wrap;justify-content:flex-end}",
+  "#anaRoot #anaStatus{min-height:34px;padding:0 11px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(255,255,255,.06);color:#c0ccdc;font-size:11px}",
+  "#anaRoot #anaStatus .dot{width:7px;height:7px;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.12)}",
+  "#anaRoot #anaStatus.st-idle .dot{background:#94a3b8;box-shadow:none}",
+  "#anaRoot #anaStatus.st-warn .dot{background:#fbbf24;box-shadow:0 0 0 4px rgba(251,191,36,.12)}",
+  "#anaRoot #anaStatus.st-err .dot{background:#fb7185;box-shadow:0 0 0 4px rgba(251,113,133,.12)}",
+  "#anaRoot #anaStatusTxt,#anaRoot #anaStatus.st-warn #anaStatusTxt,#anaRoot #anaStatus.st-err #anaStatusTxt{color:inherit}",
+  "#anaRoot input[type=date]{height:36px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.09);color:#fff;color-scheme:dark;box-shadow:none;padding:5px 11px}",
+  "#anaRoot input[type=date]:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.12)}",
+  "#anaRoot input[type=date]:focus{border-color:#8fb5ff;box-shadow:0 0 0 3px rgba(79,134,255,.24)}",
+  "#anaRoot .btn-hc{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;margin:0;padding:0 15px;border:1px solid #3975f6;border-radius:10px;background:#155eef;color:#fff;font-size:12.5px;font-weight:800;box-shadow:0 6px 16px rgba(21,94,239,.28)}",
+  "#anaRoot .btn-hc:hover{background:#0b4ed1;border-color:#4f86ff;transform:translateY(-1px)}",
+  "#anaRoot #aiAnaBtn:hover{background:rgba(255,255,255,.15)!important;border-color:rgba(255,255,255,.3)!important;transform:translateY(-1px)}",
+  "#anaRoot .subrow{min-height:50px;margin:0 0 14px;padding:8px 12px;background:var(--ana-panel);border:1px solid var(--ana-line);border-radius:var(--ana-radius-sm);box-shadow:0 3px 12px rgba(16,35,63,.04)}",
+  "#anaRoot .scope-label{display:inline-flex;align-items:center;gap:10px;color:var(--ana-muted);font-size:11px;font-weight:800;letter-spacing:.5px}",
+  "#anaRoot .scope-label::before{content:'';width:3px;height:20px;border-radius:3px;background:var(--ana-primary)}",
+  "#anaRoot .sub-hint{margin-left:auto;color:var(--ana-muted);font-size:11px}",
+  "#anaRoot .chips{padding:3px;background:#eef2f7;border:1px solid #e2e8f0;border-radius:9px}",
+  "#anaRoot .chips button{min-width:76px;min-height:32px;padding:6px 14px;border-radius:7px;color:var(--ana-muted);font-size:12px;font-weight:800}",
+  "#anaRoot .chips button.on{background:#fff;color:var(--ana-primary);box-shadow:0 2px 7px rgba(16,35,63,.12);border:0}",
+  "#anaRoot .chips button:hover:not(.on){background:rgba(255,255,255,.72);color:var(--ana-ink)}",
+  "#anaRoot .ana-kpis{gap:12px;margin-bottom:14px}",
+  "#anaRoot .ana-kpi{position:relative;min-height:116px;padding:16px 16px 14px 18px;background:var(--ana-panel);border:1px solid var(--ana-line);border-radius:var(--ana-radius);box-shadow:var(--ana-shadow);overflow:hidden}",
+  "#anaRoot .ana-kpi::before{left:0;top:18px;bottom:18px;width:3px;border-radius:0 3px 3px 0;background:var(--ana-primary)}",
+  "#anaRoot .ana-kpi::after{content:attr(data-code);position:absolute;right:13px;top:12px;color:#a8b4c4;font-size:9px;font-weight:900;letter-spacing:1.2px}",
+  "#anaRoot .ana-kpi.k-n::before{background:var(--ana-normal)}#anaRoot .ana-kpi.k-o::before{background:var(--ana-ot)}#anaRoot .ana-kpi.k-rate::before{background:var(--ana-success)}#anaRoot .ana-kpi.k-head::before{background:#7c3aed}",
+  "#anaRoot .ana-kpi .k-label{color:var(--ana-muted);font-size:11px;font-weight:800;letter-spacing:.2px}",
+  "#anaRoot .ana-kpi .k-value{margin-top:11px;color:var(--ana-ink);font-size:29px;line-height:1;font-weight:900;letter-spacing:-.6px}",
+  "#anaRoot .ana-kpi .k-value small{color:var(--ana-dim);font-size:10px;font-weight:700;letter-spacing:0}",
+  "#anaRoot .ana-kpi .k-meta{margin-top:10px;color:var(--ana-dim);font-size:10.5px}",
+  "#anaRoot .ana-kpi.k-n .k-value{color:var(--ana-normal)}#anaRoot .ana-kpi.k-o .k-value{color:var(--ana-ot)}#anaRoot .ana-kpi.k-good .k-value{color:var(--ana-success)}#anaRoot .ana-kpi.k-warn .k-value{color:var(--ana-ot)}#anaRoot .ana-kpi.k-bad .k-value{color:var(--ana-danger)}",
+  "#anaRoot #vsBand{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 180px minmax(0,1fr);margin-bottom:12px;background:var(--ana-panel);border:1px solid var(--ana-line);border-radius:var(--ana-radius);box-shadow:var(--ana-shadow);overflow:hidden}",
+  "#anaRoot #vsBand::before{content:'班次效率对比';position:absolute;left:18px;top:12px;color:var(--ana-dim);font-size:9px;font-weight:900;letter-spacing:1.4px;text-transform:uppercase}",
+  "#anaRoot #vsBand .vs-side{padding:36px 22px 18px;background:#fff;border:0}",
+  "#anaRoot #vsBand .vs-side:first-child{border-right:1px solid var(--ana-line);background:linear-gradient(135deg,#f7faff 0%,#fff 70%)}",
+  "#anaRoot #vsBand .vs-side.ot{border-left:1px solid var(--ana-line);background:linear-gradient(225deg,#fffaf3 0%,#fff 70%)}",
+  "#anaRoot #vsBand .vs-side .lb{font-size:13px;color:var(--ana-ink);font-weight:900}",
+  "#anaRoot #vsBand .vs-side .lb .tag{padding:3px 9px;background:var(--ana-primary-soft);color:#234f9e;font-size:10px}",
+  "#anaRoot #vsBand .vs-side.ot .lb .tag{background:#fff3df;color:#9a4a14}",
+  "#anaRoot #vsBand .vs-side .num{margin-top:7px;color:var(--ana-ink);font-size:38px;font-weight:900;letter-spacing:-.7px}",
+  "#anaRoot #vsBand .vs-side .sb{margin-top:5px;color:var(--ana-muted);font-size:11px}",
+  "#anaRoot #vsBand .vs-mid{padding:30px 14px 14px;background:#f9fbfe}",
+  "#anaRoot #vsBand .vs-mid .vsw{font-size:9px;color:var(--ana-dim);letter-spacing:1.5px}",
+  "#anaRoot #diffChip{min-width:112px;justify-content:center;padding:8px 12px;border-radius:9px;font-size:13px;box-shadow:none}",
+  "#anaRoot #vsVerdict{margin:0 0 14px;padding:12px 16px;background:#f8fbff;border:1px solid #d6e5ff;border-left:4px solid var(--ana-primary);border-radius:10px;color:var(--ana-muted);line-height:1.7}",
+  "#anaRoot .card,#anaRoot #fillPanel{background:var(--ana-panel);border:1px solid var(--ana-line);border-radius:var(--ana-radius);box-shadow:var(--ana-shadow)}",
+  "#anaRoot .card{padding:0;overflow:hidden}",
+  "#anaRoot .section-head{display:flex;align-items:center;gap:10px;min-height:54px;padding:13px 16px;border-bottom:1px solid var(--ana-line)}",
+  "#anaRoot .section-head h2{display:flex;align-items:center;gap:8px;color:var(--ana-ink);font-size:13px;font-weight:900;letter-spacing:.1px}",
+  "#anaRoot .section-head .pl{width:7px;height:18px;border-radius:4px;box-shadow:none}",
+  "#anaRoot .section-head .hint-r{margin-left:auto;color:var(--ana-dim);font-size:10.5px;font-weight:600}",
+  "#anaRoot #wsDetail{margin-bottom:14px;border-top:0}",
+  "#anaRoot #detailList{border:0;border-radius:0;overflow-x:auto}",
+  "#anaRoot #wsDetail .dgrid{min-width:1120px;grid-template-columns:minmax(190px,2fr) repeat(7,minmax(88px,1fr)) minmax(150px,1.7fr)}",
+  "#anaRoot .dgrid.dh{position:sticky;top:72px;z-index:4;min-height:38px;padding:8px 15px;background:#f6f8fb;border-bottom:1px solid var(--ana-line);color:var(--ana-muted);font-size:10px;font-weight:900;letter-spacing:.25px}",
+  "#anaRoot .wsrow{min-height:50px;padding:11px 15px;background:#fff;border-bottom:1px solid #edf1f6;cursor:pointer}",
+  "#anaRoot .wsrow:hover,#anaRoot .wsrow:focus-visible{background:#f4f8ff}",
+  "#anaRoot .wsrow:focus-visible{outline:2px solid var(--ana-primary);outline-offset:-2px}",
+  "#anaRoot .wsrow.open{background:#f7faff}",
+  "#anaRoot .wsrow .nm{color:var(--ana-ink);font-size:13px}",
+  "#anaRoot .wsrow .cnt{padding:2px 8px;background:#eaf1ff;color:#315fae}",
+  "#anaRoot .lbox{padding:4px 0;background:#fbfcfe;border-bottom:1px solid var(--ana-line)}",
+  "#anaRoot .lrow{min-height:41px;padding:9px 15px 9px 46px;border-bottom:1px solid #f0f3f7;font-size:12px}",
+  "#anaRoot .lrow:hover{background:#f5f8fc}",
+  "#anaRoot .trow{min-height:50px;padding:11px 15px;background:#edf4ff;border-top:1px solid #cfe0fb;color:var(--ana-ink)}",
+  "#anaRoot .vl{font-size:12px;color:#334155}",
+  "#anaRoot .v-n{color:#245bc2}#anaRoot .v-o{color:#b86106}#anaRoot .v-0{color:#a4afbd}",
+  "#anaRoot .rate-chip,#anaRoot .st-tag{min-height:25px;padding:4px 9px;border-radius:7px;font-size:10px}",
+  "#anaRoot .rate-chip.g{background:#eaf7ee;color:#166534;border-color:#b7dfc2}#anaRoot .rate-chip.b{background:#eaf1ff;color:#234f9e;border-color:#c9daf8}#anaRoot .rate-chip.y{background:#fff5e5;color:#92510b;border-color:#f0d4aa}#anaRoot .rate-chip.x{background:#f1f4f8;color:#7a8798;border-color:#e2e7ee}",
+  "#anaRoot .ana-lower-grid{gap:14px;margin-bottom:14px}",
+  "#anaRoot .ana-trend-card canvas{padding:8px 12px 4px}",
+  "#anaRoot #fillPanel{margin:0;border-top:0;overflow:hidden}",
+  "#anaRoot #fillHead{width:100%;min-height:54px;padding:13px 16px;background:#fff;border:0;border-bottom:1px solid transparent;color:var(--ana-ink);cursor:pointer;text-align:left;font-family:inherit}",
+  "#anaRoot #fillHead:hover{background:#f8fafc}",
+  "#anaRoot #fillPanel.open #fillHead{border-bottom-color:var(--ana-line)}",
+  "#anaRoot #fillHead h2{font-size:13px;color:var(--ana-ink);font-weight:900}",
+  "#anaRoot #fillHead .ch{width:7px;height:7px;border-color:var(--ana-muted)}",
+  "#anaRoot #fillBody{padding:6px 14px 14px}",
+  "#anaRoot .fill-ot{border-bottom:0}",
+  "#anaRoot .footnote{margin:0;background:#fff;border:1px solid var(--ana-line);border-radius:var(--ana-radius-sm);box-shadow:0 3px 12px rgba(16,35,63,.04)}",
+  "#anaRoot .footnote summary{min-height:44px;padding:11px 15px;color:var(--ana-muted)}",
+  "#anaRoot .footnote .fn-body{padding:13px 16px;background:#f8fafc;border-top:1px solid var(--ana-line);color:var(--ana-muted)}",
+  "#anaRoot .hc-mask{background:rgba(4,12,28,.66);backdrop-filter:blur(4px)}",
+  "#anaRoot .hc-modal{width:min(720px,calc(100vw - 28px));background:#fff;border:1px solid rgba(255,255,255,.25);border-radius:16px;box-shadow:0 28px 80px rgba(4,12,28,.42)}",
+  "#anaRoot .hc-modal .hc-head{min-height:60px;padding:13px 18px;background:var(--ana-navy);border:0;color:#fff}",
+  "#anaRoot .hc-modal .hc-head h2{display:flex;align-items:center;gap:9px;color:#fff;font-size:15px;font-weight:900}",
+  "#anaRoot .hc-modal .hc-head .pl{width:7px;height:20px;border-radius:4px}",
+  "#anaRoot .hc-modal .hc-head .note{margin-left:8px;color:#aebcd0;font-size:10.5px;font-weight:600}",
+  "#anaRoot .hc-modal .hc-x{margin-left:auto;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);color:#fff}",
+  "#anaRoot .hc-modal .table-scroll{max-width:none;margin:0;padding:18px;overflow:auto;border:0;background:#fff}",
+  "#anaRoot .hc-modal #anaTable{max-width:600px;border:1px solid var(--ana-line);border-radius:10px;overflow:hidden}",
+  "#anaRoot input.hc{height:34px;background:#f7f9fc;border-color:var(--ana-line-strong);font-size:13px}",
+  "#anaRoot button,#anaRoot input,#anaRoot summary{transition:background-color .16s,border-color .16s,color .16s,box-shadow .16s,transform .16s}",
+  "#anaRoot button:focus-visible,#anaRoot input:focus-visible,#anaRoot summary:focus-visible{outline:3px solid rgba(79,134,255,.42);outline-offset:2px}",
+  "@media (max-width:1100px){#anaRoot .ana-lower-grid{grid-template-columns:1fr}#anaRoot #vsBand{grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr)}}",
+  "@media (max-width:820px){#anaRoot{padding:0 14px 28px}#anaRoot .ana-top{margin:0 -14px 12px;padding:12px 14px;flex-wrap:wrap}#anaRoot .ana-heading{flex:1}#anaRoot .ana-rt{width:100%;justify-content:flex-start}#anaRoot #anaStatus{flex:1;min-width:180px}#anaRoot .subrow{align-items:flex-start;flex-wrap:wrap}#anaRoot .sub-hint{width:100%;margin-left:0;padding-left:13px}#anaRoot .ana-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#anaRoot #vsBand{grid-template-columns:1fr}#anaRoot #vsBand::before{display:none}#anaRoot #vsBand .vs-side{padding:16px 18px}#anaRoot #vsBand .vs-side:first-child{border-right:0;border-bottom:1px solid var(--ana-line)}#anaRoot #vsBand .vs-side.ot{border-left:0;border-top:1px solid var(--ana-line)}#anaRoot #vsBand .vs-mid{padding:10px 14px;flex-direction:row}#anaRoot .section-head{align-items:flex-start;flex-wrap:wrap}#anaRoot .section-head .hint-r{width:100%;margin-left:17px}#anaRoot .dgrid.dh{top:126px}}",
+  "@media (max-width:480px){#anaRoot{padding:0 10px 24px}#anaRoot .ana-top{margin:0 -10px;padding:10px}#anaRoot .ana-top h1{font-size:19px}#anaRoot .ana-top .ic{width:38px;height:38px}#anaRoot .ana-rt{gap:7px}#anaRoot #anaStatus{order:3;width:100%}#anaRoot input[type=date]{flex:1}#anaRoot .btn-hc{padding:0 12px}#anaRoot .scope-label{width:100%}#anaRoot .ana-kpis{grid-template-columns:1fr 1fr;gap:8px}#anaRoot .ana-kpi{min-height:106px;padding:14px 12px 12px 15px}#anaRoot .ana-kpi .k-value{font-size:23px}#anaRoot #vsBand .vs-side .num{font-size:31px}#anaRoot .section-head .hint-r{display:none}#anaRoot .chips-sm{transform:none}#anaRoot #winChips{margin-left:auto}#anaRoot #winChips button{min-width:48px;padding:6px 8px}#anaRoot .hc-modal .table-scroll{padding:12px}}",
+  "@media (prefers-reduced-motion:reduce){#anaRoot *,#anaRoot *::before,#anaRoot *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}",
   ].join("\n");
 
   var st = document.createElement("style");
@@ -607,20 +717,20 @@
   root.innerHTML =
     '<div class="ana-in">' +
     '<div class="ana-top">' +
-    '<button class="ic" id="anaBack" title="返回看板">←</button>' +
-    "<h1>产出分析 <span class='cnt' id='anacnt'></span></h1>" +
+    '<button class="ic" id="anaBack" type="button" title="返回主看板" aria-label="返回主看板"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/><path d="M9 12h10"/></svg></button>' +
+    '<div class="ana-heading"><span class="eyebrow">PDTIII · OPERATIONS</span><h1>产出分析 <span class="cnt" id="anacnt"></span></h1></div>' +
     '<div class="ana-rt">' +
-    '<span id="anaStatus" class="st-idle"><span class="dot"></span><span id="anaStatusTxt">就绪</span></span>' +
-    '<input type="date" id="anaDate">' +
-    ' <button class="btn-hc" id="anaHcBtn" title="填报各车间人数">👥 人数填报</button>' +
+    '<span id="anaStatus" class="st-idle" role="status" aria-live="polite" aria-atomic="true"><span class="dot" aria-hidden="true"></span><span id="anaStatusTxt">就绪</span></span>' +
+    '<input type="date" id="anaDate" aria-label="选择分析日期">' +
+    '<button class="btn-hc" id="anaHcBtn" type="button" title="填报各车间人数"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>人数填报</span></button>' +
     "</div></div>" +
-    '<div class="subrow"><div class="chips" id="shiftChips"><button data-sh="day" class="on">白班</button><button data-sh="night">夜班</button></div>' +
+    '<div class="subrow"><span class="scope-label">班次视图</span><div class="chips" id="shiftChips" role="group" aria-label="选择班次"><button type="button" data-sh="day" class="on" aria-pressed="true">白班</button><button type="button" data-sh="night" aria-pressed="false">夜班</button></div>' +
     '<span class="sub-hint" id="subHint">白班 8:00-20:20 · 正常 ≤17:20 · 加班 17:20-20:20</span></div>' +
     '<div class="ana-kpis" id="anaKpis">' +
-    '<div class="ana-kpi k-n"><div class="k-label">正常人均小时效率</div><div class="k-value" id="kpiNormEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiNormMeta">正常产出 ÷ 正常人数 ÷ 8h</div></div>' +
-    '<div class="ana-kpi k-o"><div class="k-label">加班人均小时效率</div><div class="k-value" id="kpiOtEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiOtMeta">加班产出 ÷ 加班人数 ÷ 工时</div></div>' +
-    '<div class="ana-kpi"><div class="k-label">加班效率达成</div><div class="k-value" id="kpiOtRate">-<small>基准</small></div><div class="k-meta" id="kpiOtRateMeta">加班效率 ÷ 正常效率</div></div>' +
-    '<div class="ana-kpi"><div class="k-label">本班投入人数</div><div class="k-value" id="kpiHead">-<small>人</small></div><div class="k-meta" id="kpiHeadMeta">正常 / 加班</div></div>' +
+    '<div class="ana-kpi k-n" data-code="NORMAL"><div class="k-label">正常人均小时效率</div><div class="k-value" id="kpiNormEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiNormMeta">正常产出 ÷ 正常人数 ÷ 8h</div></div>' +
+    '<div class="ana-kpi k-o" data-code="OVERTIME"><div class="k-label">加班人均小时效率</div><div class="k-value" id="kpiOtEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiOtMeta">加班产出 ÷ 加班人数 ÷ 工时</div></div>' +
+    '<div class="ana-kpi k-rate" data-code="RATE"><div class="k-label">加班效率达成</div><div class="k-value" id="kpiOtRate">-<small>基准</small></div><div class="k-meta" id="kpiOtRateMeta">加班效率 ÷ 正常效率</div></div>' +
+    '<div class="ana-kpi k-head" data-code="HEADCOUNT"><div class="k-label">本班投入人数</div><div class="k-value" id="kpiHead">-<small>人</small></div><div class="k-meta" id="kpiHeadMeta">正常 / 加班</div></div>' +
     '</div>' +
     /* vs 对比带 (三段式: 正常 | 差异 | 加班) */
     '<div id="vsBand">' +
@@ -631,28 +741,28 @@
     /* 独立结论行 (Codex UI §5.4: 不再嵌入对比横条) */
     '<div id="vsVerdict"></div>' +
     /* ── v7 主卡: 车间 · 线体产出明细 (手风琴) ── */
-    '<div class="card" id="wsDetail"><h3><span class="pl" style="background:#2b5cbf"></span>车间 · 线体产出明细 <span class="hint-r">车间效率按填报人数计算 · 点击车间行展开线体产出</span></h3>' +
-    '<div id="detailHead" class="dgrid dh"></div><div id="detailList"></div></div>' +
+    '<section class="card" id="wsDetail" aria-labelledby="wsDetailTitle"><div class="section-head"><h2 id="wsDetailTitle"><span class="pl" style="background:#155eef"></span>车间 · 线体产出明细</h2><span class="hint-r">车间效率按填报人数计算 · 点击车间行展开线体产出</span></div>' +
+    '<div id="detailHead" class="dgrid dh"></div><div id="detailList"></div></section>' +
     /* ── 双栏区: 趋势 | 加班人力 (Codex UI §5.6: 1100px 以下单栏) ── */
     '<div class="ana-lower-grid">' +
     /* ── 趋势卡: winChips 移入 h3 ── */
-    '<div class="card ana-trend-card"><h3><span class="pl" style="background:#0a5d78"></span>趋势 · 正常 vs 加班 日产出' +
-    '<span class="chips chips-sm" id="winChips"><button data-w="7" class="on">7天</button><button data-w="14">14天</button><button data-w="30">30天</button></span>' +
-    '<span class="hint-r"><span class="lg"><i style="background:#2b5cbf"></i>正常产出</span><span class="lg"><i style="background:#a86a1f"></i>加班产出</span></span></h3>' +
-    '<canvas id="cvTrend"></canvas><div class="empty-tip" id="trendEmpty" style="display:none"></div></div>' +
+    '<section class="card ana-trend-card" aria-labelledby="trendTitle"><div class="section-head"><h2 id="trendTitle"><span class="pl" style="background:#2563eb"></span>正常 vs 加班日产出趋势</h2>' +
+    '<span class="chips chips-sm" id="winChips" role="group" aria-label="选择趋势周期"><button type="button" data-w="7" class="on" aria-pressed="true">7天</button><button type="button" data-w="14" aria-pressed="false">14天</button><button type="button" data-w="30" aria-pressed="false">30天</button></span>' +
+    '<span class="hint-r"><span class="lg"><i style="background:#2563eb"></i>正常产出</span><span class="lg"><i style="background:#d97706"></i>加班产出</span></span></div>' +
+    '<canvas id="cvTrend" role="img" aria-label="正常产出与加班产出的每日趋势图"></canvas><div class="empty-tip" id="trendEmpty" style="display:none"></div></section>' +
     /* ── 填报面板: 加班人力图 + 人数提报表 (右栏) ── */
-    '<div id="fillPanel" class="open"><div id="fillHead"><div class="ch"></div><h3>班次人数对比</h3></div>' +
-    '<div id="fillBody"><div class="fill-ot"><div class="fh3"><span class="lg"><i style="background:#2b5cbf"></i>正常人数</span><span class="lg"><i style="background:#a86a1f"></i>加班人数</span></div>' +
-    '<canvas id="cvOt"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 - 点击下方填报表格填入</div></div>' +
-    '</div></div>' +
+    '<section id="fillPanel" class="open"><button id="fillHead" type="button" aria-expanded="true" aria-controls="fillBody"><div class="ch" aria-hidden="true"></div><h2>班次人数对比</h2></button>' +
+    '<div id="fillBody"><div class="fill-ot"><div class="fh3"><span class="lg"><i style="background:#2563eb"></i>正常人数</span><span class="lg"><i style="background:#d97706"></i>加班人数</span></div>' +
+    '<canvas id="cvOt" role="img" aria-label="各车间正常人数与加班人数对比图"></canvas><div class="empty-tip" id="otEmpty" style="display:none">暂无提报人数 - 点击下方填报表格填入</div></div>' +
+    '</div></section>' +
     "</div>" +
     /* ── 口径说明 (Codex UI §5.7: 可折叠, 默认收起) ── */
     '<details class="footnote"><summary>数据口径说明</summary><div class="fn-body">白班正常 ≤17:20、白班加班 17:20-20:20;夜班正常 20:30-5:50、夜班加班 5:50-7:50。<b>正常人均小时效率 = 正常产出 ÷ 正常出勤人数 ÷ 8h</b>;<b>白班加班效率 = 加班产出 ÷ 加班人数 ÷ 加班已过时长</b>(封顶 3h,进行中实时计算,避免整段稀释);<b>夜班加班效率 = 加班产出 ÷ 加班人数 ÷ 加班已过时长</b>(封顶 2h)。加班效率达成 = 加班效率 ÷ 正常效率。人数按车间填报(顶栏「人数填报」)，保存到云端并通过实时流/轮询同步到其他设备。数据10分钟一档，历史数据按现有归档机制读取。</div></details>' +
     /* ── v12→v14: 人数填报移植为顶栏按钮弹窗 ── */
-    '<div class="hc-mask" id="hcMask"></div>' +
-    '<div class="hc-modal" id="hcModal">' +
-    '<div class="hc-head"><h3><span class="pl" style="background:#6a28b8"></span>人数填报 · 车间人数<span class="note" id="fillNote"></span></h3>' +
-    '<button class="ic hc-x" id="hcClose" title="关闭">✕</button></div>' +
+    '<div class="hc-mask" id="hcMask" aria-hidden="true"></div>' +
+    '<div class="hc-modal" id="hcModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="hcTitle" inert>' +
+    '<div class="hc-head"><h2 id="hcTitle"><span class="pl" style="background:#8b5cf6"></span>人数填报 · 车间人数<span class="note" id="fillNote"></span></h2>' +
+    '<button class="ic hc-x" id="hcClose" type="button" title="关闭" aria-label="关闭人数填报">✕</button></div>' +
     '<div class="table-scroll"><table id="anaTable"><thead></thead><tbody></tbody></table></div>' +
     '</div>' +
     "</div>";
@@ -675,22 +785,69 @@
   var kpiNormMeta = root.querySelector("#kpiNormMeta"), kpiOtMeta = root.querySelector("#kpiOtMeta");
   var kpiOtRateMeta = root.querySelector("#kpiOtRateMeta"), kpiHeadMeta = root.querySelector("#kpiHeadMeta");
 
-  root.querySelector("#anaBack").onclick = function () { closeHCStream(); root.remove(); };
-  fillPanel.querySelector("#fillHead").onclick = function () { fillPanel.classList.toggle("open"); if (fillPanel.classList.contains("open")) drawOt(); };
+  root.querySelector("#anaBack").onclick = function () {
+    closeHCStream();
+    document.removeEventListener("keydown", onModalKeydown);
+    root.remove();
+  };
+  fillPanel.querySelector("#fillHead").onclick = function () {
+    var open = fillPanel.classList.toggle("open");
+    this.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) drawOt();
+  };
   otEmpty.onclick = function () { openHcModal(); drawOt(); };
   var hcModal = root.querySelector("#hcModal"), hcMask = root.querySelector("#hcMask"), hcBtn = root.querySelector("#anaHcBtn");
-  function openHcModal() { if (state.date) drawTable(); hcModal.classList.add("show"); hcMask.classList.add("show"); document.body.style.overflow = "hidden"; }
-  function closeHcModal() { hcModal.classList.remove("show"); hcMask.classList.remove("show"); document.body.style.overflow = ""; }
+  var hcLastFocus = null;
+  function openHcModal() {
+    if (state.date) drawTable();
+    hcLastFocus = document.activeElement;
+    hcModal.classList.add("show");
+    hcMask.classList.add("show");
+    hcModal.removeAttribute("inert");
+    hcModal.setAttribute("aria-hidden", "false");
+    hcMask.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(function () { hcModal.querySelector("#hcClose").focus(); }, 0);
+  }
+  function closeHcModal() {
+    hcModal.classList.remove("show");
+    hcMask.classList.remove("show");
+    hcModal.setAttribute("inert", "");
+    hcModal.setAttribute("aria-hidden", "true");
+    hcMask.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    if (hcLastFocus && hcLastFocus.focus) hcLastFocus.focus();
+  }
   hcBtn.onclick = openHcModal;
   hcModal.querySelector("#hcClose").onclick = closeHcModal;
   hcMask.onclick = closeHcModal;
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeHcModal(); });
+  function onModalKeydown(e) {
+    if (!hcModal.classList.contains("show")) return;
+    if (e.key === "Escape") { closeHcModal(); return; }
+    if (e.key !== "Tab") return;
+    var focusable = hcModal.querySelectorAll('button:not([disabled]),input:not([disabled]),[tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+    var first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+  document.addEventListener("keydown", onModalKeydown);
   /* v7: 手风琴展开委托(容器常驻, 只绑一次) */
-  detailList.addEventListener("click", function (e) {
-    var r = e.target.closest(".wsrow"); if (!r) return;
+  function toggleWorkshopRow(r) {
     var ws = r.getAttribute("data-ws");
     var op = r.classList.toggle("open");
+    r.setAttribute("aria-expanded", op ? "true" : "false");
     state.openWs = state.openWs || {}; state.openWs[ws] = op ? 1 : 0;
+  }
+  detailList.addEventListener("click", function (e) {
+    var r = e.target.closest(".wsrow"); if (!r) return;
+    toggleWorkshopRow(r);
+  });
+  detailList.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var r = e.target.closest(".wsrow"); if (!r) return;
+    e.preventDefault();
+    toggleWorkshopRow(r);
   });
 
   var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: "day", win: 7, trend: null, fmt: null };
@@ -1030,8 +1187,8 @@
     otEmpty.style.display = any ? "none" : "block";
     barChart(cvOt, {
       labels: hcs.map(function (h) { return h.nm; }),
-      s1: hcs.map(function (h) { return h.normal; }), s1c: "#2b5cbf",
-      s2: hcs.map(function (h) { return h.ot; }), s2c: "#a86a1f",
+      s1: hcs.map(function (h) { return h.normal; }), s1c: "#2563eb",
+      s2: hcs.map(function (h) { return h.ot; }), s2c: "#d97706",
       lg1: isDay ? "白班正常" : "夜班正常", lg2: isDay ? "白班加班" : "夜班加班", h: 178, int: true
     });
   }
@@ -1218,7 +1375,7 @@
       var d = wsOf(g.ws);
       if (d.lines === 0) return;                       /* 空车间(Pro.6)不显示 */
       var open = state.openWs && state.openWs[g.ws] ? " open" : "";
-      html += '<div class="dgrid wsrow' + open + '" data-ws="' + g.ws + '">' + wsRowHtml(g.ws, d, isDay) + "</div>";
+      html += '<div class="dgrid wsrow' + open + '" data-ws="' + g.ws + '" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '">' + wsRowHtml(g.ws, d, isDay) + "</div>";
       html += '<div class="lbox">';
       g.lines.forEach(function (std) {
         var a = lineAgg[std];
@@ -1540,8 +1697,8 @@
         }
       });
     }
-    series("dN", "#2b5cbf", -1);
-    series("dO", "#a86a1f", 1);
+    series("dN", "#2563eb", -1);
+    series("dO", "#d97706", 1);
     ctx.fillStyle = "#64748b"; ctx.textAlign = "center"; ctx.font = "10px 'Segoe UI',sans-serif";
     list.forEach(function (x, i) {
       if (i % step !== 0 && i !== list.length - 1) return;
@@ -1553,13 +1710,21 @@
   root.querySelector("#shiftChips").addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     state.sh = b.getAttribute("data-sh");
-    root.querySelectorAll("#shiftChips button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    root.querySelectorAll("#shiftChips button").forEach(function (x) {
+      var on = x === b;
+      x.classList.toggle("on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
     if (state.wsAgg) { drawVs(); drawOt(); drawTable(); renderDetail(); }
   });
   winChips.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     state.win = Number(b.getAttribute("data-w"));
-    root.querySelectorAll("#winChips button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    root.querySelectorAll("#winChips button").forEach(function (x) {
+      var on = x === b;
+      x.classList.toggle("on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
     drawTrend();
   });
   dateInput.onchange = function () { if (dateInput.value) { state.sel = null; load(dateInput.value); } };

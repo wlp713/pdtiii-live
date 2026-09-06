@@ -321,18 +321,19 @@
 
   /* ── 对外入口: 在产出分析页顶栏挂载 AI 按钮 ── */
   window.initAIForAnaPage = function (anaRoot) {
-    var top = anaRoot && anaRoot.querySelector ? anaRoot.querySelector(".ana-top") : null;
+    var top = anaRoot && anaRoot.querySelector ? (anaRoot.querySelector(".ana-rt") || anaRoot.querySelector(".ana-top")) : null;
     if (!top) return;
     if (!_anaBtn) {
       buildUI();
       _anaBtn = document.createElement("button");
       _anaBtn.className = "btn";
       _anaBtn.id = "aiAnaBtn";
-      _anaBtn.textContent = "🤖 AI 助手";
+      _anaBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/><path d="M12 3v4"/><path d="M8 7h8"/></svg><span>AI 助手</span>';
       _anaBtn.title = "AI 智能问答: 询问产出/达成率/欠产/趋势";
-      _anaBtn.style.cssText = "margin-left:6px;padding:8px 14px;border-radius:10px;border:1px solid #4b5d78;" +
-        "background:rgba(43,92,191,.14);color:inherit;font-size:13px;font-weight:800;cursor:pointer;" +
-        "line-height:1;white-space:nowrap;letter-spacing:.3px;";
+      _anaBtn.style.cssText = "display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;" +
+        "margin:0;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.18);" +
+        "background:rgba(255,255,255,.08);color:#fff;font-size:12.5px;font-weight:800;cursor:pointer;" +
+        "line-height:1;white-space:nowrap;letter-spacing:.2px;";
     }
     top.appendChild(_anaBtn);
     initAnaUI();
