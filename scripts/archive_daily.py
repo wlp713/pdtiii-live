@@ -23,7 +23,7 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-from history_analytics import write_analytics
+from history_analytics import source_date, write_analytics
 
 DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json"
 BKK = timezone(timedelta(hours=7), name="Asia/Bangkok")
@@ -61,7 +61,6 @@ def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(root)
     now = datetime.now(BKK)
-    date = now.strftime("%Y-%m-%d")
     snap = now.strftime("%Y-%m-%d %H:%M:%S")
 
     try:
@@ -75,6 +74,7 @@ def main():
         print("NO HOURLY DATA", file=sys.stderr)
         sys.exit(1)
 
+    date = source_date(d) or now.strftime("%Y-%m-%d")
     doc = {
         "date": date,
         "snapAt": snap,
@@ -110,7 +110,9 @@ def main():
             try:
                 with open(p, "r", encoding="utf-8") as f:
                     doc2 = json.load(f)
-                if doc2.get("hourly") and doc2.get("date"):
+                if doc2.get("hourly") and doc2.get("date") and (
+                    not source_date(doc2) or source_date(doc2) == str(doc2.get("date"))
+                ):
                     idx.append(doc2["date"])
             except Exception:
                 continue

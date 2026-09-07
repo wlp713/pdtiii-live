@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from history_analytics import BKK, FINISHED_PRODUCT_LINES, WORKSHOPS, aggregate_line, build_analytics, canonical_line, summarize_snapshot, validate_analytics, write_analytics  # noqa: E402
+from history_analytics import BKK, FINISHED_PRODUCT_LINES, WORKSHOPS, aggregate_line, build_analytics, canonical_line, source_date, summarize_snapshot, validate_analytics, write_analytics  # noqa: E402
 
 
 class HistoryAnalyticsTests(unittest.TestCase):
@@ -119,6 +119,23 @@ class HistoryAnalyticsTests(unittest.TestCase):
         self.assertEqual(day["quality"]["freshnessStatus"], "stale")
         self.assertEqual(day["quality"]["dayStatus"], "partial")
         self.assertEqual(day["quality"]["nightStatus"], "partial")
+
+    def test_snapshot_after_midnight_keeps_prior_production_date(self):
+        document = {"date": "2026-09-06", "updatedAt": "2026-09-05 21:59:34"}
+        self.assertEqual(source_date(document), "2026-09-05")
+
+    def test_duplicate_next_calendar_day_is_excluded_from_index(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            history = Path(temporary)
+            document = {
+                "date": "2026-09-06",
+                "updatedAt": "2026-09-05 21:59:34",
+                "hourlyFormat": "HHMM",
+                "hourly": {"Final A line": [{"h": 800, "actual": 0, "plan": 0}, {"h": 1720, "actual": 10, "plan": 10}]},
+            }
+            (history / "2026-09-06.json").write_text(json.dumps(document), encoding="utf-8")
+            payload = build_analytics(history, generated_at="test")
+            self.assertEqual(payload["days"], [])
 
 
 if __name__ == "__main__":

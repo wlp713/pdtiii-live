@@ -171,6 +171,17 @@ def sum_metrics(items: list[dict]) -> dict:
     )
 
 
+def source_date(document: dict) -> str | None:
+    """Return the production date represented by a snapshot.
+
+    The archive job may run after midnight, but the prior night shift still
+    belongs to the previous production date.
+    """
+    updated_at = str(document.get("updatedAt") or "")
+    match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:\s|T)", updated_at)
+    return match.group(1) if match else None
+
+
 def summarize_snapshot(document: dict) -> dict:
     hourly = document.get("hourly") or {}
     declared_format = document.get("hourlyFormat")
@@ -220,8 +231,8 @@ def summarize_snapshot(document: dict) -> dict:
     night_covered = sum(1 for item in lines.values() if (item["lastNightMinute"] or -1) >= NIGHT_END - 10)
     archive_date = str(document.get("date") or "")
     updated_at = str(document.get("updatedAt") or "")
-    source_date = updated_at[:10] if re.match(r"\d{4}-\d{2}-\d{2}", updated_at) else None
-    freshness_status = "fresh" if source_date == archive_date else ("stale" if source_date else "unknown")
+    source_day = source_date(document)
+    freshness_status = "fresh" if source_day == archive_date else ("stale" if source_day else "unknown")
 
     def coverage_status(covered: int) -> str:
         if freshness_status == "stale":
@@ -242,7 +253,7 @@ def summarize_snapshot(document: dict) -> dict:
         "nightCoveredLines": night_covered,
         "dayStatus": day_status,
         "nightStatus": night_status,
-        "sourceDate": source_date,
+        "sourceDate": source_day,
         "freshnessStatus": freshness_status,
     }
     return {
@@ -266,7 +277,9 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
         try:
             with path.open("r", encoding="utf-8") as handle:
                 document = json.load(handle)
-            if document.get("date") and document.get("hourly"):
+            if document.get("date") and document.get("hourly") and (
+                not source_date(document) or source_date(document) == str(document.get("date"))
+            ):
                 days.append(summarize_snapshot(document))
         except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
             print(f"ANALYTICS SKIP {path.name}: {error}")
