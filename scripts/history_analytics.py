@@ -38,6 +38,15 @@ WORKSHOPS = {
 }
 EXPECTED_LINES = sum(len(lines) for lines in WORKSHOPS.values())
 
+# 车间级产量使用成品口径；线体级分析仍保留全部工序线。
+FINISHED_PRODUCT_LINES = {
+    "Pro.1": WORKSHOPS["Pro.1"],
+    "Pro.2": ["Final A line", "Final B line", "Final C line", "Final D line"],
+    "Pro.3": ["Welding A line", "Welding B line", "Welding C line", "Welding D line"],
+    "Pro.4": WORKSHOPS["Pro.4"],
+    "Pro.5": WORKSHOPS["Pro.5"],
+}
+
 
 def normalize_name(value: object) -> str:
     return re.sub(r"[\s.]+", "", str(value or "").lower())
@@ -197,6 +206,15 @@ def summarize_snapshot(document: dict) -> dict:
             "night": sum_metrics([item["night"] for item in workshop_lines]),
         }
 
+    finished_products = {}
+    for workshop, expected in FINISHED_PRODUCT_LINES.items():
+        finished_lines = [lines[name] for name in expected if name in lines]
+        finished_products[workshop] = {
+            "lineCount": len(finished_lines),
+            "day": sum_metrics([item["day"] for item in finished_lines]),
+            "night": sum_metrics([item["night"] for item in finished_lines]),
+        }
+
     mapped_count = len(lines)
     day_covered = sum(1 for item in lines.values() if (item["lastDayMinute"] or -1) >= DAY_END - 10)
     night_covered = sum(1 for item in lines.values() if (item["lastNightMinute"] or -1) >= NIGHT_END - 10)
@@ -237,6 +255,7 @@ def summarize_snapshot(document: dict) -> dict:
             "night": sum_metrics([item["night"] for item in lines.values()]),
         },
         "workshops": workshops,
+        "finishedProducts": finished_products,
         "lines": lines,
     }
 
@@ -263,6 +282,7 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
             "productionDate": "calendar-day day shift plus the prior night shift ending that morning",
         },
         "workshops": WORKSHOPS,
+        "finishedProductLines": FINISHED_PRODUCT_LINES,
         "days": days,
         "quality": {
             "archivedDays": len(days),
@@ -280,6 +300,8 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
 def validate_analytics(payload: dict) -> list[str]:
     """Return contract violations that would make the dashboard misleading."""
     errors = []
+    if payload.get("finishedProductLines") != FINISHED_PRODUCT_LINES:
+        errors.append("finishedProductLines does not match the approved production contract")
     seen_dates = set()
     previous_date = ""
     for day in payload.get("days", []):
@@ -294,6 +316,7 @@ def validate_analytics(payload: dict) -> list[str]:
         previous_date = date
         scopes = [("totals", day.get("totals") or {})]
         scopes.extend((f"workshops.{name}", value) for name, value in (day.get("workshops") or {}).items())
+        scopes.extend((f"finishedProducts.{name}", value) for name, value in (day.get("finishedProducts") or {}).items())
         scopes.extend((f"lines.{name}", value) for name, value in (day.get("lines") or {}).items())
         for scope_name, scope in scopes:
             for shift in ("day", "night"):
@@ -319,6 +342,22 @@ def validate_analytics(payload: dict) -> list[str]:
             errors.append(f"{date} mappedLines does not match line records")
         if quality.get("mappedLines", 0) > EXPECTED_LINES:
             errors.append(f"{date} mappedLines exceeds configured lines")
+        for workshop, configured_lines in FINISHED_PRODUCT_LINES.items():
+            actual_scope = (day.get("finishedProducts") or {}).get(workshop) or {}
+            expected_count = sum(1 for line in configured_lines if line in (day.get("lines") or {}))
+            if actual_scope.get("lineCount") != expected_count:
+                errors.append(f"{date} finishedProducts.{workshop} lineCount mismatch")
+            for shift in ("day", "night"):
+                expected_metric = sum_metrics([
+                    day["lines"][line][shift]
+                    for line in configured_lines
+                    if line in (day.get("lines") or {})
+                ])
+                actual_metric = actual_scope.get(shift) or {}
+                for field in ("normal", "overtime", "total", "plan"):
+                    if abs(_number(actual_metric.get(field)) - _number(expected_metric.get(field))) > 0.01:
+                        errors.append(f"{date} finishedProducts.{workshop}.{shift}.{field} mismatch")
+                        break
         if quality.get("freshnessStatus") == "stale":
             if quality.get("dayStatus") != "partial" or quality.get("nightStatus") != "partial":
                 errors.append(f"{date} stale source must not be analytics eligible")

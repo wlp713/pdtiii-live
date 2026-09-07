@@ -9,7 +9,7 @@
   var host = null;
   var data = null;
   var analyticsPromise = null;
-  var state = { shift: "day", period: 7, workshop: "", line: "", includePartial: false };
+  var state = { shift: "day", period: 7, selectedDate: "", workshop: "", line: "", includePartial: false, matrixOpen: false };
   var resizeTimer = null;
   var resizeBound = false;
 
@@ -51,13 +51,29 @@
     return analyticsPromise;
   }
 
+  function sumMetricItems(items) {
+    var normal = items.reduce(function (sum, item) { return sum + num(item && item.normal); }, 0);
+    var overtime = items.reduce(function (sum, item) { return sum + num(item && item.overtime); }, 0);
+    var plan = items.reduce(function (sum, item) { return sum + num(item && item.plan); }, 0);
+    return { normal: normal, overtime: overtime, total: normal + overtime, plan: plan, attainment: plan > 0 ? normal / plan * 100 : null };
+  }
+  function finishedWorkshopMetric(day, workshop) {
+    if (day.finishedProducts && day.finishedProducts[workshop]) return day.finishedProducts[workshop][state.shift];
+    var configured = (data && data.finishedProductLines && data.finishedProductLines[workshop]) || [];
+    return sumMetricItems(configured.map(function (line) {
+      return day.lines && day.lines[line] ? day.lines[line][state.shift] : null;
+    }).filter(Boolean));
+  }
   function metricFor(day, workshop, line) {
     if (line) return day.lines && day.lines[line] ? day.lines[line][state.shift] : null;
-    if (workshop) return day.workshops && day.workshops[workshop] ? day.workshops[workshop][state.shift] : null;
+    if (workshop) return finishedWorkshopMetric(day, workshop);
     return day.totals ? day.totals[state.shift] : null;
   }
   function usableDays() {
     if (!data || !data.days) return [];
+    if (state.selectedDate) {
+      return data.days.filter(function (day) { return day.date === state.selectedDate && !!metricFor(day, state.workshop, state.line); });
+    }
     var key = state.shift + "Status";
     var days = data.days.filter(function (day) {
       if (day.quality && day.quality.freshnessStatus === "stale") return false;
@@ -68,7 +84,7 @@
   }
   function scopeLabel() {
     if (state.line) return state.line;
-    if (state.workshop) return state.workshop;
+    if (state.workshop) return state.workshop + " 成品";
     return "全厂";
   }
 
@@ -76,12 +92,13 @@
     host.innerHTML = [
       '<section class="hist-shell" aria-labelledby="histTitle">',
       '  <div class="hist-head">',
-      '    <div><span class="hist-eyebrow">OPERATIONS REVIEW</span><h2 id="histTitle">历史产出经营分析</h2><p>从结果看趋势，从差距找到重点线体</p></div>',
+      '    <div><h2 id="histTitle">历史产出经营分析</h2><p>从结果看趋势，从差距找到重点线体</p></div>',
       '    <span class="hist-static"><i aria-hidden="true"></i>静态归档 · 不增加数据库流量</span>',
       '  </div>',
       '  <div class="hist-controls" aria-label="历史分析筛选">',
-      '    <label for="histWs"><span>分析层级</span><select id="histWs"><option value="">全厂</option></select></label>',
+      '    <div class="hist-control"><div class="hist-control-label" id="histWsLabel">分析层级<span class="hist-help"><button class="hist-info" type="button" aria-label="查看车间成品产量统计口径" aria-describedby="histScopeTip">?</button><span class="hist-tooltip" id="histScopeTip" role="tooltip">车间层级仅统计成品线。Pro.1 全部 6 条，Pro.2 为 Final A-D，Pro.3 为 Welding A-D，Pro.4 和 Pro.5 为全部线体。线体钻取仍可查看所有工序。</span></span></div><select id="histWs" aria-labelledby="histWsLabel"><option value="">全厂</option></select></div>',
       '    <label for="histLine"><span>线体钻取</span><select id="histLine"><option value="">全部线体</option></select></label>',
+      '    <label for="histDate"><span>特定日期</span><select id="histDate"><option value="">按周期查看</option></select></label>',
       '    <div class="hist-period"><span>分析周期</span><div role="group" aria-label="选择历史分析周期">',
       '      <button type="button" data-period="7" class="on" aria-pressed="true">7日</button>',
       '      <button type="button" data-period="14" aria-pressed="false">14日</button>',
@@ -97,7 +114,7 @@
       '    <section class="hist-card" aria-labelledby="histTrendTitle"><div class="hist-card-head"><div><h3 id="histTrendTitle">产出与计划趋势</h3><p id="histTrendSub"></p></div><div class="hist-legend"><span><i class="normal"></i>正常产出</span><span><i class="ot"></i>加班产出</span><span><i class="plan"></i>正常段计划</span></div></div><canvas id="histTrendCanvas" role="img" aria-label="历史正常产出、加班产出与正常段计划趋势图"></canvas><div class="hist-empty" id="histTrendEmpty"></div></section>',
       '    <section class="hist-card" aria-labelledby="histGapTitle"><div class="hist-card-head"><div><h3 id="histGapTitle">正常段欠产贡献</h3><p id="histGapSub">按计划减正常产出计算，不把加班产出冲抵正常段差距</p></div></div><canvas id="histGapCanvas" role="img" aria-label="正常段欠产贡献排行图"></canvas><div class="hist-empty" id="histGapEmpty"></div></section>',
       '  </div>',
-      '  <section class="hist-card hist-rank" aria-labelledby="histRankTitle"><div class="hist-card-head"><div><h3 id="histRankTitle">线体经营矩阵</h3><p>产出、达成、波动和连续风险放在同一张表里</p></div><span id="histRankCount"></span></div><div class="hist-table-wrap"><table><thead><tr><th>线体</th><th>车间</th><th>有效日</th><th>总产出</th><th>正常段达成</th><th>日均产出</th><th>较前日</th><th>稳定性</th><th>连续&lt;90%</th></tr></thead><tbody id="histRankBody"></tbody></table></div></section>',
+      '  <section class="hist-card hist-rank" aria-labelledby="histRankTitle"><div class="hist-card-head"><div><h3 id="histRankTitle">线体经营矩阵</h3><p>展开后查看全部工序的产出、达成、波动和连续风险</p></div><div class="hist-rank-actions"><span id="histRankCount"></span><button class="hist-rank-toggle" id="histRankToggle" type="button" aria-expanded="false" aria-controls="histRankPanel"><span id="histRankToggleText">展开矩阵</span><span class="hist-toggle-icon" aria-hidden="true">⌄</span></button></div></div><div class="hist-table-wrap" id="histRankPanel" hidden><table><thead><tr><th>线体</th><th>车间</th><th>有效日</th><th>总产出</th><th>正常段达成</th><th>日均产出</th><th>较前日</th><th>稳定性</th><th>连续&lt;90%</th></tr></thead><tbody id="histRankBody"></tbody></table></div></section>',
       '  <details class="hist-method"><summary>指标口径与归档质量</summary><div><b>生产日：</b>当日白班 + 当日上午结束的前一夜班。<b>总产出：</b>正常产出 + 加班产出。<b>正常段达成：</b>正常段产出 ÷ 正常段计划；加班产出不冲抵正常段欠产。<b>稳定性：</b>至少 3 个有效日的日产出变异系数。完整、可比日进入默认经营分析；部分归档仅在手工勾选后纳入。</div></details>',
       '</section>'
     ].join("");
@@ -109,6 +126,7 @@
       ws.insertAdjacentHTML("beforeend", '<option value="' + esc(name) + '">' + esc(name) + "</option>");
     });
     fillLineOptions();
+    fillDateOptions();
     ws.addEventListener("change", function () {
       state.workshop = ws.value;
       state.line = "";
@@ -117,6 +135,11 @@
     });
     host.querySelector("#histLine").addEventListener("change", function (event) {
       state.line = event.target.value;
+      render();
+    });
+    host.querySelector("#histDate").addEventListener("change", function (event) {
+      state.selectedDate = event.target.value;
+      syncPeriodState();
       render();
     });
     host.querySelector(".hist-period").addEventListener("click", function (event) {
@@ -134,6 +157,43 @@
       state.includePartial = event.target.checked;
       render();
     });
+    host.querySelector("#histRankToggle").addEventListener("click", function () {
+      state.matrixOpen = !state.matrixOpen;
+      syncMatrixState();
+    });
+    syncPeriodState();
+    syncMatrixState();
+  }
+
+  function fillDateOptions() {
+    var select = host.querySelector("#histDate");
+    var key = state.shift + "Status";
+    var options = (data.days || []).slice().reverse().map(function (day) {
+      var status = day.quality && day.quality.freshnessStatus === "stale" ? "过期源" : ((day.quality && day.quality[key]) || "partial");
+      var label = status === "complete" ? "完整" : (status === "comparable" ? "可比" : (status === "partial" ? "部分" : status));
+      return '<option value="' + esc(day.date) + '">' + esc(day.date + "  [" + label + "]") + "</option>";
+    }).join("");
+    select.innerHTML = '<option value="">按周期查看</option>' + options;
+    select.value = state.selectedDate;
+  }
+
+  function syncPeriodState() {
+    var exact = !!state.selectedDate;
+    host.querySelectorAll("button[data-period]").forEach(function (button) {
+      button.disabled = exact;
+      button.setAttribute("aria-disabled", exact ? "true" : "false");
+    });
+    host.querySelector(".hist-period").classList.toggle("is-disabled", exact);
+  }
+
+  function syncMatrixState() {
+    var panel = host.querySelector("#histRankPanel");
+    var button = host.querySelector("#histRankToggle");
+    if (!panel || !button) return;
+    panel.hidden = !state.matrixOpen;
+    button.setAttribute("aria-expanded", state.matrixOpen ? "true" : "false");
+    host.querySelector("#histRankToggleText").textContent = state.matrixOpen ? "收起矩阵" : "展开矩阵";
+    host.querySelector(".hist-rank").classList.toggle("is-open", state.matrixOpen);
   }
 
   function fillLineOptions() {
@@ -222,10 +282,21 @@
     (data.days || []).forEach(function (day) { counts[(day.quality && day.quality[key]) || "partial"]++; });
     var staleDays = data.quality && data.quality.staleDays ? data.quality.staleDays : 0;
     var selectedText = days.length ? days[0].date.substring(5) + " → " + days[days.length - 1].date.substring(5) : "无可用日期";
+    var exactDay = state.selectedDate && days.length ? days[0] : null;
+    var exactQuality = exactDay && exactDay.quality ? exactDay.quality : null;
+    var exactStatus = exactQuality ? exactQuality[key] : null;
+    var exactNote = "";
+    if (exactDay) {
+      selectedText = exactDay.date;
+      if (exactQuality.freshnessStatus === "stale") exactNote = " · 过期源，仅供追溯";
+      else if (exactStatus === "partial") exactNote = " · 部分归档，请谨慎使用";
+      else exactNote = " · " + (exactStatus === "complete" ? "完整归档" : "可比归档");
+    }
     host.querySelector("#histQuality").innerHTML = '<span class="hist-q-label">' + esc(state.shift === "day" ? "白班" : "夜班") + " · " + esc(scopeLabel()) + '</span>' +
       '<span class="hist-q good">完整 ' + counts.complete + '</span><span class="hist-q info">可比 ' + counts.comparable + '</span><span class="hist-q warn">部分 ' + counts.partial + '</span>' +
       (staleDays ? '<span class="hist-q stale">过期源 ' + staleDays + '</span>' : "") +
-      '<span class="hist-q-range">当前计算 ' + days.length + " 日 · " + esc(selectedText) + (state.includePartial ? " · 纳入部分归档" : " · 过滤部分归档") + (staleDays ? " · 过期源不计入" : "") + "</span>";
+      '<span class="hist-q-range' + (exactQuality && (exactQuality.freshnessStatus === "stale" || exactStatus === "partial") ? " is-caution" : "") + '">' +
+      (exactDay ? "特定日期回看 · " + esc(selectedText) + esc(exactNote) : "当前计算 " + days.length + " 日 · " + esc(selectedText) + (state.includePartial ? " · 纳入部分归档" : " · 过滤部分归档") + (staleDays ? " · 过期源不计入" : "")) + "</span>";
   }
 
   function renderKpis(days, rows) {
@@ -233,11 +304,14 @@
     var delta = previousDelta(days);
     var risk = rows.filter(function (row) { return row.attainment !== null && row.attainment < 90; }).length;
     var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
+    var outputLabel = state.selectedDate ? "当日产出" : "周期总产出";
+    if (state.workshop && !state.line) outputLabel = state.selectedDate ? "当日成品产量" : "周期成品产量";
+    if (state.line) outputLabel = state.selectedDate ? "当日线体产出" : "周期线体产出";
     var cards = [
-      { code: "OUTPUT", label: "周期总产出", value: fmt(total.total), unit: "件", meta: "正常 " + fmt(total.normal) + " · 加班 " + fmt(total.overtime), tone: "blue" },
+      { code: "OUTPUT", label: outputLabel, value: fmt(total.total), unit: "件", meta: "正常 " + fmt(total.normal) + " · 加班 " + fmt(total.overtime), tone: "blue" },
       { code: "ATTAIN", label: "正常段计划达成", value: pct(total.attainment), unit: "", meta: "正常产出 ÷ 正常段计划", tone: total.attainment !== null && total.attainment >= 95 ? "green" : "amber" },
       { code: "MOMENTUM", label: "较前一有效日", value: delta === null ? "-" : (delta >= 0 ? "+" : "") + delta.toFixed(1) + "%", unit: "", meta: latest ? "最新产出 " + fmt(latest.total) + " 件" : "至少需要 2 个有效日", tone: delta !== null && delta >= 0 ? "green" : "amber" },
-      { code: "RISK", label: "低于 90% 线体", value: rows.length ? risk : "-", unit: rows.length ? "条" : "", meta: "按周期正常产出/计划汇总", tone: risk > 0 ? "red" : "green" },
+      { code: "RISK", label: "低于 90% 线体", value: rows.length ? risk : "-", unit: rows.length ? "条" : "", meta: state.selectedDate ? "按当日正常产出/计划计算" : "按周期正常产出/计划汇总", tone: risk > 0 ? "red" : "green" },
     ];
     host.querySelector("#histKpis").innerHTML = cards.map(function (card) {
       return '<article class="hist-kpi ' + card.tone + '" data-code="' + card.code + '"><span>' + card.label + '</span><strong>' + card.value + (card.unit ? '<small>' + card.unit + "</small>" : "") + '</strong><p>' + card.meta + "</p></article>";
@@ -351,7 +425,7 @@
     return '<span class="hist-pill bad">波动大</span>';
   }
   function renderTable(rows) {
-    host.querySelector("#histRankCount").textContent = rows.length + " 条线体 · 按欠产贡献排序";
+    host.querySelector("#histRankCount").textContent = rows.length + " 条线体";
     host.querySelector("#histRankBody").innerHTML = rows.map(function (row) {
       var delta = row.delta === null ? "-" : (row.delta >= 0 ? "▲ +" : "▼ ") + row.delta.toFixed(1) + "%";
       var deltaClass = row.delta === null ? "muted" : (row.delta >= 0 ? "good" : "bad");
@@ -367,6 +441,7 @@
     renderKpis(days, rows);
     renderInsights(rows);
     renderTable(rows);
+    syncMatrixState();
     requestAnimationFrame(function () { drawTrend(days); drawGap(days, rows); });
   }
 
@@ -401,6 +476,7 @@
 
   function setShift(shift) {
     state.shift = shift === "night" ? "night" : "day";
+    if (data && host && host.querySelector("#histDate")) fillDateOptions();
     render();
   }
 

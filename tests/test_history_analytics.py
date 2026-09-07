@@ -7,7 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from history_analytics import BKK, WORKSHOPS, aggregate_line, build_analytics, canonical_line, summarize_snapshot, validate_analytics, write_analytics  # noqa: E402
+from history_analytics import BKK, FINISHED_PRODUCT_LINES, WORKSHOPS, aggregate_line, build_analytics, canonical_line, summarize_snapshot, validate_analytics, write_analytics  # noqa: E402
 
 
 class HistoryAnalyticsTests(unittest.TestCase):
@@ -74,8 +74,33 @@ class HistoryAnalyticsTests(unittest.TestCase):
         self.assertEqual(day["quality"]["dayStatus"], "complete")
         self.assertEqual(day["quality"]["nightStatus"], "complete")
         self.assertEqual(validate_analytics({
+            "finishedProductLines": FINISHED_PRODUCT_LINES,
             "days": [day],
         }), [])
+
+    def test_workshop_finished_output_excludes_process_lines(self):
+        final_points = [
+            {"h": 800, "actual": 0, "plan": 0},
+            {"h": 1720, "actual": 100, "plan": 120},
+            {"h": 2020, "actual": 130, "plan": 150},
+        ]
+        process_points = [
+            {"h": 800, "actual": 0, "plan": 0},
+            {"h": 1720, "actual": 900, "plan": 1000},
+            {"h": 2020, "actual": 950, "plan": 1100},
+        ]
+        day = summarize_snapshot({
+            "date": "2026-09-01",
+            "updatedAt": "2026-09-01 20:20:00",
+            "hourlyFormat": "HHMM",
+            "hourly": {
+                "Final A line": final_points,
+                "Rotor A line": process_points,
+            },
+        })
+        self.assertEqual(day["workshops"]["Pro.2"]["day"]["total"], 1080)
+        self.assertEqual(day["finishedProducts"]["Pro.2"]["day"]["total"], 130)
+        self.assertEqual(day["finishedProducts"]["Pro.2"]["lineCount"], 1)
 
     def test_stale_source_is_retained_but_excluded_from_default_analysis(self):
         points = [
