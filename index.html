@@ -161,10 +161,13 @@
     border-radius: 10px; padding: 2px 10px; font-size: 11px; cursor: pointer;
   }
   .ex-btn:hover { background: rgba(88,166,255,.15); }
+  .ex-btn:focus-visible, .trend-line-pick:focus-visible, .ex-collapse:focus-visible { outline: 2px solid rgba(88,166,255,.75); outline-offset: 2px; }
   .ex-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
     padding: 6px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.25);
   }
+  #pages-wrap .chart-box { border-radius: 10px; }
+  #pages-wrap #chartBar { filter: drop-shadow(0 3px 5px rgba(0,0,0,.16)); }
   .ex-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
   .ex-card-head h2 { font-size: 13px; color: var(--white); font-weight: 700; letter-spacing: .5px; }
   .ex-src { font-size: 10px; color: var(--gray); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 1px 8px; }
@@ -1993,6 +1996,27 @@ function viewLines() {
   return sortLines(splitLines().main);
 }
 
+function drawRoundedBar(ctx, x, y, width, height, topColor, bottomColor) {
+  if (height <= 0) return;
+  const radius = Math.min(5, width / 2, height / 2);
+  const gradient = ctx.createLinearGradient(0, y, 0, y + height);
+  gradient.addColorStop(0, topColor);
+  gradient.addColorStop(1, bottomColor);
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height);
+  ctx.lineTo(x, y + height);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "rgba(255,255,255,.16)";
+  ctx.fillRect(x + radius, y, Math.max(0, width - radius * 2), Math.min(1.5, height));
+}
+
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
   if (!cv) return;
@@ -2054,12 +2078,10 @@ function drawBar(main) {
     } else {
       const mL = Math.max(1, l.plan || 0, l.actual || 0); // 非分段: 以自身 plan/actual 较大者为满格
       const aH = Math.max(0, (l.actual || 0) / mL * ch);
-      ctx.fillStyle = "#58a6ff";
-      ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
+      drawRoundedBar(ctx, cx - bw - 1.5, padT + ch - aH, bw, aH, "#79bcff", "#3d8fe4");
       const pCum = l.plan || 0;
       const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
-      ctx.fillStyle = "#d29922";
-      ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
+      drawRoundedBar(ctx, cx + 1.5, padT + ch - pH, bw, pH, "#e4b44b", "#b87912");
       ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
       if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - aH - 3);
       ctx.fillStyle = "#d29922";
@@ -4132,15 +4154,15 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
 <!-- 2026-09-06: 静态历史经营分析模块 + 车间产出分析独立页 -->
-<script src="analysis-history.js?v=20260907ops22"></script>
-<script src="analysis-page.js?v=20260907ops22"></script>
+<script src="analysis-history.js?v=20260907ops23"></script>
+<script src="analysis-page.js?v=20260907ops23"></script>
 <!-- 2026-09-04: AI 悬浮窗助手 (ai-widget.js) → 代理接口 AICONFIG.proxyUrl -->
 <script>window.AICONFIG={proxyUrl:"https://midea-ai-proxy.wigifobi28.workers.dev/ai"};</script>
-<script src="ai-widget.js?v=20260907ops22"></script>
+<script src="ai-widget.js?v=20260907ops23"></script>
 <!-- ★ 2026-09-03 v6.4 PWA: 添加到主屏幕后全屏独立运行, 效果同 App; SW 网络优先, 不缓存 Firebase 数据 -->
 <script>
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20260907ops22').catch(function () {});
+    navigator.serviceWorker.register('./sw.js?v=20260907ops23').catch(function () {});
 }
 </script>
 </html>
