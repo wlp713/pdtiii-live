@@ -3,133 +3,13 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-07 13:01:07
+   最后写入: 2026-09-08 00:00:02
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [
-    {
-      "date": "2026-09-07",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "08:00-09:00",
-      "problem_th": "Winding M Coil No3 จานไม่ตรงหยุด08:00 กำลังแก้ไข เครื่องเย็บNo1 ไฟไม่เข้าหยุด 08:55 F-series",
-      "problem_zh": "绕线M线圈No3，板不直，停止08:00，修好缝纫机No1火不会停止08:55 F系列",
-      "plan": 141,
-      "actual": 94,
-      "impact": -47,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "10:00-11:00",
-      "problem_th": "Winding M Coil No3 จานไม่ตรงหยุด08:00 กำลังแก้ไข เครื่องเย็บNo1 ไฟไม่เข้าหยุด 08:55 กำลังแก้ไข S Coil ดึงฟีล์ม M Coil ออกมาด้วย หยุด10:25-10:56",
-      "problem_zh": "绕M线圈No3，板不直，停止08:00，修复缝纫机No1 火不会停止。 08:55 修复 S 线圈。拉出 M 线圈薄膜。停止时间 10:25-10:56。",
-      "plan": 141,
-      "actual": 92,
-      "impact": -49,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "8:00-9:00",
-      "problem_th": "(-20) เริ่มพนักงานประจำจุดไม่มา นำพนักงานเข้าเสริม ยังไม่ชำนาญ (-20) สลับจุดพนักงานใหม่เพื่อเพิ่มประสิทธิภาพ B-Line Final",
-      "problem_zh": "(-20) 从正式员工不来开始。带来更多尚未熟练的员工 (-20)。调换新员工职位以提高 B 线最终效率。",
-      "plan": 470,
-      "actual": 450,
-      "impact": -20,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "9:00-10:00",
-      "problem_th": "(-10) ท้ายไลน์ระบายออกไม่ทันบางช่วง (-10) ตัดงานก่อนเชื่อม 20 set งานเมกะโอห์ม = 2 * B-Line Final",
-      "problem_zh": "(-10) 管线末端部分部位未能及时排水。 (-10) 焊接前切割工作 20 组兆欧工作 = 2 * B-Line Final。",
-      "plan": 470,
-      "actual": 460,
-      "impact": -10,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "10:00-11:00",
-      "problem_th": "(-19) งานติดตู้ Coolling ขาออก ทำให้งานมาขาดช่วง (-19) แก้ไขขยับ sensor เช็คปะเต็งใหม่ รอติดตามผล งาน KV = 1 * B-Line Final",
-      "problem_zh": "(-19) 出站冷却柜安装工作，导致工作中断 (-19) 已修复、移动传感器、检查新垫圈、等待后续工作 KV = 1 * B 线最终",
-      "plan": 390,
-      "actual": 371,
-      "impact": -19,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "11:00-12:00",
-      "problem_th": "(-66) งานจาก Rotor Line มาไม่ต่อเนื่อง ปัญหางานติด Air Gab (-45) รอ Low",
-      "problem_zh": "(-66) 来自转子线的工作没有连续进行。 Air Gab 安装工作出现问题 (-45) 等待低。",
-      "plan": 470,
-      "actual": 404,
-      "impact": -66,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "09:00-10:00",
-      "problem_th": "งานค่า KV เมคกาโอม NG งานออกไม่ต่อเนื่อง",
-      "problem_zh": "工作值 KV Mekkaom NG 工作不是连续的。",
-      "plan": 444,
-      "actual": 364,
-      "impact": -80,
-      "shift": "day"
-    }
-  ],
+  "problems": [],
   "problems_top": null,
-  "first_hour": [
-    {
-      "date": "2026-09-07",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "target": 141,
-      "actual": 94,
-      "rate": 66.7
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "target": 470,
-      "actual": 450,
-      "rate": 95.7
-    },
-    {
-      "date": "2026-09-07",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "target": 444,
-      "actual": 334,
-      "rate": 75.2
-    }
-  ]
+  "first_hour": []
 };
 
 window.__HISTORY__ = [
@@ -524,25 +404,51 @@ window.__HISTORY__ = [
       "Frame No.3": 102.3,
       "Frame No.4": 100.2,
       "Frame No.5": 53.2
-    },
-    "first_hour": {
-      "RPO1·F系列": 57.4,
-      "RPO1·H系列": 122.0,
-      "RPO1·S系列": 68.0,
-      "PRO2·A": 99.5,
-      "PRO2·B": 82.3,
-      "PRO2·C": 99.5
-    }
-  },
-  {
-    "date": "2026-09-05",
-    "first_hour": {
-      "RPO1·H系列": 104.8,
-      "RPO1·S系列": 79.9
     }
   },
   {
     "date": "2026-09-07",
+    "lines": {
+      "Final A line": 99.1,
+      "Final B Line": 90.2,
+      "Final C line": 72.7,
+      "Final D line": 96.6,
+      "Motor H-Series": 102.4,
+      "Motor S-Series": 93.2,
+      "Motor F-Series": 17.6,
+      "Motor WL": 93.4,
+      "Inspection A": 42.8,
+      "Inspection B": 82.1,
+      "Inspection C": 65.0,
+      "Inspection D": 18.1,
+      "C-Shaft Body A": 56.4,
+      "C-Shaft Body B": 80.8,
+      "C-Shaft Pin A": 101.6,
+      "C-Shaft Pin C": 0.0,
+      "C-Shft Pin B": 46.5,
+      "Cylinder Honing": 97.2,
+      "Frame Honing FL": 62.9,
+      "Piston Grinding": 84.7,
+      "Piston honing FL": 100.4,
+      "Press C-Shaft": 67.7,
+      "Rod Pispin": 94.4,
+      "Water Line": 78.4,
+      "Motor AC": 119.8,
+      "Motor CL": 0.0,
+      "Rotor A line": 119.0,
+      "Rotor B Line": 82.9,
+      "Rotor C line": 67.6,
+      "Rotor D Line": 94.9,
+      "Welding A line": 63.1,
+      "Welding B line": 86.7,
+      "Welding C line": 61.4,
+      "Welding D line": 124.4,
+      "Frame No.1": 65.7,
+      "Frame No.2": 90.3,
+      "Frame No.3": 31.6,
+      "Frame No.4": 120.1,
+      "Frame No.5": 47.6
+    },
     "first_hour": {
       "RPO1·F系列": 66.7,
       "PRO2·B": 95.7,
