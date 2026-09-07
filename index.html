@@ -1884,7 +1884,10 @@ function isOtNow(mins) {
 //   目标在此基础上按同 pace 继续累加 — 即「加班目标基于该目标继续推移」。
 const H_MANUAL_TARGET = 1800;                             // 正常工作时间目标 1800
 function isManualHLine(name) {
-  return normName(name) === "motorhseries";
+  const m = normName(name);
+  // ★ 2026-09-07 修复: normName 只去空格/点, 不去连字符 → "Motor H-Series"→"motorh-series"(带横杠)。
+  //   两种写法都要判: 带横杠(线上实测)与无横杠(记忆/旧口径)都命中。
+  return m === "motorhseries" || m === "motorh-series";
 }
 // 该班次「正常工作时间」累计分钟: 指加班起点前应为正常生产的时间。
 // 白班: DAY_SEGS 中完全不跨 17:20 的段(前8段)= 460 分钟。
@@ -2590,6 +2593,7 @@ async function refresh() {
       const a = Number(l.actual) || 0;
       l.eff = mp > 0 ? Math.round(a / mp * 1000) / 10 : (l.eff == null ? null : l.eff); // 达成率按手工目标重算
       l.cb = a - mp;                                         // 差额同步
+      window.__H_DEBUG = { ok: true, name: l.name, plan: mp, target: H_MANUAL_TARGET, actual: a, at: new Date().toLocaleTimeString() };
     });
     state.hourly = d.hourly || {};
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
@@ -2633,6 +2637,7 @@ async function refresh() {
       }
     } catch (e) {}
   } catch (e) {
+    window.__H_ERR = (e && e.message ? e.message : String(e)); // ★ 诊断: 记录 fetch/覆盖异常
     const pl = document.getElementById("periodLabel");
     if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("connFailed"); }
     // ★ 2026-09-04 防闪: 错误文本变化才写
