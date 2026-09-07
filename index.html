@@ -2030,12 +2030,13 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
     });
   }
   if (totalH > 0) {
-    // ★ v6.2: 柱顶数字标在「本 key 自身柱顶」而非骨架顶 — 超额段(实际>目标)实际柱满格、
-    //   目标柱按比例变短, 各自总数应贴各自柱顶, 才能准确反映各自达成量。
-    let keyPix = 0; segs.forEach(x => { keyPix += Math.max(0, (key === "plan" ? (x.plan || 0) : (x.actual || 0)) / maxV * ch); });
-    const keyTopY = padT + ch - keyPix;
+    // 计划与实际总数必须在同一条基准线上，统一放在两根柱的共同顶部外侧。
+    // 这样标签表达的是一组对比，而不是把实际总产出误读成柱内分段数据。
+    let actualPix = 0, planPix = 0;
+    segs.forEach(x => { actualPix += Math.max(0, (x.actual || 0) / maxV * ch); planPix += Math.max(0, (x.plan || 0) / maxV * ch); });
+    const pairTopY = padT + ch - Math.max(actualPix, planPix);
     ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(fmt(total), cx + bw / 2, keyTopY - 14);
+    ctx.fillText(fmt(total), cx + bw / 2, pairTopY - 14);
   }
 }
 
@@ -2144,9 +2145,10 @@ function drawBar(main) {
       const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
       drawRoundedBar(ctx, cx + 1.5, padT + ch - pH, bw, pH, "#e4b44b", "#b87912");
       ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-      if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - aH - 3);
+      const pairTop = padT + ch - Math.max(aH, pH);
+      if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, pairTop - 14);
       ctx.fillStyle = "#d29922";
-      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, padT + ch - pH - 3);
+      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, pairTop - 14);
     }
     // ★ 2026-09-04: 线体名加粗提亮 (与主表加粗风格一致)
     // ★ 2026-09-04 12:31: 名称自适应 — PRO4 多线体时槽宽窄, 固定 11px 会重叠/挤出。
@@ -4231,15 +4233,15 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 </body>
 <!-- 2026-09-06: 静态历史经营分析模块 + 车间产出分析独立页 -->
-<script src="analysis-history.js?v=20260907ops23"></script>
-<script src="analysis-page.js?v=20260907ops23"></script>
+<script src="analysis-history.js?v=20260907ops24"></script>
+<script src="analysis-page.js?v=20260907ops24"></script>
 <!-- 2026-09-04: AI 悬浮窗助手 (ai-widget.js) → 代理接口 AICONFIG.proxyUrl -->
 <script>window.AICONFIG={proxyUrl:"https://midea-ai-proxy.wigifobi28.workers.dev/ai"};</script>
-<script src="ai-widget.js?v=20260907ops23"></script>
+<script src="ai-widget.js?v=20260907ops24"></script>
 <!-- ★ 2026-09-03 v6.4 PWA: 添加到主屏幕后全屏独立运行, 效果同 App; SW 网络优先, 不缓存 Firebase 数据 -->
 <script>
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20260907ops23').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20260907ops24').catch(function () {});
 }
 </script>
 </html>
