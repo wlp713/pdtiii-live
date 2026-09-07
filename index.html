@@ -1927,7 +1927,7 @@ function hManualPlanAt(shift, t) {
     const oStart = Math.max(t0, otStart);
     if (oEnd > oStart) ot += (oEnd - oStart) * pace;
   }
-  return cum + ot;
+  return Math.round(cum + ot);   // 取整: 手工目标不保留小数点(小数仅来自 pace 除法)
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   // ★ 2026-09-03 v6.2 灵活缩放基准: 段高骨架按该段 actual/plan 的较大者定位(而非只按 plan)。
@@ -2587,9 +2587,9 @@ async function refresh() {
       const sc = shiftSegAt(bkkMins());
       const isNight = sc.shift === "night";
       const nowM = isNight && bkkMins() < NIGHT_END ? bkkMins() + 1440 : bkkMins();
-      const mp = hManualPlanAt(sc.shift, nowM);              // 手工累计计划
+      const mp = Math.round(hManualPlanAt(sc.shift, nowM)); // 手工累计计划(取整, 不保留小数点)
       l.target = H_MANUAL_TARGET;                            // 日目标 = 1800
-      l.plan = mp;                                           // 实时累计目标 = 手工曲线
+      l.plan = mp;                                           // 实时累计目标 = 手工曲线(整数)
       const a = Number(l.actual) || 0;
       l.eff = mp > 0 ? Math.round(a / mp * 1000) / 10 : (l.eff == null ? null : l.eff); // 达成率按手工目标重算
       l.cb = a - mp;                                         // 差额同步
