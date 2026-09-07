@@ -3,13 +3,46 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-07 08:30:02
+   最后写入: 2026-09-07 10:00:02
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-07",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "Winding M Coil No3 จานไม่ตรงหยุด08:00 กำลังแก้ไข เครื่องเย็บNo1 ไฟไม่เข้าหยุด 08:55 F-series",
+      "problem_zh": "绕线M线圈No3，板不直，停止08:00，修好缝纫机No1火不会停止08:55 F系列",
+      "plan": 141,
+      "actual": 94,
+      "impact": -47,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-07",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 94,
+      "rate": 66.7
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 334,
+      "rate": 75.2
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -419,6 +452,13 @@ window.__HISTORY__ = [
     "first_hour": {
       "RPO1·H系列": 104.8,
       "RPO1·S系列": 79.9
+    }
+  },
+  {
+    "date": "2026-09-07",
+    "first_hour": {
+      "RPO1·F系列": 66.7,
+      "PRO2·C": 75.2
     }
   }
 ];
