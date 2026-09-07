@@ -433,6 +433,22 @@
     }).join("") || '<tr><td colspan="9" class="hist-no-row">当前条件下没有可计算的线体数据</td></tr>';
   }
 
+  function publishAIContext(days, rows) {
+    try {
+      var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
+      window.__PDTIII_HISTORY_VIEW__ = {
+        scope: scopeLabel(), workshop: state.workshop || "全厂", line: state.line || "全部线体",
+        shift: state.shift === "day" ? "白班" : "夜班", selectedDate: state.selectedDate || "",
+        dateRange: days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期",
+        qualityMode: state.selectedDate ? "指定日期回看" : (state.includePartial ? "周期分析·含部分归档" : "周期分析·过滤部分归档"),
+        latest: latest ? { normal: num(latest.normal), overtime: num(latest.overtime), total: num(latest.total), plan: num(latest.plan), attainment: latest.attainment } : null,
+        trend: days.slice(-14).map(function (day) { var item = metricFor(day, state.workshop, state.line); return { date: day.date, normal: num(item && item.normal), overtime: num(item && item.overtime), total: num(item && item.total), plan: num(item && item.plan), attainment: item && item.attainment }; }),
+        topRisks: rows.slice(0, 8).map(function (row) { return { line: row.line, workshop: row.workshop, gap: row.gap, attainment: row.attainment, delta: row.delta, streak: row.streak, average: row.average }; }),
+        note: "车间层级为成品线口径；线体钻取为全部工序线。数据来自静态归档，不增加数据库请求。"
+      };
+    } catch (e) {}
+  }
+
   function render() {
     if (!data || !host) return;
     var days = usableDays();
@@ -441,6 +457,7 @@
     renderKpis(days, rows);
     renderInsights(rows);
     renderTable(rows);
+    publishAIContext(days, rows);
     syncMatrixState();
     requestAnimationFrame(function () { drawTrend(days); drawGap(days, rows); });
   }
