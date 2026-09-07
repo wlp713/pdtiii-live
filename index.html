@@ -1835,10 +1835,15 @@ function segsOf(name, curActual, curPlan) {
     //   开班 = 新班从 0 重新累计, 段1 目标应 = 实时累计目标(即 Plan 列), 实际同理。
     const first = (k === 0);
     const off = postMid ? -1 : 0;
+    // ★ 2026-09-07 手动目标覆盖: H-Series 的 plan 不用实时 plan/valueAt, 改用同一条手工曲线,
+    //   保证小时图段目标、表格 plan、达成率全部一致(其它线走原逻辑不受影响)。
+    const manualH = isManualHLine(name);
     const a0 = first ? 0 : valueAt(name, t0, false, off);
     const a1 = (t1 > cmpMins) ? (Number(curActual) || 0) : valueAt(name, t1, false, off);
-    const p0 = first ? 0 : valueAt(name, t0, true, off);
-    const p1 = (t1 > cmpMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true, off);
+    let p0 = first ? 0 : (manualH ? hManualPlanAt(sc.shift, t0) : valueAt(name, t0, true, off));
+    let p1 = (t1 > cmpMins)
+      ? (manualH ? hManualPlanAt(sc.shift, nowMins) : (Number(curPlan) || 0))
+      : (manualH ? hManualPlanAt(sc.shift, t1) : valueAt(name, t1, true, off));
     let actual = a1 - a0, plan = p1 - p0;
     if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
     if (plan < 0) plan = p1;
@@ -1867,6 +1872,59 @@ function isOtNow(mins) {
   if (!sc) return false;
   if (sc.shift === "day") return mins >= OT_DAY_START; // 17:20-20:20
   return mins >= (5 * 60 + 50) && mins < (7 * 60 + 50); // 凌晨 5:50-7:50
+}
+
+// ═══════════════════════════════════════════════════════════
+// ★ 2026-09-07 手动目标覆盖: 仅 Motor H-Series 一条线
+//   用户要求: 正常工作时间产出目标钉死 1800; 加班目标按正常同速率继续推移。
+//   本覆盖只作用于 normName==="motorhseries" 的行: 覆盖其 plan/target, 并同步 eff/达成率。
+//   其他 line 与「产出分析页」(独立数据源)完全不受影响。
+//   生成方式: 沿段表逐段累加, 每段(含加班段)按统一速率 pace 推目标累计。
+//   正常段(至加班起点)累加封顶到 H_MANUAL_TARGET(1800) 作为基准; 之后进入加班段,
+//   目标在此基础上按同 pace 继续累加 — 即「加班目标基于该目标继续推移」。
+const H_MANUAL_TARGET = 1800;                             // 正常工作时间目标 1800
+function isManualHLine(name) {
+  return normName(name) === "motorhseries";
+}
+// 该班次「正常工作时间」累计分钟: 指加班起点前应为正常生产的时间。
+// 白班: DAY_SEGS 中完全不跨 17:20 的段(前8段)= 460 分钟。
+// 夜班: 因 OT_NIGHT_START=1790 落在段 [1770,1830] 中间, 正常部分只计 1770→1790 共 20 分钟,
+//   正常总时长 = 前段和 + 20 = 470 分钟。口径: 目标在加班起点(白班17:20 / 夜班5:50)正好推到 1800。
+function hManualNormalMins(shift) {
+  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
+  const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
+  let m = 0;
+  for (const [t0, t1] of table) {
+    if (t0 >= otStart) break;               // 段起点已在加班 → 之后全为加班段
+    m += Math.min(t1, otStart) - t0;        // 段跨加班起点时只计到起点为止
+  }
+  return m;
+}
+// 手动累计目标: 返回该班的分钟基准下 t(当天0点为基准, 夜班跨天>1440)对应的累计目标。
+//   口径: 正常时段目标线性推到 H_MANUAL_TARGET(1800) 于加班起点(白班17:20 / 夜班5:50)达成;
+//   加班时段从 1800 基准继续按同 pace 累加 —「加班目标基于该目标继续推移」, 跨加班段的正常/加班部分无缝衔接。
+function hManualPlanAt(shift, t) {
+  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
+  const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
+  const nm = hManualNormalMins(shift) || 1;
+  const pace = H_MANUAL_TARGET / nm;                     // 统一速率(目标/正常分钟)
+  // 1) 正常累计: 累加所有完全/部分位于加班起点前的段(跨段截断到 otStart)
+  let cum = 0;
+  for (const [t0, t1] of table) {
+    if (t0 >= otStart) break;                            // 段起点已在加班 → 之后全为加班段
+    const nEnd = Math.min(t, t1, otStart);
+    if (nEnd > t0) cum += (nEnd - t0) * pace;
+  }
+  // 2) 加班累计: 从 1800 基准起, 累计跨/纯加班段在 otStart 之后的经过分钟
+  let ot = 0;
+  for (const [t0, t1] of table) {
+    if (t1 <= otStart) continue;                         // 完全正常段
+    if (t0 >= t) break;                                  // 未开始
+    const oEnd = Math.min(t, t1);
+    const oStart = Math.max(t0, otStart);
+    if (oEnd > oStart) ot += (oEnd - oStart) * pace;
+  }
+  return cum + ot;
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   // ★ 2026-09-03 v6.2 灵活缩放基准: 段高骨架按该段 actual/plan 的较大者定位(而非只按 plan)。
@@ -2519,6 +2577,20 @@ async function refresh() {
       if (!prev || String(l.pushed || "") >= String(prev.pushed || "")) dedupMap.set(k, l);
     });
     state.lines = [...dedupMap.values()];
+    // ★ 2026-09-07 手动目标覆盖: 仅 H-Series — 覆盖 plan/target/eff, 让表格达成率、趋势、排名一致
+    //   用同一条手工目标线; 其他线体与原逻辑完全一致不受影响。
+    state.lines.forEach(l => {
+      if (!isManualHLine(l.name)) return;
+      const sc = shiftSegAt(bkkMins());
+      const isNight = sc.shift === "night";
+      const nowM = isNight && bkkMins() < NIGHT_END ? bkkMins() + 1440 : bkkMins();
+      const mp = hManualPlanAt(sc.shift, nowM);              // 手工累计计划
+      l.target = H_MANUAL_TARGET;                            // 日目标 = 1800
+      l.plan = mp;                                           // 实时累计目标 = 手工曲线
+      const a = Number(l.actual) || 0;
+      l.eff = mp > 0 ? Math.round(a / mp * 1000) / 10 : (l.eff == null ? null : l.eff); // 达成率按手工目标重算
+      l.cb = a - mp;                                         // 差额同步
+    });
     state.hourly = d.hourly || {};
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
     state.updatedAt = d.updatedAt || null;
