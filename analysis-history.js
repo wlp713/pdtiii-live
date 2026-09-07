@@ -57,26 +57,36 @@
     var plan = items.reduce(function (sum, item) { return sum + num(item && item.plan); }, 0);
     return { normal: normal, overtime: overtime, total: normal + overtime, plan: plan, attainment: plan > 0 ? normal / plan * 100 : null };
   }
+  function shiftMetric(scope) {
+    if (!scope) return null;
+    return state.shift === "full" ? sumMetricItems([scope.day, scope.night].filter(Boolean)) : scope[state.shift];
+  }
+  function shiftLabel() { return state.shift === "full" ? "全天" : (state.shift === "day" ? "白班" : "夜班"); }
+  function qualityStatus(day) {
+    if (!day || !day.quality) return "partial";
+    if (state.shift !== "full") return day.quality[state.shift + "Status"] || "partial";
+    if (day.quality.dayStatus === "partial" || day.quality.nightStatus === "partial") return "partial";
+    return day.quality.dayStatus === "complete" && day.quality.nightStatus === "complete" ? "complete" : "comparable";
+  }
   function finishedWorkshopMetric(day, workshop) {
-    if (day.finishedProducts && day.finishedProducts[workshop]) return day.finishedProducts[workshop][state.shift];
+    if (day.finishedProducts && day.finishedProducts[workshop]) return shiftMetric(day.finishedProducts[workshop]);
     var configured = (data && data.finishedProductLines && data.finishedProductLines[workshop]) || [];
     return sumMetricItems(configured.map(function (line) {
-      return day.lines && day.lines[line] ? day.lines[line][state.shift] : null;
+      return day.lines && day.lines[line] ? shiftMetric(day.lines[line]) : null;
     }).filter(Boolean));
   }
   function metricFor(day, workshop, line) {
-    if (line) return day.lines && day.lines[line] ? day.lines[line][state.shift] : null;
+    if (line) return day.lines && day.lines[line] ? shiftMetric(day.lines[line]) : null;
     if (workshop) return finishedWorkshopMetric(day, workshop);
-    return day.totals ? day.totals[state.shift] : null;
+    return day.totals ? shiftMetric(day.totals) : null;
   }
   function usableDays() {
     if (!data || !data.days) return [];
-    var key = state.shift + "Status";
     var exactRetrospective = state.period === -1 && !!state.selectedDate;
     var days = data.days.filter(function (day) {
       if (exactRetrospective) return day.date === state.selectedDate;
       if (day.quality && day.quality.freshnessStatus === "stale") return false;
-      return state.includePartial || (day.quality && day.quality[key] !== "partial");
+      return state.includePartial || qualityStatus(day) !== "partial";
     });
     if (state.selectedDate) days = days.filter(function (day) { return day.date <= state.selectedDate; });
     if (state.period === -1 && state.selectedDate) days = days.filter(function (day) { return day.date === state.selectedDate; });
@@ -100,6 +110,7 @@
       '  <div class="hist-controls" aria-label="历史分析筛选">',
       '    <div class="hist-control"><div class="hist-control-label" id="histWsLabel">分析层级<span class="hist-help"><button class="hist-info" type="button" aria-label="查看车间成品产量统计口径" aria-describedby="histScopeTip">?</button><span class="hist-tooltip" id="histScopeTip" role="tooltip">车间层级仅统计成品线。Pro.1 全部 6 条，Pro.2 为 Final A-D，Pro.3 为 Welding A-D，Pro.4 和 Pro.5 为全部线体。线体钻取仍可查看所有工序。</span></span></div><select id="histWs" aria-labelledby="histWsLabel"><option value="">全厂</option></select></div>',
       '    <label for="histLine"><span>线体钻取</span><select id="histLine"><option value="">全部线体</option></select></label>',
+      '    <div class="hist-shift"><span>班次口径</span><div role="group" aria-label="选择班次口径"><button type="button" data-hist-shift="day" aria-pressed="true">白班</button><button type="button" data-hist-shift="night" aria-pressed="false">夜班</button><button type="button" data-hist-shift="full" aria-pressed="false">全天</button></div></div>',
       '    <div class="hist-period"><span>分析周期</span><div role="group" aria-label="选择历史分析周期">',
       '      <button type="button" data-period="-1" aria-pressed="false">单日</button>',
       '      <button type="button" data-period="7" class="on" aria-pressed="true">7日</button>',
@@ -138,6 +149,13 @@
       state.line = event.target.value;
       render();
     });
+    host.querySelector(".hist-shift").addEventListener("click", function (event) {
+      var button = event.target.closest("button[data-hist-shift]");
+      if (!button) return;
+      state.shift = button.getAttribute("data-hist-shift");
+      syncShiftState();
+      render();
+    });
     host.querySelector(".hist-period").addEventListener("click", function (event) {
       var button = event.target.closest("button[data-period]");
       if (!button) return;
@@ -158,12 +176,21 @@
       state.matrixOpen = !state.matrixOpen;
       syncMatrixState();
     });
+    syncShiftState();
     syncMatrixState();
   }
 
   function syncPeriodState() {
     host.querySelectorAll("button[data-period]").forEach(function (button) {
       var active = Number(button.getAttribute("data-period")) === state.period;
+      button.classList.toggle("on", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+  }
+
+  function syncShiftState() {
+    host.querySelectorAll("button[data-hist-shift]").forEach(function (button) {
+      var active = button.getAttribute("data-hist-shift") === state.shift;
       button.classList.toggle("on", active);
       button.setAttribute("aria-pressed", active ? "true" : "false");
     });
@@ -218,7 +245,7 @@
     return lineNamesInScope().map(function (line) {
       var entries = [];
       days.forEach(function (day) {
-        var item = day.lines && day.lines[line] ? day.lines[line][state.shift] : null;
+        var item = day.lines && day.lines[line] ? shiftMetric(day.lines[line]) : null;
         if (item) entries.push({ day: day.date, metric: item });
       });
       var metrics = entries.map(function (entry) { return entry.metric; });
@@ -260,16 +287,15 @@
   }
 
   function renderQuality(days) {
-    var key = state.shift + "Status";
     var counts = { complete: 0, comparable: 0, partial: 0 };
-    (data.days || []).forEach(function (day) { counts[(day.quality && day.quality[key]) || "partial"]++; });
+    (data.days || []).forEach(function (day) { counts[qualityStatus(day)]++; });
     var staleDays = data.quality && data.quality.staleDays ? data.quality.staleDays : 0;
     var selectedText = days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期";
     var anchorDay = state.selectedDate ? (data.days || []).find(function (day) { return day.date === state.selectedDate; }) : null;
     var anchorQuality = anchorDay && anchorDay.quality ? anchorDay.quality : null;
-    var anchorStatus = anchorQuality ? anchorQuality[key] : null;
+    var anchorStatus = qualityStatus(anchorDay);
     var anchorNote = anchorDay && anchorQuality && anchorQuality.freshnessStatus === "stale" ? " · 过期源" : (anchorDay && anchorStatus === "partial" ? " · 部分归档" : "");
-    host.querySelector("#histQuality").innerHTML = '<span class="hist-q-label">' + esc(state.shift === "day" ? "白班" : "夜班") + " · " + esc(scopeLabel()) + '</span>' +
+    host.querySelector("#histQuality").innerHTML = '<span class="hist-q-label">' + esc(shiftLabel()) + " · " + esc(scopeLabel()) + '</span>' +
       '<span class="hist-q good">完整 ' + counts.complete + '</span><span class="hist-q info">可比 ' + counts.comparable + '</span><span class="hist-q warn">部分 ' + counts.partial + '</span>' +
       (staleDays ? '<span class="hist-q stale">过期源 ' + staleDays + '</span>' : "") +
       '<span class="hist-q-range' + (anchorQuality && (anchorQuality.freshnessStatus === "stale" || anchorStatus === "partial") ? " is-caution" : "") + '">' +
@@ -327,7 +353,7 @@
     var box = setupCanvas(canvas, 254);
     var ctx = box.context, width = box.width, height = box.height;
     var empty = host.querySelector("#histTrendEmpty");
-    host.querySelector("#histTrendSub").textContent = scopeLabel() + " · " + (state.shift === "day" ? "白班" : "夜班") + " · 正常产出/加班产出/正常段计划";
+    host.querySelector("#histTrendSub").textContent = scopeLabel() + " · " + shiftLabel() + " · 正常产出/加班产出/正常段计划";
     if (!days.length) { empty.textContent = "没有符合当前质量条件的历史数据"; empty.style.display = "grid"; return; }
     empty.style.display = "none";
     var values = days.map(function (day) { return metricFor(day, state.workshop, state.line); });
@@ -426,7 +452,7 @@
       var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
       window.__PDTIII_HISTORY_VIEW__ = {
         scope: scopeLabel(), workshop: state.workshop || "全厂", line: state.line || "全部线体",
-        shift: state.shift === "day" ? "白班" : "夜班", selectedDate: state.selectedDate || "",
+        shift: shiftLabel(), selectedDate: state.selectedDate || "",
         dateRange: days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期",
         qualityMode: state.selectedDate ? ("回看至 " + state.selectedDate + " · " + periodLabel()) : (state.includePartial ? "周期分析·含部分归档" : "周期分析·过滤部分归档"),
         latest: latest ? { normal: num(latest.normal), overtime: num(latest.overtime), total: num(latest.total), plan: num(latest.plan), attainment: latest.attainment } : null,
@@ -480,7 +506,8 @@
   }
 
   function setShift(shift) {
-    state.shift = shift === "night" ? "night" : "day";
+    state.shift = shift === "full" ? "full" : (shift === "night" ? "night" : "day");
+    syncShiftState();
     syncPeriodState();
     render();
   }
