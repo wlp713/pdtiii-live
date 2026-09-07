@@ -1,0 +1,4589 @@
+{
+  "date": "2026-09-07",
+  "snapAt": "2026-09-07 17:10:03",
+  "source": "save_daily_history v2",
+  "lines": [
+    {
+      "actual": 3268.0,
+      "cb": -29.0,
+      "cum": 3268.0,
+      "eff": 99.1,
+      "name": "Final A line",
+      "plan": 3297.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 3246.0,
+      "cb": -352.0,
+      "cum": 3246.0,
+      "eff": 90.2,
+      "name": "Final B Line",
+      "plan": 3598.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3600.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 2545.0,
+      "cb": -953.0,
+      "cum": 2545.0,
+      "eff": 72.7,
+      "name": "Final C line",
+      "plan": 3498.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3400.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1546.0,
+      "cb": -53.0,
+      "cum": 1546.0,
+      "eff": 96.6,
+      "name": "Final D line",
+      "plan": 1599.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1600.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1325.0,
+      "cb": 32.0,
+      "cum": 1325.0,
+      "eff": 102.4,
+      "name": "Motor H-Series",
+      "plan": 1293.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1800.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1220.0,
+      "cb": -88.0,
+      "cum": 1220.0,
+      "eff": 93.2,
+      "name": "Motor S-Series",
+      "plan": 1308.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1820.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 190.0,
+      "cb": -887.0,
+      "cum": 190.0,
+      "eff": 17.6,
+      "name": "Motor F-Series",
+      "plan": 1077.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1500.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1073.0,
+      "cb": -75.0,
+      "cum": 1073.0,
+      "eff": 93.4,
+      "name": "Motor WL",
+      "plan": 1148.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1600.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1540.0,
+      "cb": -2056.0,
+      "cum": 1540.0,
+      "eff": 42.8,
+      "name": "Inspection A",
+      "plan": 3596.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 7200.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 2732.0,
+      "cb": -593.0,
+      "cum": 2732.0,
+      "eff": 82.1,
+      "name": "Inspection B",
+      "plan": 3325.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 2163.0,
+      "cb": -1162.0,
+      "cum": 2163.0,
+      "eff": 65.0,
+      "name": "Inspection C",
+      "plan": 3325.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 320.0,
+      "cb": -1443.0,
+      "cum": 320.0,
+      "eff": 18.1,
+      "name": "Inspection D",
+      "plan": 1763.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1150.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 936.0,
+      "cb": -723.0,
+      "cum": 936.0,
+      "eff": 56.4,
+      "name": "C-Shaft Body A",
+      "plan": 1659.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1660.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1366.0,
+      "cb": -323.0,
+      "cum": 1366.0,
+      "eff": 80.8,
+      "name": "C-Shaft Body B",
+      "plan": 1689.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1690.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 2182.0,
+      "cb": 35.0,
+      "cum": 2182.0,
+      "eff": 101.6,
+      "name": "C-Shaft Pin A",
+      "plan": 2147.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 2990.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 0.0,
+      "cb": 0.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "C-Shaft Pin C",
+      "plan": 0.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 6800.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 500.0,
+      "cb": -573.0,
+      "cum": 500.0,
+      "eff": 46.5,
+      "name": "C-Shft Pin B",
+      "plan": 1073.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1075.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1458.0,
+      "cb": -41.0,
+      "cum": 1458.0,
+      "eff": 97.2,
+      "name": "Cylinder Honing",
+      "plan": 1499.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1500.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 944.0,
+      "cb": -555.0,
+      "cum": 944.0,
+      "eff": 62.9,
+      "name": "Frame Honing FL",
+      "plan": 1499.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1500.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 3222.0,
+      "cb": -582.0,
+      "cum": 3222.0,
+      "eff": 84.7,
+      "name": "Piston Grinding",
+      "plan": 3804.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": true,
+      "status": "STALLED",
+      "target": 10000.0,
+      "time": "07-Sep-1"
+    },
+    {
+      "actual": 1506.0,
+      "cb": 7.0,
+      "cum": 1506.0,
+      "eff": 100.4,
+      "name": "Piston honing FL",
+      "plan": 1499.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1500.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 5720.0,
+      "cb": -2729.0,
+      "cum": 5720.0,
+      "eff": 67.7,
+      "name": "Press C-Shaft",
+      "plan": 8449.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 22000.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 652.0,
+      "cb": -38.0,
+      "cum": 652.0,
+      "eff": 94.4,
+      "name": "Rod Pispin",
+      "plan": 690.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 620.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 2824.0,
+      "cb": -774.0,
+      "cum": 2824.0,
+      "eff": 78.4,
+      "name": "Water Line",
+      "plan": 3598.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 8400.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1204.0,
+      "cb": 199.0,
+      "cum": 1204.0,
+      "eff": 119.8,
+      "name": "Motor AC",
+      "plan": 1005.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1400.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 0.0,
+      "cb": -585.0,
+      "cum": 0.0,
+      "eff": 0.0,
+      "name": "Motor CL",
+      "plan": 585.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 600.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 3924.0,
+      "cb": 627.0,
+      "cum": 3924.0,
+      "eff": 119.0,
+      "name": "Rotor A line",
+      "plan": 3297.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 2983.0,
+      "cb": -615.0,
+      "cum": 2983.0,
+      "eff": 82.9,
+      "name": "Rotor B Line",
+      "plan": 3598.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3600.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 2367.0,
+      "cb": -1130.0,
+      "cum": 2367.0,
+      "eff": 67.6,
+      "name": "Rotor C line",
+      "plan": 3497.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3400.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1519.0,
+      "cb": -80.0,
+      "cum": 1519.0,
+      "eff": 94.9,
+      "name": "Rotor D Line",
+      "plan": 1599.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1600.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1893.0,
+      "cb": -1104.0,
+      "cum": 1893.0,
+      "eff": 63.1,
+      "name": "Welding A line",
+      "plan": 2997.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3000.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 2866.0,
+      "cb": -439.0,
+      "cum": 2866.0,
+      "eff": 86.7,
+      "name": "Welding B line",
+      "plan": 3305.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 2031.0,
+      "cb": -1274.0,
+      "cum": 2031.0,
+      "eff": 61.4,
+      "name": "Welding C line",
+      "plan": 3305.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 3300.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1492.0,
+      "cb": 293.0,
+      "cum": 1492.0,
+      "eff": 124.4,
+      "name": "Welding D line",
+      "plan": 1199.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1200.0,
+      "time": "07-Sep-2"
+    },
+    {
+      "actual": 1262.0,
+      "cb": -658.0,
+      "cum": 1262.0,
+      "eff": 65.7,
+      "name": "Frame No.1",
+      "plan": 1920.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1920.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1734.0,
+      "cb": -186.0,
+      "cum": 1734.0,
+      "eff": 90.3,
+      "name": "Frame No.2",
+      "plan": 1920.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1920.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 608.0,
+      "cb": -1312.0,
+      "cum": 608.0,
+      "eff": 31.6,
+      "name": "Frame No.3",
+      "plan": 1920.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1920.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 2306.0,
+      "cb": 386.0,
+      "cum": 2306.0,
+      "eff": 120.1,
+      "name": "Frame No.4",
+      "plan": 1920.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 1920.0,
+      "time": "07-Sep-0"
+    },
+    {
+      "actual": 1790.0,
+      "cb": -1965.0,
+      "cum": 1790.0,
+      "eff": 47.6,
+      "name": "Frame No.5",
+      "plan": 3755.0,
+      "pushed": "2026-09-07 17:09:33",
+      "stalled": false,
+      "status": "RUNNING",
+      "target": 9960.0,
+      "time": "07-Sep-0"
+    }
+  ],
+  "hourly": {
+    "C-Shaft Body A": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 829.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 829.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1046.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1226.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1442.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1659.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1803.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2092.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 2092.0
+      },
+      {
+        "actual": 122.0,
+        "h": 900,
+        "plan": 216.0
+      },
+      {
+        "actual": 235.0,
+        "h": 1000,
+        "plan": 396.0
+      },
+      {
+        "actual": 258.0,
+        "h": 1010,
+        "plan": 432.0
+      },
+      {
+        "actual": 364.0,
+        "h": 1100,
+        "plan": 613.0
+      },
+      {
+        "actual": 481.0,
+        "h": 1200,
+        "plan": 829.0
+      },
+      {
+        "actual": 481.0,
+        "h": 1300,
+        "plan": 829.0
+      },
+      {
+        "actual": 606.0,
+        "h": 1400,
+        "plan": 1045.0
+      },
+      {
+        "actual": 705.0,
+        "h": 1500,
+        "plan": 1226.0
+      },
+      {
+        "actual": 727.0,
+        "h": 1510,
+        "plan": 1262.0
+      },
+      {
+        "actual": 823.0,
+        "h": 1600,
+        "plan": 1442.0
+      },
+      {
+        "actual": 936.0,
+        "h": 1700,
+        "plan": 1659.0
+      }
+    ],
+    "C-Shaft Body B": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 844.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 844.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1064.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1248.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1468.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1688.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1835.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2129.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 204.0,
+        "h": 900,
+        "plan": 220.0
+      },
+      {
+        "actual": 391.0,
+        "h": 1000,
+        "plan": 403.0
+      },
+      {
+        "actual": 413.0,
+        "h": 1010,
+        "plan": 440.0
+      },
+      {
+        "actual": 530.0,
+        "h": 1100,
+        "plan": 624.0
+      },
+      {
+        "actual": 700.0,
+        "h": 1200,
+        "plan": 844.0
+      },
+      {
+        "actual": 702.0,
+        "h": 1300,
+        "plan": 844.0
+      },
+      {
+        "actual": 834.0,
+        "h": 1400,
+        "plan": 1064.0
+      },
+      {
+        "actual": 1008.0,
+        "h": 1500,
+        "plan": 1248.0
+      },
+      {
+        "actual": 1036.0,
+        "h": 1510,
+        "plan": 1284.0
+      },
+      {
+        "actual": 1231.0,
+        "h": 1600,
+        "plan": 1468.0
+      },
+      {
+        "actual": 1366.0,
+        "h": 1700,
+        "plan": 1688.0
+      }
+    ],
+    "C-Shaft Pin A": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1073.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1073.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1353.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1587.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1867.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 2147.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 2334.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2707.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 279.0,
+        "h": 900,
+        "plan": 280.0
+      },
+      {
+        "actual": 507.0,
+        "h": 1000,
+        "plan": 513.0
+      },
+      {
+        "actual": 563.0,
+        "h": 1010,
+        "plan": 560.0
+      },
+      {
+        "actual": 799.0,
+        "h": 1100,
+        "plan": 793.0
+      },
+      {
+        "actual": 1074.0,
+        "h": 1200,
+        "plan": 1073.0
+      },
+      {
+        "actual": 1082.0,
+        "h": 1300,
+        "plan": 1073.0
+      },
+      {
+        "actual": 1390.0,
+        "h": 1400,
+        "plan": 1353.0
+      },
+      {
+        "actual": 1606.0,
+        "h": 1500,
+        "plan": 1587.0
+      },
+      {
+        "actual": 1660.0,
+        "h": 1510,
+        "plan": 1634.0
+      },
+      {
+        "actual": 1886.0,
+        "h": 1600,
+        "plan": 1867.0
+      },
+      {
+        "actual": 2181.0,
+        "h": 1700,
+        "plan": 2147.0
+      }
+    ],
+    "C-Shaft Pin C": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1220.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1221.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1539.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1805.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 2122.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 2441.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 2653.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 3077.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 3077.0
+      },
+      {
+        "actual": 0.0,
+        "h": 900,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1000,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1010,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1100,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1200,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1300,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1400,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1500,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1510,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1600,
+        "plan": 0.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1700,
+        "plan": 0.0
+      }
+    ],
+    "C-Shft Pin B": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 529.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 530.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 668.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 784.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 922.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1062.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1155.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1340.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1340.0
+      },
+      {
+        "actual": 79.0,
+        "h": 900,
+        "plan": 139.0
+      },
+      {
+        "actual": 150.0,
+        "h": 1000,
+        "plan": 256.0
+      },
+      {
+        "actual": 160.0,
+        "h": 1010,
+        "plan": 279.0
+      },
+      {
+        "actual": 222.0,
+        "h": 1100,
+        "plan": 396.0
+      },
+      {
+        "actual": 286.0,
+        "h": 1200,
+        "plan": 536.0
+      },
+      {
+        "actual": 286.0,
+        "h": 1300,
+        "plan": 536.0
+      },
+      {
+        "actual": 347.0,
+        "h": 1400,
+        "plan": 676.0
+      },
+      {
+        "actual": 373.0,
+        "h": 1500,
+        "plan": 793.0
+      },
+      {
+        "actual": 387.0,
+        "h": 1510,
+        "plan": 816.0
+      },
+      {
+        "actual": 441.0,
+        "h": 1600,
+        "plan": 933.0
+      },
+      {
+        "actual": 500.0,
+        "h": 1700,
+        "plan": 1073.0
+      }
+    ],
+    "Cylinder Honing": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 749.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 749.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 945.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1108.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1303.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1499.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1629.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1890.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1890.0
+      },
+      {
+        "actual": 245.0,
+        "h": 900,
+        "plan": 195.0
+      },
+      {
+        "actual": 505.0,
+        "h": 1000,
+        "plan": 358.0
+      },
+      {
+        "actual": 554.0,
+        "h": 1010,
+        "plan": 390.0
+      },
+      {
+        "actual": 753.0,
+        "h": 1100,
+        "plan": 553.0
+      },
+      {
+        "actual": 879.0,
+        "h": 1200,
+        "plan": 749.0
+      },
+      {
+        "actual": 879.0,
+        "h": 1300,
+        "plan": 749.0
+      },
+      {
+        "actual": 1038.0,
+        "h": 1400,
+        "plan": 944.0
+      },
+      {
+        "actual": 1170.0,
+        "h": 1500,
+        "plan": 1108.0
+      },
+      {
+        "actual": 1172.0,
+        "h": 1510,
+        "plan": 1140.0
+      },
+      {
+        "actual": 1354.0,
+        "h": 1600,
+        "plan": 1303.0
+      },
+      {
+        "actual": 1458.0,
+        "h": 1700,
+        "plan": 1498.0
+      }
+    ],
+    "Final A line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1648.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1648.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2078.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2508.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 2867.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3297.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3584.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4157.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 493.0,
+        "h": 900,
+        "plan": 429.0
+      },
+      {
+        "actual": 938.0,
+        "h": 1000,
+        "plan": 860.0
+      },
+      {
+        "actual": 975.0,
+        "h": 1010,
+        "plan": 896.0
+      },
+      {
+        "actual": 1316.0,
+        "h": 1100,
+        "plan": 1218.0
+      },
+      {
+        "actual": 1733.0,
+        "h": 1200,
+        "plan": 1648.0
+      },
+      {
+        "actual": 1733.0,
+        "h": 1300,
+        "plan": 1648.0
+      },
+      {
+        "actual": 2206.0,
+        "h": 1400,
+        "plan": 2077.0
+      },
+      {
+        "actual": 2604.0,
+        "h": 1500,
+        "plan": 2508.0
+      },
+      {
+        "actual": 2605.0,
+        "h": 1510,
+        "plan": 2544.0
+      },
+      {
+        "actual": 2868.0,
+        "h": 1600,
+        "plan": 2867.0
+      },
+      {
+        "actual": 3268.0,
+        "h": 1700,
+        "plan": 3297.0
+      }
+    ],
+    "Final B Line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1798.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1799.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2268.0
+      },
+      {
+        "actual": 3.0,
+        "h": 330,
+        "plan": 2737.0
+      },
+      {
+        "actual": 3.0,
+        "h": 430,
+        "plan": 3128.0
+      },
+      {
+        "actual": 3.0,
+        "h": 530,
+        "plan": 3598.0
+      },
+      {
+        "actual": 3.0,
+        "h": 630,
+        "plan": 3911.0
+      },
+      {
+        "actual": 3.0,
+        "h": 750,
+        "plan": 4536.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 449.0,
+        "h": 900,
+        "plan": 469.0
+      },
+      {
+        "actual": 907.0,
+        "h": 1000,
+        "plan": 938.0
+      },
+      {
+        "actual": 945.0,
+        "h": 1010,
+        "plan": 977.0
+      },
+      {
+        "actual": 1280.0,
+        "h": 1100,
+        "plan": 1329.0
+      },
+      {
+        "actual": 1685.0,
+        "h": 1200,
+        "plan": 1798.0
+      },
+      {
+        "actual": 1689.0,
+        "h": 1300,
+        "plan": 1799.0
+      },
+      {
+        "actual": 2149.0,
+        "h": 1400,
+        "plan": 2267.0
+      },
+      {
+        "actual": 2546.0,
+        "h": 1500,
+        "plan": 2737.0
+      },
+      {
+        "actual": 2584.0,
+        "h": 1510,
+        "plan": 2776.0
+      },
+      {
+        "actual": 2849.0,
+        "h": 1600,
+        "plan": 3128.0
+      },
+      {
+        "actual": 3246.0,
+        "h": 1700,
+        "plan": 3598.0
+      }
+    ],
+    "Final C line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1741.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1741.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2195.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2649.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 3027.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3481.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3785.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4390.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 321.0,
+        "h": 900,
+        "plan": 456.0
+      },
+      {
+        "actual": 695.0,
+        "h": 1000,
+        "plan": 912.0
+      },
+      {
+        "actual": 712.0,
+        "h": 1010,
+        "plan": 950.0
+      },
+      {
+        "actual": 1010.0,
+        "h": 1100,
+        "plan": 1292.0
+      },
+      {
+        "actual": 1231.0,
+        "h": 1200,
+        "plan": 1748.0
+      },
+      {
+        "actual": 1241.0,
+        "h": 1300,
+        "plan": 1749.0
+      },
+      {
+        "actual": 1598.0,
+        "h": 1400,
+        "plan": 2203.0
+      },
+      {
+        "actual": 1960.0,
+        "h": 1500,
+        "plan": 2661.0
+      },
+      {
+        "actual": 1986.0,
+        "h": 1510,
+        "plan": 2699.0
+      },
+      {
+        "actual": 2248.0,
+        "h": 1600,
+        "plan": 3041.0
+      },
+      {
+        "actual": 2545.0,
+        "h": 1700,
+        "plan": 3497.0
+      }
+    ],
+    "Final D line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 799.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 799.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1007.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1216.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1390.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1598.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1738.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2016.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 2016.0
+      },
+      {
+        "actual": 161.0,
+        "h": 900,
+        "plan": 208.0
+      },
+      {
+        "actual": 369.0,
+        "h": 1000,
+        "plan": 417.0
+      },
+      {
+        "actual": 390.0,
+        "h": 1010,
+        "plan": 434.0
+      },
+      {
+        "actual": 547.0,
+        "h": 1100,
+        "plan": 590.0
+      },
+      {
+        "actual": 737.0,
+        "h": 1200,
+        "plan": 799.0
+      },
+      {
+        "actual": 740.0,
+        "h": 1300,
+        "plan": 799.0
+      },
+      {
+        "actual": 944.0,
+        "h": 1400,
+        "plan": 1007.0
+      },
+      {
+        "actual": 1177.0,
+        "h": 1500,
+        "plan": 1216.0
+      },
+      {
+        "actual": 1202.0,
+        "h": 1510,
+        "plan": 1234.0
+      },
+      {
+        "actual": 1342.0,
+        "h": 1600,
+        "plan": 1390.0
+      },
+      {
+        "actual": 1546.0,
+        "h": 1700,
+        "plan": 1599.0
+      }
+    ],
+    "Frame Honing FL": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 749.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 749.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 944.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1108.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1303.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1498.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1629.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1890.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 164.0,
+        "h": 900,
+        "plan": 195.0
+      },
+      {
+        "actual": 289.0,
+        "h": 1000,
+        "plan": 358.0
+      },
+      {
+        "actual": 307.0,
+        "h": 1010,
+        "plan": 390.0
+      },
+      {
+        "actual": 418.0,
+        "h": 1100,
+        "plan": 553.0
+      },
+      {
+        "actual": 520.0,
+        "h": 1200,
+        "plan": 749.0
+      },
+      {
+        "actual": 520.0,
+        "h": 1300,
+        "plan": 749.0
+      },
+      {
+        "actual": 634.0,
+        "h": 1400,
+        "plan": 944.0
+      },
+      {
+        "actual": 717.0,
+        "h": 1500,
+        "plan": 1108.0
+      },
+      {
+        "actual": 742.0,
+        "h": 1510,
+        "plan": 1140.0
+      },
+      {
+        "actual": 859.0,
+        "h": 1600,
+        "plan": 1303.0
+      },
+      {
+        "actual": 944.0,
+        "h": 1700,
+        "plan": 1498.0
+      }
+    ],
+    "Frame No1": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 959.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 960.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1210.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1419.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1669.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1920.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 2087.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 292.0,
+        "h": 900,
+        "plan": 250.0
+      },
+      {
+        "actual": 520.0,
+        "h": 1000,
+        "plan": 459.0
+      },
+      {
+        "actual": 555.0,
+        "h": 1010,
+        "plan": 500.0
+      },
+      {
+        "actual": 782.0,
+        "h": 1100,
+        "plan": 709.0
+      },
+      {
+        "actual": 1045.0,
+        "h": 1200,
+        "plan": 960.0
+      },
+      {
+        "actual": 1049.0,
+        "h": 1300,
+        "plan": 960.0
+      },
+      {
+        "actual": 1262.0,
+        "h": 1400,
+        "plan": 1209.0
+      },
+      {
+        "actual": 1262.0,
+        "h": 1500,
+        "plan": 1419.0
+      },
+      {
+        "actual": 1262.0,
+        "h": 1510,
+        "plan": 1460.0
+      },
+      {
+        "actual": 1262.0,
+        "h": 1600,
+        "plan": 1669.0
+      },
+      {
+        "actual": 1262.0,
+        "h": 1700,
+        "plan": 1920.0
+      }
+    ],
+    "Frame No2": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 959.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 960.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1210.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1419.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1669.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1920.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 2087.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 2421.0
+      },
+      {
+        "actual": 204.0,
+        "h": 900,
+        "plan": 250.0
+      },
+      {
+        "actual": 437.0,
+        "h": 1000,
+        "plan": 459.0
+      },
+      {
+        "actual": 451.0,
+        "h": 1010,
+        "plan": 500.0
+      },
+      {
+        "actual": 692.0,
+        "h": 1100,
+        "plan": 709.0
+      },
+      {
+        "actual": 906.0,
+        "h": 1200,
+        "plan": 960.0
+      },
+      {
+        "actual": 909.0,
+        "h": 1300,
+        "plan": 960.0
+      },
+      {
+        "actual": 1059.0,
+        "h": 1400,
+        "plan": 1209.0
+      },
+      {
+        "actual": 1250.0,
+        "h": 1500,
+        "plan": 1419.0
+      },
+      {
+        "actual": 1285.0,
+        "h": 1510,
+        "plan": 1460.0
+      },
+      {
+        "actual": 1543.0,
+        "h": 1600,
+        "plan": 1669.0
+      },
+      {
+        "actual": 1734.0,
+        "h": 1700,
+        "plan": 1920.0
+      }
+    ],
+    "Frame No3": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 959.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 960.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1210.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1419.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1669.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1920.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 2087.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 2421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 900,
+        "plan": 250.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1000,
+        "plan": 459.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1010,
+        "plan": 500.0
+      },
+      {
+        "actual": 1.0,
+        "h": 1100,
+        "plan": 709.0
+      },
+      {
+        "actual": 20.0,
+        "h": 1200,
+        "plan": 960.0
+      },
+      {
+        "actual": 20.0,
+        "h": 1300,
+        "plan": 960.0
+      },
+      {
+        "actual": 20.0,
+        "h": 1400,
+        "plan": 1209.0
+      },
+      {
+        "actual": 118.0,
+        "h": 1500,
+        "plan": 1419.0
+      },
+      {
+        "actual": 145.0,
+        "h": 1510,
+        "plan": 1460.0
+      },
+      {
+        "actual": 350.0,
+        "h": 1600,
+        "plan": 1669.0
+      },
+      {
+        "actual": 608.0,
+        "h": 1700,
+        "plan": 1920.0
+      }
+    ],
+    "Frame No4": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 959.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 960.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1210.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1419.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1669.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1920.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 2087.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 2421.0
+      },
+      {
+        "actual": 262.0,
+        "h": 900,
+        "plan": 250.0
+      },
+      {
+        "actual": 503.0,
+        "h": 1000,
+        "plan": 459.0
+      },
+      {
+        "actual": 544.0,
+        "h": 1010,
+        "plan": 500.0
+      },
+      {
+        "actual": 801.0,
+        "h": 1100,
+        "plan": 709.0
+      },
+      {
+        "actual": 1023.0,
+        "h": 1200,
+        "plan": 960.0
+      },
+      {
+        "actual": 1334.0,
+        "h": 1300,
+        "plan": 960.0
+      },
+      {
+        "actual": 1625.0,
+        "h": 1400,
+        "plan": 1209.0
+      },
+      {
+        "actual": 1853.0,
+        "h": 1500,
+        "plan": 1419.0
+      },
+      {
+        "actual": 1882.0,
+        "h": 1510,
+        "plan": 1461.0
+      },
+      {
+        "actual": 2135.0,
+        "h": 1600,
+        "plan": 1669.0
+      },
+      {
+        "actual": 2306.0,
+        "h": 1700,
+        "plan": 1920.0
+      }
+    ],
+    "Frame No5": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1876.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1877.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2366.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2775.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 3264.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3753.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 4081.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4734.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 4734.0
+      },
+      {
+        "actual": 0.0,
+        "h": 900,
+        "plan": 489.0
+      },
+      {
+        "actual": 82.0,
+        "h": 1000,
+        "plan": 897.0
+      },
+      {
+        "actual": 120.0,
+        "h": 1010,
+        "plan": 979.0
+      },
+      {
+        "actual": 344.0,
+        "h": 1100,
+        "plan": 1387.0
+      },
+      {
+        "actual": 706.0,
+        "h": 1200,
+        "plan": 1877.0
+      },
+      {
+        "actual": 902.0,
+        "h": 1300,
+        "plan": 1877.0
+      },
+      {
+        "actual": 1184.0,
+        "h": 1400,
+        "plan": 2365.0
+      },
+      {
+        "actual": 1394.0,
+        "h": 1500,
+        "plan": 2775.0
+      },
+      {
+        "actual": 1410.0,
+        "h": 1510,
+        "plan": 2856.0
+      },
+      {
+        "actual": 1634.0,
+        "h": 1600,
+        "plan": 3264.0
+      },
+      {
+        "actual": 1790.0,
+        "h": 1700,
+        "plan": 3754.0
+      }
+    ],
+    "Inspection A": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1791.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1791.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2258.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2726.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 3115.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3583.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3894.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4518.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 4519.0
+      },
+      {
+        "actual": 175.0,
+        "h": 900,
+        "plan": 468.0
+      },
+      {
+        "actual": 436.0,
+        "h": 1000,
+        "plan": 937.0
+      },
+      {
+        "actual": 436.0,
+        "h": 1010,
+        "plan": 976.0
+      },
+      {
+        "actual": 534.0,
+        "h": 1100,
+        "plan": 1328.0
+      },
+      {
+        "actual": 656.0,
+        "h": 1200,
+        "plan": 1798.0
+      },
+      {
+        "actual": 656.0,
+        "h": 1300,
+        "plan": 1798.0
+      },
+      {
+        "actual": 717.0,
+        "h": 1400,
+        "plan": 2264.0
+      },
+      {
+        "actual": 905.0,
+        "h": 1500,
+        "plan": 2735.0
+      },
+      {
+        "actual": 937.0,
+        "h": 1510,
+        "plan": 2774.0
+      },
+      {
+        "actual": 1221.0,
+        "h": 1600,
+        "plan": 3126.0
+      },
+      {
+        "actual": 1540.0,
+        "h": 1700,
+        "plan": 3596.0
+      }
+    ],
+    "Inspection B": [
+      {
+        "actual": 975.0,
+        "h": 30,
+        "plan": 1662.0
+      },
+      {
+        "actual": 980.0,
+        "h": 130,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1097.0,
+        "h": 230,
+        "plan": 2096.0
+      },
+      {
+        "actual": 1275.0,
+        "h": 330,
+        "plan": 2530.0
+      },
+      {
+        "actual": 1474.0,
+        "h": 430,
+        "plan": 2891.0
+      },
+      {
+        "actual": 1600.0,
+        "h": 530,
+        "plan": 3324.0
+      },
+      {
+        "actual": 1601.0,
+        "h": 630,
+        "plan": 3613.0
+      },
+      {
+        "actual": 1602.0,
+        "h": 750,
+        "plan": 4191.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 337.0,
+        "h": 900,
+        "plan": 433.0
+      },
+      {
+        "actual": 698.0,
+        "h": 1000,
+        "plan": 867.0
+      },
+      {
+        "actual": 738.0,
+        "h": 1010,
+        "plan": 903.0
+      },
+      {
+        "actual": 1011.0,
+        "h": 1100,
+        "plan": 1228.0
+      },
+      {
+        "actual": 1385.0,
+        "h": 1200,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1389.0,
+        "h": 1300,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1768.0,
+        "h": 1400,
+        "plan": 2095.0
+      },
+      {
+        "actual": 2083.0,
+        "h": 1500,
+        "plan": 2529.0
+      },
+      {
+        "actual": 2109.0,
+        "h": 1510,
+        "plan": 2566.0
+      },
+      {
+        "actual": 2374.0,
+        "h": 1600,
+        "plan": 2891.0
+      },
+      {
+        "actual": 2732.0,
+        "h": 1700,
+        "plan": 3325.0
+      }
+    ],
+    "Inspection C": [
+      {
+        "actual": 898.0,
+        "h": 30,
+        "plan": 1662.0
+      },
+      {
+        "actual": 904.0,
+        "h": 130,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1132.0,
+        "h": 230,
+        "plan": 2096.0
+      },
+      {
+        "actual": 1413.0,
+        "h": 330,
+        "plan": 2530.0
+      },
+      {
+        "actual": 1529.0,
+        "h": 430,
+        "plan": 2891.0
+      },
+      {
+        "actual": 1709.0,
+        "h": 530,
+        "plan": 3324.0
+      },
+      {
+        "actual": 1779.0,
+        "h": 630,
+        "plan": 3614.0
+      },
+      {
+        "actual": 2027.0,
+        "h": 750,
+        "plan": 4192.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 207.0,
+        "h": 900,
+        "plan": 433.0
+      },
+      {
+        "actual": 330.0,
+        "h": 1000,
+        "plan": 867.0
+      },
+      {
+        "actual": 347.0,
+        "h": 1010,
+        "plan": 903.0
+      },
+      {
+        "actual": 605.0,
+        "h": 1100,
+        "plan": 1228.0
+      },
+      {
+        "actual": 1019.0,
+        "h": 1200,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1023.0,
+        "h": 1300,
+        "plan": 1662.0
+      },
+      {
+        "actual": 1408.0,
+        "h": 1400,
+        "plan": 2095.0
+      },
+      {
+        "actual": 1594.0,
+        "h": 1500,
+        "plan": 2529.0
+      },
+      {
+        "actual": 1611.0,
+        "h": 1510,
+        "plan": 2566.0
+      },
+      {
+        "actual": 1789.0,
+        "h": 1600,
+        "plan": 2891.0
+      },
+      {
+        "actual": 2163.0,
+        "h": 1700,
+        "plan": 3325.0
+      }
+    ],
+    "Inspection D": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 881.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 881.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1111.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1341.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1533.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1763.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1916.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2223.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 2223.0
+      },
+      {
+        "actual": 0.0,
+        "h": 900,
+        "plan": 229.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1000,
+        "plan": 460.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1010,
+        "plan": 479.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1100,
+        "plan": 651.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1200,
+        "plan": 881.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1300,
+        "plan": 881.0
+      },
+      {
+        "actual": 59.0,
+        "h": 1400,
+        "plan": 1111.0
+      },
+      {
+        "actual": 186.0,
+        "h": 1500,
+        "plan": 1341.0
+      },
+      {
+        "actual": 197.0,
+        "h": 1510,
+        "plan": 1361.0
+      },
+      {
+        "actual": 277.0,
+        "h": 1600,
+        "plan": 1533.0
+      },
+      {
+        "actual": 320.0,
+        "h": 1700,
+        "plan": 1763.0
+      }
+    ],
+    "Motor AC": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 496.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 496.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 626.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 735.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 864.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 994.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1080.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1252.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1252.0
+      },
+      {
+        "actual": 148.0,
+        "h": 900,
+        "plan": 131.0
+      },
+      {
+        "actual": 266.0,
+        "h": 1000,
+        "plan": 240.0
+      },
+      {
+        "actual": 297.0,
+        "h": 1010,
+        "plan": 262.0
+      },
+      {
+        "actual": 379.0,
+        "h": 1100,
+        "plan": 371.0
+      },
+      {
+        "actual": 495.0,
+        "h": 1200,
+        "plan": 502.0
+      },
+      {
+        "actual": 690.0,
+        "h": 1300,
+        "plan": 502.0
+      },
+      {
+        "actual": 845.0,
+        "h": 1400,
+        "plan": 633.0
+      },
+      {
+        "actual": 995.0,
+        "h": 1500,
+        "plan": 743.0
+      },
+      {
+        "actual": 1030.0,
+        "h": 1510,
+        "plan": 764.0
+      },
+      {
+        "actual": 1120.0,
+        "h": 1600,
+        "plan": 874.0
+      },
+      {
+        "actual": 1204.0,
+        "h": 1700,
+        "plan": 1005.0
+      }
+    ],
+    "Motor CL": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 293.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 293.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 371.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 434.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 510.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 587.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 638.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 741.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 753.0
+      },
+      {
+        "actual": 0.0,
+        "h": 900,
+        "plan": 76.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1000,
+        "plan": 141.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1010,
+        "plan": 153.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1100,
+        "plan": 217.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1200,
+        "plan": 292.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1300,
+        "plan": 292.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1400,
+        "plan": 368.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1500,
+        "plan": 432.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1510,
+        "plan": 445.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1600,
+        "plan": 509.0
+      },
+      {
+        "actual": 0.0,
+        "h": 1700,
+        "plan": 585.0
+      }
+    ],
+    "Motor F-Series": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 538.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 538.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 679.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 796.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 936.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1077.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1171.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1358.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1358.0
+      },
+      {
+        "actual": 94.0,
+        "h": 900,
+        "plan": 140.0
+      },
+      {
+        "actual": 97.0,
+        "h": 1000,
+        "plan": 257.0
+      },
+      {
+        "actual": 115.0,
+        "h": 1010,
+        "plan": 281.0
+      },
+      {
+        "actual": 189.0,
+        "h": 1100,
+        "plan": 398.0
+      },
+      {
+        "actual": 189.0,
+        "h": 1200,
+        "plan": 538.0
+      },
+      {
+        "actual": 189.0,
+        "h": 1300,
+        "plan": 538.0
+      },
+      {
+        "actual": 190.0,
+        "h": 1400,
+        "plan": 678.0
+      },
+      {
+        "actual": 190.0,
+        "h": 1500,
+        "plan": 796.0
+      },
+      {
+        "actual": 190.0,
+        "h": 1510,
+        "plan": 819.0
+      },
+      {
+        "actual": 190.0,
+        "h": 1600,
+        "plan": 937.0
+      },
+      {
+        "actual": 190.0,
+        "h": 1700,
+        "plan": 1077.0
+      }
+    ],
+    "Motor H-Series": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 642.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 642.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 810.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 950.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1118.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1285.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1397.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1620.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1620.0
+      },
+      {
+        "actual": 166.0,
+        "h": 900,
+        "plan": 168.0
+      },
+      {
+        "actual": 298.0,
+        "h": 1000,
+        "plan": 309.0
+      },
+      {
+        "actual": 323.0,
+        "h": 1010,
+        "plan": 337.0
+      },
+      {
+        "actual": 484.0,
+        "h": 1100,
+        "plan": 477.0
+      },
+      {
+        "actual": 614.0,
+        "h": 1200,
+        "plan": 646.0
+      },
+      {
+        "actual": 614.0,
+        "h": 1300,
+        "plan": 646.0
+      },
+      {
+        "actual": 820.0,
+        "h": 1400,
+        "plan": 814.0
+      },
+      {
+        "actual": 964.0,
+        "h": 1500,
+        "plan": 955.0
+      },
+      {
+        "actual": 1000.0,
+        "h": 1510,
+        "plan": 983.0
+      },
+      {
+        "actual": 1173.0,
+        "h": 1600,
+        "plan": 1124.0
+      },
+      {
+        "actual": 1325.0,
+        "h": 1700,
+        "plan": 1293.0
+      }
+    ],
+    "Motor S-Series": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 653.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 654.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 824.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 966.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1137.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1307.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1649.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 145.0,
+        "h": 900,
+        "plan": 170.0
+      },
+      {
+        "actual": 272.0,
+        "h": 1000,
+        "plan": 312.0
+      },
+      {
+        "actual": 294.0,
+        "h": 1010,
+        "plan": 341.0
+      },
+      {
+        "actual": 446.0,
+        "h": 1100,
+        "plan": 483.0
+      },
+      {
+        "actual": 597.0,
+        "h": 1200,
+        "plan": 653.0
+      },
+      {
+        "actual": 597.0,
+        "h": 1300,
+        "plan": 654.0
+      },
+      {
+        "actual": 781.0,
+        "h": 1400,
+        "plan": 824.0
+      },
+      {
+        "actual": 917.0,
+        "h": 1500,
+        "plan": 966.0
+      },
+      {
+        "actual": 946.0,
+        "h": 1510,
+        "plan": 995.0
+      },
+      {
+        "actual": 1092.0,
+        "h": 1600,
+        "plan": 1137.0
+      },
+      {
+        "actual": 1220.0,
+        "h": 1700,
+        "plan": 1307.0
+      }
+    ],
+    "Motor WL": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 572.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 572.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 721.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 846.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 996.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1144.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1245.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1444.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1444.0
+      },
+      {
+        "actual": 153.0,
+        "h": 900,
+        "plan": 149.0
+      },
+      {
+        "actual": 290.0,
+        "h": 1000,
+        "plan": 274.0
+      },
+      {
+        "actual": 319.0,
+        "h": 1010,
+        "plan": 299.0
+      },
+      {
+        "actual": 450.0,
+        "h": 1100,
+        "plan": 424.0
+      },
+      {
+        "actual": 450.0,
+        "h": 1200,
+        "plan": 573.0
+      },
+      {
+        "actual": 450.0,
+        "h": 1300,
+        "plan": 573.0
+      },
+      {
+        "actual": 592.0,
+        "h": 1400,
+        "plan": 723.0
+      },
+      {
+        "actual": 744.0,
+        "h": 1500,
+        "plan": 848.0
+      },
+      {
+        "actual": 757.0,
+        "h": 1510,
+        "plan": 873.0
+      },
+      {
+        "actual": 904.0,
+        "h": 1600,
+        "plan": 998.0
+      },
+      {
+        "actual": 1073.0,
+        "h": 1700,
+        "plan": 1148.0
+      }
+    ],
+    "Piston Grinding": [
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 12421.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 1054.0,
+        "h": 900,
+        "plan": 1303.0
+      },
+      {
+        "actual": 1933.0,
+        "h": 1000,
+        "plan": 2391.0
+      },
+      {
+        "actual": 2093.0,
+        "h": 1010,
+        "plan": 2607.0
+      },
+      {
+        "actual": 3101.0,
+        "h": 1100,
+        "plan": 3695.0
+      }
+    ],
+    "Piston honing FL": [
+      {
+        "actual": 2.0,
+        "h": 30,
+        "plan": 748.0
+      },
+      {
+        "actual": 4.0,
+        "h": 130,
+        "plan": 749.0
+      },
+      {
+        "actual": 4.0,
+        "h": 230,
+        "plan": 944.0
+      },
+      {
+        "actual": 4.0,
+        "h": 330,
+        "plan": 1107.0
+      },
+      {
+        "actual": 4.0,
+        "h": 430,
+        "plan": 1302.0
+      },
+      {
+        "actual": 4.0,
+        "h": 530,
+        "plan": 1498.0
+      },
+      {
+        "actual": 4.0,
+        "h": 630,
+        "plan": 1628.0
+      },
+      {
+        "actual": 4.0,
+        "h": 750,
+        "plan": 1889.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 210.0,
+        "h": 900,
+        "plan": 195.0
+      },
+      {
+        "actual": 381.0,
+        "h": 1000,
+        "plan": 358.0
+      },
+      {
+        "actual": 397.0,
+        "h": 1010,
+        "plan": 390.0
+      },
+      {
+        "actual": 611.0,
+        "h": 1100,
+        "plan": 553.0
+      },
+      {
+        "actual": 808.0,
+        "h": 1200,
+        "plan": 749.0
+      },
+      {
+        "actual": 808.0,
+        "h": 1300,
+        "plan": 749.0
+      },
+      {
+        "actual": 961.0,
+        "h": 1400,
+        "plan": 944.0
+      },
+      {
+        "actual": 1149.0,
+        "h": 1500,
+        "plan": 1108.0
+      },
+      {
+        "actual": 1192.0,
+        "h": 1510,
+        "plan": 1140.0
+      },
+      {
+        "actual": 1338.0,
+        "h": 1600,
+        "plan": 1303.0
+      },
+      {
+        "actual": 1506.0,
+        "h": 1700,
+        "plan": 1498.0
+      }
+    ],
+    "Press C-Shaft": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 4142.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 4144.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 5223.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 6126.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 7206.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 8285.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 9366.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 10807.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 633.0,
+        "h": 900,
+        "plan": 1079.0
+      },
+      {
+        "actual": 1067.0,
+        "h": 1000,
+        "plan": 1981.0
+      },
+      {
+        "actual": 1144.0,
+        "h": 1010,
+        "plan": 2161.0
+      },
+      {
+        "actual": 1605.0,
+        "h": 1100,
+        "plan": 3062.0
+      },
+      {
+        "actual": 2160.0,
+        "h": 1200,
+        "plan": 4142.0
+      },
+      {
+        "actual": 3013.0,
+        "h": 1300,
+        "plan": 4144.0
+      },
+      {
+        "actual": 3758.0,
+        "h": 1400,
+        "plan": 5221.0
+      },
+      {
+        "actual": 4371.0,
+        "h": 1500,
+        "plan": 6126.0
+      },
+      {
+        "actual": 4452.0,
+        "h": 1510,
+        "plan": 6305.0
+      },
+      {
+        "actual": 5066.0,
+        "h": 1600,
+        "plan": 7206.0
+      },
+      {
+        "actual": 5720.0,
+        "h": 1700,
+        "plan": 8286.0
+      }
+    ],
+    "Rod Pispin": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 342.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 342.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 431.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 506.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 596.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 684.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 744.0
+      },
+      {
+        "actual": 2.0,
+        "h": 750,
+        "plan": 864.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 72.0,
+        "h": 900,
+        "plan": 89.0
+      },
+      {
+        "actual": 128.0,
+        "h": 1000,
+        "plan": 165.0
+      },
+      {
+        "actual": 138.0,
+        "h": 1010,
+        "plan": 179.0
+      },
+      {
+        "actual": 196.0,
+        "h": 1100,
+        "plan": 254.0
+      },
+      {
+        "actual": 264.0,
+        "h": 1200,
+        "plan": 344.0
+      },
+      {
+        "actual": 278.0,
+        "h": 1300,
+        "plan": 345.0
+      },
+      {
+        "actual": 378.0,
+        "h": 1400,
+        "plan": 434.0
+      },
+      {
+        "actual": 464.0,
+        "h": 1500,
+        "plan": 510.0
+      },
+      {
+        "actual": 472.0,
+        "h": 1510,
+        "plan": 524.0
+      },
+      {
+        "actual": 552.0,
+        "h": 1600,
+        "plan": 599.0
+      },
+      {
+        "actual": 648.0,
+        "h": 1700,
+        "plan": 689.0
+      }
+    ],
+    "Rotor A line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1648.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1648.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2078.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2508.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 2867.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3297.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3583.0
+      },
+      {
+        "actual": 18.0,
+        "h": 750,
+        "plan": 4157.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 500.0,
+        "h": 900,
+        "plan": 429.0
+      },
+      {
+        "actual": 947.0,
+        "h": 1000,
+        "plan": 859.0
+      },
+      {
+        "actual": 971.0,
+        "h": 1010,
+        "plan": 896.0
+      },
+      {
+        "actual": 1382.0,
+        "h": 1100,
+        "plan": 1218.0
+      },
+      {
+        "actual": 2055.0,
+        "h": 1200,
+        "plan": 1648.0
+      },
+      {
+        "actual": 2059.0,
+        "h": 1300,
+        "plan": 1648.0
+      },
+      {
+        "actual": 2504.0,
+        "h": 1400,
+        "plan": 2077.0
+      },
+      {
+        "actual": 3026.0,
+        "h": 1500,
+        "plan": 2508.0
+      },
+      {
+        "actual": 3026.0,
+        "h": 1510,
+        "plan": 2544.0
+      },
+      {
+        "actual": 3401.0,
+        "h": 1600,
+        "plan": 2867.0
+      },
+      {
+        "actual": 3924.0,
+        "h": 1700,
+        "plan": 3297.0
+      }
+    ],
+    "Rotor B Line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1796.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1796.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2265.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2733.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 3123.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3591.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3905.0
+      },
+      {
+        "actual": 21.0,
+        "h": 750,
+        "plan": 4530.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 406.0,
+        "h": 900,
+        "plan": 469.0
+      },
+      {
+        "actual": 837.0,
+        "h": 1000,
+        "plan": 938.0
+      },
+      {
+        "actual": 868.0,
+        "h": 1010,
+        "plan": 977.0
+      },
+      {
+        "actual": 1158.0,
+        "h": 1100,
+        "plan": 1329.0
+      },
+      {
+        "actual": 1498.0,
+        "h": 1200,
+        "plan": 1798.0
+      },
+      {
+        "actual": 1498.0,
+        "h": 1300,
+        "plan": 1799.0
+      },
+      {
+        "actual": 1902.0,
+        "h": 1400,
+        "plan": 2267.0
+      },
+      {
+        "actual": 2242.0,
+        "h": 1500,
+        "plan": 2737.0
+      },
+      {
+        "actual": 2272.0,
+        "h": 1510,
+        "plan": 2777.0
+      },
+      {
+        "actual": 2574.0,
+        "h": 1600,
+        "plan": 3128.0
+      },
+      {
+        "actual": 2983.0,
+        "h": 1700,
+        "plan": 3598.0
+      }
+    ],
+    "Rotor C line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1748.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1749.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2205.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2661.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 3041.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3497.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3802.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4410.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 373.0,
+        "h": 900,
+        "plan": 455.0
+      },
+      {
+        "actual": 670.0,
+        "h": 1000,
+        "plan": 912.0
+      },
+      {
+        "actual": 671.0,
+        "h": 1010,
+        "plan": 950.0
+      },
+      {
+        "actual": 729.0,
+        "h": 1100,
+        "plan": 1292.0
+      },
+      {
+        "actual": 1022.0,
+        "h": 1200,
+        "plan": 1748.0
+      },
+      {
+        "actual": 1027.0,
+        "h": 1300,
+        "plan": 1748.0
+      },
+      {
+        "actual": 1424.0,
+        "h": 1400,
+        "plan": 2203.0
+      },
+      {
+        "actual": 1820.0,
+        "h": 1500,
+        "plan": 2661.0
+      },
+      {
+        "actual": 1853.0,
+        "h": 1510,
+        "plan": 2699.0
+      },
+      {
+        "actual": 2087.0,
+        "h": 1600,
+        "plan": 3041.0
+      },
+      {
+        "actual": 2367.0,
+        "h": 1700,
+        "plan": 3497.0
+      }
+    ],
+    "Rotor D Line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 796.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 796.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1005.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 1213.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1386.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1593.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1731.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 2009.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 0.0
+      },
+      {
+        "actual": 153.0,
+        "h": 900,
+        "plan": 208.0
+      },
+      {
+        "actual": 402.0,
+        "h": 1000,
+        "plan": 416.0
+      },
+      {
+        "actual": 428.0,
+        "h": 1010,
+        "plan": 434.0
+      },
+      {
+        "actual": 573.0,
+        "h": 1100,
+        "plan": 590.0
+      },
+      {
+        "actual": 801.0,
+        "h": 1200,
+        "plan": 799.0
+      },
+      {
+        "actual": 801.0,
+        "h": 1300,
+        "plan": 799.0
+      },
+      {
+        "actual": 1024.0,
+        "h": 1400,
+        "plan": 1007.0
+      },
+      {
+        "actual": 1213.0,
+        "h": 1500,
+        "plan": 1216.0
+      },
+      {
+        "actual": 1234.0,
+        "h": 1510,
+        "plan": 1234.0
+      },
+      {
+        "actual": 1380.0,
+        "h": 1600,
+        "plan": 1390.0
+      },
+      {
+        "actual": 1519.0,
+        "h": 1700,
+        "plan": 1598.0
+      }
+    ],
+    "Water Line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1798.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1799.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2268.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2737.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 3128.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3598.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3598.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 3598.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 3598.0
+      },
+      {
+        "actual": 256.0,
+        "h": 900,
+        "plan": 468.0
+      },
+      {
+        "actual": 644.0,
+        "h": 1000,
+        "plan": 938.0
+      },
+      {
+        "actual": 662.0,
+        "h": 1010,
+        "plan": 977.0
+      },
+      {
+        "actual": 1028.0,
+        "h": 1100,
+        "plan": 1329.0
+      },
+      {
+        "actual": 1308.0,
+        "h": 1200,
+        "plan": 1799.0
+      },
+      {
+        "actual": 1308.0,
+        "h": 1300,
+        "plan": 1799.0
+      },
+      {
+        "actual": 1664.0,
+        "h": 1400,
+        "plan": 2267.0
+      },
+      {
+        "actual": 2044.0,
+        "h": 1500,
+        "plan": 2737.0
+      },
+      {
+        "actual": 2080.0,
+        "h": 1510,
+        "plan": 2777.0
+      },
+      {
+        "actual": 2410.0,
+        "h": 1600,
+        "plan": 3128.0
+      },
+      {
+        "actual": 2824.0,
+        "h": 1700,
+        "plan": 3598.0
+      }
+    ],
+    "Welding A line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1495.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1495.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 1885.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2276.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 2602.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 2993.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3254.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 3775.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 3775.0
+      },
+      {
+        "actual": 71.0,
+        "h": 900,
+        "plan": 390.0
+      },
+      {
+        "actual": 488.0,
+        "h": 1000,
+        "plan": 782.0
+      },
+      {
+        "actual": 523.0,
+        "h": 1010,
+        "plan": 815.0
+      },
+      {
+        "actual": 758.0,
+        "h": 1100,
+        "plan": 1108.0
+      },
+      {
+        "actual": 1023.0,
+        "h": 1200,
+        "plan": 1499.0
+      },
+      {
+        "actual": 1023.0,
+        "h": 1300,
+        "plan": 1499.0
+      },
+      {
+        "actual": 1028.0,
+        "h": 1400,
+        "plan": 1887.0
+      },
+      {
+        "actual": 1297.0,
+        "h": 1500,
+        "plan": 2280.0
+      },
+      {
+        "actual": 1335.0,
+        "h": 1510,
+        "plan": 2312.0
+      },
+      {
+        "actual": 1585.0,
+        "h": 1600,
+        "plan": 2606.0
+      },
+      {
+        "actual": 1893.0,
+        "h": 1700,
+        "plan": 2997.0
+      }
+    ],
+    "Welding B line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1650.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1650.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2081.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2512.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 2871.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3301.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3588.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4163.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 4164.0
+      },
+      {
+        "actual": 299.0,
+        "h": 900,
+        "plan": 430.0
+      },
+      {
+        "actual": 736.0,
+        "h": 1000,
+        "plan": 861.0
+      },
+      {
+        "actual": 775.0,
+        "h": 1010,
+        "plan": 898.0
+      },
+      {
+        "actual": 1119.0,
+        "h": 1100,
+        "plan": 1221.0
+      },
+      {
+        "actual": 1450.0,
+        "h": 1200,
+        "plan": 1651.0
+      },
+      {
+        "actual": 1450.0,
+        "h": 1300,
+        "plan": 1652.0
+      },
+      {
+        "actual": 1738.0,
+        "h": 1400,
+        "plan": 2082.0
+      },
+      {
+        "actual": 2108.0,
+        "h": 1500,
+        "plan": 2514.0
+      },
+      {
+        "actual": 2135.0,
+        "h": 1510,
+        "plan": 2550.0
+      },
+      {
+        "actual": 2469.0,
+        "h": 1600,
+        "plan": 2873.0
+      },
+      {
+        "actual": 2866.0,
+        "h": 1700,
+        "plan": 3304.0
+      }
+    ],
+    "Welding C line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 1646.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 1647.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 2076.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 2505.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 2862.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 3293.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 3581.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 4154.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 4154.0
+      },
+      {
+        "actual": 302.0,
+        "h": 900,
+        "plan": 430.0
+      },
+      {
+        "actual": 566.0,
+        "h": 1000,
+        "plan": 862.0
+      },
+      {
+        "actual": 584.0,
+        "h": 1010,
+        "plan": 897.0
+      },
+      {
+        "actual": 914.0,
+        "h": 1100,
+        "plan": 1220.0
+      },
+      {
+        "actual": 1155.0,
+        "h": 1200,
+        "plan": 1652.0
+      },
+      {
+        "actual": 1155.0,
+        "h": 1300,
+        "plan": 1652.0
+      },
+      {
+        "actual": 1379.0,
+        "h": 1400,
+        "plan": 2081.0
+      },
+      {
+        "actual": 1620.0,
+        "h": 1500,
+        "plan": 2514.0
+      },
+      {
+        "actual": 1642.0,
+        "h": 1510,
+        "plan": 2550.0
+      },
+      {
+        "actual": 1837.0,
+        "h": 1600,
+        "plan": 2873.0
+      },
+      {
+        "actual": 2031.0,
+        "h": 1700,
+        "plan": 3304.0
+      }
+    ],
+    "Welding D line": [
+      {
+        "actual": 0.0,
+        "h": 30,
+        "plan": 599.0
+      },
+      {
+        "actual": 0.0,
+        "h": 130,
+        "plan": 599.0
+      },
+      {
+        "actual": 0.0,
+        "h": 230,
+        "plan": 755.0
+      },
+      {
+        "actual": 0.0,
+        "h": 330,
+        "plan": 912.0
+      },
+      {
+        "actual": 0.0,
+        "h": 430,
+        "plan": 1042.0
+      },
+      {
+        "actual": 0.0,
+        "h": 530,
+        "plan": 1199.0
+      },
+      {
+        "actual": 0.0,
+        "h": 630,
+        "plan": 1303.0
+      },
+      {
+        "actual": 0.0,
+        "h": 750,
+        "plan": 1512.0
+      },
+      {
+        "actual": 0.0,
+        "h": 800,
+        "plan": 1512.0
+      },
+      {
+        "actual": 205.0,
+        "h": 900,
+        "plan": 156.0
+      },
+      {
+        "actual": 468.0,
+        "h": 1000,
+        "plan": 312.0
+      },
+      {
+        "actual": 503.0,
+        "h": 1010,
+        "plan": 325.0
+      },
+      {
+        "actual": 590.0,
+        "h": 1100,
+        "plan": 443.0
+      },
+      {
+        "actual": 791.0,
+        "h": 1200,
+        "plan": 599.0
+      },
+      {
+        "actual": 791.0,
+        "h": 1300,
+        "plan": 599.0
+      },
+      {
+        "actual": 969.0,
+        "h": 1400,
+        "plan": 755.0
+      },
+      {
+        "actual": 1123.0,
+        "h": 1500,
+        "plan": 912.0
+      },
+      {
+        "actual": 1135.0,
+        "h": 1510,
+        "plan": 925.0
+      },
+      {
+        "actual": 1255.0,
+        "h": 1600,
+        "plan": 1042.0
+      },
+      {
+        "actual": 1492.0,
+        "h": 1700,
+        "plan": 1199.0
+      }
+    ]
+  },
+  "eff": {
+    "Final A line": 99.1,
+    "Final B Line": 90.2,
+    "Final C line": 72.7,
+    "Final D line": 96.6,
+    "Motor H-Series": 102.4,
+    "Motor S-Series": 93.2,
+    "Motor F-Series": 17.6,
+    "Motor WL": 93.4,
+    "Inspection A": 42.8,
+    "Inspection B": 82.1,
+    "Inspection C": 65.0,
+    "Inspection D": 18.1,
+    "C-Shaft Body A": 56.4,
+    "C-Shaft Body B": 80.8,
+    "C-Shaft Pin A": 101.6,
+    "C-Shaft Pin C": 0.0,
+    "C-Shft Pin B": 46.5,
+    "Cylinder Honing": 97.2,
+    "Frame Honing FL": 62.9,
+    "Piston Grinding": 84.7,
+    "Piston honing FL": 100.4,
+    "Press C-Shaft": 67.7,
+    "Rod Pispin": 94.4,
+    "Water Line": 78.4,
+    "Motor AC": 119.8,
+    "Motor CL": 0.0,
+    "Rotor A line": 119.0,
+    "Rotor B Line": 82.9,
+    "Rotor C line": 67.6,
+    "Rotor D Line": 94.9,
+    "Welding A line": 63.1,
+    "Welding B line": 86.7,
+    "Welding C line": 61.4,
+    "Welding D line": 124.4,
+    "Frame No.1": 65.7,
+    "Frame No.2": 90.3,
+    "Frame No.3": 31.6,
+    "Frame No.4": 120.1,
+    "Frame No.5": 47.6
+  },
+  "problems": [
+    {
+      "date": "2026-09-07",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "Winding M Coil No3 จานไม่ตรงหยุด08:00 กำลังแก้ไข เครื่องเย็บNo1 ไฟไม่เข้าหยุด 08:55 F-series",
+      "problem_zh": "绕线M线圈No3，板不直，停止08:00，修好缝纫机No1火不会停止08:55 F系列",
+      "plan": 141,
+      "actual": 94,
+      "impact": -47,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "Winding M Coil No3 จานไม่ตรงหยุด08:00 กำลังแก้ไข เครื่องเย็บNo1 ไฟไม่เข้าหยุด 08:55 กำลังแก้ไข S Coil ดึงฟีล์ม M Coil ออกมาด้วย หยุด10:25-10:56",
+      "problem_zh": "绕M线圈No3，板不直，停止08:00，修复缝纫机No1 火不会停止。 08:55 修复 S 线圈。拉出 M 线圈薄膜。停止时间 10:25-10:56。",
+      "plan": 141,
+      "actual": 92,
+      "impact": -49,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-20) เริ่มพนักงานประจำจุดไม่มา นำพนักงานเข้าเสริม ยังไม่ชำนาญ (-20) สลับจุดพนักงานใหม่เพื่อเพิ่มประสิทธิภาพ B-Line Final",
+      "problem_zh": "(-20) 从正式员工不来开始。带来更多尚未熟练的员工 (-20)。调换新员工职位以提高 B 线最终效率。",
+      "plan": 470,
+      "actual": 450,
+      "impact": -20,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "9:00-10:00",
+      "problem_th": "(-10) ท้ายไลน์ระบายออกไม่ทันบางช่วง (-10) ตัดงานก่อนเชื่อม 20 set งานเมกะโอห์ม = 2 * B-Line Final",
+      "problem_zh": "(-10) 管线末端部分部位未能及时排水。 (-10) 焊接前切割工作 20 组兆欧工作 = 2 * B-Line Final。",
+      "plan": 470,
+      "actual": 460,
+      "impact": -10,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "(-19) งานติดตู้ Coolling ขาออก ทำให้งานมาขาดช่วง (-19) แก้ไขขยับ sensor เช็คปะเต็งใหม่ รอติดตามผล งาน KV = 1 * B-Line Final",
+      "problem_zh": "(-19) 出站冷却柜安装工作，导致工作中断 (-19) 已修复、移动传感器、检查新垫圈、等待后续工作 KV = 1 * B 线最终",
+      "plan": 390,
+      "actual": 371,
+      "impact": -19,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "11:00-12:00",
+      "problem_th": "(-66) งานจาก Rotor Line มาไม่ต่อเนื่อง ปัญหางานติด Air Gab (-45) รอ Low",
+      "problem_zh": "(-66) 来自转子线的工作没有连续进行。 Air Gab 安装工作出现问题 (-45) 等待低。",
+      "plan": 470,
+      "actual": 404,
+      "impact": -66,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "งานค่า KV เมคกาโอม NG งานออกไม่ต่อเนื่อง",
+      "problem_zh": "工作值 KV Mekkaom NG 工作不是连续的。",
+      "plan": 444,
+      "actual": 364,
+      "impact": -80,
+      "shift": "day"
+    }
+  ],
+  "first_hour": [
+    {
+      "date": "2026-09-07",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 94,
+      "rate": 66.7
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 450,
+      "rate": 95.7
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 334,
+      "rate": 75.2
+    }
+  ],
+  "attendance": null,
+  "updatedAt": "2026-09-07 17:09:33"
+}
