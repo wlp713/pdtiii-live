@@ -71,17 +71,17 @@
   }
   function usableDays() {
     if (!data || !data.days) return [];
-    if (state.selectedDate) {
-      return data.days.filter(function (day) { return day.date === state.selectedDate && !!metricFor(day, state.workshop, state.line); });
-    }
     var key = state.shift + "Status";
     var days = data.days.filter(function (day) {
       if (day.quality && day.quality.freshnessStatus === "stale") return false;
       return state.includePartial || (day.quality && day.quality[key] !== "partial");
     });
-    if (state.period > 0) days = days.slice(-state.period);
+    if (state.selectedDate) days = days.filter(function (day) { return day.date <= state.selectedDate; });
+    if (state.period === -1 && state.selectedDate) days = days.filter(function (day) { return day.date === state.selectedDate; });
+    else if (state.period > 0) days = days.slice(-state.period);
     return days.filter(function (day) { return !!metricFor(day, state.workshop, state.line); });
   }
+  function periodLabel() { return state.period === -1 ? "单日" : (state.period ? state.period + "日" : "全部"); }
   function scopeLabel() {
     if (state.line) return state.line;
     if (state.workshop) return state.workshop + " 成品";
@@ -98,8 +98,9 @@
       '  <div class="hist-controls" aria-label="历史分析筛选">',
       '    <div class="hist-control"><div class="hist-control-label" id="histWsLabel">分析层级<span class="hist-help"><button class="hist-info" type="button" aria-label="查看车间成品产量统计口径" aria-describedby="histScopeTip">?</button><span class="hist-tooltip" id="histScopeTip" role="tooltip">车间层级仅统计成品线。Pro.1 全部 6 条，Pro.2 为 Final A-D，Pro.3 为 Welding A-D，Pro.4 和 Pro.5 为全部线体。线体钻取仍可查看所有工序。</span></span></div><select id="histWs" aria-labelledby="histWsLabel"><option value="">全厂</option></select></div>',
       '    <label for="histLine"><span>线体钻取</span><select id="histLine"><option value="">全部线体</option></select></label>',
-      '    <label for="histDate"><span>特定日期</span><select id="histDate"><option value="">按周期查看</option></select></label>',
+      '    <div class="hist-date-control"><label for="histDate"><span>回看日期</span><input id="histDate" type="date" aria-describedby="histDateHint"><small id="histDateHint">不选日期时默认查看最新归档</small></label><button id="histDateClear" class="hist-date-clear" type="button" title="清除回看日期">清除</button></div>',
       '    <div class="hist-period"><span>分析周期</span><div role="group" aria-label="选择历史分析周期">',
+      '      <button type="button" data-period="-1" aria-pressed="false">单日</button>',
       '      <button type="button" data-period="7" class="on" aria-pressed="true">7日</button>',
       '      <button type="button" data-period="14" aria-pressed="false">14日</button>',
       '      <button type="button" data-period="30" aria-pressed="false">30日</button>',
@@ -126,7 +127,7 @@
       ws.insertAdjacentHTML("beforeend", '<option value="' + esc(name) + '">' + esc(name) + "</option>");
     });
     fillLineOptions();
-    fillDateOptions();
+    configureDatePicker();
     ws.addEventListener("change", function () {
       state.workshop = ws.value;
       state.line = "";
@@ -138,7 +139,14 @@
       render();
     });
     host.querySelector("#histDate").addEventListener("change", function (event) {
-      state.selectedDate = event.target.value;
+      state.selectedDate = event.target.value || "";
+      configureDatePicker();
+      render();
+    });
+    host.querySelector("#histDateClear").addEventListener("click", function () {
+      state.selectedDate = "";
+      if (state.period === -1) state.period = 7;
+      configureDatePicker();
       syncPeriodState();
       render();
     });
@@ -146,6 +154,8 @@
       var button = event.target.closest("button[data-period]");
       if (!button) return;
       state.period = Number(button.getAttribute("data-period"));
+      if (state.period === -1 && !state.selectedDate && data.days && data.days.length) state.selectedDate = data.days[data.days.length - 1].date;
+      if (state.period === -1 && state.selectedDate) configureDatePicker();
       host.querySelectorAll("button[data-period]").forEach(function (item) {
         var active = item === button;
         item.classList.toggle("on", active);
@@ -161,29 +171,31 @@
       state.matrixOpen = !state.matrixOpen;
       syncMatrixState();
     });
-    syncPeriodState();
     syncMatrixState();
   }
 
-  function fillDateOptions() {
-    var select = host.querySelector("#histDate");
-    var key = state.shift + "Status";
-    var options = (data.days || []).slice().reverse().map(function (day) {
-      var status = day.quality && day.quality.freshnessStatus === "stale" ? "过期源" : ((day.quality && day.quality[key]) || "partial");
-      var label = status === "complete" ? "完整" : (status === "comparable" ? "可比" : (status === "partial" ? "部分" : status));
-      return '<option value="' + esc(day.date) + '">' + esc(day.date + "  [" + label + "]") + "</option>";
-    }).join("");
-    select.innerHTML = '<option value="">按周期查看</option>' + options;
-    select.value = state.selectedDate;
+  function configureDatePicker() {
+    var input = host.querySelector("#histDate");
+    var hint = host.querySelector("#histDateHint");
+    var dates = (data.days || []).map(function (day) { return day.date; }).sort();
+    input.min = dates[0] || "";
+    input.max = dates[dates.length - 1] || "";
+    input.value = state.selectedDate;
+    if (!state.selectedDate) hint.textContent = "不选日期时默认查看最新归档";
+    else {
+      var day = (data.days || []).find(function (item) { return item.date === state.selectedDate; });
+      var key = state.shift + "Status";
+      var status = day && day.quality && day.quality.freshnessStatus === "stale" ? "过期源" : ((day && day.quality && day.quality[key]) || "暂无归档");
+      hint.textContent = "归档状态：" + ({ complete: "完整", comparable: "可比", partial: "部分" }[status] || status) + " · 日期作为周期结束日";
+    }
   }
 
   function syncPeriodState() {
-    var exact = !!state.selectedDate;
     host.querySelectorAll("button[data-period]").forEach(function (button) {
-      button.disabled = exact;
-      button.setAttribute("aria-disabled", exact ? "true" : "false");
+      var active = Number(button.getAttribute("data-period")) === state.period;
+      button.classList.toggle("on", active);
+      button.setAttribute("aria-pressed", active ? "true" : "false");
     });
-    host.querySelector(".hist-period").classList.toggle("is-disabled", exact);
   }
 
   function syncMatrixState() {
@@ -281,22 +293,16 @@
     var counts = { complete: 0, comparable: 0, partial: 0 };
     (data.days || []).forEach(function (day) { counts[(day.quality && day.quality[key]) || "partial"]++; });
     var staleDays = data.quality && data.quality.staleDays ? data.quality.staleDays : 0;
-    var selectedText = days.length ? days[0].date.substring(5) + " → " + days[days.length - 1].date.substring(5) : "无可用日期";
-    var exactDay = state.selectedDate && days.length ? days[0] : null;
-    var exactQuality = exactDay && exactDay.quality ? exactDay.quality : null;
-    var exactStatus = exactQuality ? exactQuality[key] : null;
-    var exactNote = "";
-    if (exactDay) {
-      selectedText = exactDay.date;
-      if (exactQuality.freshnessStatus === "stale") exactNote = " · 过期源，仅供追溯";
-      else if (exactStatus === "partial") exactNote = " · 部分归档，请谨慎使用";
-      else exactNote = " · " + (exactStatus === "complete" ? "完整归档" : "可比归档");
-    }
+    var selectedText = days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期";
+    var anchorDay = state.selectedDate ? (data.days || []).find(function (day) { return day.date === state.selectedDate; }) : null;
+    var anchorQuality = anchorDay && anchorDay.quality ? anchorDay.quality : null;
+    var anchorStatus = anchorQuality ? anchorQuality[key] : null;
+    var anchorNote = anchorDay && anchorQuality && anchorQuality.freshnessStatus === "stale" ? " · 过期源未纳入计算" : (anchorDay && anchorStatus === "partial" ? " · 部分归档" : "");
     host.querySelector("#histQuality").innerHTML = '<span class="hist-q-label">' + esc(state.shift === "day" ? "白班" : "夜班") + " · " + esc(scopeLabel()) + '</span>' +
       '<span class="hist-q good">完整 ' + counts.complete + '</span><span class="hist-q info">可比 ' + counts.comparable + '</span><span class="hist-q warn">部分 ' + counts.partial + '</span>' +
       (staleDays ? '<span class="hist-q stale">过期源 ' + staleDays + '</span>' : "") +
-      '<span class="hist-q-range' + (exactQuality && (exactQuality.freshnessStatus === "stale" || exactStatus === "partial") ? " is-caution" : "") + '">' +
-      (exactDay ? "特定日期回看 · " + esc(selectedText) + esc(exactNote) : "当前计算 " + days.length + " 日 · " + esc(selectedText) + (state.includePartial ? " · 纳入部分归档" : " · 过滤部分归档") + (staleDays ? " · 过期源不计入" : "")) + "</span>";
+      '<span class="hist-q-range' + (anchorQuality && (anchorQuality.freshnessStatus === "stale" || anchorStatus === "partial") ? " is-caution" : "") + '">' +
+      (state.selectedDate ? "回看至 " + esc(state.selectedDate) + " · " + periodLabel() + " · " + esc(selectedText) + esc(anchorNote) : "当前 " + periodLabel() + " · " + esc(selectedText) + (state.includePartial ? " · 纳入部分归档" : " · 过滤部分归档") + (staleDays ? " · 过期源不计入" : "")) + "</span>";
   }
 
   function renderKpis(days, rows) {
@@ -304,14 +310,15 @@
     var delta = previousDelta(days);
     var risk = rows.filter(function (row) { return row.attainment !== null && row.attainment < 90; }).length;
     var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
-    var outputLabel = state.selectedDate ? "当日产出" : "周期总产出";
-    if (state.workshop && !state.line) outputLabel = state.selectedDate ? "当日成品产量" : "周期成品产量";
-    if (state.line) outputLabel = state.selectedDate ? "当日线体产出" : "周期线体产出";
+    var singleDay = state.period === -1;
+    var outputLabel = singleDay ? "当日产出" : "周期总产出";
+    if (state.workshop && !state.line) outputLabel = singleDay ? "当日成品产量" : "周期成品产量";
+    if (state.line) outputLabel = singleDay ? "当日线体产出" : "周期线体产出";
     var cards = [
       { code: "OUTPUT", label: outputLabel, value: fmt(total.total), unit: "件", meta: "正常 " + fmt(total.normal) + " · 加班 " + fmt(total.overtime), tone: "blue" },
       { code: "ATTAIN", label: "正常段计划达成", value: pct(total.attainment), unit: "", meta: "正常产出 ÷ 正常段计划", tone: total.attainment !== null && total.attainment >= 95 ? "green" : "amber" },
       { code: "MOMENTUM", label: "较前一有效日", value: delta === null ? "-" : (delta >= 0 ? "+" : "") + delta.toFixed(1) + "%", unit: "", meta: latest ? "最新产出 " + fmt(latest.total) + " 件" : "至少需要 2 个有效日", tone: delta !== null && delta >= 0 ? "green" : "amber" },
-      { code: "RISK", label: "低于 90% 线体", value: rows.length ? risk : "-", unit: rows.length ? "条" : "", meta: state.selectedDate ? "按当日正常产出/计划计算" : "按周期正常产出/计划汇总", tone: risk > 0 ? "red" : "green" },
+      { code: "RISK", label: "低于 90% 线体", value: rows.length ? risk : "-", unit: rows.length ? "条" : "", meta: singleDay ? "按当日正常产出/计划计算" : "按周期正常产出/计划汇总", tone: risk > 0 ? "red" : "green" },
     ];
     host.querySelector("#histKpis").innerHTML = cards.map(function (card) {
       return '<article class="hist-kpi ' + card.tone + '" data-code="' + card.code + '"><span>' + card.label + '</span><strong>' + card.value + (card.unit ? '<small>' + card.unit + "</small>" : "") + '</strong><p>' + card.meta + "</p></article>";
@@ -426,10 +433,20 @@
   }
   function renderTable(rows) {
     host.querySelector("#histRankCount").textContent = rows.length + " 条线体";
-    host.querySelector("#histRankBody").innerHTML = rows.map(function (row) {
-      var delta = row.delta === null ? "-" : (row.delta >= 0 ? "▲ +" : "▼ ") + row.delta.toFixed(1) + "%";
-      var deltaClass = row.delta === null ? "muted" : (row.delta >= 0 ? "good" : "bad");
-      return '<tr><td><strong>' + esc(row.line) + '</strong></td><td>' + esc(row.workshop) + '</td><td>' + row.days + '</td><td>' + fmt(row.total) + '</td><td><span class="hist-pill ' + toneRate(row.attainment) + '">' + pct(row.attainment) + '</span></td><td>' + fmt(row.average) + '</td><td><span class="hist-delta ' + deltaClass + '">' + delta + '</span></td><td>' + stabilityLabel(row.variation) + '</td><td>' + (row.streak ? '<span class="hist-pill bad">' + row.streak + " 日</span>" : '<span class="hist-pill good">无</span>') + "</td></tr>";
+    var groups = [];
+    rows.forEach(function (row) {
+      var group = groups.find(function (item) { return item.name === row.workshop; });
+      if (!group) { group = { name: row.workshop, rows: [] }; groups.push(group); }
+      group.rows.push(row);
+    });
+    host.querySelector("#histRankBody").innerHTML = groups.map(function (group) {
+      var header = '<tr class="hist-workshop-group"><th colspan="9"><span>' + esc(group.name) + '</span><small>' + group.rows.length + ' 条线体 · 全部工序</small></th></tr>';
+      var body = group.rows.map(function (row) {
+        var delta = row.delta === null ? "-" : (row.delta >= 0 ? "▲ +" : "▼ ") + row.delta.toFixed(1) + "%";
+        var deltaClass = row.delta === null ? "muted" : (row.delta >= 0 ? "good" : "bad");
+        return '<tr><td><strong>' + esc(row.line) + '</strong></td><td>' + esc(row.workshop) + '</td><td>' + row.days + '</td><td>' + fmt(row.total) + '</td><td><span class="hist-pill ' + toneRate(row.attainment) + '">' + pct(row.attainment) + '</span></td><td>' + fmt(row.average) + '</td><td><span class="hist-delta ' + deltaClass + '">' + delta + '</span></td><td>' + stabilityLabel(row.variation) + '</td><td>' + (row.streak ? '<span class="hist-pill bad">' + row.streak + " 日</span>" : '<span class="hist-pill good">无</span>') + "</td></tr>";
+      }).join("");
+      return header + body;
     }).join("") || '<tr><td colspan="9" class="hist-no-row">当前条件下没有可计算的线体数据</td></tr>';
   }
 
@@ -440,7 +457,7 @@
         scope: scopeLabel(), workshop: state.workshop || "全厂", line: state.line || "全部线体",
         shift: state.shift === "day" ? "白班" : "夜班", selectedDate: state.selectedDate || "",
         dateRange: days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期",
-        qualityMode: state.selectedDate ? "指定日期回看" : (state.includePartial ? "周期分析·含部分归档" : "周期分析·过滤部分归档"),
+        qualityMode: state.selectedDate ? ("回看至 " + state.selectedDate + " · " + periodLabel()) : (state.includePartial ? "周期分析·含部分归档" : "周期分析·过滤部分归档"),
         latest: latest ? { normal: num(latest.normal), overtime: num(latest.overtime), total: num(latest.total), plan: num(latest.plan), attainment: latest.attainment } : null,
         trend: days.slice(-14).map(function (day) { var item = metricFor(day, state.workshop, state.line); return { date: day.date, normal: num(item && item.normal), overtime: num(item && item.overtime), total: num(item && item.total), plan: num(item && item.plan), attainment: item && item.attainment }; }),
         topRisks: rows.slice(0, 8).map(function (row) { return { line: row.line, workshop: row.workshop, gap: row.gap, attainment: row.attainment, delta: row.delta, streak: row.streak, average: row.average }; }),
@@ -493,7 +510,8 @@
 
   function setShift(shift) {
     state.shift = shift === "night" ? "night" : "day";
-    if (data && host && host.querySelector("#histDate")) fillDateOptions();
+    if (data && host && host.querySelector("#histDate")) configureDatePicker();
+    syncPeriodState();
     render();
   }
 
