@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-07 10:00:02
+   最后写入: 2026-09-07 10:20:06
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -19,6 +19,19 @@ window.__LIVE_DATA__ = {
       "plan": 141,
       "actual": 94,
       "impact": -47,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-07",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "งานค่า KV เมคกาโอม NG งานออกไม่ต่อเนื่อง",
+      "problem_zh": "工作值 KV Mekkaom NG 工作不是连续的。",
+      "plan": 444,
+      "actual": 364,
+      "impact": -80,
       "shift": "day"
     }
   ],
