@@ -553,14 +553,14 @@
     xml += '<Style ss:ID="ShiftDay"><Font ss:Bold="1" ss:Color="#1F3864"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
     xml += '<Style ss:ID="ShiftNight"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2E4C6D" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
     xml += '<Style ss:ID="Total"><Font ss:Bold="1" ss:Color="#B36A00"/><Interior ss:Color="#FFF4E0" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
-    xml += '<Style ss:ID="Body"><Alignment ss:Vertical="Center"/></Style><Style ss:ID="Number"><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Right"/></Style><Style ss:ID="Percent"><NumberFormat ss:Format="0.0%"/><Alignment ss:Horizontal="Right"/></Style></Styles>';
+    xml += '<Style ss:ID="Body"><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style><Style ss:ID="Number"><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style><Style ss:ID="Percent"><NumberFormat ss:Format="0.0%"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style></Styles>';
     sheets.forEach(function (sheet) {
       var name = sheet.name, header = sheet.header, body = sheet.body;
       var colCount = header.length;
-      // 列宽（宽×2）：日期/线体稍宽，数值列等宽，合计列最宽
-      var widths = [15, 26, 14, 14, 14, 14, 14, 14, 16];
+      // 列宽：A–I 全部默认 12（不缩放）
+      var widths = [12, 12, 12, 12, 12, 12, 12, 12, 12];
       xml += '<Worksheet ss:Name="' + excelEscape(name) + '"><Table ss:ExpandedColumnCount="' + colCount + '" ss:ExpandedRowCount="' + (body.length + 3) + '">';
-      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + (w * 2) + '"/>'; });
+      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + w + '"/>'; });
       xml += '<Row ss:Height="28"><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Title"><Data ss:Type="String">' + excelEscape(sheet.title) + '</Data></Cell></Row>';
       xml += '<Row><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；每行一条线体，★ 车间总产出为人/总，数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
       // 表头：日期/线体 Header，白班3列 ShiftDay，夜班3列 ShiftNight，合计 Total
