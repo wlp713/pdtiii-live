@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 14:40:12
+   最后写入: 2026-09-08 15:10:21
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -27,11 +27,63 @@ window.__LIVE_DATA__ = {
       "series": "F系列",
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
-      "problem_th": "เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน",
-      "problem_zh": "打开C Insu - 检查灯，去帮助WL，1人，擦亮里面2，FL，2人。",
+      "problem_th": "เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน F-series",
+      "problem_zh": "打开 C Insu - 检查灯光，去帮助 WL，1 人，抛光内饰，2 FL，2 人，F 系列",
       "plan": 141,
       "actual": 116,
       "impact": -25,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "10:00-11:00",
+      "problem_th": "เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน F-series",
+      "problem_zh": "打开 C Insu - 检查灯光，去帮助 WL，1 人，抛光内饰，2 FL，2 人，F 系列",
+      "plan": 141,
+      "actual": 181,
+      "impact": 40,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "11:00-12:00",
+      "problem_th": "เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน F-series",
+      "problem_zh": "打开 C Insu - 检查灯光，去帮助 WL，1 人，抛光内饰，2 FL，2 人，F 系列",
+      "plan": 141,
+      "actual": 111,
+      "impact": -30,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "13:00-14:00",
+      "problem_th": "เครื่องเย็บNO2ฮิตเตอร์ไม่ร้อนหยุด 13:33-13:50 เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน F-series",
+      "problem_zh": "NO2 缝纫机，加热器不热，停止 13:33-13:50 打开 C Insu - 检查灯，去帮忙 WL 1 人，抛光内部 2 FL 2 人 F 系列",
+      "plan": 141,
+      "actual": 66,
+      "impact": -75,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "14:00-14:50",
+      "problem_th": "เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน เครื่องเย็บ NO2 เย็บงานไม่หมด-เกี่ยวลวดขาดเป็นจำนวลมากหยุด 14:37",
+      "problem_zh": "打开C Insu - 检查灯，去帮助WL，1人，抛光内饰，2 FL，2人，NO2缝纫机，未完成缝纫 - 大量断线，于14:37停止",
+      "plan": 116,
+      "actual": 156,
+      "impact": 40,
       "shift": "day"
     },
     {
