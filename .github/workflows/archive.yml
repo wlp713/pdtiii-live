@@ -1,12 +1,23 @@
 name: daily-archive
 
-# 纯云端每日归档: 不依赖任何开发机/数据端开机
-# 泰国 20:40 = UTC 13:40 (白班 20:20 收班 + 20:30 换班落库后, 当天 hourly 完整)
-# 一个文件 = 当天白班完整(正常+OT) + 前一夜班完整(正常+OT)  ← actual 跨0点不清零, 5:50/7:50 累计值天然含全夜
+# 纯云端班次边界归档: 不依赖任何开发机/数据端开机
+# 白班在泰国 20:20–20:29 归档，夜班在次日 07:50–07:59 归档。
+# 两个不可变班次记录齐全后，才物化对应生产日，避免跨日和延迟任务串档。
 on:
   schedule:
-    - cron: "40 13 * * *"   # UTC 13:40 = Asia/Bangkok 20:40
-  workflow_dispatch: {}      # 支持手动触发(验证/补档)
+    - cron: "20-29 13 * * *" # UTC 13:20–13:29 = Asia/Bangkok 20:20–20:29
+    - cron: "50-59 0 * * *"  # UTC 00:50–00:59 = Asia/Bangkok 07:50–07:59
+  workflow_dispatch:
+    inputs:
+      shift:
+        description: "归档班次；auto 只在边界窗口执行"
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - day
+          - night
 
 permissions:
   contents: write
@@ -26,8 +37,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Run archive snapshot
-        run: python3 scripts/archive_daily.py
+      - name: Run shift-boundary archive
+        run: python3 scripts/archive_daily.py --shift "${{ inputs.shift || 'auto' }}"
       - name: Validate history analytics
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Commit & push
@@ -38,7 +49,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "no change, skip push"
           else
-            git commit -m "archive: 每日数据快照 $(TZ=Asia/Bangkok date +%F)"
-            git pull --rebase origin main || true
+            git commit -m "archive: 班次边界快照 $(TZ=Asia/Bangkok date +%F)"
+            git pull --rebase origin main
             git push origin main
           fi

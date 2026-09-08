@@ -33,6 +33,17 @@
   ];
   var WS_ACC = { "Pro.1": "#3fb950", "Pro.2": "#58a6ff", "Pro.3": "#d29922", "Pro.4": "#bc8cff", "Pro.5": "#39c5cf", "Pro.6": "#f778ba" };
   var WS_MAP_LINES = 0; WS_MAP.forEach(function (g) { WS_MAP_LINES += g.lines.length; }); // 应有线体数(39): 空车间不算
+  /* 经营产出统一使用已确认的成品线范围，过程线仍留在 hourly 源数据中供追溯。 */
+  var FINISHED_LINES_BY_WS = {
+    "Pro.1": WS_MAP[0].lines.slice(),
+    "Pro.2": ["Final A line", "Final B line", "Final C line", "Final D line"],
+    "Pro.3": ["Welding A line", "Welding B line", "Welding C line", "Welding D line"],
+    "Pro.4": WS_MAP[3].lines.slice(),
+    "Pro.5": WS_MAP[4].lines.slice(),
+    "Pro.6": []
+  };
+  var FINISHED_LINE_SET = {};
+  Object.keys(FINISHED_LINES_BY_WS).forEach(function (ws) { FINISHED_LINES_BY_WS[ws].forEach(function (line) { FINISHED_LINE_SET[line] = true; }); });
   var LINE2WS = {};
   WS_MAP.forEach(function (g) { g.lines.forEach(function (ln) { LINE2WS[ln] = g.ws; }); });
   var NORM2WS = {};
@@ -118,6 +129,7 @@
     Object.keys(wsMap).forEach(function (rawName) {
       var std = NORM2WS[normN(rawName)];
       if (!std) return;
+      if (!FINISHED_LINE_SET[std]) return;
       var ws = LINE2WS[std]; if (!ws) return;
       var s = aggLine(wsMap[rawName], fmt);
       var g = out[ws];
@@ -706,11 +718,14 @@
   "#anaRoot .hist-shell{padding:0;background:#fff;border:1px solid var(--ana-line);border-radius:16px;box-shadow:var(--ana-shadow);overflow:hidden}",
   "#anaRoot .hist-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 20px 22px;background:linear-gradient(180deg,rgba(14,36,72,.99) 0%,rgba(18,59,117,.92) 62%,rgba(18,59,117,.76) 100%);color:#fff}",
   "#anaRoot .hist-head>div{min-width:0}",
+  "#anaRoot .hist-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}",
   "#anaRoot .hist-eyebrow{display:block;margin-bottom:4px;color:#8fb5ff;font-size:9px;font-weight:900;letter-spacing:1.8px}",
   "#anaRoot .hist-head h2{font-size:18px;line-height:1.25;color:#fff;font-weight:900}",
   "#anaRoot .hist-head p{margin-top:4px;color:#b8c7da;font-size:11px}",
   "#anaRoot .hist-static{display:inline-flex;align-items:center;gap:8px;flex-shrink:0;padding:8px 12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:999px;color:#dce7f6;font-size:10.5px;font-weight:700}",
   "#anaRoot .hist-static i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.12)}",
+  "#anaRoot .hist-export{min-height:34px;padding:0 13px;border:1px solid rgba(255,255,255,.28);border-radius:9px;background:rgba(255,255,255,.12);color:#fff;font:800 10.5px/1 inherit;cursor:pointer;white-space:nowrap}",
+  "#anaRoot .hist-export:hover{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.48);transform:translateY(-1px)}",
   "#anaRoot .hist-controls{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:14px 18px;background:#f8fafc;border-bottom:1px solid var(--ana-line)}",
   "#anaRoot .hist-controls label,#anaRoot .hist-controls .hist-control,#anaRoot .hist-period{display:flex;flex-direction:column;gap:5px;min-height:56px;justify-content:flex-end}",
   "#anaRoot .hist-controls label>span,#anaRoot .hist-control-label,#anaRoot .hist-period>span{color:var(--ana-muted);font-size:9.5px;font-weight:900;letter-spacing:.35px}",
@@ -1446,6 +1461,7 @@
       html += '<div class="dgrid wsrow' + open + '" data-ws="' + g.ws + '" role="button" tabindex="0" aria-expanded="' + (open ? "true" : "false") + '">' + wsRowHtml(g.ws, d, isDay) + "</div>";
       html += '<div class="lbox">';
       g.lines.forEach(function (std) {
+        if (!FINISHED_LINE_SET[std]) return;
         var a = lineAgg[std];
         var c, tag;
         if (!a) {

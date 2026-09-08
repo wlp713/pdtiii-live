@@ -38,7 +38,8 @@ WORKSHOPS = {
 }
 EXPECTED_LINES = sum(len(lines) for lines in WORKSHOPS.values())
 
-# 车间级产量使用成品口径；线体级分析仍保留全部工序线。
+# 产出经营分析与归档汇总均使用成品口径；原始工序线仍保留在源快照中，
+# 但不进入经营汇总，避免把中间工序重复计入成品产量。
 FINISHED_PRODUCT_LINES = {
     "Pro.1": WORKSHOPS["Pro.1"],
     "Pro.2": ["Final A line", "Final B line", "Final C line", "Final D line"],
@@ -177,9 +178,139 @@ def source_date(document: dict) -> str | None:
     The archive job may run after midnight, but the prior night shift still
     belongs to the previous production date.
     """
-    updated_at = str(document.get("updatedAt") or "")
+    updated_at = str(document.get("updatedAt") or document.get("sourceUpdatedAt") or "")
     match = re.match(r"^(\d{4}-\d{2}-\d{2})(?:\s|T)", updated_at)
     return match.group(1) if match else None
+
+
+def production_date_for_shift(document: dict, shift: str) -> str | None:
+    """Map a boundary snapshot to the production date it represents.
+
+    A night boundary is captured after midnight, but belongs to the night
+    shift that started on the previous production date.
+    """
+    source = source_date(document)
+    if not source:
+        return None
+    if shift == "night":
+        return (datetime.strptime(source, "%Y-%m-%d").date() - timedelta(days=1)).isoformat()
+    return source
+
+
+def _coverage_status(mapped: int, covered: int, fresh: bool) -> str:
+    if not fresh:
+        return "partial"
+    if mapped >= EXPECTED_LINES and covered >= EXPECTED_LINES:
+        return "complete"
+    if mapped >= 34 and covered >= 34:
+        return "comparable"
+    return "partial"
+
+
+def _scope_records(lines: dict) -> tuple[dict, dict]:
+    """Build process-line and finished-product workshop scopes from lines."""
+    workshops = {}
+    for workshop, expected in WORKSHOPS.items():
+        records = [lines[name] for name in expected if name in lines]
+        workshops[workshop] = {
+            "lineCount": len(records),
+            "day": sum_metrics([item["day"] for item in records]),
+            "night": sum_metrics([item["night"] for item in records]),
+        }
+    finished_products = {}
+    for workshop, expected in FINISHED_PRODUCT_LINES.items():
+        records = [lines[name] for name in expected if name in lines]
+        finished_products[workshop] = {
+            "lineCount": len(records),
+            "day": sum_metrics([item["day"] for item in records]),
+            "night": sum_metrics([item["night"] for item in records]),
+        }
+    return workshops, finished_products
+
+
+def summarize_shift_archives(day_document: dict | None, night_document: dict | None, production_date: str) -> dict:
+    """Combine two boundary snapshots without mixing their time windows."""
+    day_summary = summarize_snapshot(day_document) if day_document else None
+    night_summary = summarize_snapshot(night_document) if night_document else None
+    day_lines = (day_summary or {}).get("lines") or {}
+    night_lines = (night_summary or {}).get("lines") or {}
+    line_names = set(day_lines) | set(night_lines)
+    lines = {}
+    for name in sorted(line_names):
+        source = day_lines.get(name) or night_lines.get(name)
+        lines[name] = {
+            "workshop": source["workshop"],
+            "day": (day_lines.get(name) or {}).get("day", metric(0, 0, 0)),
+            "night": (night_lines.get(name) or {}).get("night", metric(0, 0, 0)),
+        }
+
+    day_source = source_date(day_document or {})
+    night_source = source_date(night_document or {})
+    expected_night_source = None
+    if production_date:
+        expected_night_source = (datetime.strptime(production_date, "%Y-%m-%d").date() + timedelta(days=1)).isoformat()
+    day_fresh = bool(day_document and day_source == production_date)
+    night_fresh = bool(night_document and night_source == expected_night_source)
+    day_quality = (day_summary or {}).get("quality") or {}
+    night_quality = (night_summary or {}).get("quality") or {}
+    day_mapped = int(day_quality.get("mappedLines") or 0)
+    night_mapped = int(night_quality.get("mappedLines") or 0)
+    day_covered = int(day_quality.get("dayCoveredLines") or 0)
+    night_covered = int(night_quality.get("nightCoveredLines") or 0)
+    unknown = sorted(set((day_quality.get("unknownLines") or []) + (night_quality.get("unknownLines") or [])))
+    day_status = _coverage_status(day_mapped, day_covered, day_fresh)
+    night_status = _coverage_status(night_mapped, night_covered, night_fresh)
+    if day_fresh and night_fresh:
+        freshness = "fresh"
+    elif day_document or night_document:
+        # One boundary may have arrived while the other is still pending. That
+        # is incomplete, not automatically stale; stale is reserved for a
+        # boundary whose source date contradicts the production-date contract.
+        contradictory = (
+            (day_document and day_source and day_source != production_date)
+            or (night_document and night_source and night_source != expected_night_source)
+        )
+        freshness = "stale" if contradictory else "partial"
+    else:
+        freshness = "unknown"
+    workshops, finished_products = _scope_records(lines)
+    quality = {
+        "archiveVersion": 2,
+        "archiveMode": "shift-boundary",
+        "mappedLines": len(lines),
+        "expectedLines": EXPECTED_LINES,
+        "unknownLines": unknown,
+        "dayMappedLines": day_mapped,
+        "nightMappedLines": night_mapped,
+        "dayCoveredLines": day_covered,
+        "nightCoveredLines": night_covered,
+        "dayStatus": day_status,
+        "nightStatus": night_status,
+        "sourceDate": day_source or night_source,
+        "daySourceDate": day_source,
+        "nightSourceDate": night_source,
+        "expectedNightSourceDate": expected_night_source,
+        "freshnessStatus": freshness,
+    }
+    return {
+        "date": production_date,
+        "snapshotAt": (day_document or night_document or {}).get("capturedAt") or (day_document or night_document or {}).get("snapAt"),
+        "updatedAt": (day_document or {}).get("sourceUpdatedAt") or (day_document or {}).get("updatedAt"),
+        "quality": quality,
+        "archive": {
+            "day": {"capturedAt": (day_document or {}).get("capturedAt"), "sourceUpdatedAt": day_source},
+            "night": {"capturedAt": (night_document or {}).get("capturedAt"), "sourceUpdatedAt": night_source},
+        },
+        # Top-level totals are the business-facing finished-product totals.
+        # Process-line totals remain available under ``workshops`` for audit.
+        "totals": {
+            "day": sum_metrics([item["day"] for item in finished_products.values()]),
+            "night": sum_metrics([item["night"] for item in finished_products.values()]),
+        },
+        "workshops": workshops,
+        "finishedProducts": finished_products,
+        "lines": lines,
+    }
 
 
 def summarize_snapshot(document: dict) -> dict:
@@ -261,9 +392,11 @@ def summarize_snapshot(document: dict) -> dict:
         "snapshotAt": document.get("snapAt"),
         "updatedAt": document.get("updatedAt"),
         "quality": quality,
+        # Top-level totals are the business-facing finished-product totals.
+        # Process-line totals remain available under ``workshops`` for audit.
         "totals": {
-            "day": sum_metrics([item["day"] for item in lines.values()]),
-            "night": sum_metrics([item["night"] for item in lines.values()]),
+            "day": sum_metrics([item["day"] for item in finished_products.values()]),
+            "night": sum_metrics([item["night"] for item in finished_products.values()]),
         },
         "workshops": workshops,
         "finishedProducts": finished_products,
@@ -273,11 +406,38 @@ def summarize_snapshot(document: dict) -> dict:
 
 def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
     days = []
+    shift_archives = {}
+    shifts_dir = history_dir / "shifts"
+    if shifts_dir.exists():
+        for path in sorted(shifts_dir.glob("????-??-??-day.json")):
+            try:
+                with path.open("r", encoding="utf-8") as handle:
+                    document = json.load(handle)
+                production_date = str(document.get("productionDate") or path.name[:10])
+                shift_archives.setdefault(production_date, {})["day"] = document
+            except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
+                print(f"ANALYTICS SKIP {path.name}: {error}")
+        for path in sorted(shifts_dir.glob("????-??-??-night.json")):
+            try:
+                with path.open("r", encoding="utf-8") as handle:
+                    document = json.load(handle)
+                production_date = str(document.get("productionDate") or path.name[:10])
+                shift_archives.setdefault(production_date, {})["night"] = document
+            except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
+                print(f"ANALYTICS SKIP {path.name}: {error}")
+
+    # Boundary archives are authoritative. A legacy same-day JSON is ignored
+    # once either shift has a v2 record, preventing a 17:10 snapshot from
+    # silently replacing a boundary snapshot.
+    authoritative_dates = set(shift_archives)
+    for production_date, records in sorted(shift_archives.items()):
+        days.append(summarize_shift_archives(records.get("day"), records.get("night"), production_date))
+
     for path in sorted(history_dir.glob("????-??-??.json")):
         try:
             with path.open("r", encoding="utf-8") as handle:
                 document = json.load(handle)
-            if document.get("date") and document.get("hourly") and (
+            if document.get("date") not in authoritative_dates and document.get("date") and document.get("hourly") and (
                 not source_date(document) or source_date(document) == str(document.get("date"))
             ):
                 days.append(summarize_snapshot(document))
@@ -285,7 +445,7 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
             print(f"ANALYTICS SKIP {path.name}: {error}")
     days.sort(key=lambda item: item["date"])
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "generatedAt": generated_at or datetime.now(BKK).strftime("%Y-%m-%d %H:%M:%S"),
         "source": "GitHub Pages static daily snapshots",
         "metricContract": {
@@ -293,6 +453,7 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
             "plan": "normal-shift cumulative plan at the normal-shift boundary",
             "attainment": "normal output / normal plan * 100",
             "productionDate": "calendar-day day shift plus the prior night shift ending that morning",
+            "archive": "day boundary and following-morning night boundary are stored as separate immutable source records",
         },
         "workshops": WORKSHOPS,
         "finishedProductLines": FINISHED_PRODUCT_LINES,

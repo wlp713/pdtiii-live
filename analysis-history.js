@@ -40,7 +40,7 @@
           return response.json();
         })
         .then(function (payload) {
-          if (!payload || payload.schemaVersion !== 1 || !Array.isArray(payload.days)) throw new Error("历史索引格式不兼容");
+          if (!payload || ![1, 2].includes(payload.schemaVersion) || !Array.isArray(payload.days)) throw new Error("历史索引格式不兼容");
           return payload;
         })
         .catch(function (error) {
@@ -105,10 +105,10 @@
       '<section class="hist-shell" aria-labelledby="histTitle">',
       '  <div class="hist-head">',
       '    <div><h2 id="histTitle">历史产出经营分析</h2><p>从结果看趋势，从差距找到重点线体</p></div>',
-      '    <span class="hist-static"><i aria-hidden="true"></i>静态归档 · 不增加数据库流量</span>',
+      '    <div class="hist-head-actions"><span class="hist-static"><i aria-hidden="true"></i>静态归档 · 不增加数据库流量</span><button class="hist-export" id="histExport" type="button">导出 Excel</button></div>',
       '  </div>',
       '  <div class="hist-controls" aria-label="历史分析筛选">',
-      '    <div class="hist-control"><div class="hist-control-label" id="histWsLabel">分析层级<span class="hist-help"><button class="hist-info" type="button" aria-label="查看车间成品产量统计口径" aria-describedby="histScopeTip">?</button><span class="hist-tooltip" id="histScopeTip" role="tooltip">车间层级仅统计成品线。Pro.1 全部 6 条，Pro.2 为 Final A-D，Pro.3 为 Welding A-D，Pro.4 和 Pro.5 为全部线体。线体钻取仍可查看所有工序。</span></span></div><select id="histWs" aria-labelledby="histWsLabel"><option value="">全厂</option></select></div>',
+      '    <div class="hist-control"><div class="hist-control-label" id="histWsLabel">分析层级<span class="hist-help"><button class="hist-info" type="button" aria-label="查看车间成品产量统计口径" aria-describedby="histScopeTip">?</button><span class="hist-tooltip" id="histScopeTip" role="tooltip">产出分析统一使用成品线口径：Pro.1 全部 6 条，Pro.2 为 Final A-D，Pro.3 为 Welding A-D，Pro.4 和 Pro.5 为全部线体。过程线不会重复计入成品产量。</span></span></div><select id="histWs" aria-labelledby="histWsLabel"><option value="">全厂</option></select></div>',
       '    <label for="histLine"><span>线体钻取</span><select id="histLine"><option value="">全部线体</option></select></label>',
       '    <div class="hist-shift"><span>班次口径</span><div role="group" aria-label="选择班次口径"><button type="button" data-hist-shift="day" aria-pressed="true">白班</button><button type="button" data-hist-shift="night" aria-pressed="false">夜班</button><button type="button" data-hist-shift="full" aria-pressed="false">全天</button></div></div>',
       '    <div class="hist-period"><span>分析周期</span><div role="group" aria-label="选择历史分析周期">',
@@ -127,7 +127,7 @@
       '    <section class="hist-card" aria-labelledby="histTrendTitle"><div class="hist-card-head"><div><h3 id="histTrendTitle">产出与计划趋势</h3><p id="histTrendSub"></p></div><div class="hist-legend"><span><i class="normal"></i>正常产出</span><span><i class="ot"></i>加班产出</span><span><i class="plan"></i>正常段计划</span></div></div><canvas id="histTrendCanvas" role="img" aria-label="历史正常产出、加班产出与正常段计划趋势图"></canvas><div class="hist-empty" id="histTrendEmpty"></div></section>',
       '    <section class="hist-card" aria-labelledby="histGapTitle"><div class="hist-card-head"><div><h3 id="histGapTitle">正常段欠产贡献</h3><p id="histGapSub">按计划减正常产出计算，不把加班产出冲抵正常段差距</p></div></div><canvas id="histGapCanvas" role="img" aria-label="正常段欠产贡献排行图"></canvas><div class="hist-empty" id="histGapEmpty"></div></section>',
       '  </div>',
-      '  <section class="hist-card hist-rank" aria-labelledby="histRankTitle"><div class="hist-card-head"><div><h3 id="histRankTitle">线体经营矩阵</h3><p>展开后查看全部工序的产出、达成、波动和连续风险</p></div><div class="hist-rank-actions"><span id="histRankCount"></span><button class="hist-rank-toggle" id="histRankToggle" type="button" aria-expanded="false" aria-controls="histRankPanel"><span id="histRankToggleText">展开矩阵</span><span class="hist-toggle-icon" aria-hidden="true">⌄</span></button></div></div><div class="hist-table-wrap" id="histRankPanel" hidden><table><thead><tr><th>线体</th><th>车间</th><th>有效日</th><th>总产出</th><th>正常段达成</th><th>日均产出</th><th>较前日</th><th>稳定性</th><th>连续&lt;90%</th></tr></thead><tbody id="histRankBody"></tbody></table></div></section>',
+      '  <section class="hist-card hist-rank" aria-labelledby="histRankTitle"><div class="hist-card-head"><div><h3 id="histRankTitle">线体经营矩阵</h3><p>按车间分类查看成品线的产出、达成、波动和连续风险</p></div><div class="hist-rank-actions"><span id="histRankCount"></span><button class="hist-rank-toggle" id="histRankToggle" type="button" aria-expanded="false" aria-controls="histRankPanel"><span id="histRankToggleText">展开矩阵</span><span class="hist-toggle-icon" aria-hidden="true">⌄</span></button></div></div><div class="hist-table-wrap" id="histRankPanel" hidden><table><thead><tr><th>线体</th><th>车间</th><th>有效日</th><th>总产出</th><th>正常段达成</th><th>日均产出</th><th>较前日</th><th>稳定性</th><th>连续&lt;90%</th></tr></thead><tbody id="histRankBody"></tbody></table></div></section>',
       '  <details class="hist-method"><summary>指标口径与归档质量</summary><div><b>生产日：</b>当日白班 + 当日上午结束的前一夜班。<b>总产出：</b>正常产出 + 加班产出。<b>正常段达成：</b>正常段产出 ÷ 正常段计划；加班产出不冲抵正常段欠产。<b>稳定性：</b>至少 3 个有效日的日产出变异系数。完整、可比日进入默认经营分析；部分归档仅在手工勾选后纳入。</div></details>',
       '</section>'
     ].join("");
@@ -172,6 +172,7 @@
       state.includePartial = event.target.checked;
       render();
     });
+    host.querySelector("#histExport").addEventListener("click", exportFinishedProductWorkbook);
     host.querySelector("#histRankToggle").addEventListener("click", function () {
       state.matrixOpen = !state.matrixOpen;
       syncMatrixState();
@@ -209,8 +210,9 @@
   function fillLineOptions() {
     var select = host.querySelector("#histLine");
     var lines = [];
-    if (state.workshop) lines = (data.workshops && data.workshops[state.workshop]) || [];
-    else Object.keys(data.workshops || {}).forEach(function (ws) { lines = lines.concat(data.workshops[ws]); });
+    var scopes = data.finishedProductLines || data.workshops || {};
+    if (state.workshop) lines = scopes[state.workshop] || [];
+    else Object.keys(scopes).forEach(function (ws) { lines = lines.concat(scopes[ws]); });
     select.innerHTML = '<option value="">全部线体</option>' + lines.map(function (line) {
       return '<option value="' + esc(line) + '">' + esc(line) + "</option>";
     }).join("");
@@ -218,10 +220,11 @@
   }
 
   function lineNamesInScope() {
+    var scopes = data.finishedProductLines || data.workshops || {};
     if (state.line) return [state.line];
-    if (state.workshop) return ((data.workshops || {})[state.workshop] || []).slice();
+    if (state.workshop) return (scopes[state.workshop] || []).slice();
     var out = [];
-    Object.keys(data.workshops || {}).forEach(function (ws) { out = out.concat(data.workshops[ws]); });
+    Object.keys(scopes).forEach(function (ws) { out = out.concat(scopes[ws]); });
     return out;
   }
 
@@ -437,7 +440,7 @@
       group.rows.push(row);
     });
     host.querySelector("#histRankBody").innerHTML = groups.map(function (group) {
-      var header = '<tr class="hist-workshop-group"><th colspan="9"><span>' + esc(group.name) + '</span><small>' + group.rows.length + ' 条线体 · 全部工序</small></th></tr>';
+      var header = '<tr class="hist-workshop-group"><th colspan="9"><span>' + esc(group.name) + '</span><small>' + group.rows.length + ' 条成品线</small></th></tr>';
       var body = group.rows.map(function (row) {
         var delta = row.delta === null ? "-" : (row.delta >= 0 ? "▲ +" : "▼ ") + row.delta.toFixed(1) + "%";
         var deltaClass = row.delta === null ? "muted" : (row.delta >= 0 ? "good" : "bad");
@@ -458,9 +461,102 @@
         latest: latest ? { normal: num(latest.normal), overtime: num(latest.overtime), total: num(latest.total), plan: num(latest.plan), attainment: latest.attainment } : null,
         trend: days.slice(-14).map(function (day) { var item = metricFor(day, state.workshop, state.line); return { date: day.date, normal: num(item && item.normal), overtime: num(item && item.overtime), total: num(item && item.total), plan: num(item && item.plan), attainment: item && item.attainment }; }),
         topRisks: rows.slice(0, 8).map(function (row) { return { line: row.line, workshop: row.workshop, gap: row.gap, attainment: row.attainment, delta: row.delta, streak: row.streak, average: row.average }; }),
-        note: "车间层级为成品线口径；线体钻取为全部工序线。数据来自静态归档，不增加数据库请求。"
+        note: "产出分析与线体经营矩阵统一使用已确认成品线口径。数据来自静态归档，不增加数据库请求。"
       };
     } catch (e) {}
+  }
+
+  function finishedMetricForExport(day, workshop, shift) {
+    var scope = day && day.finishedProducts && day.finishedProducts[workshop];
+    if (scope && scope[shift]) return scope[shift];
+    var configured = (data.finishedProductLines && data.finishedProductLines[workshop]) || [];
+    return sumMetricItems(configured.map(function (line) {
+      return day && day.lines && day.lines[line] && day.lines[line][shift];
+    }).filter(Boolean));
+  }
+
+  function exportFinishedProductWorkbook() {
+    if (!data || !Array.isArray(data.days)) return;
+    var columns = ["日期", "车间", "班次", "正常时段", "加班时段", "正常产出(件)", "加班产出(件)", "总产出(件)", "正常段计划(件)", "正常段达成率", "成品线数", "归档质量", "快照时间", "源更新时间"];
+    var rows = [columns];
+    var scopes = data.finishedProductLines || {};
+    var workshops = Object.keys(scopes);
+    data.days.forEach(function (day) {
+      ["day", "night"].forEach(function (shift) {
+        workshops.forEach(function (workshop) {
+          var metric = finishedMetricForExport(day, workshop, shift);
+          var quality = day.quality || {};
+          var status = quality[shift + "Status"] || "partial";
+          var period = shift === "day" ? ["08:00–17:20", "17:20–20:20"] : ["20:30–次日05:50", "05:50–07:50"];
+          rows.push([
+            day.date || "", workshop, shift === "day" ? "白班" : "夜班", period[0], period[1],
+            num(metric.normal), num(metric.overtime), num(metric.total), num(metric.plan),
+            metric.attainment === null || metric.attainment === undefined ? null : num(metric.attainment) / 100,
+            ((day.finishedProducts && day.finishedProducts[workshop] && day.finishedProducts[workshop].lineCount) || scopes[workshop].length || 0),
+            status === "complete" ? "完整" : (status === "comparable" ? "可比" : "部分"),
+            day.snapshotAt || "", day.updatedAt || ""
+          ]);
+        });
+      });
+    });
+    var xml = excelWorkbookXml(rows, data);
+    var blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "PDTIII_成品产出归档_" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + ".xls";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function excelEscape(value) {
+    return String(value === null || value === undefined ? "" : value)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  }
+  function excelCell(value, style, type) {
+    if (value === null || value === undefined || value === "") return '<Cell ss:StyleID="' + (style || "Body") + '"></Cell>';
+    return '<Cell ss:StyleID="' + (style || "Body") + '"><Data ss:Type="' + (type || "String") + '">' + excelEscape(value) + "</Data></Cell>";
+  }
+  function excelRow(cells) { return "<Row>" + cells.join("") + "</Row>"; }
+  function excelWorkbookXml(rows, payload) {
+    var xml = '<?xml version="1.0"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+    xml += '<DocumentProperties xmlns="urn:schemas-microsoft-com:office:office"><Author>PDTIII</Author><LastAuthor>Codex</LastAuthor><Created>' + excelEscape(new Date().toISOString()) + '</Created></DocumentProperties>';
+    xml += '<Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Microsoft YaHei" ss:Size="10" ss:Color="#23324D"/></Style>';
+    xml += '<Style ss:ID="Title"><Font ss:FontName="Microsoft YaHei" ss:Size="16" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#123B75" ss:Pattern="Solid"/><Alignment ss:Vertical="Center"/></Style>';
+    xml += '<Style ss:ID="Subtitle"><Font ss:FontName="Microsoft YaHei" ss:Size="9" ss:Color="#51657E"/><Interior ss:Color="#EEF4FB" ss:Pattern="Solid"/></Style>';
+    xml += '<Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#244D82" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
+    xml += '<Style ss:ID="Body"><Alignment ss:Vertical="Center"/></Style><Style ss:ID="Number"><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Right"/></Style><Style ss:ID="Percent"><NumberFormat ss:Format="0.0%"/><Alignment ss:Horizontal="Right"/></Style><Style ss:ID="Complete"><Font ss:Color="#166534" ss:Bold="1"/><Interior ss:Color="#EAF7EE" ss:Pattern="Solid"/></Style><Style ss:ID="Comparable"><Font ss:Color="#234F9E" ss:Bold="1"/><Interior ss:Color="#EAF1FF" ss:Pattern="Solid"/></Style><Style ss:ID="Partial"><Font ss:Color="#9A3412" ss:Bold="1"/><Interior ss:Color="#FFF1EB" ss:Pattern="Solid"/></Style></Styles>';
+    xml += '<Worksheet ss:Name="成品产出明细"><Table ss:ExpandedColumnCount="14" ss:ExpandedRowCount="' + (rows.length + 2) + '">';
+    [72, 86, 56, 96, 104, 86, 86, 86, 96, 86, 68, 68, 142, 142].forEach(function (width) { xml += '<Column ss:Width="' + width + '"/>'; });
+    xml += '<Row ss:Height="28"><Cell ss:MergeAcross="13" ss:StyleID="Title"><Data ss:Type="String">PDTIII 成品产出归档</Data></Cell></Row>';
+    xml += '<Row><Cell ss:MergeAcross="13" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
+    xml += excelRow(rows[0].map(function (value) { return excelCell(value, "Header"); }));
+    rows.slice(1).forEach(function (row) {
+      xml += excelRow(row.map(function (value, index) {
+        if (index >= 5 && index <= 8) return excelCell(value, "Number", "Number");
+        if (index === 9) return excelCell(value, "Percent", "Number");
+        if (index === 10) return excelCell(value, "Number", "Number");
+        if (index === 11) return excelCell(value, value === "完整" ? "Complete" : (value === "可比" ? "Comparable" : "Partial"));
+        return excelCell(value, "Body");
+      }));
+    });
+    xml += '</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions></Worksheet>';
+    xml += '<Worksheet ss:Name="口径说明"><Table ss:ExpandedColumnCount="3"><Column ss:Width="150"/><Column ss:Width="330"/><Column ss:Width="360"/>';
+    xml += '<Row ss:Height="28"><Cell ss:MergeAcross="2" ss:StyleID="Title"><Data ss:Type="String">数据口径与归档说明</Data></Cell></Row>';
+    xml += excelRow([excelCell("项目", "Header"), excelCell("规则", "Header"), excelCell("说明", "Header")]);
+    [["成品线范围", "Pro.1 全部6条；Pro.2 Final A-D；Pro.3 Welding A-D；Pro.4、Pro.5全部线体", "过程线保留在原始源快照中，不进入成品经营汇总。"],
+      ["生产日", "当日白班 + 次日清晨结束的前一夜班", "夜班凌晨数据归属夜班开始的前一生产日，避免把9月5日晚班算到9月6日。"],
+      ["白班时段", "正常 08:00–17:20；加班 17:20–20:20", "白班边界快照在泰国时间20:20–20:29采集。"],
+      ["夜班时段", "正常 20:30–次日05:50；加班05:50–07:50", "夜班边界快照在泰国时间07:50–07:59采集。"],
+      ["完整性", "完整 / 可比 / 部分", "未达到边界覆盖或来源日期不符合生产日合同时，不作为默认完整数据。"],
+      ["生成时间", payload.generatedAt || "", "导出为 Excel 兼容工作簿，不读取 Firebase。"]].forEach(function (row) {
+        xml += excelRow(row.map(function (value) { return excelCell(value, "Body"); }));
+      });
+    xml += '</Table></Worksheet></Workbook>';
+    return xml;
   }
 
   function render() {

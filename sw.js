@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v7'; // ★ 2026-09-07 强制刷新: 清旧壳缓存, 让所有客户端拉到含 H-Series 手动目标 1800 的新 index.html
+var CACHE = 'pdtiii-shell-v8'; // ★ 2026-09-08 强制刷新: 班次边界归档与成品口径更新
 var CORE = [
   './',
   './index.html',
