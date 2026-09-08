@@ -545,7 +545,7 @@
       // 列宽（Excel 字符单位，约 7px/字符）
       var widths = [12, 13, 13, 13, 13, 12, 13, 13, 13, 13, 12, 14];
       xml += '<Worksheet ss:Name="' + excelEscape(name) + '"><Table ss:ExpandedColumnCount="' + colCount + '" ss:ExpandedRowCount="' + (body.length + 3) + '">';
-      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + w + '"/>'; });
+      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + (w * 2) + '"/>'; });
       xml += '<Row ss:Height="28"><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Title"><Data ss:Type="String">' + excelEscape(sheet.title) + '</Data></Cell></Row>';
       xml += '<Row><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
       // 表头 + 班次分组行(白班段/夜班段)
