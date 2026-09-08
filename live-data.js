@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 09:20:09
+   最后写入: 2026-09-08 11:00:10
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -37,14 +37,27 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-09-08",
       "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "8:00-9:00",
-      "problem_th": "(-84) Case A ทยอยส่ง",
-      "problem_zh": "(-84)案例A逐渐发送",
-      "plan": 470,
-      "actual": 386,
-      "impact": -84,
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "Case A ทะยอยส่ง",
+      "problem_zh": "情况A，逐渐发送",
+      "plan": 430,
+      "actual": 283,
+      "impact": -147,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "9:00-10:00",
+      "problem_th": "Case A ทะยอยส่ง",
+      "problem_zh": "情况A，逐渐发送",
+      "plan": 430,
+      "actual": 191,
+      "impact": -239,
       "shift": "day"
     },
     {
@@ -58,6 +71,19 @@ window.__LIVE_DATA__ = {
       "plan": 444,
       "actual": 264,
       "impact": -180,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "ผลกระทบจาก Low รุ่น AL6 ไม่มี เนื่องจากเครื่อง Pro3 เสีย -393 (Rotor line ทำ stock ,FINAL line เครียงาน Rework และเชื่อมคอมกอง)",
+      "problem_zh": "由于 Pro3 机器故障 -393，低型号 AL6 没有影响（转子线有库存，最终线进行返工工作并连接计算机）",
+      "plan": 444,
+      "actual": 51,
+      "impact": -393,
       "shift": "day"
     }
   ],
@@ -84,11 +110,11 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-09-08",
       "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "target": 470,
-      "actual": 386,
-      "rate": 82.1
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 430,
+      "actual": 283,
+      "rate": 65.8
     },
     {
       "date": "2026-09-08",
@@ -550,7 +576,7 @@ window.__HISTORY__ = [
     "first_hour": {
       "RPO1·F系列": 82.3,
       "RPO1·S系列": 69.8,
-      "PRO2·B": 82.1,
+      "PRO2·A": 65.8,
       "PRO2·C": 59.5
     }
   }
