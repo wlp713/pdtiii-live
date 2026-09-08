@@ -509,6 +509,16 @@ def validate_analytics(payload: dict) -> list[str]:
                     errors.append(f"{date} {scope_name}.{shift} rate must be null without plan")
                 elif expected_rate is not None and abs(_number(actual_rate) - expected_rate) > 0.11:
                     errors.append(f"{date} {scope_name}.{shift} attainment mismatch")
+        for shift in ("day", "night"):
+            expected_total = sum_metrics([
+                (day.get("finishedProducts") or {}).get(workshop, {}).get(shift, {})
+                for workshop in FINISHED_PRODUCT_LINES
+            ])
+            actual_total = (day.get("totals") or {}).get(shift) or {}
+            for field in ("normal", "overtime", "total", "plan"):
+                if abs(_number(actual_total.get(field)) - _number(expected_total.get(field))) > 0.01:
+                    errors.append(f"{date} totals.{shift} must equal finishedProducts sum")
+                    break
         quality = day.get("quality") or {}
         if quality.get("expectedLines") != EXPECTED_LINES:
             errors.append(f"{date} expectedLines must be {EXPECTED_LINES}")
