@@ -3,13 +3,81 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 08:00:00
+   最后写入: 2026-09-08 09:10:10
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "08:00-09:00",
+      "problem_th": "นำพนักงานไปช่วยขัดภายใน2คน งานออกไม่ต่อเนื่อง",
+      "problem_zh": "请 2 名员工帮忙擦洗内部。工作不是连续的。",
+      "plan": 169,
+      "actual": 118,
+      "impact": -51,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-84) Case A ทยอยส่ง",
+      "problem_zh": "(-84)案例A逐渐发送",
+      "plan": 470,
+      "actual": 386,
+      "impact": -84,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "หยุดรอ Low รุ่น AL6 -180 (เครื่อง Pro3 เสียใช้งานไม่ได้)",
+      "problem_zh": "别再等低型号AL6 -180（Pro3机器坏了不能用）",
+      "plan": 444,
+      "actual": 264,
+      "impact": -180,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 118,
+      "rate": 69.8
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 386,
+      "rate": 82.1
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 264,
+      "rate": 59.5
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -453,6 +521,14 @@ window.__HISTORY__ = [
       "RPO1·F系列": 66.7,
       "PRO2·B": 95.7,
       "PRO2·C": 75.2
+    }
+  },
+  {
+    "date": "2026-09-08",
+    "first_hour": {
+      "RPO1·S系列": 69.8,
+      "PRO2·B": 82.1,
+      "PRO2·C": 59.5
     }
   }
 ];
