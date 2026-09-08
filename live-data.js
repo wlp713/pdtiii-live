@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 11:10:36
+   最后写入: 2026-09-08 11:20:13
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -67,7 +67,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "8:00-9:00",
       "problem_th": "(-84) Case A ทยอยส่ง (-84) B-Line Final",
-      "problem_zh": "(-84) Case A ทยอยส่ง (-84) B-Line Final",
+      "problem_zh": "(-84)案例A逐渐发送(-84)B-Line Final",
       "plan": 470,
       "actual": 386,
       "impact": -84,
@@ -80,7 +80,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "9:00-10:00",
       "problem_th": "(-70) Case A ทยอยส่ง (-70) ไม่มีงาน KV เมกะโอห์ม NG* B-Line Final",
-      "problem_zh": "(-70) Case A ทยอยส่ง (-70) ไม่มีงาน KV เมกะโอห์ม NG* B-Line Final",
+      "problem_zh": "(-70) 案例 A 逐步交付 (-70) 无工作 KV Megaohm NG* B 线最终",
       "plan": 470,
       "actual": 400,
       "impact": -70,
@@ -93,7 +93,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "10:00-11:00",
       "problem_th": "(-101) หยุดรอ Case A ทยอยส่ง (-101) ไม่มีงาน KV เมกะโอห์ม NG*",
-      "problem_zh": "(-101) หยุดรอ Case A ทยอยส่ง (-101) ไม่มีงาน KV เมกะโอห์ม NG*",
+      "problem_zh": "(-101) 停止等待情况 A 逐渐发送 (-101) 无工作 KV Megaohm NG*",
       "plan": 390,
       "actual": 289,
       "impact": -101,
@@ -123,6 +123,19 @@ window.__LIVE_DATA__ = {
       "plan": 444,
       "actual": 51,
       "impact": -393,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "10:00-11:00",
+      "problem_th": "ต่อเนื่องจาก ชม.2 รอ Low-210 (ตอนนี้ Low เริ่มทยอยส่งแล้ว)",
+      "problem_zh": "从2小时开始，等待Low-210（Low现已开始逐渐发送）",
+      "plan": 370,
+      "actual": 160,
+      "impact": -210,
       "shift": "day"
     }
   ],
