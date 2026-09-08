@@ -647,12 +647,11 @@
       .then(function (payload) {
         data = payload;
         if (!state.selectedDate && data.days && data.days.length) {
-          // 默认选中“当日(泰国时间)的前一日”：取数据里 <= 昨日 的最近一天
-          var thaiNow = new Date(Date.now() + 7 * 3600 * 1000);
-          var yesterdayKey = new Date(thaiNow.getTime() - 24 * 3600 * 1000).toISOString().slice(0, 10);
+          // 默认选中“当日”(泰国时间)：取数据里 <= 今天 的最近一天；今天未归档则顺延到最近可用日
+          var thaiToday = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
           var target = "";
           for (var i = data.days.length - 1; i >= 0; i--) {
-            if (String(data.days[i].date) <= yesterdayKey) { target = data.days[i].date; break; }
+            if (String(data.days[i].date) <= thaiToday) { target = data.days[i].date; break; }
           }
           if (!target) target = data.days[data.days.length - 1].date;
           state.selectedDate = target;
