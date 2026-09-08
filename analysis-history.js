@@ -557,10 +557,10 @@
     sheets.forEach(function (sheet) {
       var name = sheet.name, header = sheet.header, body = sheet.body;
       var colCount = header.length;
-      // 列宽：A–I 全部默认 12（不缩放）
+      // 列宽：A–I 放大 8 倍
       var widths = [12, 12, 12, 12, 12, 12, 12, 12, 12];
       xml += '<Worksheet ss:Name="' + excelEscape(name) + '"><Table ss:ExpandedColumnCount="' + colCount + '" ss:ExpandedRowCount="' + (body.length + 3) + '">';
-      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + w + '"/>'; });
+      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + (w * 8) + '"/>'; });
       xml += '<Row ss:Height="28"><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Title"><Data ss:Type="String">' + excelEscape(sheet.title) + '</Data></Cell></Row>';
       xml += '<Row><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；每行一条线体，★ 车间总产出为人/总，数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
       // 表头：日期/线体 Header，白班3列 ShiftDay，夜班3列 ShiftNight，合计 Total
