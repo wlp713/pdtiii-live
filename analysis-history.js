@@ -475,34 +475,49 @@
     }).filter(Boolean));
   }
 
+  function lineMetric(day, line, shift) {
+    var scope = day && day.lines && day.lines[line];
+    return scope ? (scope[shift] || null) : null;
+  }
+
   function exportFinishedProductWorkbook() {
     if (!data || !Array.isArray(data.days)) return;
     var scopes = data.finishedProductLines || {};
     var workshops = Object.keys(scopes);
-    // 每个车间一个 worksheet；日期竖排(每天一行)，白班/夜班、正常/加班作为列
+    // 每个车间一个 worksheet；行 = 日期 × 线体，日期列竖向合并，线末尾车间总产出
     var sheets = workshops.map(function (workshop) {
-      var header = ["日期", "白班正常(件)", "白班加班(件)", "白班小计(件)", "白班计划(件)", "白班达成率",
-                    "夜班正常(件)", "夜班加班(件)", "夜班小计(件)", "夜班计划(件)", "夜班达成率", "生产日合计(件)"];
+      var header = ["日期", "线体", "白班正常(件)", "白班加班(件)", "白班合计(件)",
+                    "夜班正常(件)", "夜班加班(件)", "夜班合计(件)", "线体合计(件)"];
+      // body: 每行 [date, lineName, dayNormal, dayOT, dayTotal, nightNormal, nightOT, nightTotal, lineTotal]
       var body = [];
+      var lines = scopes[workshop] || [];
       data.days.forEach(function (day) {
+        lines.forEach(function (line) {
+          var d = lineMetric(day, line, "day");
+          var n = lineMetric(day, line, "night");
+          var dt = num(d && d.total);
+          var nt = num(n && n.total);
+          body.push([day.date || "", line,
+            num(d && d.normal), num(d && d.overtime), dt,
+            num(n && n.normal), num(n && n.overtime), nt,
+            dt + nt]);
+        });
+        // 车间总产出行
         var dayM = finishedMetricForExport(day, workshop, "day");
         var nightM = finishedMetricForExport(day, workshop, "night");
-        var dTotal = num(dayM && dayM.total);
-        var nTotal = num(nightM && nightM.total);
-        body.push([
-          day.date || "",
-          num(dayM && dayM.normal), num(dayM && dayM.overtime), dTotal, num(dayM && dayM.plan),
-          (dayM && dayM.attainment === null || dayM && dayM.attainment === undefined) ? null : num(dayM.attainment) / 100,
-          num(nightM && nightM.normal), num(nightM && nightM.overtime), nTotal, num(nightM && nightM.plan),
-          (nightM && nightM.attainment === null || nightM && nightM.attainment === undefined) ? null : num(nightM.attainment) / 100,
-          dTotal + nTotal
-        ]);
+        var dtTot = num(dayM && dayM.total);
+        var ntTot = num(nightM && nightM.total);
+        body.push([day.date || "", "★ 车间总产出",
+          num(dayM && dayM.normal), num(dayM && dayM.overtime), dtTot,
+          num(nightM && nightM.normal), num(nightM && nightM.overtime), ntTot,
+          dtTot + ntTot]);
       });
       return {
         name: workshop,
-        title: "PDTIII 成品产出 · " + workshop,
+        title: "PDTIII 成品产出 · " + workshop + "（按线体" + lines.length + "条 + 车间总产出）",
         header: header,
-        body: body
+        body: body,
+        dateCol: 0
       };
     });
     var xml = excelWorkbookXml(sheets, data);
@@ -539,30 +554,53 @@
     xml += '<Style ss:ID="ShiftNight"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2E4C6D" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
     xml += '<Style ss:ID="Total"><Font ss:Bold="1" ss:Color="#B36A00"/><Interior ss:Color="#FFF4E0" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
     xml += '<Style ss:ID="Body"><Alignment ss:Vertical="Center"/></Style><Style ss:ID="Number"><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Right"/></Style><Style ss:ID="Percent"><NumberFormat ss:Format="0.0%"/><Alignment ss:Horizontal="Right"/></Style></Styles>';
-    sheets.forEach(function (sheet, sIdx) {
+    sheets.forEach(function (sheet) {
       var name = sheet.name, header = sheet.header, body = sheet.body;
       var colCount = header.length;
-      // 列宽（Excel 字符单位，约 7px/字符）
-      var widths = [12, 13, 13, 13, 13, 12, 13, 13, 13, 13, 12, 14];
+      // 列宽（宽×2）：日期/线体稍宽，数值列等宽，合计列最宽
+      var widths = [15, 26, 14, 14, 14, 14, 14, 14, 16];
       xml += '<Worksheet ss:Name="' + excelEscape(name) + '"><Table ss:ExpandedColumnCount="' + colCount + '" ss:ExpandedRowCount="' + (body.length + 3) + '">';
       widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + (w * 2) + '"/>'; });
       xml += '<Row ss:Height="28"><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Title"><Data ss:Type="String">' + excelEscape(sheet.title) + '</Data></Cell></Row>';
-      xml += '<Row><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
-      // 表头 + 班次分组行(白班段/夜班段)
+      xml += '<Row><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；每行一条线体，★ 车间总产出为人/总，数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
+      // 表头：日期/线体 Header，白班3列 ShiftDay，夜班3列 ShiftNight，合计 Total
       xml += excelRow(header.map(function (value, cIdx) {
-        if (cIdx >= 1 && cIdx <= 5) return excelCell(value, "ShiftDay");
-        if (cIdx >= 6 && cIdx <= 10) return excelCell(value, "ShiftNight");
-        if (cIdx === 11) return excelCell(value, "Total");
+        if (cIdx >= 2 && cIdx <= 4) return excelCell(value, "ShiftDay");
+        if (cIdx >= 5 && cIdx <= 7) return excelCell(value, "ShiftNight");
+        if (cIdx === 8) return excelCell(value, "Total");
         return excelCell(value, "Header");
       }));
-      body.forEach(function (row) {
-        xml += excelRow(row.map(function (value, index) {
-          if (index === 0) return excelCell(value, "Body");
-          if (index === 5 || index === 10) return excelCell(value, "Percent", "Number");
-          if (index === 11) return excelCell(value, "Number", "Number");
-          return excelCell(value, "Number", "Number");
-        }));
-      });
+      // 日期列竖向合并：连续相同日期合并首行
+      var prevDate = null, mergeStart = 0;
+      for (var b = 0; b <= body.length; b++) {
+        var rowDate = b < body.length ? String(body[b][0] || "") : "\u0000END";
+        if (b < body.length && rowDate === prevDate) continue;
+        if (prevDate !== null) {
+          var mergeLen = b - mergeStart;
+          var groupRows = body.slice(mergeStart, b);
+          groupRows.forEach(function (row, gi) {
+            var cells = [];
+            row.forEach(function (value, index) {
+              if (index === 0) {
+                if (gi === 0) {
+                  var dateCell = '<Cell ss:StyleID="Header"' + (mergeLen > 1 ? ' ss:MergeDown="' + (mergeLen - 1) + '"' : '') + '><Data ss:Type="String">' + excelEscape(value) + '</Data></Cell>';
+                  cells.push(dateCell);
+                } else {
+                  cells.push('<Cell ss:StyleID="Header"></Cell>');
+                }
+              } else if (index === 1) {
+                var isTotal = String(value).indexOf("★") === 0;
+                cells.push(excelCell(value, isTotal ? "Total" : "Body"));
+              } else {
+                cells.push(excelCell(value, "Number", "Number"));
+              }
+            });
+            xml += excelRow(cells);
+          });
+        }
+        mergeStart = b;
+        prevDate = rowDate;
+      }
       xml += '</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>3</SplitHorizontal><TopRowBottomPane>3</TopRowBottomPane><ActivePane>2</ActivePane></WorksheetOptions></Worksheet>';
     });
     xml += '<Worksheet ss:Name="口径说明"><Table ss:ExpandedColumnCount="3"><Column ss:Width="150"/><Column ss:Width="330"/><Column ss:Width="360"/>';
