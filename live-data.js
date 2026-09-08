@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 09:10:10
+   最后写入: 2026-09-08 09:20:09
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -19,6 +19,19 @@ window.__LIVE_DATA__ = {
       "plan": 169,
       "actual": 118,
       "impact": -51,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เปิด C Insu -เช็คไฟ ไปช่วย WL 1 คน  ขัดภายใน 2  FL 2 คน",
+      "problem_zh": "打开C Insu - 检查灯，去帮助WL，1人，擦亮里面2，FL，2人。",
+      "plan": 141,
+      "actual": 116,
+      "impact": -25,
       "shift": "day"
     },
     {
@@ -50,6 +63,15 @@ window.__LIVE_DATA__ = {
   ],
   "problems_top": null,
   "first_hour": [
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 116,
+      "rate": 82.3
+    },
     {
       "date": "2026-09-08",
       "ws": "RPO1",
@@ -526,6 +548,7 @@ window.__HISTORY__ = [
   {
     "date": "2026-09-08",
     "first_hour": {
+      "RPO1·F系列": 82.3,
       "RPO1·S系列": 69.8,
       "PRO2·B": 82.1,
       "PRO2·C": 59.5
