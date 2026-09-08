@@ -197,10 +197,18 @@ def production_date_for_shift(document: dict, shift: str) -> str | None:
     return source
 
 
-def _coverage_status(mapped: int, covered: int, fresh: bool) -> str:
+def _coverage_status(mapped: int, covered: int, fresh: bool, expected: int | None = None) -> str:
+    """Given a shift's mapped/covered line counts, decide the coverage status.
+
+    ``covered`` is the number of lines whose last bucket reached the shift end.
+    ``expected`` defaults to the global EXPECTED_LINES, but callers may pass a
+    narrower shift-specific expected (e.g. night only counts two-shift lines,
+    so single-shift lines like Piston Grinding do not block night archives).
+    """
     if not fresh:
         return "partial"
-    if mapped >= EXPECTED_LINES and covered >= EXPECTED_LINES:
+    exp = expected if expected is not None else EXPECTED_LINES
+    if mapped >= exp and covered >= exp:
         return "complete"
     if mapped >= 34 and covered >= 34:
         return "comparable"
@@ -257,9 +265,11 @@ def summarize_shift_archives(day_document: dict | None, night_document: dict | N
     night_mapped = int(night_quality.get("mappedLines") or 0)
     day_covered = int(day_quality.get("dayCoveredLines") or 0)
     night_covered = int(night_quality.get("nightCoveredLines") or 0)
+    # 夜班预期 = 两班线数(来自夜班归档的单班线豁免), 单班线不阻塞夜班
+    night_expected = int(night_quality.get("nightExpectedLines") or EXPECTED_LINES)
     unknown = sorted(set((day_quality.get("unknownLines") or []) + (night_quality.get("unknownLines") or [])))
-    day_status = _coverage_status(day_mapped, day_covered, day_fresh)
-    night_status = _coverage_status(night_mapped, night_covered, night_fresh)
+    day_status = _coverage_status(day_mapped, day_covered, day_fresh, EXPECTED_LINES)
+    night_status = _coverage_status(night_mapped, night_covered, night_fresh, night_expected)
     if day_fresh and night_fresh:
         freshness = "fresh"
     elif day_document or night_document:
@@ -360,28 +370,33 @@ def summarize_snapshot(document: dict) -> dict:
     mapped_count = len(lines)
     day_covered = sum(1 for item in lines.values() if (item["lastDayMinute"] or -1) >= DAY_END - 10)
     night_covered = sum(1 for item in lines.values() if (item["lastNightMinute"] or -1) >= NIGHT_END - 10)
+    # 夜班预期 = 实际有夜班捅的线数. 单班线(如 Piston Grinding 无夜班桶)
+    # 不计入夜班覆盖要求 → 不会阻塞夜班归档.
+    night_expected = sum(1 for item in lines.values() if item.get("lastNightMinute") is not None)
     archive_date = str(document.get("date") or "")
     updated_at = str(document.get("updatedAt") or "")
     source_day = source_date(document)
     freshness_status = "fresh" if source_day == archive_date else ("stale" if source_day else "unknown")
 
-    def coverage_status(covered: int) -> str:
+    def coverage_status(covered: int, expected: int) -> str:
         if freshness_status == "stale":
             return "partial"
-        if mapped_count >= EXPECTED_LINES and covered >= EXPECTED_LINES:
+        exp = expected
+        if mapped_count >= exp and covered >= exp:
             return "complete"
         if mapped_count >= 34 and covered >= 34:
             return "comparable"
         return "partial"
 
-    day_status = coverage_status(day_covered)
-    night_status = coverage_status(night_covered)
+    day_status = coverage_status(day_covered, EXPECTED_LINES)
+    night_status = coverage_status(night_covered, night_expected)
     quality = {
         "mappedLines": mapped_count,
         "expectedLines": EXPECTED_LINES,
         "unknownLines": sorted(unknown_lines),
         "dayCoveredLines": day_covered,
         "nightCoveredLines": night_covered,
+        "nightExpectedLines": night_expected,
         "dayStatus": day_status,
         "nightStatus": night_status,
         "sourceDate": source_day,
