@@ -9,7 +9,7 @@
   var host = null;
   var data = null;
   var analyticsPromise = null;
-  var state = { shift: "day", period: 7, selectedDate: "", workshop: "", line: "", includePartial: false, matrixOpen: false };
+  var state = { shift: "day", period: -1, selectedDate: "", workshop: "", line: "", includePartial: false, matrixOpen: false };
   var resizeTimer = null;
   var resizeBound = false;
 
@@ -112,8 +112,8 @@
       '    <label for="histLine"><span>线体钻取</span><select id="histLine"><option value="">全部线体</option></select></label>',
       '    <div class="hist-shift"><span>班次口径</span><div role="group" aria-label="选择班次口径"><button type="button" data-hist-shift="day" aria-pressed="true">白班</button><button type="button" data-hist-shift="night" aria-pressed="false">夜班</button><button type="button" data-hist-shift="full" aria-pressed="false">全天</button></div></div>',
       '    <div class="hist-period"><span>分析周期</span><div role="group" aria-label="选择历史分析周期">',
-      '      <button type="button" data-period="-1" aria-pressed="false">单日</button>',
-      '      <button type="button" data-period="7" class="on" aria-pressed="true">7日</button>',
+      '      <button type="button" data-period="-1" class="on" aria-pressed="true">单日</button>',
+      '      <button type="button" data-period="7" aria-pressed="false">7日</button>',
       '      <button type="button" data-period="14" aria-pressed="false">14日</button>',
       '      <button type="button" data-period="30" aria-pressed="false">30日</button>',
       '      <button type="button" data-period="0" aria-pressed="false">全部</button>',
@@ -646,6 +646,17 @@
     loadAnalytics(url)
       .then(function (payload) {
         data = payload;
+        if (!state.selectedDate && data.days && data.days.length) {
+          // 默认选中“当日(泰国时间)的前一日”：取数据里 <= 昨日 的最近一天
+          var thaiNow = new Date(Date.now() + 7 * 3600 * 1000);
+          var yesterdayKey = new Date(thaiNow.getTime() - 24 * 3600 * 1000).toISOString().slice(0, 10);
+          var target = "";
+          for (var i = data.days.length - 1; i >= 0; i--) {
+            if (String(data.days[i].date) <= yesterdayKey) { target = data.days[i].date; break; }
+          }
+          if (!target) target = data.days[data.days.length - 1].date;
+          state.selectedDate = target;
+        }
         buildShell();
         populateFilters();
         render();
