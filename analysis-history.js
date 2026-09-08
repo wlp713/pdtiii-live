@@ -534,31 +534,32 @@
     xml += '<Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Microsoft YaHei" ss:Size="10" ss:Color="#23324D"/></Style>';
     xml += '<Style ss:ID="Title"><Font ss:FontName="Microsoft YaHei" ss:Size="16" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#123B75" ss:Pattern="Solid"/><Alignment ss:Vertical="Center"/></Style>';
     xml += '<Style ss:ID="Subtitle"><Font ss:FontName="Microsoft YaHei" ss:Size="9" ss:Color="#51657E"/><Interior ss:Color="#EEF4FB" ss:Pattern="Solid"/></Style>';
-    xml += '<Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#244D82" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
-    xml += '<Style ss:ID="ShiftDay"><Font ss:Bold="1"/><Interior ss:Color="#DDE9F7" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>';
-    xml += '<Style ss:ID="ShiftNight"><Font ss:Bold="1"/><Interior ss:Color="#222C3C" ss:Pattern="Solid"/><Font ss:Bold="1" ss:Color="#FFFFFF"/><Alignment ss:Horizontal="Center" ss:Vertical="Center"/></Style>';
+    xml += '<Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#1F3864" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
+    xml += '<Style ss:ID="ShiftDay"><Font ss:Bold="1" ss:Color="#1F3864"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
+    xml += '<Style ss:ID="ShiftNight"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#2E4C6D" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
+    xml += '<Style ss:ID="Total"><Font ss:Bold="1" ss:Color="#B36A00"/><Interior ss:Color="#FFF4E0" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center" ss:Vertical="Center" ss:WrapText="1"/></Style>';
     xml += '<Style ss:ID="Body"><Alignment ss:Vertical="Center"/></Style><Style ss:ID="Number"><NumberFormat ss:Format="#,##0"/><Alignment ss:Horizontal="Right"/></Style><Style ss:ID="Percent"><NumberFormat ss:Format="0.0%"/><Alignment ss:Horizontal="Right"/></Style></Styles>';
     sheets.forEach(function (sheet, sIdx) {
       var name = sheet.name, header = sheet.header, body = sheet.body;
       var colCount = header.length;
-      var widthAxis = [11];
-      for (var w = 0; w < colCount - 1; w++) widthAxis.push(13);
-      // 列宽：日期稍宽，数值列等宽
-      var widths = [11, 12, 12, 12, 12, 11, 12, 12, 12, 12, 11, 13];
+      // 列宽（Excel 字符单位，约 7px/字符）
+      var widths = [12, 13, 13, 13, 13, 12, 13, 13, 13, 13, 12, 14];
       xml += '<Worksheet ss:Name="' + excelEscape(name) + '"><Table ss:ExpandedColumnCount="' + colCount + '" ss:ExpandedRowCount="' + (body.length + 3) + '">';
-      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + w * 1.1 + '"/>'; });
+      widths.slice(0, colCount).forEach(function (w) { xml += '<Column ss:Width="' + w + '"/>'; });
       xml += '<Row ss:Height="28"><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Title"><Data ss:Type="String">' + excelEscape(sheet.title) + '</Data></Cell></Row>';
       xml += '<Row><Cell ss:MergeAcross="' + (colCount - 1) + '" ss:StyleID="Subtitle"><Data ss:Type="String">生产日 = 当日白班 + 次日清晨结束的前一夜班；数据来自静态归档，不产生数据库请求。</Data></Cell></Row>';
       // 表头 + 班次分组行(白班段/夜班段)
       xml += excelRow(header.map(function (value, cIdx) {
         if (cIdx >= 1 && cIdx <= 5) return excelCell(value, "ShiftDay");
         if (cIdx >= 6 && cIdx <= 10) return excelCell(value, "ShiftNight");
+        if (cIdx === 11) return excelCell(value, "Total");
         return excelCell(value, "Header");
       }));
       body.forEach(function (row) {
         xml += excelRow(row.map(function (value, index) {
           if (index === 0) return excelCell(value, "Body");
           if (index === 5 || index === 10) return excelCell(value, "Percent", "Number");
+          if (index === 11) return excelCell(value, "Number", "Number");
           return excelCell(value, "Number", "Number");
         }));
       });
