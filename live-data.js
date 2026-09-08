@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 15:10:21
+   最后写入: 2026-09-08 16:10:24
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -144,11 +144,50 @@ window.__LIVE_DATA__ = {
       "series": "B",
       "line": "PRO2·B",
       "time": "10:00-11:00",
-      "problem_th": "(-101) หยุดรอ Case A ทยอยส่ง (-101) ไม่มีงาน KV เมกะโอห์ม NG*",
-      "problem_zh": "(-101) 停止等待情况 A 逐渐发送 (-101) 无工作 KV Megaohm NG*",
+      "problem_th": "(-101) หยุดรอ Case A ทยอยส่ง (-101) ไม่มีงาน KV เมกะโอห์ม NG* B-Line Final",
+      "problem_zh": "(-101) 停止等待情况 A 逐渐发送 (-101) 无工作 KV Megaohm NG* B-Line Final",
       "plan": 390,
       "actual": 289,
       "impact": -101,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "(-89) Case A ทยอยส่ง (-69) เครื่อง Test Run เครื่องที่ 1 ปลั๊กไม่ตรงบ่อย เนื่องตัวล็อค ล็อคไม่อยู่ (-20) ไม่มีงาน  KV เมกะโอห์ม NG* สรุปเวลาหยุดรอ Case A 4 ชม. แรก รวม 47 นาที** B-Line Final",
+      "problem_zh": "(-89)案例A逐渐交付(-69)试运行1号机，插头经常不匹配。由于锁被锁定（-20），所以没有工作 KV Mega Ohm NG* 等待时间总结 案例 A 前 4 小时，总计 47 分钟** B 线最终",
+      "plan": 470,
+      "actual": 381,
+      "impact": -89,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "14:00-15:00",
+      "problem_th": "(-3) งาน KV NG = 2 * B-Line Final",
+      "problem_zh": "(-3) 工作 KV NG = 2 * B 线最终值",
+      "plan": 470,
+      "actual": 467,
+      "impact": -3,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "15:00-16:00",
+      "problem_th": "(-66) งานจาก Rotor Line มาไม่ต่อเนื่อง Air Gab Ng (-30) เครื่องเช็คความต้านทาน Alarm บ่อย (-20) Cal. ปลั๊กแล้ว เครื่องขัน Cover B ขันไม่ตรง (-20) แก้ไขแล้ว",
+      "problem_zh": "(-66) 转子线的工作不连续。 Air Gab Ng (-30) 经常检查机器报警电阻 (-20) Cal.插入。盖 B 拧紧机未正确拧紧 (-20) 已修复。",
+      "plan": 390,
+      "actual": 324,
+      "impact": -66,
       "shift": "day"
     },
     {
