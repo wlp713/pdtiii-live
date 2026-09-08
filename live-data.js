@@ -3,8 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   全量历史归档: history/YYYY-MM-DD.json (产量/UPH/问题点/出勤/达成率)
-   最后写入: 2026-09-08 17:10:07
+   最后写入: 2026-09-08 17:10:36
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,11 +14,37 @@ window.__LIVE_DATA__ = {
       "series": "S系列",
       "line": "RPO1·S系列",
       "time": "08:00-09:00",
-      "problem_th": "นำพนักงานไปช่วยขัดภายใน2คน งานออกไม่ต่อเนื่อง",
-      "problem_zh": "请 2 名员工帮忙擦洗内部。工作不是连续的。",
+      "problem_th": "นำพนักงานไปช่วยขัดภายใน2คน งานออกไม่ต่อเนื่อง S -series",
+      "problem_zh": "请 2 名员工帮忙擦洗内部。连续发布的作品S系列",
       "plan": 169,
       "actual": 118,
       "impact": -51,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "10:00-11:00",
+      "problem_th": "รองานจากจุดยัดไมล่า งานออกไม่ต่อเนื่อง S-series",
+      "problem_zh": "等待亚德迈拉点的作品 作品不断发布 S系列",
+      "plan": 169,
+      "actual": 129,
+      "impact": -40,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "11:00-12:00",
+      "problem_th": "รองานจากจุดยัดไมล่า งานออกไม่ต่อเนื่อง S-series",
+      "problem_zh": "等待亚德迈拉点的作品 作品不断发布 S系列",
+      "plan": 169,
+      "actual": 139,
+      "impact": -30,
       "shift": "day"
     },
     {
@@ -93,8 +118,8 @@ window.__LIVE_DATA__ = {
       "series": "A",
       "line": "PRO2·A",
       "time": "08:00-09:00",
-      "problem_th": "Case A ทะยอยส่ง",
-      "problem_zh": "情况A，逐渐发送",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
       "plan": 430,
       "actual": 283,
       "impact": -147,
@@ -105,12 +130,90 @@ window.__LIVE_DATA__ = {
       "ws": "PRO2",
       "series": "A",
       "line": "PRO2·A",
-      "time": "9:00-10:00",
-      "problem_th": "Case A ทะยอยส่ง",
-      "problem_zh": "情况A，逐渐发送",
+      "time": "09:00-10:00",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
       "plan": 430,
       "actual": 191,
       "impact": -239,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "10:00-11:00",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
+      "plan": 360,
+      "actual": 363,
+      "impact": 3,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "11:00-12:00",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
+      "plan": 430,
+      "actual": 369,
+      "impact": -61,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "13:00-14:00",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
+      "plan": 430,
+      "actual": 382,
+      "impact": -48,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "14:00-15:00",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
+      "plan": 430,
+      "actual": 291,
+      "impact": -139,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "15:00-16:00",
+      "problem_th": "หยุดรอ Case A",
+      "problem_zh": "停止等待案例A",
+      "plan": 360,
+      "actual": 177,
+      "impact": -183,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "16:00-17:00",
+      "problem_th": "Conveyor หัวไลน์ Final ไม่ทำงาน PEเข้าแก้ไขแล้ว (-59) Case A ทะยอยส่ง",
+      "problem_zh": "输送机最终线头不工作，PE 已修复它 (-59) 情况 A，逐渐发送",
+      "plan": 430,
+      "actual": 301,
+      "impact": -129,
       "shift": "day"
     },
     {
@@ -332,6 +435,7 @@ window.__LIVE_DATA__ = {
     }
   ]
 };
+
 window.__HISTORY__ = [
   {
     "date": "2026-08-20",
