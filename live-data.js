@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 11:20:13
+   最后写入: 2026-09-08 14:40:12
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -136,6 +136,32 @@ window.__LIVE_DATA__ = {
       "plan": 370,
       "actual": 160,
       "impact": -210,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "11:00-12:00",
+      "problem_th": "Low ทยอยส่ง-30 พนักงานไม่ครบจุดขาด 4 คน",
+      "problem_zh": "低，逐步派遣-30名员工未完成，失踪4人",
+      "plan": 444,
+      "actual": 328,
+      "impact": -116,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "13:00-14:00",
+      "problem_th": "เปลี่ยนรุ่น WL=>A SERIES รอ CASE A -245(ตัดชุด pump ใสพาเลท ระหว่างรอ CASE A)",
+      "problem_zh": "更改型号WL=>A SERIES，等待CASE A -245（在等待CASE A的同时切割透明托盘泵组）",
+      "plan": 444,
+      "actual": 199,
+      "impact": -245,
       "shift": "day"
     }
   ],
