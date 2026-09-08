@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-08 16:10:24
+   最后写入: 2026-09-08 16:30:16
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -253,6 +253,32 @@ window.__LIVE_DATA__ = {
       "plan": 444,
       "actual": 199,
       "impact": -245,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "14:00-15:00",
+      "problem_th": "CASE A ทยอยส่ง",
+      "problem_zh": "CASE A逐渐发送",
+      "plan": 444,
+      "actual": 344,
+      "impact": -100,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-08",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "15:00-16:00",
+      "problem_th": "CASE A รุ่น DZ59A1Z-4KML ทยอยส่ง",
+      "problem_zh": "案例A型号DZ59A1Z-4KML陆续发货",
+      "plan": 370,
+      "actual": 228,
+      "impact": -142,
       "shift": "day"
     }
   ],
