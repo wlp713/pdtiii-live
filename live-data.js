@@ -3,11 +3,50 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-09 10:10:08
+   最后写入: 2026-09-09 14:10:18
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [
+    {
+      "date": "2026-09-09",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "09:00-09:50",
+      "problem_th": "งานNg ออกจำนวนมาก งานออหไม่ต่อเนื่อง S-series",
+      "problem_zh": "Ng作品已大量发布，间歇作品，S系列。",
+      "plan": 143,
+      "actual": 62,
+      "impact": -81,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "11:00-12:00",
+      "problem_th": "เครื่องเย็บ No.2 ไม่เสถียร S-series",
+      "problem_zh": "2号订书机不稳定S系列",
+      "plan": 169,
+      "actual": 107,
+      "impact": -62,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "13:00-14:00",
+      "problem_th": "เครื่องเย็บ No.2 ไม่เสถียร",
+      "problem_zh": "2 号订书机不稳定。",
+      "plan": 169,
+      "actual": 137,
+      "impact": -32,
+      "shift": "day"
+    },
     {
       "date": "2026-09-09",
       "ws": "RPO1",
@@ -58,6 +97,15 @@ window.__LIVE_DATA__ = {
       "target": 141,
       "actual": 115,
       "rate": 81.6
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 165,
+      "rate": 97.6
     },
     {
       "date": "2026-09-09",
@@ -564,6 +612,7 @@ window.__HISTORY__ = [
     "date": "2026-09-09",
     "first_hour": {
       "RPO1·F系列": 81.6,
+      "RPO1·S系列": 97.6,
       "PRO2·B": 66.4
     }
   }
