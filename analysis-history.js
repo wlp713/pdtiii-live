@@ -334,6 +334,10 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
         raw.forEach(function (l) { if (l && l.name) byNorm[_normLine(l.name)] = l; });
         var nowMins = _todayNowMins();
         var shift = _todayShift();
+        var bkkDate = _todayBkkDate();
+        // 当天若已有归档(白班已结束并物化), day 档直接用归档值; 进行中班次用实时
+        var archiveToday = null;
+        if (data && data.days) { for (var di = 0; di < data.days.length; di++) { if (data.days[di].date === bkkDate) { archiveToday = data.days[di]; break; } } }
         var lines = {};
         // 遍历成品车间配置的线名(原始名), 从 d.lines 取当前累计
         Object.keys(scopes).forEach(function (ws) {
@@ -351,12 +355,21 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
               target = H_MANUAL_TARGET; plan = mp;
               eff = mp > 0 ? Number((actual / mp * 100).toFixed(1)) : null;
             }
-            var dayMetric, nightMetric = null;
-            if (shift === "day") {
+            var dayMetric = null, nightMetric = null;
+            // 当天归档优先(已结束班次用归档值, 完整含加班; 未归档班次 null 待实时填)
+            var arcLine = archiveToday && archiveToday.lines ? archiveToday.lines[lineName] : null;
+            var arcDay = arcLine && arcLine.day && (arcLine.day.total || arcLine.day.normal) ? arcLine.day : null;
+            var arcNight = arcLine && arcLine.night && (arcLine.night.total || arcLine.night.normal) ? arcLine.night : null;
+            if (arcDay) {
+              dayMetric = { normal: Math.round(Number(arcDay.normal)||0), overtime: Math.round(Number(arcDay.overtime)||0), total: Math.round(Number(arcDay.total)||0), plan: arcDay.plan!=null ? Math.round(Number(arcDay.plan)) : 0, attainment: arcDay.attainment!=null ? Number(arcDay.attainment) : null, target: arcDay.target!=null ? Number(arcDay.target) : null, eff: arcDay.eff!=null ? Number(arcDay.eff) : null };
+            } else if (shift === "day") { // 白班进行中, 尚未归档 → 实时
               var ot = _todayOvertimeFromHourly(payload.hourly, lineName, "day", nowMins);
               var normal = actual - ot;
               dayMetric = { normal: Math.round(normal), overtime: Math.round(ot), total: Math.round(actual), plan: plan, attainment: eff, target: target, eff: eff };
-            } else { // night 当前
+            }
+            if (arcNight) {
+              nightMetric = { normal: Math.round(Number(arcNight.normal)||0), overtime: Math.round(Number(arcNight.overtime)||0), total: Math.round(Number(arcNight.total)||0), plan: arcNight.plan!=null ? Math.round(Number(arcNight.plan)) : 0, attainment: arcNight.attainment!=null ? Number(arcNight.attainment) : null, target: arcNight.target!=null ? Number(arcNight.target) : null, eff: arcNight.eff!=null ? Number(arcNight.eff) : null };
+            } else if (shift === "night") { // 夜班进行中 → 实时
               var otN = _todayOvertimeFromHourly(payload.hourly, lineName, "night", nowMins);
               var normalN = actual - otN;
               nightMetric = { normal: Math.round(normalN), overtime: Math.round(otN), total: Math.round(actual), plan: plan, attainment: eff, target: target, eff: eff };
@@ -372,7 +385,7 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
         todayLive = {
           date: _todayBkkDate(),
           lines: lines, totals: totals,
-          quality: { dayStatus: shift === "day" ? "complete" : "partial", nightStatus: shift === "night" ? "complete" : "partial", freshnessStatus: "" },
+          quality: { dayStatus: (archiveToday && archiveToday.lines) ? "complete" : (shift === "day" ? "complete" : "partial"), nightStatus: (archiveToday && archiveToday.lines && (function(){for(var k in archiveToday.lines){var n=archiveToday.lines[k]&&archiveToday.lines[k].night; if(n&&(n.total||n.normal)) return true;} return false;})()) ? "complete" : (shift === "night" ? "complete" : "partial"), freshnessStatus: "" },
           snapshotAt: new Date().toISOString().slice(0, 19).replace("T", " ")
         };
         var q = host.querySelector("#histQuality"); if (q) q.className = "hist-quality";
