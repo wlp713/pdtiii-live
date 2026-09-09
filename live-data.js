@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-09 14:10:18
+   最后写入: 2026-09-09 15:10:14
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -15,7 +15,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "09:00-09:50",
       "problem_th": "งานNg ออกจำนวนมาก งานออหไม่ต่อเนื่อง S-series",
-      "problem_zh": "Ng作品已大量发布，间歇作品，S系列。",
+      "problem_zh": "งานNg ออกจำนวนมาก งานออหไม่ต่อเนื่อง S-series",
       "plan": 143,
       "actual": 62,
       "impact": -81,
@@ -28,7 +28,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "11:00-12:00",
       "problem_th": "เครื่องเย็บ No.2 ไม่เสถียร S-series",
-      "problem_zh": "2号订书机不稳定S系列",
+      "problem_zh": "เครื่องเย็บ No.2 ไม่เสถียร S-series",
       "plan": 169,
       "actual": 107,
       "impact": -62,
@@ -41,7 +41,7 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·S系列",
       "time": "13:00-14:00",
       "problem_th": "เครื่องเย็บ No.2 ไม่เสถียร",
-      "problem_zh": "2 号订书机不稳定。",
+      "problem_zh": "เครื่องเย็บ No.2 ไม่เสถียร",
       "plan": 169,
       "actual": 137,
       "impact": -32,
@@ -54,10 +54,75 @@ window.__LIVE_DATA__ = {
       "line": "RPO1·F系列",
       "time": "08:00-09:00",
       "problem_th": "เครื่องเย็บ No2 รีเซ็ตไม่ได้หยุด 08:00-08:24",
-      "problem_zh": "2号缝纫机无法复位 08:00-08:24",
+      "problem_zh": "เครื่องเย็บ No2 รีเซ็ตไม่ได้หยุด 08:00-08:24",
       "plan": 141,
       "actual": 115,
       "impact": -26,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "Lift จุดเช็ค thrust gap ใช้งานไม่ได้ แก้ไขแล้ว Conveyor จุดใส่ Case A ไม่ทำงาน PE แก้ไขแล้ว",
+      "problem_zh": "Lift จุดเช็ค thrust gap ใช้งานไม่ได้ แก้ไขแล้ว Conveyor จุดใส่ Case A ไม่ทำงาน PE แก้ไขแล้ว",
+      "plan": 430,
+      "actual": 416,
+      "impact": -14,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "09:00-10:00",
+      "problem_th": "งานติด Air gap (-30) ผลกระทบเครื่องประกอบวาล์วประเต็งหมุนเวียนไม่ทัน ทำให้งานทะยอยเข้าตู้ Cooling",
+      "problem_zh": "งานติด Air gap (-30) ผลกระทบเครื่องประกอบวาล์วประเต็งหมุนเวียนไม่ทัน ทำให้งานทะยอยเข้าตู้ Cooling",
+      "plan": 430,
+      "actual": 369,
+      "impact": -61,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "11:00-12:00",
+      "problem_th": "งานติด Air gap เช็คยาก งานออก Final line ไม่ต่อเนื่อง",
+      "problem_zh": "งานติด Air gap เช็คยาก งานออก Final line ไม่ต่อเนื่อง",
+      "plan": 430,
+      "actual": 356,
+      "impact": -74,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "13:00-14:00",
+      "problem_th": "งานติด Air gap เช็คยาก งานออก Final line ไม่ต่อเนื่อง",
+      "problem_zh": "งานติด Air gap เช็คยาก งานออก Final line ไม่ต่อเนื่อง",
+      "plan": 430,
+      "actual": 401,
+      "impact": -29,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "14:00-15:00",
+      "problem_th": "เปลี่ยนรุ่นการผลิต F-series เป็น S-series",
+      "problem_zh": "เปลี่ยนรุ่นการผลิต F-series เป็น S-series",
+      "plan": 430,
+      "actual": 232,
+      "impact": -198,
       "shift": "day"
     },
     {
@@ -67,7 +132,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "08:00-09:00",
       "problem_th": "งาน Air Gap NG Line out ทำให้งานออกไม่ต่อเนื่อง (-118) Lift หัว Line Finalตัวดันปะเต็งชำรุดแจ้งPE แก้ไข",
-      "problem_zh": "气隙异常 线路输出工作导致工作不间断 (-118) 提升线路 最终头、垫片推动器损坏，通知 PE 修复。",
+      "problem_zh": "งาน Air Gap NG Line out ทำให้งานออกไม่ต่อเนื่อง (-118) Lift หัว Line Finalตัวดันปะเต็งชำรุดแจ้งPE แก้ไข",
       "plan": 470,
       "actual": 312,
       "impact": -158,
@@ -80,7 +145,7 @@ window.__LIVE_DATA__ = {
       "line": "PRO2·B",
       "time": "09:00-10:00",
       "problem_th": "งาน Air Gap NG Line out ทำให้งานออกไม่ต่อเนื่อง(-80) เครื่อง TDC ไม่อ่านค่า",
-      "problem_zh": "Air Gap NG Line out work 导致工作连续释放（-80），TDC 机器不读取该值。",
+      "problem_zh": "งาน Air Gap NG Line out ทำให้งานออกไม่ต่อเนื่อง(-80) เครื่อง TDC ไม่อ่านค่า",
       "plan": 470,
       "actual": 352,
       "impact": -118,
@@ -106,6 +171,15 @@ window.__LIVE_DATA__ = {
       "target": 169,
       "actual": 165,
       "rate": 97.6
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 430,
+      "actual": 416,
+      "rate": 96.7
     },
     {
       "date": "2026-09-09",
@@ -613,6 +687,7 @@ window.__HISTORY__ = [
     "first_hour": {
       "RPO1·F系列": 81.6,
       "RPO1·S系列": 97.6,
+      "PRO2·A": 96.7,
       "PRO2·B": 66.4
     }
   }
