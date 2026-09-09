@@ -4,13 +4,17 @@ name: daily-archive
 # 白班在泰国 20:20–20:29 归档，夜班在次日 07:50–07:59 归档。
 # 两个不可变班次记录齐全后，才物化对应生产日，避免跨日和延迟任务串档。
 on:
+  # 数据驱动归档：脚本按当前源数据的完整性决定归档哪班，不再依赖窄窗口。
+  # GitHub Actions 的 schedule 调度在实际时钟上不可靠（实测曾偏离数小时），
+  # 因此改为每 30 分钟触发一次，确保白班(20:20后)和夜班(次日07:50后)完成时
+  # 有一次运行能落在其后，自愈补档。频繁只读 Firebase + 仅在新完整班次出现时
+  # 才写文件，成本可忽略。
   schedule:
-    - cron: "20-29 13 * * *" # UTC 13:20–13:29 = Asia/Bangkok 20:20–20:29
-    - cron: "50-59 0 * * *"  # UTC 00:50–00:59 = Asia/Bangkok 07:50–07:59
+    - cron: "*/30 * * * *"
   workflow_dispatch:
     inputs:
       shift:
-        description: "归档班次；auto 只在边界窗口执行"
+        description: "归档班次；auto 自动归档当前已完成的班次，day/night 强制指定"
         required: true
         default: auto
         type: choice

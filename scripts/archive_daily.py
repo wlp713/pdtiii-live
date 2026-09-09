@@ -224,59 +224,86 @@ def rebuild_index(history_dir: Path, analytics: dict) -> None:
     atomic_write(history_dir / "index.json", dates)
 
 
+def current_shift_documents(source: dict, now: datetime, requested: str = "auto") -> list:
+    """Data-driven capture: return [(production_date, shift, doc)] for every
+    complete shift present in the *current* source data.
+
+    Unlike the old design this does not require the run (or the source's
+    updatedAt) to fall inside a narrow 10-minute capture window. GitHub Actions
+    scheduled runs are not reliable enough to hit those windows, and a run that
+    lands even hours late would silently never capture anything. Instead we
+    judge completeness from the data itself: a shift is archived only when its
+    buckets actually reach the shift end in the live source.
+
+    The live bucket split keeps the two shifts honest:
+      * day buckets (08:00..20:20) => the source day's day shift;
+      * morning buckets (<08:00)   => the night that ended this morning,
+        which belongs to the *previous* production date.
+    A still-running night (>=20:30 on the same day) never lands in the morning
+    <08:00 band, so it can never be mistaken for a completed night.
+    """
+    hourly = normalize_hourly(source.get("hourly"))
+    source_day = source_date(source)
+    if not source_day or not hourly:
+        return []
+    declared = source.get("hourlyFormat") or infer_hourly_format(hourly)
+    summary = summarize_snapshot({
+        "date": source_day,
+        "updatedAt": source.get("updatedAt"),
+        "hourlyFormat": declared,
+        "hourly": hourly,
+    })
+    quality = summary["quality"]
+    out = []
+    want_day = requested in ("auto", "day")
+    want_night = requested in ("auto", "night")
+    if want_day and quality["dayStatus"] in ("complete", "comparable"):
+        document = make_shift_document(source, "day", now)
+        out.append((source_day, "day", document))
+    if want_night and quality["nightStatus"] in ("complete", "comparable"):
+        document = make_shift_document(source, "night", now)
+        night_production = (datetime.strptime(source_day, "%Y-%m-%d").date() - timedelta(days=1)).isoformat()
+        out.append((night_production, "night", document))
+    return out
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Capture one PDTIII production-shift boundary archive")
+    parser = argparse.ArgumentParser(description="Capture PDTIII production-shift archives (data-driven)")
     parser.add_argument("--shift", choices=("auto", "day", "night"), default="auto")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
     history_dir = root / "history"
     now = datetime.now(BKK)
 
-    shift = args.shift
-    if shift == "auto":
-        if in_capture_window(now, "day"):
-            shift = "day"
-        elif in_capture_window(now, "night"):
-            shift = "night"
-        else:
-            print(f"NO CAPTURE WINDOW now={now.isoformat()}")
-            return 0
-
     try:
         source = fetch(DATA_URL)
     except Exception as error:  # pragma: no cover - network-specific
         print(f"FETCH FAILED: {error}", file=sys.stderr)
         return 1
-    hourly = normalize_hourly(source.get("hourly"))
-    if not hourly:
-        print("NO HOURLY DATA", file=sys.stderr)
-        return 1
-    if not source_is_at_boundary(source, shift):
-        print(f"SOURCE NOT AT {shift} BOUNDARY updatedAt={source.get('updatedAt')}", file=sys.stderr)
-        return 1
 
-    document = make_shift_document(source, shift, now)
-    if document["quality"]["status"] != "complete":
-        print(
-            f"ARCHIVE REJECTED shift={shift} productionDate={document['productionDate']} "
-            f"status={document['quality']['status']} mapped={document['quality']['mappedLines']} "
-            f"covered={document['quality']['coveredLines']}",
-            file=sys.stderr,
-        )
-        return 1
+    captures = current_shift_documents(source, now, requested=args.shift)
+    if not captures:
+        print(f"NO COMPLETE SHIFT now={now.isoformat()} updatedAt={source.get('updatedAt')}")
+        return 0
 
-    production_date = production_date_for_shift(document, shift)
-    if production_date != document["productionDate"]:
-        print(f"DATE CONTRACT FAILED shift={shift} expected={document['productionDate']} got={production_date}", file=sys.stderr)
-        return 1
-    shift_path = history_dir / "shifts" / f"{production_date}-{shift}.json"
-    atomic_write(shift_path, document)
-    complete = rebuild_daily_artifact(history_dir, production_date)
+    for production_date, shift, document in captures:
+        if document["quality"]["status"] != "complete":
+            print(
+                f"SKIP {shift} {production_date} status={document['quality']['status']}",
+                file=sys.stderr,
+            )
+            continue
+        shift_path = history_dir / "shifts" / f"{production_date}-{shift}.json"
+        atomic_write(shift_path, document)
+        rebuild_daily_artifact(history_dir, production_date)
+        print(f"CAPTURED shift={shift} productionDate={production_date} file={shift_path.as_posix()}")
+
     analytics = write_analytics(history_dir)
     rebuild_index(history_dir, analytics)
     print(
-        f"OK shift={shift} productionDate={production_date} completeDay={complete} "
-        f"days={analytics['quality']['archivedDays']} file={shift_path.as_posix()}"
+        f"DONE days={analytics['quality']['archivedDays']} "
+        f"usableDay={analytics['quality']['usableDayDays']} "
+        f"usableNight={analytics['quality']['usableNightDays']}"
     )
     return 0
 

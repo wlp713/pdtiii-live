@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from history_analytics import BKK, FINISHED_PRODUCT_LINES, WORKSHOPS, aggregate_line, build_analytics, canonical_line, production_date_for_shift, source_date, summarize_shift_archives, summarize_snapshot, validate_analytics, write_analytics  # noqa: E402
-from archive_daily import in_capture_window, make_shift_document, merge_boundary_hourly, source_is_at_boundary  # noqa: E402
+from archive_daily import current_shift_documents, in_capture_window, make_shift_document, merge_boundary_hourly, source_is_at_boundary  # noqa: E402
 
 
 class HistoryAnalyticsTests(unittest.TestCase):
@@ -200,6 +200,29 @@ class HistoryAnalyticsTests(unittest.TestCase):
             (history / "2026-09-06.json").write_text(json.dumps(document), encoding="utf-8")
             payload = build_analytics(history, generated_at="test")
             self.assertEqual(payload["days"], [])
+
+    def test_data_driven_capture_archives_complete_night_without_window(self):
+        # A run that lands well outside the old capture windows must still
+        # archive the prior night once its <08:00 buckets reach the shift end.
+        night_hourly = {}
+        for idx, name in enumerate(["Final A line", "Final B line", "Cylinder Honing"]):
+            night_hourly[name] = [
+                {"h": hh, "actual": (idx + 1) * 500, "plan": (idx + 1) * 600}
+                for hh in (30, 130, 230, 330, 430, 530, 630, 750)
+            ]
+        source = {"updatedAt": "2026-09-09 00:16:00", "hourly": night_hourly}
+        now = datetime(2026, 9, 9, 0, 16, tzinfo=BKK)
+        captures = current_shift_documents(source, now, requested="auto")
+        self.assertEqual([(d, s) for d, s, _ in captures], [("2026-09-08", "night")])
+        self.assertEqual(len(captures), 1)
+
+    def test_data_driven_capture_skips_still_running_night_and_partial_day(self):
+        # Even a same-day evening run must not archive the running night
+        # (>=20:30 buckets are not <08:00) nor a partial day.
+        running = {"Final A line": [{"h": 20, "actual": 5, "plan": 5}]}
+        source = {"updatedAt": "2026-09-09 00:16:00", "hourlyFormat": "HHMM", "hourly": running}
+        now = datetime(2026, 9, 9, 0, 16, tzinfo=BKK)
+        self.assertEqual(current_shift_documents(source, now, requested="auto"), [])
 
 
 if __name__ == "__main__":
