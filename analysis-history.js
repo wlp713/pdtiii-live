@@ -473,6 +473,8 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
         workshop: findWorkshop(line),
         days: metrics.length,
         total: total,
+        normal: normal,
+        plan: plan,
         attainment: plan > 0 ? normal / plan * 100 : null,
         overtime: overtime,
         average: metrics.length ? total / metrics.length : null,
@@ -665,15 +667,21 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
   function publishAIContext(days, rows) {
     try {
       var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
+      var isToday = isTodayMode();
       window.__PDTIII_HISTORY_VIEW__ = {
         scope: scopeLabel(), workshop: state.workshop || "全厂", line: state.line || "全部线体",
         shift: shiftLabel(), selectedDate: state.selectedDate || "",
         dateRange: days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期",
-        qualityMode: state.selectedDate ? ("回看至 " + state.selectedDate + " · " + periodLabel()) : (state.includePartial ? "周期分析·含部分归档" : "周期分析·过滤部分归档"),
+        qualityMode: isToday ? "今日实时" : (state.selectedDate ? ("回看至 " + state.selectedDate + " · " + periodLabel()) : (state.includePartial ? "周期分析·含部分归档" : "周期分析·过滤部分归档")),
+        isToday: isToday,
         latest: latest ? { normal: num(latest.normal), overtime: num(latest.overtime), total: num(latest.total), plan: num(latest.plan), attainment: latest.attainment } : null,
         trend: days.slice(-14).map(function (day) { var item = metricFor(day, state.workshop, state.line); return { date: day.date, normal: num(item && item.normal), overtime: num(item && item.overtime), total: num(item && item.total), plan: num(item && item.plan), attainment: item && item.attainment }; }),
         topRisks: rows.slice(0, 8).map(function (row) { return { line: row.line, workshop: row.workshop, gap: row.gap, attainment: row.attainment, delta: row.delta, streak: row.streak, average: row.average }; }),
-        note: "产出分析与线体经营矩阵统一使用已确认成品线口径。数据来自静态归档，不增加数据库请求。"
+        // 完整线体矩阵(全量, 与页面矩阵逐行一致): 供 AI 精确回答任意线体/车间的所有指标
+        matrixRows: rows.map(function (row) {
+          return { line: row.line, workshop: row.workshop, days: row.days, total: num(row.total), normal: num(row.normal), overtime: num(row.overtime), plan: num(row.plan), attainment: row.attainment, average: row.average, delta: row.delta, variation: row.variation, streak: row.streak, gap: row.gap };
+        }),
+        note: isToday ? "产出分析与线体经营矩阵统一使用已确认成品线口径。数据来自实时看板快照(与生产看板同源)，随生产同步，非静态归档。" : "产出分析与线体经营矩阵统一使用已确认成品线口径。数据来自静态归档，不增加数据库请求。"
       };
     } catch (e) {}
   }

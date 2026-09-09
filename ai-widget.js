@@ -143,6 +143,14 @@
       if (V.latest) out.push("  最新/指定日: 正常" + V.latest.normal + " 加班" + V.latest.overtime + " 总产出" + V.latest.total + " 计划" + V.latest.plan + " 达成率" + (V.latest.attainment == null ? "-" : V.latest.attainment) + "%");
       if (V.trend && V.trend.length) out.push("  趋势: " + V.trend.map(function (x) { return x.date + "总" + x.total + "/达成" + (x.attainment == null ? "-" : x.attainment) + "%"; }).join(" | "));
       if (V.topRisks && V.topRisks.length) out.push("  欠产重点: " + V.topRisks.slice(0, 5).map(function (x) { return x.line + "缺口" + x.gap + "达成" + (x.attainment == null ? "-" : x.attainment) + "%"; }).join(" | "));
+      // 完整线体矩阵(全量): 与页面矩阵逐行一致, AI 可精确回答任意线体/车间的所有指标
+      if (V.matrixRows && V.matrixRows.length) {
+        out.push("  ∑线体矩阵(" + V.matrixRows.length + "条):");
+        V.matrixRows.forEach(function (r) {
+          var a = r.attainment;
+          out.push("    " + r.line + " [" + r.workshop + "] 总" + r.total + " 正常" + r.normal + " 加班" + r.overtime + " 计划" + r.plan + " 达成" + (a == null ? "-" : a.toFixed(1)) + "% 均" + (r.average == null ? "-" : r.average) + " 前日比" + (r.delta == null ? "-" : (r.delta >= 0 ? "+" : "") + r.delta.toFixed(1) + "%") + " 波动" + (r.variation == null ? "-" : r.variation.toFixed(3)) + " 连续欠" + r.streak + "日 缺口" + r.gap);
+        });
+      }
       out.push("  口径: " + V.note);
     }
 
