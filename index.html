@@ -2574,8 +2574,10 @@ async function refresh() {
   const cs = document.getElementById("connStatus");
   // ★ 2026-09-04 流量止血: 午休/晚休窗口内完全不发请求 (数据端也停更, 拉也是重复数据)
   if (typeof inRestPause === "function" && inRestPause()) {
-    restUi();
-    return;
+    // ◆ 2026-09-09: 休息期若数据从未加载过(state.lines 空, 如午休时刚打开页面) → 仍放行拉一次,
+    //   填充上午最后快照, 避免午休打开看板全空白 no data; 已有数据则正常拦截停刷新(省流量)
+    if (state && state.lines && state.lines.length) { restUi(); return; }
+    // data 为空则继续执行拉取(午休打开也能看到上午数据)
   }
   // ★ file:// 直接打开会无法 fetch 数据(浏览器拦截) — 给出明确指引而非模糊的"连接失败"
   if (location.protocol === "file:") {
