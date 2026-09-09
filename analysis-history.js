@@ -275,6 +275,39 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
     return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") + "-" + String(d.getUTCDate()).padStart(2, "0");
   }
   function _normLine(name) { return String(name || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  // 复刻班次效率专题(analysis-page aggLine)的四段切分口径: 精确给出今日每线
+  //   dayNorm(白班08:00-17:20累计) / dayOt(17:20-20:20增量) / planN(白班正常段计划)
+  //   nLive(今日20:30后夜班实时累计) / nNorm+nOt(凌晨0-8, 25日由
+  //   NIGHT_OT_START=350 切 5:50). 桶 08:00/20:30 精确清零 → 单天干净, 白班结束即可完整取值。
+  function _aggLineHourly(hourly, line) {
+    var norm = _normLine(line);
+    var arr = null;
+    for (var k in hourly) { if (_normLine(k) === norm) { arr = hourly[k]; break; } }
+    var out = { dayNorm: 0, dayOt: 0, planN: 0, nLive: 0, nNorm: 0, nOt: 0, hasDay: false, hasNight: false };
+    if (!Array.isArray(arr) || !arr.length) return out;
+    var oldFmt = arr.some(function (p) { var h = Number(p.h); return h >= 8 && h <= 17 && h !== 10; });
+    var pts = arr.map(function (b) { var m = _h2m(b && b.h); return { m: m, a: Number(b && b.actual) || 0, p: Number(b && b.plan) || 0 }; })
+      .filter(function (p) { return p.m !== null && isFinite(p.m); }).sort(function (a, b) { return a.m - b.m; });
+    if (!pts.length) return out;
+    var DAY_START = TODAY_DAY_START_ACTUAL, DAY_NORM_END = TODAY_DAY_NORMAL_END, DAY_END = TODAY_DAY_END;
+    var NIGHT_START = TODAY_NIGHT_START, NIGHT_OT_START = 5 * 60 + 50;
+    var dp = pts.filter(function (x) { return x.m >= DAY_START && x.m <= DAY_END; });
+    if (dp.length) {
+      out.hasDay = true;
+      var cut = null; for (var i = 0; i < dp.length; i++) if (dp[i].m <= DAY_NORM_END) cut = dp[i];
+      var normA = cut ? cut.a : 0, totalA = dp[dp.length - 1].a;
+      out.dayNorm = normA; out.dayOt = Math.max(0, totalA - normA); out.planN = cut ? cut.p : 0;
+    }
+    var np = pts.filter(function (x) { return x.m >= NIGHT_START; });
+    if (np.length) { out.hasNight = true; out.nLive = np[np.length - 1].a; }
+    var tp = pts.filter(function (x) { return x.m < DAY_START; });
+    if (tp.length) {
+      out.hasNight = true;
+      var tCut = null; for (var j = 0; j < tp.length; j++) if (tp[j].m <= NIGHT_OT_START) tCut = tp[j];
+      out.nNorm = tCut ? tCut.a : 0; out.nOt = Math.max(0, tp[tp.length - 1].a - (tCut ? tCut.a : 0));
+    }
+    return out;
+  }
   // hourly 桶 h → 班次日分钟(对齐归档 hour_to_minute): h<60 旧格式(h*60); 否则 HHMM≈(h//100)*60+h%100
   function _h2m(h) {
     var v = Number(h); if (!isFinite(v)) return null;
@@ -360,19 +393,18 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
             var arcLine = archiveToday && archiveToday.lines ? archiveToday.lines[lineName] : null;
             var arcDay = arcLine && arcLine.day && (arcLine.day.total || arcLine.day.normal) ? arcLine.day : null;
             var arcNight = arcLine && arcLine.night && (arcLine.night.total || arcLine.night.normal) ? arcLine.night : null;
+            // 实时 hourly 精确四段(班次效率专题同口径): 白班段/夜班段各自独立可取值,
+            //   不受当前进行中班次(shifx)限制 → 白班结束夜班进行中, 白班完整值不丢。
+            var selfre = _aggLineHourly(payload.hourly, lineName);
             if (arcDay) {
               dayMetric = { normal: Math.round(Number(arcDay.normal)||0), overtime: Math.round(Number(arcDay.overtime)||0), total: Math.round(Number(arcDay.total)||0), plan: arcDay.plan!=null ? Math.round(Number(arcDay.plan)) : 0, attainment: arcDay.attainment!=null ? Number(arcDay.attainment) : null, target: arcDay.target!=null ? Number(arcDay.target) : null, eff: arcDay.eff!=null ? Number(arcDay.eff) : null };
-            } else if (shift === "day") { // 白班进行中, 尚未归档 → 实时
-              var ot = _todayOvertimeFromHourly(payload.hourly, lineName, "day", nowMins);
-              var normal = actual - ot;
-              dayMetric = { normal: Math.round(normal), overtime: Math.round(ot), total: Math.round(actual), plan: plan, attainment: eff, target: target, eff: eff };
+            } else if (selfre.hasDay) { // 白班段已有今日桶(08:00清零后完整) → 直接取完整四段, 不需等归档
+              dayMetric = { normal: Math.round(selfre.dayNorm), overtime: Math.round(selfre.dayOt), total: Math.round(selfre.dayNorm + selfre.dayOt), plan: selfre.planN, attainment: selfre.planN > 0 ? Number((selfre.dayNorm / selfre.planN * 100).toFixed(1)) : eff, target: target, eff: eff };
             }
             if (arcNight) {
               nightMetric = { normal: Math.round(Number(arcNight.normal)||0), overtime: Math.round(Number(arcNight.overtime)||0), total: Math.round(Number(arcNight.total)||0), plan: arcNight.plan!=null ? Math.round(Number(arcNight.plan)) : 0, attainment: arcNight.attainment!=null ? Number(arcNight.attainment) : null, target: arcNight.target!=null ? Number(arcNight.target) : null, eff: arcNight.eff!=null ? Number(arcNight.eff) : null };
-            } else if (shift === "night") { // 夜班进行中 → 实时
-              var otN = _todayOvertimeFromHourly(payload.hourly, lineName, "night", nowMins);
-              var normalN = actual - otN;
-              nightMetric = { normal: Math.round(normalN), overtime: Math.round(otN), total: Math.round(actual), plan: plan, attainment: eff, target: target, eff: eff };
+            } else if (selfre.hasNight) { // 夜班段已有今日桶(20:30清零后) → 完整夜班四段(nLive实时累计)
+              nightMetric = { normal: Math.round(selfre.nLive), overtime: Math.round(selfre.nOt), total: Math.round(selfre.nLive + selfre.nOt), plan: plan, attainment: eff, target: target, eff: eff };
             }
             lines[lineName] = { day: dayMetric, night: nightMetric };
           });
