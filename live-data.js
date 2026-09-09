@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-09 09:10:08
+   最后写入: 2026-09-09 09:20:11
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -33,6 +33,19 @@ window.__LIVE_DATA__ = {
       "actual": 312,
       "impact": -158,
       "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "เปลี่ยนรุ่น1ครั้ง-45 รุ่น C05 งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
+      "problem_zh": "更换型号 1 次 - 45 型号 C05，漏水工作，DV，机器经常重新检查。",
+      "plan": 444,
+      "actual": 349,
+      "impact": -95,
+      "shift": "day"
     }
   ],
   "problems_top": null,
@@ -54,6 +67,15 @@ window.__LIVE_DATA__ = {
       "target": 470,
       "actual": 312,
       "rate": 66.4
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 349,
+      "rate": 78.6
     }
   ]
 };
@@ -551,7 +573,8 @@ window.__HISTORY__ = [
     "date": "2026-09-09",
     "first_hour": {
       "RPO1·F系列": 81.6,
-      "PRO2·B": 66.4
+      "PRO2·B": 66.4,
+      "PRO2·C": 78.6
     }
   }
 ];
