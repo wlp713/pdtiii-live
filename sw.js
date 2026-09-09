@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v8'; // ★ 2026-09-08 强制刷新: 班次边界归档与成品口径更新
+var CACHE = 'pdtiii-shell-v9'; // ★ 2026-09-09 强制刷新: 修复午休/第四时段全黑(旧缓存壳)
 var CORE = [
   './',
   './index.html',
