@@ -127,7 +127,7 @@
       '    <section class="hist-card" aria-labelledby="histTrendTitle"><div class="hist-card-head"><div><h3 id="histTrendTitle">产出与计划趋势</h3><p id="histTrendSub"></p></div><div class="hist-legend"><span><i class="normal"></i>正常产出</span><span><i class="ot"></i>加班产出</span><span><i class="plan"></i>正常段计划</span></div></div><canvas id="histTrendCanvas" role="img" aria-label="历史正常产出、加班产出与正常段计划趋势图"></canvas><div class="hist-empty" id="histTrendEmpty"></div></section>',
       '    <section class="hist-card" aria-labelledby="histGapTitle"><div class="hist-card-head"><div><h3 id="histGapTitle">正常段欠产贡献</h3><p id="histGapSub">按计划减正常产出计算，不把加班产出冲抵正常段差距</p></div></div><canvas id="histGapCanvas" role="img" aria-label="正常段欠产贡献排行图"></canvas><div class="hist-empty" id="histGapEmpty"></div></section>',
       '  </div>',
-      '  <section class="hist-card hist-rank" aria-labelledby="histRankTitle"><div class="hist-card-head"><div><h3 id="histRankTitle">线体经营矩阵</h3><p>按车间分类查看成品线的产出、达成、波动和连续风险</p></div><div class="hist-rank-actions"><span id="histRankCount"></span><button class="hist-rank-toggle" id="histRankToggle" type="button" aria-expanded="false" aria-controls="histRankPanel"><span id="histRankToggleText">展开矩阵</span><span class="hist-toggle-icon" aria-hidden="true">⌄</span></button></div></div><div class="hist-table-wrap" id="histRankPanel" hidden><table><thead><tr><th>线体</th><th>车间</th><th>有效日</th><th>总产出</th><th>正常段达成</th><th>日均产出</th><th>较前日</th><th>稳定性</th><th>连续&lt;90%</th></tr></thead><tbody id="histRankBody"></tbody></table></div></section>',
+      '  <section class="hist-card hist-rank" aria-labelledby="histRankTitle"><div class="hist-card-head"><div><h3 id="histRankTitle">线体经营矩阵</h3><p>按车间分类查看成品线的产出、达成、波动和连续风险</p></div><div class="hist-rank-actions"><span id="histRankCount"></span><button class="hist-rank-toggle" id="histRankToggle" type="button" aria-expanded="false" aria-controls="histRankPanel"><span id="histRankToggleText">展开矩阵</span><span class="hist-toggle-icon" aria-hidden="true">⌄</span></button></div></div><div class="hist-table-wrap" id="histRankPanel" hidden><table><thead><tr><th>线体</th><th>车间</th><th>有效日</th><th>总产出</th><th>正常段达成</th><th>加班段产出</th><th>较前日</th><th>稳定性</th><th>连续&lt;90%</th></tr></thead><tbody id="histRankBody"></tbody></table></div></section>',
       '  <details class="hist-method"><summary>指标口径与归档质量</summary><div><b>生产日：</b>当日白班 + 当日上午结束的前一夜班。<b>总产出：</b>正常产出 + 加班产出。<b>正常段达成：</b>正常段产出 ÷ 正常段计划；加班产出不冲抵正常段欠产。<b>稳定性：</b>至少 3 个有效日的日产出变异系数。完整、可比日进入默认经营分析；部分归档仅在手工勾选后纳入。</div></details>',
       '</section>'
     ].join("");
@@ -254,6 +254,7 @@
       var metrics = entries.map(function (entry) { return entry.metric; });
       var total = metrics.reduce(function (sum, item) { return sum + num(item.total); }, 0);
       var normal = metrics.reduce(function (sum, item) { return sum + num(item.normal); }, 0);
+      var overtime = metrics.reduce(function (sum, item) { return sum + num(item.overtime); }, 0);
       var plan = metrics.reduce(function (sum, item) { return sum + num(item.plan); }, 0);
       var rates = metrics.map(function (item) { return item.attainment; });
       var streak = 0;
@@ -271,6 +272,7 @@
         days: metrics.length,
         total: total,
         attainment: plan > 0 ? normal / plan * 100 : null,
+        overtime: overtime,
         average: metrics.length ? total / metrics.length : null,
         delta: delta,
         variation: cv(metrics.filter(function (item) { return num(item.plan) > 0; }).map(function (item) { return num(item.total); })),
@@ -444,7 +446,7 @@
       var body = group.rows.map(function (row) {
         var delta = row.delta === null ? "-" : (row.delta >= 0 ? "▲ +" : "▼ ") + row.delta.toFixed(1) + "%";
         var deltaClass = row.delta === null ? "muted" : (row.delta >= 0 ? "good" : "bad");
-        return '<tr><td><strong>' + esc(row.line) + '</strong></td><td>' + esc(row.workshop) + '</td><td>' + row.days + '</td><td>' + fmt(row.total) + '</td><td><span class="hist-pill ' + toneRate(row.attainment) + '">' + pct(row.attainment) + '</span></td><td>' + fmt(row.average) + '</td><td><span class="hist-delta ' + deltaClass + '">' + delta + '</span></td><td>' + stabilityLabel(row.variation) + '</td><td>' + (row.streak ? '<span class="hist-pill bad">' + row.streak + " 日</span>" : '<span class="hist-pill good">无</span>') + "</td></tr>";
+        return '<tr><td><strong>' + esc(row.line) + '</strong></td><td>' + esc(row.workshop) + '</td><td>' + row.days + '</td><td>' + fmt(row.total) + '</td><td><span class="hist-pill ' + toneRate(row.attainment) + '">' + pct(row.attainment) + '</span></td><td>' + fmt(row.overtime) + '</td><td><span class="hist-delta ' + deltaClass + '">' + delta + '</span></td><td>' + stabilityLabel(row.variation) + '</td><td>' + (row.streak ? '<span class="hist-pill bad">' + row.streak + " 日</span>" : '<span class="hist-pill good">无</span>') + "</td></tr>";
       }).join("");
       return header + body;
     }).join("") || '<tr><td colspan="9" class="hist-no-row">当前条件下没有可计算的线体数据</td></tr>';
