@@ -941,12 +941,10 @@ function toggleLang() {
   if (lb) lb.addEventListener("click", toggleLang);
   applyStaticI18n();
 })();
-// 数据源自动切换: 本机/局域网打开 -> 读本地 data.json; 线上(GitHub Pages https)打开 -> 读 Firebase 云端
+// 数据源自动切换: 本机/局域网打开与线上一样读 Firebase 云端 (原本机读 data.json, 但该文件并未随项目生成→404断联, 2026-09-09 改为统一走 Firebase 实时源)
 const IS_LOCAL = location.protocol === "file:" ||
   location.hostname === "localhost" || location.hostname === "127.0.0.1";
-const DATA_URL = IS_LOCAL
-  ? "data.json"
-  : "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
+const DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
 
 // ⚙️ 主要线体配置（按此顺序显示）
 const MAIN_LINES = [
@@ -3135,7 +3133,7 @@ setInterval(function () {
   else { updatePeriodLabel(); }
 }, 1000);
 </script>
-<script src="live-data.js?v=20260903a"></script>
+<script src="live-data.js?v=20260909b"></script>
 <script>
 "use strict";
 /* ═══════════════════════════════════════════════════════════
