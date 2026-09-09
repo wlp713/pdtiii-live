@@ -3,13 +3,59 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-09 08:20:02
+   最后写入: 2026-09-09 09:10:08
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-09",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องเย็บ No2 รีเซ็ตไม่ได้หยุด 08:00-08:24",
+      "problem_zh": "2号缝纫机无法复位 08:00-08:24",
+      "plan": 141,
+      "actual": 115,
+      "impact": -26,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "08:00-09:00",
+      "problem_th": "งาน Air Gap NG Line out ทำให้งานออกไม่ต่อเนื่อง (-118) Lift หัว Line Finalตัวดันปะเต็งชำรุดแจ้งPE แก้ไข",
+      "problem_zh": "气隙异常 线路输出工作导致工作不间断 (-118) 提升线路 最终头、垫片推动器损坏，通知 PE 修复。",
+      "plan": 470,
+      "actual": 312,
+      "impact": -158,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-09",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 115,
+      "rate": 81.6
+    },
+    {
+      "date": "2026-09-09",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 312,
+      "rate": 66.4
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -499,6 +545,13 @@ window.__HISTORY__ = [
       "PRO2·A": 65.8,
       "PRO2·B": 82.1,
       "PRO2·C": 59.5
+    }
+  },
+  {
+    "date": "2026-09-09",
+    "first_hour": {
+      "RPO1·F系列": 81.6,
+      "PRO2·B": 66.4
     }
   }
 ];
