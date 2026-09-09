@@ -5,11 +5,15 @@
 (function () {
   "use strict";
 
+  var DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
+
   var mounted = false;
   var host = null;
   var data = null;
   var analyticsPromise = null;
-  var state = { shift: "day", period: -1, selectedDate: "", workshop: "", line: "", includePartial: false, matrixOpen: false };
+  var state = { shift: "day", period: "-1", selectedDate: "", workshop: "", line: "", includePartial: false, matrixOpen: false };
+  var todayPromise = null;      // 今日实时快照缓存 Promise
+  var todayLive = null;         // 今日实时 day 对象({date,lines:{...},totals,quality}) 或 null(非今日模式)
   var resizeTimer = null;
   var resizeBound = false;
 
@@ -80,20 +84,33 @@
     if (workshop) return finishedWorkshopMetric(day, workshop);
     return day.totals ? shiftMetric(day.totals) : null;
   }
+  function isTodayMode() { return state.period === "today"; }
   function usableDays() {
     if (!data || !data.days) return [];
-    var exactRetrospective = state.period === -1 && !!state.selectedDate;
+    if (isTodayMode()) {
+      // 今日实时: 用实时快照 day 对象( suspend 时 todayLive 为 null → 显示 loading/empty)
+      //   需按当前班次口径过滤: 夜班未开始时 metricFor(day) 为 null → 排除, 避免渲染层对 null 取值崩溃
+      if (!todayLive) return [];
+      return [todayLive].filter(function (day) { return !!metricFor(day, state.workshop, state.line); });
+    }
+    var exactRetrospective = state.period === "-1" && !!state.selectedDate;
     var days = data.days.filter(function (day) {
       if (exactRetrospective) return day.date === state.selectedDate;
       if (day.quality && day.quality.freshnessStatus === "stale") return false;
       return state.includePartial || qualityStatus(day) !== "partial";
     });
     if (state.selectedDate) days = days.filter(function (day) { return day.date <= state.selectedDate; });
-    if (state.period === -1 && state.selectedDate) days = days.filter(function (day) { return day.date === state.selectedDate; });
-    else if (state.period > 0) days = days.slice(-state.period);
+    var p = Number(state.period);
+    if (exactRetrospective) days = days.filter(function (day) { return day.date === state.selectedDate; });
+    else if (!isNaN(p) && p > 0) days = days.slice(-p);
     return days.filter(function (day) { return !!metricFor(day, state.workshop, state.line); });
   }
-  function periodLabel() { return state.period === -1 ? "单日" : (state.period ? state.period + "日" : "全部"); }
+  function periodLabel() {
+    if (isTodayMode()) return "今日";
+    if (state.period === "-1") return "单日";
+    var p = Number(state.period);
+    return isNaN(p) ? "全部" : (p ? p + "日" : "全部");
+  }
   function scopeLabel() {
     if (state.line) return state.line;
     if (state.workshop) return state.workshop + " 成品";
@@ -105,19 +122,20 @@
       '<section class="hist-shell" aria-labelledby="histTitle">',
       '  <div class="hist-head">',
       '    <div><h2 id="histTitle">历史产出经营分析</h2><p>从结果看趋势，从差距找到重点线体</p></div>',
-      '    <div class="hist-head-actions"><span class="hist-static"><i aria-hidden="true"></i>静态归档 · 不增加数据库流量</span><button class="hist-export" id="histExport" type="button">导出 Excel</button></div>',
+      '    <div class="hist-head-actions"><span class="hist-static" id="histSource"><i aria-hidden="true"></i>静态归档 · 不增加数据库流量</span><button class="hist-export" id="histExport" type="button">导出 Excel</button></div>',
       '  </div>',
       '  <div class="hist-controls" aria-label="历史分析筛选">',
       '    <div class="hist-control"><div class="hist-control-label" id="histWsLabel">分析层级<span class="hist-help"><button class="hist-info" type="button" aria-label="查看车间成品产量统计口径" aria-describedby="histScopeTip">?</button><span class="hist-tooltip" id="histScopeTip" role="tooltip">产出分析统一使用成品线口径：Pro.1 全部 6 条，Pro.2 为 Final A-D，Pro.3 为 Welding A-D，Pro.4 和 Pro.5 为全部线体。过程线不会重复计入成品产量。</span></span></div><select id="histWs" aria-labelledby="histWsLabel"><option value="">全厂</option></select></div>',
       '    <label for="histLine"><span>线体钻取</span><select id="histLine"><option value="">全部线体</option></select></label>',
       '    <div class="hist-shift"><span>班次口径</span><div role="group" aria-label="选择班次口径"><button type="button" data-hist-shift="day" aria-pressed="true">白班</button><button type="button" data-hist-shift="night" aria-pressed="false">夜班</button><button type="button" data-hist-shift="full" aria-pressed="false">全天</button></div></div>',
-      '    <div class="hist-period"><span>分析周期</span><div role="group" aria-label="选择历史分析周期">',
-      '      <button type="button" data-period="-1" class="on" aria-pressed="true">单日</button>',
-      '      <button type="button" data-period="7" aria-pressed="false">7日</button>',
-      '      <button type="button" data-period="14" aria-pressed="false">14日</button>',
-      '      <button type="button" data-period="30" aria-pressed="false">30日</button>',
-      '      <button type="button" data-period="0" aria-pressed="false">全部</button>',
-      '    </div></div>',
+      '    <label class="hist-period"><span>分析周期</span><select id="histPeriod">',
+      '      <option value="today">今日 · 实时</option>',
+      '      <option value="-1">单日</option>',
+      '      <option value="7">近7日</option>',
+      '      <option value="14">近14日</option>',
+      '      <option value="30">近30日</option>',
+      '      <option value="0">全部</option>',
+      '    </select></label>',
       '    <label class="hist-partial"><input id="histPartial" type="checkbox"><span>纳入部分归档</span></label>',
       '  </div>',
       '  <div class="hist-quality" id="histQuality" role="status" aria-live="polite"></div>',
@@ -156,17 +174,8 @@
       syncShiftState();
       render();
     });
-    host.querySelector(".hist-period").addEventListener("click", function (event) {
-      var button = event.target.closest("button[data-period]");
-      if (!button) return;
-      state.period = Number(button.getAttribute("data-period"));
-      if (state.period === -1 && !state.selectedDate && data.days && data.days.length) state.selectedDate = data.days[data.days.length - 1].date;
-      host.querySelectorAll("button[data-period]").forEach(function (item) {
-        var active = item === button;
-        item.classList.toggle("on", active);
-        item.setAttribute("aria-pressed", active ? "true" : "false");
-      });
-      render();
+    host.querySelector("#histPeriod").addEventListener("change", function (event) {
+      setPeriod(event.target.value);
     });
     host.querySelector("#histPartial").addEventListener("change", function (event) {
       state.includePartial = event.target.checked;
@@ -182,11 +191,204 @@
   }
 
   function syncPeriodState() {
-    host.querySelectorAll("button[data-period]").forEach(function (button) {
-      var active = Number(button.getAttribute("data-period")) === state.period;
-      button.classList.toggle("on", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
-    });
+    var sel = host.querySelector("#histPeriod");
+    if (sel) sel.value = String(state.period);
+  }
+
+  function setPeriod(value) {
+    state.period = String(value);
+    syncPeriodState();
+    // 单日档需有选中日期(默认最新归档日)
+    if (state.period === "-1" && !state.selectedDate && data && data.days && data.days.length) {
+      state.selectedDate = data.days[data.days.length - 1].date;
+    }
+    // 今日档: 始终重新拉取实时快照(与看板同步)
+    var src = host.querySelector("#histSource");
+    if (src) {
+      src.innerHTML = '<i aria-hidden="true"></i>' + (isTodayMode() ? "实时看板 · 随生产同步" : "静态归档 · 不增加数据库流量");
+    }
+    if (isTodayMode()) {
+      refreshToday();
+      return;
+    }
+    todayLive = null;
+    render();
+  }
+
+  // ── 今日实时快照(与主看板/归档同源口径, 非静态, 算当前进行中的班次进度) ──
+var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
+  // 今日实时: 直接读 Firebase 顶层 lines(与主看板同源), 逐线与看板一致。
+  //   Motor H 需手动曲线覆盖(plan/target/eff/cb), 口径与主看板相同 → 今日档 Motor H 才与看板一致。
+  //   normal/overtime: 白班进行中(<加班起点)全部记 normal, overtime=0(尚未进入加班);
+  //     已进加班段则以 hourly 差分加班量(只能拆分已发生部分, 无法预支)。
+  //   night: 今日 20:30 白班未结束前 night 为 null(该夜班尚未开始)。
+  var TODAY_DAY_END = 20 * 60 + 20;
+  var TODAY_NIGHT_START = 20 * 60 + 30;
+  var TODAY_NIGHT_END = 8 * 60;             // 凌晨 0-8 属前一夜班, 不作为"今日"夜班
+  var H_MANUAL_TARGET = 1800;
+  var OT_DAY_START = 17 * 60 + 20;          // 1040
+  var OT_NIGHT_START = 5 * 60 + 50 + 1440;  // 1790 跨天基准
+  // 今日档手工目标段表(与桌面 index.html DAY_SEGS/NIGHT_SEGS 一致)
+  var TODAY_DAY_SEGS = [[480,540],[540,600],[610,660],[660,720],[780,840],[840,900],[910,960],[960,1020],[1040,1100],[1100,1160],[1160,1220]];
+  var TODAY_NIGHT_SEGS = [[1230,1290],[1290,1350],[1360,1410],[1410,1470],[1530,1590],[1590,1650],[1650,1710],[1710,1770],[1770,1830],[1830,1910]];
+  function _isManualHLine(name) {
+    var m = String(name || "").toLowerCase().replace(/[^a-z0-9-]/g, "");
+    // 两种写法都判(motorhseries / motorh-series)
+    return m.replace(/-/g, "") === "motorhseries";
+  }
+  function _hManualNormalMins(shift) {
+    var table = shift === "night" ? TODAY_NIGHT_SEGS : TODAY_DAY_SEGS;
+    var otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
+    var m = 0;
+    for (var i = 0; i < table.length; i++) { if (table[i][0] >= otStart) break; m += Math.min(table[i][1], otStart) - table[i][0]; }
+    return m;
+  }
+  function _hManualPlanAt(shift, t) {
+    var table = shift === "night" ? TODAY_NIGHT_SEGS : TODAY_DAY_SEGS;
+    var otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
+    var nm = _hManualNormalMins(shift) || 1;
+    var pace = H_MANUAL_TARGET / nm;
+    var cum = 0;
+    for (var i = 0; i < table.length; i++) { if (table[i][0] >= otStart) break; var nEnd = Math.min(t, table[i][1], otStart); if (nEnd > table[i][0]) cum += (nEnd - table[i][0]) * pace; }
+    var ot = 0;
+    for (var i = 0; i < table.length; i++) { if (table[i][1] <= otStart) continue; if (table[i][0] >= t) break; var oEnd = Math.min(t, table[i][1]); var oStart = Math.max(table[i][0], otStart); if (oEnd > oStart) ot += (oEnd - oStart) * pace; }
+    return Math.round(cum + ot);
+  }
+  // 当前泰国(UTC+7)班次日分钟: 夜班跨天时>1440
+  function _todayNowMins() {
+    var now = new Date(Date.now() + 7 * 3600 * 1000);
+    var m = now.getUTCHours() * 60 + now.getUTCMinutes();
+    return m < TODAY_NIGHT_END ? m + 1440 : m; // 凌晨0-8归前一夜班(跨天基准)
+  }
+  function _todayShift() {
+    // 当前进行中的班次: 白班 480-1230; 夜班(当前日历) 1230 起 或 凌晨[0,480)(前一夜间段)
+    var m = _todayNowMins() < 1440 ? _todayNowMins() : _todayNowMins() - 1440;
+    if (m >= TODAY_DAY_START_ACTUAL && m < TODAY_NIGHT_START) return "day";
+    return "night";
+  }
+  function _todayBkkDate() {
+    var now = new Date(Date.now() + 7 * 3600 * 1000);
+    var m = now.getUTCHours() * 60 + now.getUTCMinutes();
+    // 凌晨0-8归前一天(夜班归属前一生产日), 与生产日口径一致
+    var d = new Date(Date.now() + 7 * 3600 * 1000);
+    if (m < TODAY_NIGHT_END) d = new Date(d.getTime() - 24 * 3600 * 1000);
+    return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") + "-" + String(d.getUTCDate()).padStart(2, "0");
+  }
+  function _normLine(name) { return String(name || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+  // hourly 桶 h → 班次日分钟(对齐归档 hour_to_minute): h<60 旧格式(h*60); 否则 HHMM≈(h//100)*60+h%100
+  function _h2m(h) {
+    var v = Number(h); if (!isFinite(v)) return null;
+    if (v < 60) return v * 60;
+    return (Math.floor(v / 100)) * 60 + (v % 100);
+  }
+  function _todayOvertimeFromHourly(hourly, line, shift, nowMins) {
+    // 用 hourly 桶差分拆分当前班次的加班产出:
+    //   overtime = 当前末桶累计(该线今日) - 该班次到加班起点(白班17:20/夜班5:50)的累计。
+    //   仅当已进加班段才有加班量; 未到加班段返回 0。缺桶/异常返回 0(不拆, 全计 normal)。
+    if (!hourly) return 0;
+    var norm = _normLine(line);
+    var arr = null;
+    for (var k in hourly) { if (_normLine(k) === norm) { arr = hourly[k]; break; } }
+    if (!Array.isArray(arr) || !arr.length) return 0;
+    var dayShift = shift === "night";
+    var otStart = dayShift ? OT_NIGHT_START % 1440 : OT_DAY_START;   // 夜班 5:50 / 白班 17:20 (分钟制)
+    var pts = arr.map(function (b) { var m = _h2m(b && b.h); return { m: m, a: Number(b && b.actual) || 0, p: Number(b && b.plan) || 0 }; }).filter(function (p) { return p.m !== null && isFinite(p.m); }).sort(function (a, b) { return a.m - b.m; });
+    if (!pts.length) return 0;
+    // 只认当前班次的桶: 白班 h∈[480, 1220]; 夜班 h>=1230 或 凌晨<480(凌晨归前一夜, 今日夜班只有20:30后)
+    var inW = dayShift
+      ? pts.filter(function (p) { return p.m >= 1230 || p.m < 480; })
+      : pts.filter(function (p) { return p.m >= 480 && p.m <= 1220; });
+    if (!inW.length) return 0;
+    var lastInW = inW[inW.length - 1];
+    var lastA = lastInW.a, lastM = lastInW.m;
+    // 到加班起点的累计 = 加班起点前最近桶
+    var cut = null;
+    for (var i = inW.length - 1; i >= 0; i--) { if (inW[i].m <= otStart + (dayShift ? 0 : (lastM < 480 ? -480 : 0))) { cut = inW[i]; break; } }
+    // 夜班 cut 只在凌晨段才有; 白班 cut 在 17:20 前
+    if (!cut) {
+      if (dayShift) return 0;                                   // 白班未到17:20→无加班
+      // 夜班: 若还没到凌晨5:50 窗口, 今日夜班刚开始(20:30后, <5:50) → 无加班
+      return 0;
+    }
+    var ot = Math.max(0, Math.round(lastA - cut.a));
+    // 白班: 仅当当前已过 17:20 (nowMins>=OT_DAY_START) 才可能有加班; 夜班: only 凌晨段(lastM<480)
+    if (dayShift && nowMins < OT_DAY_START) return 0;
+    if (!dayShift && lastM >= 480) return 0;
+    return ot;
+  }
+  var TODAY_DAY_START_ACTUAL = 8 * 60;       // 480 白班起点
+  var TODAY_END_WRAP = 24 * 60 + 8 * 60;     // 上限(夜班凌晨段基准封顶)
+  var _todaySeq = 0;
+  function refreshToday() {
+    if (!data || !host) return;
+    var seq = ++_todaySeq;
+    var qEl = host.querySelector("#histQuality"); if (qEl) qEl.className = "hist-quality is-loading";
+    var scopes = data.finishedProductLines || data.workshops || {};
+    // 与看板一致: 逐线读 d.lines(原始名), 再按 finishedProductLines 归车间
+    fetch(DATA_URL, { cache: "no-cache", signal: AbortSignal.timeout(15000) })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (payload) {
+        if (seq !== _todaySeq) return;
+        var raw = payload.lines || [];
+        var byNorm = {};
+        raw.forEach(function (l) { if (l && l.name) byNorm[_normLine(l.name)] = l; });
+        var nowMins = _todayNowMins();
+        var shift = _todayShift();
+        var lines = {};
+        // 遍历成品车间配置的线名(原始名), 从 d.lines 取当前累计
+        Object.keys(scopes).forEach(function (ws) {
+          (scopes[ws] || []).forEach(function (lineName) {
+            var l = byNorm[_normLine(lineName)];
+            if (!l) return;
+            var actual = Number(l.actual) || 0;
+            var plan = Number(l.plan) || 0;
+            var eff = l.eff != null ? Number(l.eff) : (plan > 0 ? Number((actual / plan * 100).toFixed(1)) : null);
+            var target = l.target != null ? Number(l.target) : null;
+            var isH = _isManualHLine(lineName);
+            if (isH) { // 手工曲线覆盖(与看板同口径)
+              var sc = _todaySegFor(nowMins);
+              var mp = _hManualPlanAt(sc.shift, sc.isNightAndEarlyMorn ? nowMins + 1440 : nowMins);
+              target = H_MANUAL_TARGET; plan = mp;
+              eff = mp > 0 ? Number((actual / mp * 100).toFixed(1)) : null;
+            }
+            var dayMetric, nightMetric = null;
+            if (shift === "day") {
+              var ot = _todayOvertimeFromHourly(payload.hourly, lineName, "day", nowMins);
+              var normal = actual - ot;
+              dayMetric = { normal: Math.round(normal), overtime: Math.round(ot), total: Math.round(actual), plan: plan, attainment: eff, target: target, eff: eff };
+            } else { // night 当前
+              var otN = _todayOvertimeFromHourly(payload.hourly, lineName, "night", nowMins);
+              var normalN = actual - otN;
+              nightMetric = { normal: Math.round(normalN), overtime: Math.round(otN), total: Math.round(actual), plan: plan, attainment: eff, target: target, eff: eff };
+            }
+            lines[lineName] = { day: dayMetric, night: nightMetric };
+          });
+        });
+        function mkMetric(items) { var n = 0, o = 0, p = 0; Object.keys(items).forEach(function (k) { var v = items[k]; ["day", "night"].forEach(function (s) { var m = v[s]; if (!m) return; n += m.normal; o += m.overtime; p += m.plan; }); }); return { normal: n, overtime: o, total: n + o, plan: p, attainment: p > 0 ? Number((n / p * 100).toFixed(1)) : null, target: null, eff: null }; }
+        var totals = { day: { normal: 0, overtime: 0, total: Object.keys(lines).reduce(function (s, k) { var d = lines[k].day; return s + (d ? d.total : 0); }, 0), plan: 0, attainment: null, target: null, eff: null }, night: null };
+        // 重算 totals day(逐线 day 汇总)
+        var tn = 0, to = 0, tp = 0; Object.keys(lines).forEach(function (k) { var d = lines[k].day; if (d) { tn += d.normal; to += d.overtime; tp += d.plan; } });
+        totals.day = { normal: tn, overtime: to, total: tn + to, plan: tp, attainment: tp > 0 ? Number((tn / tp * 100).toFixed(1)) : null, target: null, eff: null };
+        todayLive = {
+          date: _todayBkkDate(),
+          lines: lines, totals: totals,
+          quality: { dayStatus: shift === "day" ? "complete" : "partial", nightStatus: shift === "night" ? "complete" : "partial", freshnessStatus: "" },
+          snapshotAt: new Date().toISOString().slice(0, 19).replace("T", " ")
+        };
+        var q = host.querySelector("#histQuality"); if (q) q.className = "hist-quality";
+        render();
+      })
+      .catch(function (e) {
+        if (seq !== _todaySeq) return;
+        todayLive = null;
+        var q = host.querySelector("#histQuality"); if (q) q.className = "hist-quality";
+        showError("今日实时加载失败：" + (e && e.message ? e.message : "未知错误"), "history/analytics.json");
+      });
+  }
+  function _todaySegFor() {
+    var m = _todayNowMins();
+    var early = m >= 1440 && (m - 1440) < TODAY_NIGHT_END; // 凌晨0-8(夜班跨天后半段)
+    return { shift: _todayShift(), isNightAndEarlyMorn: early, nowMins: m };
   }
 
   function syncShiftState() {
@@ -297,6 +499,14 @@
     var staleDays = data.quality && data.quality.staleDays ? data.quality.staleDays : 0;
     var selectedText = days.length ? days[0].date + " → " + days[days.length - 1].date : "无可用日期";
     var anchorDay = state.selectedDate ? (data.days || []).find(function (day) { return day.date === state.selectedDate; }) : null;
+    if (isTodayMode()) {
+      // 今日实时: 明确标注实时快照, 含更新时间
+      var snap = todayLive && todayLive.snapshotAt ? String(todayLive.snapshotAt).substring(11, 16) : "";
+      host.querySelector("#histQuality").innerHTML = '<span class="hist-q-label">' + esc(shiftLabel()) + " · " + esc(scopeLabel()) + '</span>' +
+        '<span class="hist-q good">今日实时</span>' +
+        '<span class="hist-q-range is-caution">数据取自实时看板 · ' + (snap ? "更新 " + esc(snap) : "正在同步") + " · 与生产看板一致</span>";
+      return;
+    }
     var anchorQuality = anchorDay && anchorDay.quality ? anchorDay.quality : null;
     var anchorStatus = qualityStatus(anchorDay);
     var anchorNote = anchorDay && anchorQuality && anchorQuality.freshnessStatus === "stale" ? " · 过期源" : (anchorDay && anchorStatus === "partial" ? " · 部分归档" : "");
@@ -312,7 +522,7 @@
     var delta = previousDelta(days);
     var risk = rows.filter(function (row) { return row.attainment !== null && row.attainment < 90; }).length;
     var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
-    var singleDay = state.period === -1;
+    var singleDay = state.period === "-1" || isTodayMode();
     var outputLabel = singleDay ? "当日产出" : "周期总产出";
     if (state.workshop && !state.line) outputLabel = singleDay ? "当日成品产量" : "周期成品产量";
     if (state.line) outputLabel = singleDay ? "当日线体产出" : "周期线体产出";
@@ -648,19 +858,10 @@
     loadAnalytics(url)
       .then(function (payload) {
         data = payload;
-        if (!state.selectedDate && data.days && data.days.length) {
-          // 默认选中“当日”(泰国时间)：取数据里 <= 今天 的最近一天；今天未归档则顺延到最近可用日
-          var thaiToday = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
-          var target = "";
-          for (var i = data.days.length - 1; i >= 0; i--) {
-            if (String(data.days[i].date) <= thaiToday) { target = data.days[i].date; break; }
-          }
-          if (!target) target = data.days[data.days.length - 1].date;
-          state.selectedDate = target;
-        }
         buildShell();
         populateFilters();
-        render();
+        // 默认今日实时档(开页即同步看板); 进不了今日(加载失败)时落到最新归档日单日
+        setPeriod("today");
       })
       .catch(function (error) { showError("加载失败：" + (error && error.message ? error.message : "未知错误"), url); });
     if (!resizeBound) {
@@ -681,7 +882,7 @@
 
   function setDate(date) {
     state.selectedDate = date || "";
-    state.period = state.selectedDate ? -1 : 7;
+    state.period = state.selectedDate ? "-1" : "7";
     syncPeriodState();
     render();
   }
