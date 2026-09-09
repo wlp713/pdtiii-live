@@ -1977,6 +1977,11 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         // 加班段且该段无达成量: 铺一层金色浅底以示仍在加班窗口
         ctx.fillStyle = "rgba(240,169,58,.30)";
         ctx.fillRect(cx, yAcc, bw, perH);
+      } else if (!s.live && key === "actual" && v === 0 && s.plan > 0) {
+        // ★ 2026-09-09: 已过时段实际=0 且目标>0 → 画 2px 蓝色底线标记"该时段实际为0"
+        //   避免完全不可见/像柱子消失 (Motor WL/Inspection/C-Shaft 等未报实际的线)
+        ctx.fillStyle = "#3d8fe4";
+        ctx.fillRect(cx, yAcc + perH - 2, bw, 2);
       }
       // ★ 分割线: 段边界 (v5.40: 用户要求加粗, 1px→2px)
       ctx.fillStyle = "#000000";
