@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-09 09:20:11
+   最后写入: 2026-09-09 10:10:08
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -37,14 +37,14 @@ window.__LIVE_DATA__ = {
     {
       "date": "2026-09-09",
       "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "08:00-09:00",
-      "problem_th": "เปลี่ยนรุ่น1ครั้ง-45 รุ่น C05 งานรั่ว DV เครื่องเช็คซ้ำบ่อย",
-      "problem_zh": "更换型号 1 次 - 45 型号 C05，漏水工作，DV，机器经常重新检查。",
-      "plan": 444,
-      "actual": 349,
-      "impact": -95,
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "09:00-10:00",
+      "problem_th": "งาน Air Gap NG Line out ทำให้งานออกไม่ต่อเนื่อง(-80) เครื่อง TDC ไม่อ่านค่า",
+      "problem_zh": "Air Gap NG Line out work 导致工作连续释放（-80），TDC 机器不读取该值。",
+      "plan": 470,
+      "actual": 352,
+      "impact": -118,
       "shift": "day"
     }
   ],
@@ -67,15 +67,6 @@ window.__LIVE_DATA__ = {
       "target": 470,
       "actual": 312,
       "rate": 66.4
-    },
-    {
-      "date": "2026-09-09",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "target": 444,
-      "actual": 349,
-      "rate": 78.6
     }
   ]
 };
@@ -573,8 +564,7 @@ window.__HISTORY__ = [
     "date": "2026-09-09",
     "first_hour": {
       "RPO1·F系列": 81.6,
-      "PRO2·B": 66.4,
-      "PRO2·C": 78.6
+      "PRO2·B": 66.4
     }
   }
 ];
