@@ -840,7 +840,7 @@ const I18N = {
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", kpiWsRunFmt: "车间 {n} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
-    noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", setPeople: "设人数",
+    noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", nightBase: "前半夜", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
     shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
     useHttp: "⚠️ 请用 http://localhost:8080 打开",
@@ -888,7 +888,7 @@ const I18N = {
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
     kpiRunSubFmt: "Main {m} · Total {a}", kpiWsRunFmt: "WS {n} · Total {a}", noHit: "None ≥90%",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
-    noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", setPeople: "Set HC",
+    noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", nightBase: "Pre-mid", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
     shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
     useHttp: "⚠️ Open via http://localhost:8080",
@@ -1770,14 +1770,24 @@ function valueAt(name, t, usePlan, dayOff) {
   //   修复: 段计算一律只认 state.hourly(Firebase 快照桶, 全浏览器同一份), 不再读采样。
   const snaps = hourlyArrOf(name) || [];
   if (snaps.length) {
+    // ★ 2026-09-10 彻底修复: 桶排序基准。快照桶的 snapMins 是「日历日绝对分钟」
+    //   (今天凌晨 00:30=30 … 07:50=470; 若昨日前半夜桶也在, 则 20:30=1230 … 23:30=1410)。
+    //   旧逻辑直接把日历分钟排序 → 数值序 [30..470, 1230..1410], 后半夜桶(min小)排到前半夜桶(min大)_之前_,
+    //   与真实时间顺序(前半夜 昨天 → 后半夜 今天)恰好颠倒。夜班凌晨查询 t 是「班次日分钟」
+    //   (1230..1910): 后半夜边界 t=1910 时, 代码把下一个更大的桶(前半夜 1230, 值更低)当成"换班后"
+    //   触发清零外推 → 返回 0, 段差分错乱。
+    //   修复: dayOff=-1(凌晨夜班)时, 把桶的日历分钟归一化回「班次日分钟」再排序:
+    //     今天凌晨 [0, NIGHT_END) 桶 → +1440 ; 昨日前半夜 [1230,1440) 桶 → 原值
+    //   排序后即真实班次时间序 [1230..1410, 1470(=00:30)..1910(=07:50)], 查询边界 t(班次日分钟)直接比较。
+    const post = (dayOff === -1);
     const pts = [];
     for (const sn of snaps) {
-      pts.push({ m: snapMins(sn), v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
+      let m = snapMins(sn);
+      if (post && m < NIGHT_END) m += 1440; // 凌晨桶 → 班次日后半夜
+      pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
     }
     pts.sort(function (a, b) { return a.m - b.m; });
-    // ★ v5.30: 桶的 snapMins 是快照所在日历日绝对分钟; 凌晨夜班查询(t≥1440, dayOff=-1)
-    //   换算成本日绝对分钟再比较 (t=1470 → 30, 匹配 00:30 桶); 其余路径 tAbs=t 与原逻辑完全一致
-    const tAbs = (dayOff === -1 && t >= 1440) ? t - 1440 : t;
+    const tAbs = t; // 查询边界一律用班次日分钟 (day 同制: t 本身就是当天0点基准分钟)
     let lo = null, hi = null, hiNext = null;
     for (let i = 0; i < pts.length; i++) {
       if (pts[i].m <= tAbs) lo = pts[i];
@@ -1827,7 +1837,33 @@ function segsOf(name, curActual, curPlan) {
   //   (前半夜段=昨天, 后半夜段=今天凌晨), 采样按班次日过滤天然匹配, 与 20:30-24:00 显示口径一致。
   const postMid = isNight && nowMins < NIGHT_END;
   const cmpMins = postMid ? nowMins + 24 * 60 : nowMins;
-  for (let k = 0; k < table.length; k++) {
+  // ★ 2026-09-10 彻底修复: 凌晨夜班窗口(0:00-8:00)下, 前半夜(20:30-00:30)各段边界 t∈[1230,1470]
+  //   经 dayOff=-1 查按时 t<1440 → tAbs=t, 本应匹配 前一天 20:30/21:30/22:40/23:30 的桶(h=2030..2400)。
+  //   若数据端未保留前一天的这些前半夜桶(跨日/重启后只余当天后半夜桶 min≤470),
+  //   valueAt 会把"最近的后半夜桶(07:50 整夜累计)"当成 20:30/23:30 的值 →
+  //   seg1=整夜累计(巨柱)、seg2/3=0、seg4=剩余(负差兜底) → 分段柱子错乱(夜班凌晨必现)。
+  //   检测该线是否存在 前半夜区间 [1230,1440) 的桶: 无 → 前4段边界全部不可解析,
+  //   折叠成一根「前半夜」灰底基准段(值=00:30 累计=前半夜整段产量/目标), 其余段(seg5起)正常。
+  //   有两半夜桶(正常) → 完全不受影响, 仍输出完整10段。
+  let firstIdx = 0;
+  if (postMid) {
+    const preArr = hourlyArrOf(name);
+    let hasPreMid = false;
+    if (Array.isArray(preArr)) {
+      for (const _sn of preArr) {
+        const _m = snapMins(_sn);
+        if (_m >= 1230 && _m < 1440) { hasPreMid = true; break; }
+      }
+    }
+    if (!hasPreMid) {
+      const bA = Math.max(0, valueAt(name, 1470, false, -1)); // 00:30 累计实际 = 前半夜整段产量
+      const bP = Math.max(0, valueAt(name, 1470, true, -1));  // 00:30 累计目标
+      segs.push({ h: 1470 / 60, lab: null, live: false, base: true, nightBase: true, pm: false,
+        actual: bA, plan: bP, t0: NIGHT_START, t1: 1470, ot: false });
+      firstIdx = 4; // 跳过已折叠的 seg1-4
+    }
+  }
+  for (let k = firstIdx; k < table.length; k++) {
     const t0 = table[k][0], t1 = table[k][1];
     if (t0 >= cmpMins || t0 >= endCap) break;   // 未开始的时段不画
     // ★ 2026-08-31 v5.26/v5.27 开班清零: 每班第一段的起点(8:00/20:30)目标与实际一律为 0
@@ -1995,8 +2031,8 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       const fBig = perH >= 26 ? 10 : perH >= 20 ? 9 : perH >= 15 ? 8 : perH >= 11 ? 7.5 : 7;
       const fSml = Math.max(6.5, fBig - 1);
       if (s.base || s.pm) {
-        // 上午/下午累计段: 灰底 + "上午"/"下午"标签 + 数值
-        const lbl = s.pm ? t("pm") : t("am");
+        // 上午/下午/前半夜 累计段: 灰底 + 标签 + 数值
+        const lbl = s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am"));
         if (perH >= 14) {
           ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
           ctx.fillText(lbl, cx + bw / 2, yAcc + perH / 2 - 3);
