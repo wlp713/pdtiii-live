@@ -45,6 +45,8 @@ jobs:
         run: python3 scripts/archive_daily.py --shift "${{ inputs.shift || 'auto' }}"
       - name: Validate history analytics
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Rebuild analytics index
+        run: python3 scripts/history_analytics.py
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
