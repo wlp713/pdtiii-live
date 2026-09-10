@@ -3,7 +3,7 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-10 12:00:30
+   最后写入: 2026-09-10 13:10:13
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
@@ -84,6 +84,32 @@ window.__LIVE_DATA__ = {
       "plan": 430,
       "actual": 297,
       "impact": -133,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่องเช็ค KV Alarm บ่อยเช็คซ้ำ ยกลง 8 set (-35) DV Leak line out 10 set",
+      "problem_zh": "KV 报警机频繁检查、双重检查、升降 8 套 (-35) DV 泄漏线输出 10 套",
+      "plan": 360,
+      "actual": 290,
+      "impact": -70,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "11:00-12:00",
+      "problem_th": "งานติด Air gap เช็คยาก",
+      "problem_zh": "气隙工作很难检查。",
+      "plan": 430,
+      "actual": 394,
+      "impact": -36,
       "shift": "day"
     },
     {
