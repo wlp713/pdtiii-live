@@ -1,0 +1,62 @@
+# 给【数据端设备（Wanlipeng）】龙虾的首小时归档补充指令
+
+## 背景与目标
+生产看板手机端新增了「线体分析页 · 首小时达成趋势」，但目前 `live-data.js` 里的
+`first_hour` 历史只有零部件/Pro 车间的线（RPO1·F/S、PRO2·A/B/C），**主装配线
+（Final A/B/C/D、Motor H/S/F/WL）一条都没有**，所以手机上点主装配线的线体时显示
+「暂无首小时历史」，体验是缺失的。
+
+你要做的是：**让你这台机器生成 live-data.js 的工具脚本，把主装配线的首小时达成率
+也一起写进 `first_hour`（历史 + 当天）。**
+
+## 红线（绝对遵守，宁可不做不可破坏，沿用上一版）
+1. **绝不改 `sync_db.py` 取数主逻辑**、段边界桶（29个）、已有取数 cron 一行。
+2. 只**新增**/补充，不删、不覆盖已有 first_hour 条目。
+3. live-data.js 头注释「由 tools/ 下脚本写入」——你只改**生成脚本**，不要手工改 live-data.js。
+4. 不要为了补历史而制造脏数据：主装配线当天首小时为 0（数据未推）的，**不写**（沿用 rate>0 才写）。
+
+## 主装配线首小时达成率算法（与求零部件/Pro 首小时同源，统一口径）
+首小时 = 段1。边界（BKK 泰国时间，分钟制当天0点基准）：
+- 白班 [480, 540) 8:00-9:00
+- 夜班 [1230, 1290) 20:30-21:30
+
+数据源已在你机器 Firebase 的 `hourly` 桶（每10分钟，键 `h`=分钟、含 `actual`/`plan`，是累计值）：
+- 取该线 `hourly` 中 `h` 落在首小时区间内**最接近首小时末**的那个桶（白班最接近 540，夜班最接近 1290）
+- 开班清零：段1 actual = 该桶 actual（开班为0累计，首小时段不用减前值）
+- 达成率 = actual / plan × 100，保留 **1 位小数**
+- actual 为 0（数据未推到）→ 该线首小时**不写**快照
+
+主装配线清单（历史 key 用 live-data/看板里的原名，如 "Motor H-Series"、"Final A line"）：
+`Motor H-Series` `Motor S-Series` `Motor F-Series` `Motor WL`
+`Final A line` `Final B Line` `Final C line` `Final D line`
+
+## first_hour 结构（沿用现有格式，追加你算出的主装配线条目）
+```json
+"first_hour": [
+  { "date": "2026-09-09", "ws": "RPO1", "series": "F系列", "line": "RPO1·F系列", "target": 141, "actual": 115, "rate": 81.6 },
+  ···现有条目保持不动···
+  { "date": "2026-09-09", "ws": "Final", "series": "", "line": "Motor H-Series", "target": 1293, "actual": 1167, "rate": 90.3 }
+]
+```
+新条目的 `ws` 建议：
+- Final 线 → `"Final"`；Motor 线 → `"Motor"`（series 可空字符串）。
+- `target`/`actual` 填该首小时桶的 plan/actual。
+
+## `__HISTORY__[].first_hour`（跨天趋势）
+除当天的 `__LIVE_DATA__.first_hour` 外，`__HISTORY__` 里每项的 `first_hour: {线名: rate}` 也请对主装配线**按天追加**（每天一个 key=线名，value=达成率%）。历史缺失的天补不上就不补，**从今天起每天有即可**，别造假历史。已有 RPO1/PRO2 的 first_hour 保持不动。
+
+## 生成脚本改动点建议（你现场看真实脚本后裁定）
+你机器上生成 live-data.js 的脚本（可能在 tools/ 下）里，找到构造 `first_hour` / `__HISTORY__` first_hour 的地方，加入：
+1. 一个「主装配线首小时快照」函数：入参 Firebase `hourly` + 当天日期 → 输出上表格式条目。
+2. 把主装配线条目 merge 进 `__LIVE_DATA__.first_hour` 数组（与现有 RPO1/PRO2 一起排序，按 rate 降序不重要，合并即可）。
+3. 把主装配线 rate 按 `{线名: rate}` 追加进 `__HISTORY__` 当天那条的 `first_hour` 对象。
+4. 该线首小时 actual=0 则跳过该线（不写）。
+
+## 验证清单（做完必须自证）
+1. 跑生成脚本后，`live-data.js` 的 `__LIVE_DATA__.first_hour` 里**主装配线条目出现**（至少含非0 actual 的线）。
+2. `__HISTORY__` 当天那条的 `first_hour` 含 `Motor H-Series`（或当天有数据的 Final 线）等主装配线 key。
+3. 已推送 `live-data.js`（数据端能 push 就 push；若你机器无 push 凭据，用 git commit，由开发机抓取）。
+4. 手机端强刷新后：线体分析页点主装配线 → 首小时趋势不再显示「暂无首小时历史」，出现该线趋势图。
+
+## 回报模板
+「✅ 主装配线首小时已接入 live-data.js 生成脚本：〔改动点〕。当天样例：〔贴一条 Motor/Final 首小时条目〕。__HISTORY__ 是否含主装配线：〔是/否〕。验证：〔缺1条都没过〕。已 push？〔能/不能〕。」
