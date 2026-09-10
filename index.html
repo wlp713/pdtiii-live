@@ -1221,10 +1221,10 @@ function renderTable() {
           `<td class="uph-cell">${uphTxt(l, now)}</td>`;
         frag.appendChild(tr);
       });
-      // 移除不再显示的旧行(留在 tb 里但不在 view 集合)
+      // 移除不再显示的旧行(留在 tb 里但不在 view 集合) — ★2026-09-10: !k(无 data-line 的 PRO2R 残留/subhead)也删, 修复切车间不刷新
       Array.from(tb.rows).forEach(function (tr) {
         const k = tr.getAttribute("data-line");
-        if (k && !keepKeys.has(k)) tr.remove();
+        if (!k || !keepKeys.has(k)) tr.remove();
       });
       // 空提示行也要清掉(有数据时)
       Array.from(tb.querySelectorAll(".ws-empty-hint")).forEach(function (td) {
@@ -1335,7 +1335,7 @@ function renderKPIs(view) {
   const setCls = (el, c) => { if (el && el.className !== c) el.className = c; };
   // ★ 改动B: PRO2 只算 Final 成品线(Rotor 前道线整组排除) — 其它车间全部线体照旧
   const bLines = raw.filter(l => !(wsSel === "PRO2R" && !FINAL_SET.has(normName(l.name))));
-  const eligLines = bLines.filter(l => !isStoppedRun(l)); // ★ 改动C: 停线(计划停机/停滞/约30min无产出)剔除综合达成率+计划
+  const eligLines = bLines.filter(l => (Number(l.actual)||0) > 0); // ★ 改动C(2026-09-10): actual=0=没生产 → 剔除综合达成率+WS Plan(简单粗暴, 按用户要求不再用 isStoppedRun)
   const running = bLines.filter(l => l.status === "RUNNING" || l.status === "运行");
   setTxt(document.getElementById("kpiRun"), running.length);
   // ★ 2026-09-04: 车间模式下副标题改为车间 n 条·全部 a 条 (默认=主要 m 条·全部 a 条)
@@ -1370,8 +1370,10 @@ function renderKPIs(view) {
     setTxt(document.getElementById("kpiFinal"), cumSum ? fmt(cumSum) : "-");
     setTxt(document.getElementById("kpiMotor"), planSum ? fmt(planSum) : "-");
   } else {
-    const totalFinal = lines.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
-    const totalMotor = lines.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+    // ★ 2026-09-10 改动C: 默认(非车间)视图 KPI 总览同样剔除 actual=0 未生产线(不纳入产出/计划)
+    const eligAll = lines.filter(l => (Number(l.actual)||0) > 0);
+    const totalFinal = eligAll.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+    const totalMotor = eligAll.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
     setTxt(document.getElementById("kpiFinalLbl"), t("kpiFinal"));
     setTxt(document.getElementById("kpiFinalSub"), t("kpiFinalSub"));
     setTxt(document.getElementById("kpiMotorLbl"), t("kpiMotor"));
