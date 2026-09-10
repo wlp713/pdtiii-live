@@ -525,16 +525,6 @@
   .modal-close:hover { color: var(--white); border-color: #3d444d; }
   .modal-body { padding: 10px 16px 14px; overflow-y: auto; }
   .modal-lg { width: min(1500px, 97vw); }
-  .hist-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
-  .hist-section { min-width: 0; }
-  .hist-section h4 { font-size: 13px; color: var(--white); font-weight: 700; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .hist-scroll { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-  .hist-table { font-size: 11.5px; width: 100%; }
-  .hist-table th { background: var(--panel2); }
-  .hist-table td, .hist-table th { padding: 6px 8px; }
-  .hist-table tr:hover td { background: var(--panel2); }
-  .hist-table .champ { color: var(--orange); font-weight: 700; }
-  .hist-table .lastp { color: var(--red); font-weight: 700; }
   .vs-up { color: var(--green); font-weight: 600; }
   .vs-down { color: var(--red); font-weight: 600; }
   .vs-flat { color: var(--gray); }
@@ -577,7 +567,6 @@
     <button class="btn" id="langBtn" title="Switch language">EN</button>
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
-    <button class="btn" id="histBtn" data-i18n="histBtn">📊 历史统计</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
@@ -715,62 +704,6 @@
 
 <!-- 2026-09-03: 其他线体弹窗已移除 — 改为标题栏 PRO1~PRO6 车间按钮, 点击后主表/人数表按车间过滤 -->
 
-<!-- 历史统计模态 -->
-<div class="modal-overlay" id="histModal">
-  <div class="modal modal-lg">
-    <div class="modal-head">
-      <h3 data-i18n="histTitle">📊 历史统计 · 周/月对比 · 站擂排名</h3>
-      <button class="modal-close" id="histClose">✕</button>
-    </div>
-    <div class="modal-body">
-      <!-- ★ 2026-08-20 16:20 日期回看: 按年/月/日推移, 回看任意历史日期的全量看板 (产量/UPH/达成率/问题点/出勤) -->
-      <div class="hist-replay" style="background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <b style="font-size:12px" data-i18n="histReplayTitle">📅 历史日期回看</b>
-          <input type="date" id="histDatePick" style="background:var(--panel);border:1px solid var(--border);color:var(--white);border-radius:6px;padding:3px 8px;font-size:12px">
-          <button class="btn" id="histLoadBtn" style="padding:2px 12px;font-size:11px" data-i18n="histLoad">加载</button>
-          <span id="histReplayStatus" style="font-size:11px;color:var(--gray)"></span>
-          <span style="margin-left:auto;font-size:10px;color:var(--gray)" data-i18n="histReplayHint">快照每日17:00自动归档 → history/日期.json</span>
-        </div>
-        <div id="histReplayBody" style="margin-top:6px;display:none"></div>
-      </div>
-      <div class="hist-grid">
-      <div class="hist-section">
-        <h4 data-i18n="histToday">📌 今日实时</h4>
-        <div class="hist-scroll">
-          <table class="hist-table" id="histTodayTbl">
-            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thUpphRate">UPPH达成%</th><th data-i18n="thScore">综合分</th><th data-i18n="thRank">今日排名</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="hist-section">
-        <h4 id="histWeekTitle">🗓 本周 vs 上周</h4>
-        <div class="hist-scroll">
-          <table class="hist-table" id="histWeekTbl">
-            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thWeekRate">周均达成%</th><th data-i18n="thWeekUpph">周均UPPH%</th><th data-i18n="thWeekVsPrev">vs 上周</th><th data-i18n="thChamp">🏆 站擂第一</th><th data-i18n="thLast">🔻 末位</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="hist-section">
-        <h4 id="histMonthTitle">📅 本月 vs 上月</h4>
-        <div class="hist-scroll">
-          <table class="hist-table" id="histMonthTbl">
-            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thMonthRate">月均达成%</th><th data-i18n="thMonthUpph">月均UPPH%</th><th data-i18n="thMonthVsPrev">vs 上月</th><th data-i18n="thChamp">🏆 站擂第一</th><th data-i18n="thLast">🔻 末位</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      </div>
-      <!-- ★ 2026-08-25: 首小时达成 (8-9点) — 历史记录/趋势/排名, 数据来自 live-data.js first_hour (每10分钟同步) -->
-      <div class="hist-section" style="grid-column:1/-1;margin-top:14px">
-        <h4 id="histFirstHourTitle">⏰ 首小时达成 (8-9点) · 历史 / 趋势 / 排名</h4>
-        <div id="histFirstHourBody"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- 编辑人数模态 -->
 <div class="modal-overlay" id="headModal">
@@ -848,8 +781,6 @@ const I18N = {
     connOk: "已连接 · 数据实时", connDelay: "数据延迟 {s}s", connDown: "数据断线 {m}min", connNoData: "无数据",
     connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})",
     restPause: "休息时段暂停刷新", connRestPause: "休息暂停刷新",
-    histBtn: "📊 历史统计", histTitle: "📊 历史统计 · 周/月对比 · 站擂排名",
-    histReplayTitle: "📅 历史日期回看", histLoad: "加载", histReplayHint: "快照每日17:00自动归档 → history/日期.json",
     modeDaily: "基础", modeDetail: "详情", modeTitle: "切换 基础/详情 模式",
     collapseTitle: "隐藏此模块", probExHint: "每小时自动更新",
     cancel: "取消",
@@ -858,11 +789,6 @@ const I18N = {
     probSrcFmt: "SRC: 共{n}条 / {m}线体", attModalTitle: "👥 录入当日出勤", attExHint: "当日出勤 · 填写", fDate: "日期",
     expandAtt: "查看完整出勤表", expandProb: "查看全部问题点", expandTrend: "查看详细趋势图",
     detailClose: "关闭", trendModeAll: "全部线体", trendModeSel: "仅选中", trendModeOver: "仅≥100%",
-    histToday: "📌 今日实时", histWeekTitle: "🗓 本周 vs 上周", histMonthTitle: "📅 本月 vs 上月",
-    thUpphRate: "UPPH达成%", thScore: "综合分", thRank: "今日排名",
-    thWeekRate: "周均达成%", thWeekUpph: "周均UPPH%", thWeekVsPrev: "vs 上周",
-    thMonthRate: "月均达成%", thMonthUpph: "月均UPPH%", thMonthVsPrev: "vs 上月",
-    thChamp: "🏆 站擂第一", thLast: "🔻 末位"
   },
   en: {
     docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
@@ -896,8 +822,6 @@ const I18N = {
     connOk: "Connected · Live", connDelay: "Data delay {s}s", connDown: "Data offline {m}min", connNoData: "No data",
     connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})",
     restPause: "Refresh paused during break", connRestPause: "Paused (break)",
-    histBtn: "📊 History", histTitle: "📊 History · Weekly/Monthly · Rankings",
-    histReplayTitle: "📅 Date Replay", histLoad: "Load", histReplayHint: "Snapshots archived daily 17:00 → history/date.json",
     modeDaily: "Basic", modeDetail: "Detail", modeTitle: "Toggle Basic/Detail mode",
     collapseTitle: "Hide module", probExHint: "Auto-updates hourly",
     cancel: "Cancel",
@@ -906,11 +830,6 @@ const I18N = {
     probSrcFmt: "SRC: {n} items / {m} lines", attModalTitle: "👥 Enter Attendance", attExHint: "Today · Manual entry", fDate: "Date",
     expandAtt: "Full attendance table", expandProb: "All problem details", expandTrend: "Detailed trend chart",
     detailClose: "Close", trendModeAll: "All lines", trendModeSel: "Selected", trendModeOver: "Over 100%",
-    histToday: "📌 Today (Live)", histWeekTitle: "🗓 This Week vs Last Week", histMonthTitle: "📅 This Month vs Last Month",
-    thUpphRate: "UPPH Rate%", thScore: "Score", thRank: "Today Rank",
-    thWeekRate: "Week Rate%", thWeekUpph: "Week UPPH%", thWeekVsPrev: "vs Last Wk",
-    thMonthRate: "Month Rate%", thMonthUpph: "Month UPPH%", thMonthVsPrev: "vs Last Mo",
-    thChamp: "🏆 1st", thLast: "🔻 Last"
   }
 };
 const LANG_KEY = "pdtiii_lang";
@@ -1539,99 +1458,8 @@ function setFhShift(sh) {
   if (typeof trendMode !== "undefined" && trendMode === "first") { try { renderTrend(); } catch (e) {} }
 }
 
-// ---- 历史统计 v5.18: 每日快照(localStorage) → 周/月对比 + 站擂排名 ----
-//   每天每次 refresh 更新当天记录(覆盖); 跨天后保留 → 自然形成历史
-//   记录字段(每条主要线): rate=达成率% eff, uph, upph=UPPH达成率%
-const HIST_KEY = "pdtiii_hist_v1";
-let histStore = {};
-try { histStore = JSON.parse(localStorage.getItem(HIST_KEY) || "{}") || {}; } catch (e) { histStore = {}; }
 function todayKey() { return bkkDateStr(); } // ★ v5.42 泰国日历日
 function dayKeyOf(d) { return bkkDateStr(typeof d === "number" ? d : d.getTime()); }
-function recordToday() {
-  const now = new Date();
-  const k = todayKey();
-  const rec = {};
-  state.lines.forEach(l => {
-    const nk = normName(l.name);
-    if (!MAIN_SET.has(nk)) return;
-    const uph = uphOf(l, now);
-    const upph = upphRateOf(l, now);
-    rec[nk] = {
-      rate: (l.eff !== null && !isNaN(l.eff)) ? l.eff : null,
-      uph: uph == null ? null : Number(uph.toFixed(2)),
-      upph: upph == null ? null : Number(upph.toFixed(1)),
-      ts: Date.now()
-    };
-  });
-  histStore[k] = rec;
-  try { localStorage.setItem(HIST_KEY, JSON.stringify(histStore)); } catch (e) { /* ignore */ }
-}
-// 综合得分: 达成率(0-100)、UPPH达成率(%) 两指标平均; 缺任一用另一个; 全缺 null
-function compScore(rec) {
-  if (!rec) return null;
-  const vals = [rec.rate, rec.upph].filter(v => v != null && !isNaN(v));
-  if (!vals.length) return null;
-  return vals.reduce((s, v) => s + v, 0) / vals.length;
-}
-// 一天内各线排名: 返回 { name: rank(1=第一) }, 按 compScore 降序; 同分按 uph 次排
-function rankOfDay(dayRec) {
-  const entries = Object.entries(dayRec || {}).map(([k, r]) => ({ k, score: compScore(r), r }));
-  entries.sort((a, b) => (b.score || -Infinity) - (a.score || -Infinity) ||
-    ((b.r.uph || -Infinity) - (a.r.uph || -Infinity)));
-  const map = {};
-  entries.forEach((e, i) => { map[e.k] = i + 1; });
-  return map;
-}
-// 汇总 N 天: 平均 rate/upph/uph + 站擂次数(冠军=当天第一, 末位=当天最后且>=3条线有得分)
-function aggregate(days) {
-  const agg = {};
-  days.forEach(dayRec => {
-    if (!dayRec) return;
-    const ranks = rankOfDay(dayRec);
-    const scored = Object.keys(ranks).length;
-    Object.entries(dayRec).forEach(([k, r]) => {
-      const a = agg[k] || (agg[k] = { rate: [], uph: [], upph: [], first: 0, last: 0, days: 0 });
-      if (r.rate != null) a.rate.push(r.rate);
-      if (r.uph != null) a.uph.push(r.uph);
-      if (r.upph != null) a.upph.push(r.upph);
-      a.days++;
-      if (scored >= 3) {
-        if (ranks[k] === 1) a.first++;
-        if (ranks[k] === scored) a.last++;
-      }
-    });
-  });
-  const out = {};
-  Object.entries(agg).forEach(([k, a]) => {
-    const avg = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null;
-    out[k] = { rate: avg(a.rate), uph: avg(a.uph), upph: avg(a.upph), first: a.first, last: a.last, days: a.days };
-  });
-  return out;
-}
-function weekStartOf(d) { const x = new Date(d); const w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); x.setHours(0,0,0,0); return x; }
-function monthStartOf(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
-// 取某范围的天记录: [{key, rec}]
-function rangeDays(from, to) {
-  const out = [];
-  for (let t = new Date(from); t <= to; t.setDate(t.getDate() + 1)) {
-    const k = dayKeyOf(t);
-    if (histStore[k]) out.push(histStore[k]);
-  }
-  return out;
-}
-function weekAgg(offsetWeeks) {
-  const now = new Date();
-  const ws = weekStartOf(now);
-  ws.setDate(ws.getDate() + offsetWeeks * 7);
-  const we = new Date(ws); we.setDate(we.getDate() + 6); we.setHours(23, 59, 59, 999);
-  return aggregate(rangeDays(ws, we));
-}
-function monthAgg(offsetMonths) {
-  const now = new Date();
-  const ms = new Date(now.getFullYear(), now.getMonth() + offsetMonths, 1);
-  const me = new Date(ms.getFullYear(), ms.getMonth() + 1, 0); me.setHours(23, 59, 59, 999);
-  return aggregate(rangeDays(ms, me));
-}
 // ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
   const stalled = state.lines.filter(l => isStalled(l) && !isPlannedOff(l) && MAIN_SET.has(normName(l.name)));
@@ -2688,7 +2516,6 @@ async function refresh() {
     const pl = document.getElementById("periodLabel");
     if (pl) { pl.dataset.frozen = "0"; updatePeriodLabel(); }
     trackStallStart();   // ★ v5.18 停滞时长追踪(需在 renderAll 前: renderTable 要用 stallLevelOf)
-    recordToday();       // ★ v5.18 历史统计: 记录今日快照(覆盖当天, 跨天保留)
     renderAll();
     // ★ 2026-08-24 修复: 首屏 renderTrend 早于 fetch 完成, state.lines 为空 → 今日实时数据未追加, 标题停在昨天
     // ★ 2026-08-25 修复(v2): needRedraw 判断有逻辑矛盾 — state.lines 就绪后 getTrendHist 已能用实时数据
@@ -2723,72 +2550,6 @@ function vsHtml(cur, prev) {
   const cls = Math.abs(d) < 0.5 ? "vs-flat" : (d > 0 ? "vs-up" : "vs-down");
   const arrow = Math.abs(d) < 0.5 ? "→" : (d > 0 ? "↑" : "↓");
   return `<span class="${cls}">${arrow} ${fmt1(Math.abs(d))}%</span>`;
-}
-// 聚合记录的得分(与 compScore 同口径: rate/upph 平均)
-function aggScoreOf(a) {
-  if (!a) return null;
-  const vals = [a.rate, a.upph].filter(v => v != null && !isNaN(v));
-  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
-}
-// ── 2026-08-20 16:20 历史日期回看: 拉取 history/YYYY-MM-DD.json, 展示当日全量看板 ──
-let histDateList = []; // ['2026-08-20', ...] 降序
-async function loadHistDateList() {
-  try {
-    const r = await fetch("history/index.json?t=" + Date.now());
-    if (!r.ok) throw new Error(r.status);
-    histDateList = await r.json();
-  } catch (e) {
-    histDateList = [];
-  }
-  const pick = document.getElementById("histDatePick");
-  if (pick && histDateList.length) {
-    pick.max = histDateList[0];
-    if (!pick.value) pick.value = histDateList[0];
-  }
-}
-async function loadHistDate(date) {
-  const status = document.getElementById("histReplayStatus");
-  const body = document.getElementById("histReplayBody");
-  if (!status || !body) return;
-  if (!date) { status.textContent = ""; body.style.display = "none"; return; }
-  status.textContent = "⏳ 加载中…";
-  try {
-    const r = await fetch("history/" + date + ".json?t=" + Date.now());
-    if (!r.ok) throw new Error(r.status);
-    const snap = await r.json();
-    // 加载近7天归档(含所选日)用于重复识别与趋势统计
-    let histDays = [];
-    try {
-      const ir = await fetch("history/index.json?t=" + Date.now());
-      if (ir.ok) {
-        const dates = await ir.json();
-        const idx = dates.indexOf(date);
-        const need = (idx >= 0 ? dates.slice(idx, idx + 7) : [date]);
-        histDays = (await Promise.all(need.map(async d => {
-          try {
-            const rr = await fetch("history/" + d + ".json?t=" + Date.now());
-            if (!rr.ok) return null;
-            const s = await rr.json();
-            return { date: d, problems: s.problems || [] };
-          } catch (e) { return null; }
-        }))).filter(Boolean);
-      }
-    } catch (e) {}
-    renderHistReplay(snap, histDays);
-    status.textContent = "✅ " + (snap.snapAt || date);
-    body.style.display = "";
-  } catch (e) {
-    status.textContent = "⚠️ 该日期无归档";
-    body.style.display = "none";
-  }
-}
-function histMainLines(snap) {
-  // 与主页趋势一致: 固定 MAIN_TREND_LINES 名单前7条(排除TREND_EXCLUDE), 不补位 (2026-08-21 13:02)
-  const lines = snap.lines || [];
-  const names = lines.map(l => l && l.name).filter(Boolean);
-  const avail = [];
-  MAIN_TREND_LINES.forEach(n => { if (names.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 7) avail.push(n); });
-  return avail;
 }
 // ── 问题点语义分类库（AI 语义识别，非死板字符串匹配）──
 // 每个类别用同义词族覆盖中/泰/英常见描述，如“S Coil断电停机”≈“设备故障”
@@ -2869,153 +2630,6 @@ function buildTrendHtml(histDays, zh) {
     "</div>";
   }).join("");
   return rows;
-}
-function renderHistReplay(snap, histDays) {
-  const body = document.getElementById("histReplayBody");
-  const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
-  const lines = snap.lines || [];
-  const eff = snap.eff || {};
-  const problems = snap.problems || [];
-  const att = snap.attendance;
-  // ── 2026-08-25: 首小时达成 (8-9点) 回看: 快照含 first_hour 时展示表格 ──
-  const fh = snap.first_hour || [];
-  const fhHtml = fh.length ? "<div style='background:var(--panel);border-radius:8px;padding:8px;margin-top:10px'><b style='font-size:11px'>" + (zh ? "⏰ 首小时达成 (8-9点)" : "⏰ First-Hour (8-9am)") + "</b><div style='margin-top:4px;max-height:200px;overflow-y:auto'><table class='hist-table' style='width:100%;font-size:10.5px'><thead><tr><th>" + (zh ? "线体" : "Line") + "</th><th>" + (zh ? "目标" : "Target") + "</th><th>" + (zh ? "实际" : "Actual") + "</th><th>" + (zh ? "达成率" : "Rate") + "</th></tr></thead><tbody>" + fh.map(e => {
-    const r = Number(e.rate);
-    const rc = r >= 100 ? "ok" : (r < 90 ? "bad" : "");
-    return "<tr><td>" + (e.line || e.ws || "-") + "</td><td style='text-align:center'>" + (e.target != null ? e.target : "-") + "</td><td style='text-align:center'>" + (e.actual != null ? e.actual : "-") + "</td><td style='text-align:center' class='" + rc + "'>" + (isNaN(r) ? "-" : r.toFixed(1) + "%") + "</td></tr>";
-  }).join("") + "</tbody></table></div></div>" : "";
-  // 默认展示主要 8 条线体 (与主页一致)
-  const main8 = histMainLines(snap);
-  // ① 产量对比表 (只显示主要8条, 按实际产出降序)
-  const sorted = main8.map(n => lines.find(l => l.name === n)).filter(Boolean).sort((a, b) => (Number(b.actual) || 0) - (Number(a.actual) || 0));
-  const trs = sorted.map(l => {
-    const effV = (l.eff != null) ? l.eff : (eff[l.name] != null ? eff[l.name] : null);
-    const effTxt = effV != null ? Number(effV).toFixed(1) + "%" : "-";
-    const effCls = effV >= 100 ? "ok" : (effV < 90 ? "bad" : "");
-    return "<tr><td>" + (l.name || "-") + "</td><td style='text-align:center'>" + (l.plan || 0) + "</td><td style='text-align:center'>" + (l.actual || 0) + "</td><td style='text-align:center'>" + (l.cb != null ? l.cb : (Number(l.actual) - Number(l.plan))) + "</td><td style='text-align:center' class='" + effCls + "'>" + effTxt + "</td></tr>";
-  }).join("");
-  // ② 达成率分布 (主要8条, 按 eff 降序)
-  const effNames = main8.filter(n => eff[n] != null).sort((a, b) => (Number(eff[b]) || 0) - (Number(eff[a]) || 0));
-  const effBars = effNames.map(n => {
-    const v = Number(eff[n]) || 0;
-    const c = v >= 100 ? "#3fb950" : (v >= 90 ? "#d29922" : "#f85149");
-    return "<div style='display:flex;align-items:center;gap:6px;margin:2px 0'><span style='width:110px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>" + n + "</span><div style='flex:1;height:10px;background:var(--panel);border-radius:5px;overflow:hidden'><div style='height:100%;width:" + Math.min(v, 150) + "%;background:" + c + "'></div></div><span style='width:44px;text-align:right;font-size:10px'>" + v.toFixed(0) + "%</span></div>";
-  }).join("");
-  // ③ 问题点 — AI语义分类 + 重复识别 (前日/前周) + 全部展示
-  const repeatInfo = buildRepeatInfo(problems, histDays);
-  const catOf = {};
-  PROB_CATS.forEach(c => catOf[c.key] = c);
-  const probList = repeatInfo.length ? repeatInfo.map((it, i) => {
-    const p = it.p;
-    const raw = String(p.problem_zh || p.problem_th || p.problem || "").replace(/\s+/g, " ").trim();
-    const c = catOf[it.cat] || catOf.other;
-    const badge = it.prevDay ? "<span class='rep-badge rep-day'>🔁 " + (zh ? "前日" : "yday") + "</span>" : (it.prevWeek ? "<span class='rep-badge rep-week'>🔁 " + (zh ? "前周" : "week") + "</span>" : "");
-    return "<div class='prob-row' style='padding:6px 2px;border-bottom:1px solid var(--border)'>" +
-      "<div style='display:flex;align-items:center;gap:5px;flex-wrap:wrap'><b style='font-size:10.5px'>" + (p.line || p.ws || "-") + "</b>" +
-      (p.shift ? "<span style='font-size:8.5px;padding:0 5px;border-radius:6px;background:" + (p.shift === "night" ? "#1f6feb" : "#d29922") + "22;color:" + (p.shift === "night" ? "#58a6ff" : "#d29922") + ";border:1px solid " + (p.shift === "night" ? "#58a6ff55" : "#d2992255") + "'>" + (zh ? (p.shift === "night" ? "晚班" : "白班") : (p.shift === "night" ? "Night" : "Day")) + "</span>" : "") +
-      "<span style='color:var(--gray);font-size:9.5px'>" + (p.time || "") + "</span>" +
-      "<span style='color:var(--red);font-weight:700;font-size:10.5px'>" + (Number(p.impact) <= 0 ? "" : "+") + (p.impact || 0) + "台</span>" +
-      "<span class='cat-tag' style='font-size:9px;padding:1px 6px;border-radius:8px;background:" + c.color + "22;color:" + c.color + ";border:1px solid " + c.color + "55'>" + (zh ? c.zh : c.en) + "</span>" + badge + "</div>" +
-      "<div style='color:var(--gray);font-size:10px;margin-top:2px;line-height:1.45'>" + raw + "</div></div>";
-  }).join("") : "<div style='color:var(--gray);font-size:11px;padding:10px 2px'>" + (zh ? "当日无问题点" : "No problems") + "</div>";
-  // ④ 重复趋势 (近7天柱状图 + 升降箭头)
-  const trendHtml = buildTrendHtml(histDays, zh);
-  // ⑤ 出勤
-  const attHtml = (att && att.rows && att.rows.length) ? "<table class='hist-table' style='width:100%'><thead><tr><th>#</th><th>" + (zh ? "车间" : "WS") + "</th><th>" + (zh ? "应到" : "Staff") + "</th><th>" + (zh ? "实到" : "Att") + "</th><th>" + (zh ? "出勤率" : "Rate") + "</th></tr></thead><tbody>" + att.rows.map((r, i) => {
-    const rate = parseFloat(r.rate);
-    const rc = isNaN(rate) ? "" : (rate >= 90 ? "ok" : (rate < 80 ? "bad" : ""));
-    return "<tr class='" + (i % 2 ? "alt" : "") + "'><td style='text-align:center'>" + (i + 1) + "</td><td>" + (r.ws || "-") + "</td><td style='text-align:center'>" + (r.staff != null ? r.staff : "-") + "</td><td style='text-align:center'>" + (r.attend != null ? r.attend : "-") + "</td><td style='text-align:center' class='" + rc + "'>" + (isNaN(rate) ? "-" : rate.toFixed(1) + "%") + "</td></tr>";
-  }).join("") + "</tbody></table>" : "<div style='color:var(--gray);font-size:11px'>" + (zh ? "当日无出勤数据" : "No attendance") + "</div>";
-  body.innerHTML =
-    "<div style='display:grid;grid-template-columns:1.2fr 1fr;gap:10px'>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "🏭 产量对比" : "🏭 Output") + "</b>" +
-        "<div style='max-height:220px;overflow-y:auto;margin-top:4px'><table class='hist-table' style='width:100%;font-size:10.5px'><thead><tr><th>" + (zh ? "线体" : "Line") + "</th><th>" + (zh ? "计划" : "Plan") + "</th><th>" + (zh ? "实际" : "Actual") + "</th><th>" + (zh ? "差异" : "Gap") + "</th><th>" + (zh ? "达成率" : "Rate") + "</th></tr></thead><tbody>" + trs + "</tbody></table></div></div>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "📈 达成率 (主要8条)" : "📈 Rate (main 8)") + "</b><div style='margin-top:4px'>" + effBars + "</div></div>" +
-    "</div>" +
-    "<div style='display:grid;grid-template-columns:1.6fr 1fr;gap:10px;margin-top:10px'>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "🚨 未达成原因 (AI语义识别 · " + repeatInfo.length + "条)" : "🚨 Reasons (AI · " + repeatInfo.length + ")") + "</b>" +
-        "<div style='margin-top:4px;max-height:300px;overflow-y:auto'>" + probList + "</div></div>" +
-      "<div style='background:var(--panel);border-radius:8px;padding:8px;min-width:0'><b style='font-size:11px'>" + (zh ? "📊 问题重复趋势 (近7日)" : "📊 Repeat Trend (7d)") + "</b>" +
-        "<div style='margin-top:4px;max-height:300px;overflow-y:auto'>" + trendHtml + "</div></div>" +
-    "</div>" +
-    "<div style='background:var(--panel);border-radius:8px;padding:8px;margin-top:10px'><b style='font-size:11px'>" + (zh ? "👥 出勤表" : "👥 Attendance") + "</b><div style='margin-top:4px;max-height:180px;overflow-y:auto'>" + attHtml + "</div></div>" +
-    fhHtml;
-}
-function renderHist() {
-  const now = new Date();
-  // --- 今日 ---
-  const todayRec = histStore[todayKey()] || {};
-  const todayTbody = document.querySelector("#histTodayTbl tbody");
-  todayTbody.innerHTML = "";
-  const ranks = rankOfDay(todayRec);
-  // ★ 按排名先后顺序渲染(第1名在最上)
-  const todayNames = MAIN_LINES.slice().sort((a, b) => (ranks[normName(a)] || 999) - (ranks[normName(b)] || 999));
-  todayNames.forEach(name => {
-    const nk = normName(name);
-    const r = todayRec[nk];
-    if (!r) {
-      todayTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
-      return;
-    }
-    const score = compScore(r);
-    const rank = ranks[nk] || "-";
-    const rankHtml = rank === 1 ? `<span class="champ">🥇 ${rank}</span>` : (rank === Object.keys(ranks).length ? `<span class="lastp">🔻 ${rank}</span>` : `${rank}`);
-    todayTbody.innerHTML +=
-      `<tr><td class="line-name">${name.trim()}</td>` +
-      `<td class="${effClass(r.rate)}">${r.rate == null ? '-' : fmt1(r.rate)}</td>` +
-      `<td>${r.uph == null ? '-' : fmt1(r.uph)}</td>` +
-      `<td>${r.upph == null ? '-' : fmt1(r.upph)}</td>` +
-      `<td class="${score != null && score >= 90 ? 'pos' : score != null ? '' : 'zero'}">${score == null ? '-' : fmt1(score)}</td>` +
-      `<td>${rankHtml}</td></tr>`;
-  });
-  // --- 本周 vs 上周 ---
-  const wk = weekAgg(0), pw = weekAgg(-1);
-  const wkTbody = document.querySelector("#histWeekTbl tbody");
-  wkTbody.innerHTML = "";
-  document.getElementById("histWeekTitle").textContent =
-    t("histWeekTitle") + ` (${fmt1(wkAvg(wk))}% vs ${fmt1(wkAvg(pw))}%)`;
-  // ★ 按本周综合得分降序(第1名在最上)
-  const wkNames = MAIN_LINES.slice().sort((a, b) => (aggScoreOf(wk[normName(b)]) ?? -1e9) - (aggScoreOf(wk[normName(a)]) ?? -1e9));
-  wkNames.forEach(name => {
-    const nk = normName(name);
-    const a = wk[nk], p = pw[nk];
-    if (!a) {
-      wkTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
-      return;
-    }
-    wkTbody.innerHTML +=
-      `<tr><td class="line-name">${name.trim()}</td>` +
-      `<td class="${effClass(a.rate)}">${a.rate == null ? '-' : fmt1(a.rate)}</td>` +
-      `<td>${a.upph == null ? '-' : fmt1(a.upph)}</td>` +
-      `<td>${vsHtml(a.rate, p ? p.rate : null)}</td>` +
-      `<td class="champ">${a.first ? '🏆 ' + a.first : '-'}</td>` +
-      `<td class="lastp">${a.last ? '🔻 ' + a.last : '-'}</td></tr>`;
-  });
-  // --- 本月 vs 上月 ---
-  const mk = monthAgg(0), pm = monthAgg(-1);
-  const mkTbody = document.querySelector("#histMonthTbl tbody");
-  mkTbody.innerHTML = "";
-  document.getElementById("histMonthTitle").textContent =
-    t("histMonthTitle") + ` (${fmt1(mkAvg(mk))}% vs ${fmt1(mkAvg(pm))}%)`;
-  // ★ 按本月综合得分降序(第1名在最上)
-  const mkNames = MAIN_LINES.slice().sort((a, b) => (aggScoreOf(mk[normName(b)]) ?? -1e9) - (aggScoreOf(mk[normName(a)]) ?? -1e9));
-  mkNames.forEach(name => {
-    const nk = normName(name);
-    const a = mk[nk], p = pm[nk];
-    if (!a) {
-      mkTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
-      return;
-    }
-    mkTbody.innerHTML +=
-      `<tr><td class="line-name">${name.trim()}</td>` +
-      `<td class="${effClass(a.rate)}">${a.rate == null ? '-' : fmt1(a.rate)}</td>` +
-      `<td>${a.upph == null ? '-' : fmt1(a.upph)}</td>` +
-      `<td>${vsHtml(a.rate, p ? p.rate : null)}</td>` +
-      `<td class="champ">${a.first ? '🏆 ' + a.first : '-'}</td>` +
-      `<td class="lastp">${a.last ? '🔻 ' + a.last : '-'}</td></tr>`;
-  });
-  // ── 2026-08-25: 首小时达成 (8-9点) 历史/趋势/排名 ──
-  renderFirstHourHist();
 }
 // ⏰ 首小时达成 (8-9点) — 历史记录表 + 今日排名 + 迷你趋势 (2026-08-25 新增)
 //   数据源: __HISTORY__[].first_hour (跨天, extract每10分钟更新当天) + __LIVE_DATA__.first_hour (当天全量 target/actual)
@@ -3136,17 +2750,6 @@ function mkAvg(agg) { return wkAvg(agg); }
 
 // 模态开关
 (function initModal() {
-  // 历史统计弹窗
-  const hmod = document.getElementById("histModal");
-  const hbtn = document.getElementById("histBtn");
-  if (hbtn) hbtn.addEventListener("click", () => { renderHist(); loadHistDateList(); hmod.classList.add("open"); });
-  document.getElementById("histClose").addEventListener("click", () => hmod.classList.remove("open"));
-  hmod.addEventListener("click", e => { if (e.target === hmod) hmod.classList.remove("open"); });
-  // 日期回看: 加载按钮 + 日期选择
-  const hlBtn = document.getElementById("histLoadBtn");
-  if (hlBtn) hlBtn.addEventListener("click", () => loadHistDate(document.getElementById("histDatePick").value));
-  const hp = document.getElementById("histDatePick");
-  if (hp) hp.addEventListener("change", () => loadHistDate(hp.value));
   // 编辑人数弹窗
   const hov = document.getElementById("headModal");
   const hb = document.getElementById("headBtn");
