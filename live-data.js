@@ -3,13 +3,216 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-10 08:00:01
+   最后写入: 2026-09-10 12:00:30
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-10",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "09:00-09:50",
+      "problem_th": "QA หยุดไลน์การผลิตตรวจงาน NG ออกจำนวนมาก หยุดตอน09:30น. S-series",
+      "problem_zh": "QA 停止生产线检查大量 NG 工作。 S系列 上午 9:30 停止",
+      "plan": 143,
+      "actual": 56,
+      "impact": -87,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "10:00-11:00",
+      "problem_th": "หยุดไลน์ผลิตตั้งแต่09:30-10:50น.",
+      "problem_zh": "上午9:30-10:50停止生产线",
+      "plan": 169,
+      "actual": 101,
+      "impact": -68,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "08:00-09:00",
+      "problem_th": "เข็มหักเปลี่ยนใส่เข็มใหม่ไม่ได้ H-series",
+      "problem_zh": "针已损坏，无法更换新针。 H系列",
+      "plan": 168,
+      "actual": 128,
+      "impact": -40,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่องเย็บไม่เสถียรNo.1",
+      "problem_zh": "不稳定订书机 1 号",
+      "plan": 168,
+      "actual": 116,
+      "impact": -52,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "Pe เข้าแก้ไข stoper จุดงัดปลั๊ก งานออกไม่ต่อเนื่อง (-60) งานติด Air gap , Thrust gap",
+      "problem_zh": "Pe进去已修复塞子，点拔插头，工作连续不出来（-60），工作装了气隙，推力间隙。",
+      "plan": 430,
+      "actual": 311,
+      "impact": -119,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "09:00-10:00",
+      "problem_th": "PE หยุดแก้ไขจุดงัดปลั๊ก งานออกไม่ต่อเนื่อง แก้ไขแล้ว 9:05-9:25 (-70) เปลี่ยนรุ่นการผลิต 1 ครั้ง",
+      "problem_zh": "PE 停止修复插头问题。作品连续发布，已修复9:05-9:25(-70) 变更生产模式1次。",
+      "plan": 430,
+      "actual": 297,
+      "impact": -133,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "8:00-9:00",
+      "problem_th": "(-50) งานจาก Rotor Line มาไม่ต่อเนื่อง(-20) ท้ายไลน์ระบายงานไม่ทันบางช่วง (-30) ตัดงานก่อนเชื่อม 35 set B-Line Final",
+      "problem_zh": "(-50) 转子线的工件未连续到达 (-20) 生产线末端在某些区域无法及时排出工件 (-30) 工件在焊接 35 台 B 线最终前被切断",
+      "plan": 470,
+      "actual": 420,
+      "impact": -50,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "9:00-10:00",
+      "problem_th": "(-198) งานจาก Rotor Line มาไม่ต่อเนื่อง(-198) B-Line Final",
+      "problem_zh": "(-198) 转子线的工作不连续。 (-198) B 线决赛",
+      "plan": 470,
+      "actual": 272,
+      "impact": -198,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "10:00-11:00",
+      "problem_th": "(-92) เครื่อง Test Run Alarm บ่อย  หัวเช็ค Pressure ไม่ตรง (-45) ท้ายไลน์ระบายงานไม่ทันบางช่วง (-50) ไม่ได้ตัดงานกอง",
+      "problem_zh": "(-92) 机器频繁测试运行报警。压力检查头不正确。 (-45) 线尾在某些时段无法及时排干工作。 (-50) 工作堆没有被切割。",
+      "plan": 390,
+      "actual": 298,
+      "impact": -92,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "เปลี่ยนรุ่น1ครั้ง-60 พนักงานไม่ครบจุดขาด4คน-66 (ได้ทดแทนแล้ว)",
+      "problem_zh": "变更型号1次-60人手不足，缺4人-66（已更换）",
+      "plan": 444,
+      "actual": 318,
+      "impact": -126,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "09:00-10:00",
+      "problem_th": "Rotor line เปลี่ยนรุ่นงานมาไม่ต่อเนื่อง",
+      "problem_zh": "转子系列不断更换型号。",
+      "plan": 444,
+      "actual": 287,
+      "impact": -157,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "10:00-11:00",
+      "problem_th": "อ่างน้ำ OVEN มีการปรับเปลี่ยนการแขวนคอมและหยุดไลน์บ่อย งานระบายไม่ทัน-192 (ไม่ได้ตัดงานกอง)",
+      "problem_zh": "OVEN水浴经常出现电脑挂换和生产线停线的情况。作品没有及时排完-192（没有砍掉作品）",
+      "plan": 370,
+      "actual": 178,
+      "impact": -192,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-10",
+      "ws": "RPO1",
+      "series": "H系列",
+      "line": "RPO1·H系列",
+      "target": 168,
+      "actual": 128,
+      "rate": 76.2
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 144,
+      "rate": 85.2
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 430,
+      "actual": 311,
+      "rate": 72.3
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 420,
+      "rate": 89.4
+    },
+    {
+      "date": "2026-09-10",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 318,
+      "rate": 71.6
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -508,6 +711,16 @@ window.__HISTORY__ = [
       "RPO1·S系列": 97.6,
       "PRO2·A": 96.7,
       "PRO2·B": 66.4
+    }
+  },
+  {
+    "date": "2026-09-10",
+    "first_hour": {
+      "RPO1·H系列": 76.2,
+      "RPO1·S系列": 85.2,
+      "PRO2·A": 72.3,
+      "PRO2·B": 89.4,
+      "PRO2·C": 71.6
     }
   }
 ];
