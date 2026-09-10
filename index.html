@@ -323,6 +323,8 @@
   .chart-ws-label.sel { background: rgba(63,185,80,.16); border: 1px solid rgba(63,185,80,.55); color: #6ee77f; font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 11px; letter-spacing: .5px; }
   .chart-ws-label:not(.sel) { opacity: .75; }
   .ws-empty-hint { color: var(--gray); font-size: 11px; padding: 10px 4px; text-align: center; }
+  /* ★ 2026-09-10 改动A: PRO2R 分组子标题行 */
+  tr.pro2-subhead td { background: rgba(90,140,240,.14) !important; color: #3b5bdb; font-size: 11px; font-weight: 800; letter-spacing: .5px; text-align: left; padding: 4px 8px; }
   .head-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; }
   .head-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
   .head-item .hn { flex: 1; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -772,6 +774,7 @@ const I18N = {
     save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", kpiWsRunFmt: "车间 {n} 条 · 全部 {a} 条", noHit: "暂无达成线体",
+    pro2Final: "Final（成品线）", pro2Rotor: "Router（前道线）",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", nightBase: "前半夜", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
@@ -813,6 +816,7 @@ const I18N = {
     save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
     kpiRunSubFmt: "Main {m} · Total {a}", kpiWsRunFmt: "WS {n} · Total {a}", noHit: "None ≥90%",
+    pro2Final: "Final (finished lines)", pro2Rotor: "Router (predecessor lines)",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", nightBase: "Pre-mid", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
@@ -892,8 +896,12 @@ let WS_LABEL = {}; WS_GROUPS.forEach(g => { WS_LABEL[g.ws] = g.label; });
 // 线体名(norm) → 车间; 供快速反查 (重复名以先出现车间为准, 不会重复定义)
 const LINE2WS = {};
 WS_GROUPS.forEach(g => g.lines.forEach(ln => { LINE2WS[normName(ln)] = g.ws; }));
-// 当前选中车间; null = 默认(主要线体视图)
+// 当前选中车间; null = 默认(主要线体视图) — 支持 ?ws=PRO2R 直接进入指定车间(投屏/分享/测试)
 let wsSel = null;
+try {
+  const _wsp0 = new URLSearchParams(location.search).get("ws");
+  if (_wsp0 && WS_GROUPS.some(g => g.ws === _wsp0)) wsSel = _wsp0;
+} catch (e) {}
 function wsGroupOf(l) { return LINE2WS[normName(l && l.name)] || null; }
 function wsLinesOf(ws) { return state.lines.filter(l => wsGroupOf(l) === ws); }
 // 车间视图总览: 主要 8 条 + 其余归到各车间; wsSel 为空 → 保持原"主要线体"面板
@@ -976,6 +984,13 @@ function signClass(v) {
   return "zero";
 }
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+// ★ 2026-09-10 改动C: 停线判定 — 计划停机 / server停滞标记 / 客户端观察约30分钟产出无变化 → 剔除综合达成率+综合计划
+function isStoppedRun(l) {
+  if (isPlannedOff(l)) return true;
+  if (isStalled(l)) return true;
+  if (stallMinutesOf(l) >= 30) return true;
+  return false;
+}
 // ★ 2026-08-24: 计划停产线体名单(带日期范围) — 灰色标注"计划停产", 不触发红色停滞预警
 //   2026-08-27: Motor WL 已恢复生产, 移除; Motor F-Series 停产 (08-27 ~ 08-28), 到期自动恢复; 后续停产修改此表即可
 const PLANNED_OFF = [
@@ -1033,6 +1048,12 @@ function sortLines(arr) {
     if (r === 0) r = x.name.localeCompare(y.name);
     return r * sortState.dir;
   });
+  // ★ 2026-09-10 改动A: PRO2 分组上 Final(成品) 下 Rotor(前道) — 稳定分区保留各子组内部排序
+  if (wsSel === "PRO2R") {
+    const fin = [], rot = [];
+    a.forEach(l => (FINAL_SET.has(normName(l.name)) ? fin : rot).push(l));
+    return fin.concat(rot);   // 避免重赋值形参 a(参数在 strict 下可能是 const 绑定) → 直接返回新数组
+  }
   return a;
 }
 function splitLines() {
@@ -1078,9 +1099,44 @@ function renderTable() {
   // ★ 2026-09-03: 车间过滤 — 选中车间(wsSel)时只显示该车间线体; 默认=主要线体视图
   const { main, other } = splitLines();
   const viewSrc = wsSel ? wsLinesOf(wsSel) : main;
-  const view = sortLines(viewSrc);
+  let view = sortLines(viewSrc);
   const tb = document.querySelector("#mainTable tbody");
   if (!tb) return { main, other, view };
+  // ★ 2026-09-10 改动A: PRO2R 双分区渲染 — Final(成品)上 / Rotor(前道)下, 各带子标题行
+  if (wsSel === "PRO2R") {
+    const fin = view.filter(l => FINAL_SET.has(normName(l.name)));
+    const rot = view.filter(l => !FINAL_SET.has(normName(l.name)));
+    const rowHtml = function (l, idx) {
+      const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+      let cls = "";
+      if (isPlannedOff(l)) cls = "planned-off";
+      else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
+      else if (miss) cls = "miss";
+      const dot = (isPlannedOff(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+      return `<tr class="${cls}"><td class="rank">${idx + 1}</td>` +
+        `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+        `<td class="bar-cell">${hbarHtml(l)}</td>` +
+        `<td>${fmt(l.actual)}</td>` +
+        `<td>${fmt(l.plan)}</td>` +
+        `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+        `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+        `<td class="uph-cell">${uphTxt(l, now)}</td></tr>`;
+    };
+    const subLbl = function (key) {
+      return lang === "zh"
+        ? (key === "Final" ? t("pro2Final") : t("pro2Rotor"))
+        : (key === "Final" ? "Final (Finished)" : "Router (Predecessor)");
+    };
+    let hh = '<tr class="pro2-subhead"><td colspan="8">' + subLbl("Final") + "</td></tr>";
+    fin.forEach((l, i) => { hh += rowHtml(l, i); });
+    hh += '<tr class="pro2-subhead"><td colspan="8">' + subLbl("Rotor") + "</td></tr>";
+    rot.forEach((l, i) => { hh += rowHtml(l, fin.length + i); });
+    tb.innerHTML = hh;
+    if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
+    try { updateChartWsLabel(wsSel, view); } catch (e) {}
+    try { scheduleFitMainTable(); } catch (e) {}
+    return { main, other, view };
+  }
   // ★ 2026-09-04 闪烁优化: 行复用 diff — 不再每次 tb.innerHTML="" 全清重建。
   //   整表销毁重建会丢 td 内联行高(fitMainTable 设的) → 每 10s 行高塌回 21px 再 rAF 弹回 = 闪烁。
   //   改为按线体名 normName 为 key 复用现有 tr: 顺序变化只移动节点(appendChild), 内容没变的格不写 DOM。
@@ -1275,19 +1331,21 @@ function setupSort() {
 }
 
 function renderKPIs(view) {
-  const lines = Array.isArray(view) ? view : [];
+  const raw = Array.isArray(view) ? view : [];
   const wsMode = !!wsSel;                      // ★ 2026-09-04: 车间模式(选中车间按钮)
   const setTxt = (el, v) => { if (el && el.textContent !== String(v)) el.textContent = String(v); };
   const setCls = (el, c) => { if (el && el.className !== c) el.className = c; };
-  const running = lines.filter(l => l.status === "RUNNING" || l.status === "运行");
+  // ★ 改动B: PRO2 只算 Final 成品线(Rotor 前道线整组排除) — 其它车间全部线体照旧
+  const bLines = raw.filter(l => !(wsSel === "PRO2R" && !FINAL_SET.has(normName(l.name))));
+  const eligLines = bLines.filter(l => !isStoppedRun(l)); // ★ 改动C: 停线(计划停机/停滞/约30min无产出)剔除综合达成率+计划
+  const running = bLines.filter(l => l.status === "RUNNING" || l.status === "运行");
   setTxt(document.getElementById("kpiRun"), running.length);
   // ★ 2026-09-04: 车间模式下副标题改为车间 n 条·全部 a 条 (默认=主要 m 条·全部 a 条)
   setTxt(document.getElementById("kpiRunSub"), wsMode
-    ? t("kpiWsRunFmt").replace("{n}", lines.length).replace("{a}", state.lines.length)
-    : t("kpiRunSubFmt").replace("{m}", lines.length).replace("{a}", state.lines.length));
-  // ★ v8.7.1 修复: 平均效率不能用"只算 RUNNING 的简单平均"——主要线多数 STALLED 时只剩 1 条在算, 严重失真
-  //   改为: 当前视图线中有效率(实际>0 或有 plan)的全部参与, 按计划量加权平均 = Σ(actual)/Σ(plan)
-  const pool = lines.filter(l => l.eff !== null && !isNaN(l.eff) && (Number(l.plan) > 0 || Number(l.actual) > 0));
+    ? t("kpiWsRunFmt").replace("{n}", bLines.length).replace("{a}", state.lines.length)
+    : t("kpiRunSubFmt").replace("{m}", bLines.length).replace("{a}", state.lines.length));
+  // ★ 改动C: 有效率且未停线, 按计划量加权平均 = Σ(actual)/Σ(plan)
+  const pool = eligLines.filter(l => l.eff !== null && !isNaN(l.eff) && (Number(l.plan) > 0 || Number(l.actual) > 0));
   const totAct = pool.reduce((s, l) => s + (Number(l.actual) || 0), 0);
   const totPlan = pool.reduce((s, l) => s + (Number(l.plan) || 0), 0);
   const avgEff = totPlan > 0 ? (totAct / totPlan) * 100 : (pool.length ? pool.reduce((s, l) => s + l.eff, 0) / pool.length : 0);
@@ -1295,16 +1353,18 @@ function renderKPIs(view) {
   setTxt(el, avgEff ? avgEff.toFixed(1) + "%" : "-");
   setCls(el, "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : ""));
   setTxt(document.getElementById("kpiEffSub"), wsMode ? t("kpiWsEffSub") : t("kpiEffSub"));
-  const hit = running.filter(l => hitEff(l.eff));
+  // ★ 改动C: 达成线体分母 = 运行中且未停的线数; 已停线不计入达成体系
+  const eligRunning = eligLines.filter(l => l.status === "RUNNING" || l.status === "运行");
+  const hit = eligRunning.filter(l => hitEff(l.eff));
   const eh = document.getElementById("kpiHit");
-  setTxt(eh, hit.length);
+  setTxt(eh, hit.length + "/" + eligRunning.length);
   setCls(eh, "value " + (hit.length > 0 ? "green" : "orange"));
   const hitNames = hit.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
   setTxt(document.getElementById("kpiHitSub"), hitNames || t("noHit"));
   if (wsMode) {
-    // ★ 2026-09-04 车间模式: 卡4/5 从产品族(Final/Motor)切换为车间通用口径 — 车间累计产出 + 车间计划量
-    const cumSum = lines.reduce((s, l) => s + (Number(l.cum) || 0), 0);
-    const planSum = lines.reduce((s, l) => s + (Number(l.plan) || 0), 0);
+    // ★ 2026-09-04 车间模式: 卡4/5 车间通用口径 — 车间累计产出 + 计划量 (★ B/C: 仅 Final 且非停线)
+    const cumSum = eligLines.reduce((s, l) => s + (Number(l.cum) || 0), 0);
+    const planSum = eligLines.reduce((s, l) => s + (Number(l.plan) || 0), 0);
     setTxt(document.getElementById("kpiFinalLbl"), t("kpiWsOutLbl"));
     setTxt(document.getElementById("kpiFinalSub"), t("kpiWsOutSub"));
     setTxt(document.getElementById("kpiMotorLbl"), t("kpiWsPlanLbl"));
@@ -1356,7 +1416,7 @@ function trackStallStart() {
   let changed = false;
   state.lines.forEach(l => {
     const k = normName(l.name);
-    if (!MAIN_SET.has(k)) return;  // ★ 只追踪主要线体
+    /* ★ 2026-09-10: 扩大追踪到全部线体(含车间非主线), 供停线剔除综合达成率用 */
     const a = Number(l.actual) || 0;
     const prev = lastActualMap[k];
     if (prev === undefined || Math.abs(a - prev) >= 0.5) {

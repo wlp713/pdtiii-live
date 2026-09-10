@@ -64,6 +64,12 @@
   var DAY_START = 480, DAY_NORM_END = 1040, DAY_END = 1220; // 8:00 / 17:20 / 20:20
   var NIGHT_START = 1230, NIGHT_OT_START = 350, NIGHT_END = 480; // 20:30 / 5:50 / 8:00
   var EFF_HOURS = { dN: 8, dO: 3, nN: 8, nO: 2 };
+  /* ★ 2026-09-10 修正：今日(实时)夜班只认 20:30+ 实时桶(nLive)。
+     凌晨段(00:00-7:59)属前一个生产日的夜班尾巴，在今日实时视图不回填
+     → 今晚 20:30 前夜班=空(未开始)，不再误显“昨天夜的夜班数据”。
+     历史日期(非今日)仍用归档的凌晨正常段/nNorm。 */
+  function nightNormOf(t) { return state.date === state.today ? (t.nL || 0) : (t.nN || 0); }
+  function nightOtOf(t) { return state.date === state.today ? 0 : (t.nOt || 0); }
   var fmt = function (n) {
     if (n === null || n === undefined || isNaN(n)) return "--";
     return Math.round(n).toLocaleString("en-US");
@@ -1154,7 +1160,7 @@
   }
   function shiftNormalOutput(t, isDay) {
     /* 今天夜班优先显示 20:30 起的实时累计;历史日使用归档的凌晨正常段 */
-    return isDay ? t.dN : ((state.date === state.today && t.nL > 0) ? t.nL : t.nN);
+    return isDay ? t.dN : nightNormOf(t);
   }
   function otStarted(isDay) {
     if (state.date !== state.today) return true;
@@ -1164,7 +1170,7 @@
   function shiftSnapshot(t, isDay) {
     var normalKey = isDay ? "d" : "n", otKey = isDay ? "dO" : "nO";
     var normalPeople = sumHC(normalKey), otPeople = sumHC(otKey);
-    var normalOutput = shiftNormalOutput(t, isDay), otRawOutput = isDay ? t.dO : t.nO;
+    var normalOutput = shiftNormalOutput(t, isDay), otRawOutput = isDay ? t.dO : nightOtOf(t);
     var started = otStarted(isDay), otOutput = started ? otRawOutput : null;
     var normalHours = EFF_HOURS[isDay ? "dN" : "nN"], otHours = otRealHours(t, isDay);
     if (otHours === null) otHours = 0; /* 加班尚无产出桶(刚开始/数据滞后) */
@@ -1181,10 +1187,10 @@
   }
   function fullSnapshot(t) {
     var dp = sumHC("d"), np = sumHC("n"), dop = sumHC("dO"), nop = sumHC("nO");
-    var nightNormal = state.date === state.today && t.nL > 0 ? t.nL : t.nN;
+    var nightNormal = nightNormOf(t);
     var normalPeople = { value: dp.value + np.value, entered: dp.entered > 0 && np.entered > 0 };
     var otPeople = { value: dop.value + nop.value, entered: dop.entered > 0 && nop.entered > 0 };
-    var normalOutput = t.dN + nightNormal, otOutput = t.dO + t.nO;
+    var normalOutput = t.dN + nightNormal, otOutput = t.dO + nightOtOf(t);
     var otPersonHours = dop.value * EFF_HOURS.dO + nop.value * EFF_HOURS.nO;
     var normalEff = normalPeople.entered ? efficiency(normalOutput, normalPeople.value, EFF_HOURS.dN) : null;
     var otEff = otPeople.entered && otPersonHours > 0 ? otOutput / otPersonHours : null;
@@ -1333,16 +1339,17 @@
   function lineRowNight(a) {
     var tot = null, n = null, o = null;
     if (!a || !a.hasNight) return { tot: tot, n: n, o: o };
-    var normalOutput = state.date === state.today && a.nLive > 0 ? a.nLive : a.nNorm;
+    var normalOutput = nightNormOf(a);
+    var overtime = nightOtOf(a);
     n = normalOutput > 0 ? normalOutput : null;
-    o = a.nOt > 0 ? a.nOt : null;
-    if (normalOutput + a.nOt > 0) tot = normalOutput + a.nOt;
+    o = overtime > 0 ? overtime : null;
+    if (normalOutput + overtime > 0) tot = normalOutput + overtime;
     return { tot: tot, n: n, o: o };
   }
   function lineRowFull(a) {
     if (!a || (!a.hasDay && !a.hasNight)) return { tot: null, n: null, o: null };
-    var normal = a.dayNorm + (state.date === state.today && a.nLive > 0 ? a.nLive : a.nNorm);
-    var overtime = a.dayOt + a.nOt;
+    var normal = a.dayNorm + nightNormOf(a);
+    var overtime = a.dayOt + nightOtOf(a);
     return { tot: normal + overtime || null, n: normal > 0 ? normal : null, o: overtime > 0 ? overtime : null };
   }
   /* 车间行数值:车间正常/加班效率统一按"产出 ÷ 车间填报人数 ÷ 工时"
@@ -1355,15 +1362,15 @@
     return { personMode: true, tot: d.dayL > 0 ? d.dN + d.dO : null, n: n, o: o, hN: d.hcD, hO: d.hcDO, effN: eN, effO: eO, diff: diff };
   }
   function wsRowCellsNight(d) {
-    var normalOutput = state.date === state.today && d.nL > 0 ? d.nL : d.nN;
-    var n = normalOutput > 0 ? normalOutput : null, o = d.nO > 0 ? d.nO : null;
+    var normalOutput = nightNormOf(d);
+    var n = normalOutput > 0 ? normalOutput : null, o = nightOtOf(d) > 0 ? nightOtOf(d) : null;
     var hO = otRealHours(d, false);
-    var eN = efficiency(normalOutput, d.hcN, EFF_HOURS.nN), eO = hO !== null ? efficiency(d.nO, d.hcNO, hO) : null;
+    var eN = efficiency(normalOutput, d.hcN, EFF_HOURS.nN), eO = hO !== null ? efficiency(nightOtOf(d), d.hcNO, hO) : null;
     var diff = eN !== null && eO !== null && eN > 0 ? (eO - eN) / eN * 100 : null;
-    return { personMode: true, tot: d.nightL > 0 ? normalOutput + d.nO : null, n: n, o: o, hN: d.hcN, hO: d.hcNO, effN: eN, effO: eO, diff: diff };
+    return { personMode: true, tot: d.nightL > 0 ? normalOutput + nightOtOf(d) : null, n: n, o: o, hN: d.hcN, hO: d.hcNO, effN: eN, effO: eO, diff: diff };
   }
   function wsRowCellsFull(d) {
-    var normalOutput = d.dN + (state.date === state.today && d.nL > 0 ? d.nL : d.nN), overtime = d.dO + d.nO;
+    var normalOutput = d.dN + nightNormOf(d), overtime = d.dO + nightOtOf(d);
     var normalPeople = (d.hcD || 0) + (d.hcN || 0), otPeople = (d.hcDO || 0) + (d.hcNO || 0);
     var normalEff = normalPeople > 0 ? efficiency(normalOutput, normalPeople, 8) : null;
     var otPersonHours = (d.hcDO || 0) * 3 + (d.hcNO || 0) * 2;
