@@ -774,7 +774,7 @@ const I18N = {
     save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", kpiWsRunFmt: "车间 {n} 条 · 全部 {a} 条", noHit: "暂无达成线体",
-    pro2Final: "Final（成品线）", pro2Rotor: "Router（前道线）",
+    pro2Final: "Final", pro2Rotor: "Rotor",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", nightBase: "前半夜", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
@@ -816,7 +816,7 @@ const I18N = {
     save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
     kpiRunSubFmt: "Main {m} · Total {a}", kpiWsRunFmt: "WS {n} · Total {a}", noHit: "None ≥90%",
-    pro2Final: "Final (finished lines)", pro2Rotor: "Router (predecessor lines)",
+    pro2Final: "Final", pro2Rotor: "Rotor",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", nightBase: "Pre-mid", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
@@ -1123,9 +1123,7 @@ function renderTable() {
         `<td class="uph-cell">${uphTxt(l, now)}</td></tr>`;
     };
     const subLbl = function (key) {
-      return lang === "zh"
-        ? (key === "Final" ? t("pro2Final") : t("pro2Rotor"))
-        : (key === "Final" ? "Final (Finished)" : "Router (Predecessor)");
+      return key === "Final" ? t("pro2Final") : t("pro2Rotor");
     };
     let hh = '<tr class="pro2-subhead"><td colspan="8">' + subLbl("Final") + "</td></tr>";
     fin.forEach((l, i) => { hh += rowHtml(l, i); });
