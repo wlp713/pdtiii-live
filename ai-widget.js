@@ -562,15 +562,22 @@
       response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
     };
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 35000) : null;
+    function clearRequestTimeout() {
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+    }
     addMsg("正在生成回答…", "ai");
     setBusy(true);
     fetch(CFG.proxyUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller ? controller.signal : undefined
     })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (data) {
+        clearRequestTimeout();
         setBusy(false);
         // 替换占位消息
         var last = ui.msgs.lastElementChild;
@@ -580,10 +587,15 @@
         addMsg(String(answer), "ai");
       })
       .catch(function (e) {
+        clearRequestTimeout();
         setBusy(false);
         var last = ui.msgs.lastElementChild;
         if (last && last.textContent === "正在生成回答…") last.remove();
-        addMsg("在线 AI 暂时不可用，先给你页面内快速诊断：\n\n" + localBrief() + "\n\n（原因：" + e.message + "）", "ai");
+        var timedOut = e && (e.name === "AbortError" || /timeout|timed out/i.test(String(e.message || "")));
+        var reason = timedOut
+          ? "AI 代理连接超时，请检查当前网络/DNS，或稍后重试。"
+          : "AI 代理暂时无法连接，请稍后重试。";
+        addMsg(reason + "\n\n先给你页面内快速诊断：\n\n" + localBrief(), "ai");
       });
   }
 
