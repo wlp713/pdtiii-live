@@ -312,6 +312,104 @@
   var _isMacroOpen = false;
   var recognition;                 // 语音识别实例
   var recording = false;           // 语音录制状态
+  var requestBusy = false;         // 当前是否正在等待 AI 响应
+  var _bodyLockState = null;       // 打开 AI 时锁定背景页面，避免滚动/键盘冲突
+  var _focusBeforeOpen = null;
+  var _viewportEventsBound = false;
+
+  function lockBackgroundPage() {
+    if (_bodyLockState || !document.body) return;
+    _bodyLockState = {
+      scrollY: window.pageYOffset || document.documentElement.scrollTop || 0,
+      htmlOverflow: document.documentElement.style.overflow,
+      bodyPosition: document.body.style.position,
+      bodyTop: document.body.style.top,
+      bodyWidth: document.body.style.width,
+      bodyOverflow: document.body.style.overflow
+    };
+    document.documentElement.classList.add("ai-modal-open");
+    document.body.classList.add("ai-modal-open");
+    document.body.style.position = "fixed";
+    document.body.style.top = (-_bodyLockState.scrollY) + "px";
+    document.body.style.width = "100%";
+    document.body.style.overflow = "hidden";
+  }
+
+  function unlockBackgroundPage() {
+    if (!_bodyLockState || !document.body) return;
+    var state = _bodyLockState;
+    _bodyLockState = null;
+    document.documentElement.classList.remove("ai-modal-open");
+    document.body.classList.remove("ai-modal-open");
+    document.documentElement.style.overflow = state.htmlOverflow;
+    document.body.style.position = state.bodyPosition;
+    document.body.style.top = state.bodyTop;
+    document.body.style.width = state.bodyWidth;
+    document.body.style.overflow = state.bodyOverflow;
+    window.scrollTo(0, state.scrollY);
+  }
+
+  function syncViewportHeight() {
+    if (!_panel || !_panel.style || _panel.style.display !== "flex") return;
+    var viewport = window.visualViewport;
+    if (!viewport) return;
+    var height = Math.max(320, Math.round(viewport.height));
+    _panel.style.setProperty("--ai-viewport-height", height + "px");
+    if (ui && ui.input && document.activeElement === ui.input && viewport.height < window.innerHeight - 80) {
+      window.requestAnimationFrame(function () { ui.input.scrollIntoView({ block: "nearest", inline: "nearest" }); });
+    }
+  }
+
+  function bindViewportEvents() {
+    if (_viewportEventsBound || !window.visualViewport) return;
+    _viewportEventsBound = true;
+    window.visualViewport.addEventListener("resize", syncViewportHeight);
+    window.visualViewport.addEventListener("scroll", syncViewportHeight);
+  }
+
+  function openAiPanel() {
+    if (!_panel) return;
+    _focusBeforeOpen = document.activeElement;
+    lockBackgroundPage();
+    bindViewportEvents();
+    _panel.style.display = "flex";
+    syncViewportHeight();
+    if (_anaBtn) {
+      _anaBtn.style.visibility = "hidden";
+      _anaBtn.style.pointerEvents = "none";
+    }
+    updateScope();
+    window.requestAnimationFrame(function () {
+      if (ui && ui.input) ui.input.focus({ preventScroll: true });
+      syncViewportHeight();
+    });
+  }
+
+  function closeAiPanel() {
+    if (!_panel) return;
+    if (recording && recognition) {
+      try { recognition.stop(); } catch (e) {}
+    }
+    _panel.style.display = "none";
+    unlockBackgroundPage();
+    if (_anaBtn) {
+      _anaBtn.style.visibility = "visible";
+      _anaBtn.style.pointerEvents = "auto";
+    }
+    if (_focusBeforeOpen && typeof _focusBeforeOpen.focus === "function") {
+      try { _focusBeforeOpen.focus({ preventScroll: true }); } catch (e) { _focusBeforeOpen.focus(); }
+    } else if (_anaBtn) {
+      _anaBtn.focus();
+    }
+    _focusBeforeOpen = null;
+  }
+
+  function syncComposerState() {
+    if (!ui || !ui.send || !ui.input) return;
+    var hasText = Boolean(String(ui.input.value || "").trim());
+    ui.send.disabled = requestBusy || !hasText;
+    ui.send.setAttribute("aria-disabled", ui.send.disabled ? "true" : "false");
+  }
 
   function buildUI() {
     if (_panel) return;
@@ -344,7 +442,12 @@
        ".ai-composer{padding:15px 22px 18px;background:rgba(255,255,255,.9)}.ai-composer-box{gap:10px;padding:7px;border-radius:15px}.ai-composer textarea{min-height:58px;max-height:180px;padding:9px 10px;font-size:14px;line-height:1.6}.ai-icon-btn,.ai-send-btn{flex-basis:44px;width:44px;height:44px;border-radius:11px;touch-action:manipulation;transition:background .15s,color .15s,transform .15s,box-shadow .15s}.ai-icon-btn:active,.ai-send-btn:active{transform:scale(.96)}.ai-send-btn:hover{box-shadow:0 6px 14px rgba(29,95,209,.22)}.ai-action{min-height:44px;transition:background .18s,border-color .18s,transform .18s,box-shadow .18s}.ai-action:active{transform:scale(.985)}.ai-head-btn{min-width:44px;min-height:36px;touch-action:manipulation}.ai-close{font-size:20px}.ai-context-card p{font-size:11px;line-height:1.6}" +
        ".ai-send-btn.is-busy{position:relative;color:transparent;cursor:wait;transform:none}.ai-send-btn.is-busy::after{content:\"\";width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:aiSpin .7s linear infinite}@keyframes aiSpin{to{transform:rotate(360deg)}}" +
        "@media (max-width:720px){#aiWidgetPanel{inset:8px;width:calc(100vw - 16px);height:calc(100vh - 16px);height:calc(100dvh - 16px);min-height:0;border-radius:18px}.ai-panel-head{padding:max(13px,env(safe-area-inset-top)) 14px 16px}.ai-layout{grid-template-columns:1fr}.ai-chat-intro{padding:14px 16px 10px}.ai-chat-intro h3{font-size:17px}.ai-messages{padding:16px 14px 22px}.ai-message-body{max-width:90%;flex-basis:calc(100% - 42px)}.ai-message-bubble{padding:13px 15px;font-size:14px;line-height:1.68}.ai-message-bubble.ai-table-message{padding:10px}.ai-answer-table{font-size:12.5px}.ai-answer-table th,.ai-answer-table td{padding:9px 10px}.ai-composer{padding:10px 10px max(12px,env(safe-area-inset-bottom))}.ai-compose-hint{display:block;font-size:10px}.ai-brand-copy strong{font-size:14px}.ai-head-actions{gap:6px}.ai-head-btn{padding:0 9px}.ai-live-dot{display:none}}";
-     document.head.appendChild(style);
+    style.textContent +=
+      "html.ai-modal-open,body.ai-modal-open{overflow:hidden!important}#aiWidgetPanel{isolation:isolate;contain:layout paint;overscroll-behavior:contain}#aiWidgetPanel .ai-panel-head{position:sticky;top:0;z-index:4;flex:0 0 auto;isolation:isolate}#aiWidgetPanel .ai-layout{overflow:hidden}#aiWidgetPanel .ai-chat{overflow:hidden;min-height:0}#aiWidgetPanel .ai-messages{overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch}#aiWidgetPanel .ai-composer{position:relative;z-index:3;flex:0 0 auto}#aiWidgetPanel .ai-send-btn:disabled{background:#cbd5e1;color:#fff;cursor:not-allowed;opacity:.82;transform:none;box-shadow:none}#aiWidgetPanel .ai-icon-btn[aria-pressed=\"true\"]{border-color:#ef9a9a;background:#fff1f2;color:#dc2626;box-shadow:0 0 0 4px rgba(239,68,68,.1)}#aiWidgetPanel .ai-icon-btn[aria-pressed=\"true\"] svg{animation:aiMicPulse 1.35s ease-in-out infinite}@keyframes aiMicPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}" +
+      "#aiWidgetPanel textarea{font-family:inherit;min-width:0;width:0;overscroll-behavior:contain}#aiWidgetPanel .ai-composer-box{min-height:56px}#aiWidgetPanel .ai-icon-btn,#aiWidgetPanel .ai-send-btn{touch-action:manipulation;user-select:none;-webkit-tap-highlight-color:transparent}" +
+      "@media (max-width:720px){#aiWidgetPanel{inset:0;width:100vw;max-width:100vw;height:var(--ai-viewport-height,100dvh);max-height:var(--ai-viewport-height,100dvh);min-height:0;border-radius:0;box-shadow:0 0 0 100vmax rgba(8,20,42,.48)}#aiWidgetPanel .ai-panel-head{padding:max(12px,env(safe-area-inset-top)) 14px 14px;min-height:64px;background:linear-gradient(180deg,rgba(13,33,67,.98),rgba(27,77,156,.9) 68%,rgba(27,77,156,0) 100%)}#aiWidgetPanel .ai-layout{min-height:0}#aiWidgetPanel .ai-chat{min-height:0}#aiWidgetPanel .ai-chat-intro{flex:0 0 auto;padding:12px 16px 10px}#aiWidgetPanel .ai-chat-intro p{line-height:1.5}#aiWidgetPanel .ai-messages{padding:14px 12px 18px}#aiWidgetPanel .ai-message{gap:8px;margin-bottom:14px}#aiWidgetPanel .ai-message-avatar{flex-basis:28px;width:28px;height:28px}#aiWidgetPanel .ai-message-body{max-width:calc(100% - 36px);flex-basis:calc(100% - 36px)}#aiWidgetPanel .ai-message-bubble{padding:12px 13px;font-size:15px;line-height:1.62;border-radius:5px 16px 16px 16px}#aiWidgetPanel .ai-message.user .ai-message-bubble{border-radius:16px 5px 16px 16px}#aiWidgetPanel .ai-composer{padding:8px 10px max(10px,env(safe-area-inset-bottom));background:rgba(247,249,252,.96)}#aiWidgetPanel .ai-composer-box{gap:7px;padding:6px;border-radius:19px;background:#fff;box-shadow:0 5px 18px rgba(31,58,96,.09)}#aiWidgetPanel .ai-composer textarea{min-height:42px;max-height:132px;padding:8px 7px;font-size:16px;line-height:1.45}#aiWidgetPanel .ai-icon-btn,#aiWidgetPanel .ai-send-btn{flex-basis:44px;width:44px;height:44px;border-radius:50%}#aiWidgetPanel .ai-compose-hint{margin:5px 6px 0;line-height:1.4;text-align:center}#aiWidgetPanel .ai-brand-copy small{font-size:8px;letter-spacing:1.2px}#aiWidgetPanel .ai-brand-copy strong{font-size:15px}#aiWidgetPanel .ai-head-btn{min-width:42px;height:38px;border-radius:11px}#aiWidgetPanel .ai-close{font-size:20px}}" +
+      "@media (max-width:380px){#aiWidgetPanel .ai-brand-copy small{display:none}#aiWidgetPanel .ai-chat-intro h3{font-size:16px}#aiWidgetPanel .ai-message-bubble{font-size:14px}#aiWidgetPanel .ai-compose-hint{font-size:9px}}";
+    document.head.appendChild(style);
 
     var panel = document.createElement("div");
     panel.id = "aiWidgetPanel";
@@ -354,7 +457,7 @@
      panel.setAttribute("aria-labelledby", "aiWidgetTitle");
      panel.innerHTML =
        '<div class="ai-panel-head"><div class="ai-brand"><span class="ai-brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3"/><path d="M8 12h.01M16 12h.01M12 4v4M9 16h6"/></svg></span><span class="ai-brand-copy"><small>AI OPERATIONS COPILOT</small><strong id="aiWidgetTitle">产出经营诊断</strong></span></div><div class="ai-head-actions"><span class="ai-live-dot"><i></i>页面数据已加载</span><button id="aiWidgetReset" class="ai-head-btn" title="清除上下文记忆, 开启新对话">新对话</button><button id="aiWidgetClose" class="ai-head-btn ai-close" aria-label="关闭 AI 助手">×</button></div></div>' +
-       '<div class="ai-layout"><aside class="ai-rail"><span class="ai-rail-kicker">DECISION PATHS</span><div class="ai-rail-title">从哪里开始？</div><button class="ai-action" type="button" data-ai-prompt="请先给出当前范围的经营结论，再列出最需要关注的3条线体和证据。"><span class="ai-action-index">01</span><span class="ai-action-copy">今日经营结论<small>先看全局，再找重点</small></span><span class="ai-action-arrow">›</span></button><button class="ai-action" type="button" data-ai-prompt="请按欠产贡献排序，说明最需要改善的线体，并给出现场核查顺序。"><span class="ai-action-index">02</span><span class="ai-action-copy">欠产诊断<small>从差距追到现场</small></span><span class="ai-action-arrow">›</span></button><button class="ai-action" type="button" data-ai-prompt="请比较当前选定日期与前一有效日，指出产出、达成率和加班的变化。"><span class="ai-action-index">03</span><span class="ai-action-copy">前后日对比<small>看变化，不只看结果</small></span><span class="ai-action-arrow">›</span></button><button class="ai-action" type="button" data-ai-prompt="请生成一份班前会可直接使用的3分钟汇报：结果、风险、行动、责任确认。"><span class="ai-action-index">04</span><span class="ai-action-copy">班前会汇报<small>把分析变成动作</small></span><span class="ai-action-arrow">›</span></button><hr class="ai-rail-rule"><div class="ai-context-card"><span class="ai-rail-kicker">CURRENT SCOPE</span><strong id="aiWidgetScope">读取当前视图…</strong><p>可直接询问任意已归档日期、班次、车间或线体；无需先切换页面筛选。</p><span class="ai-context-tag">静态归档 · 不新增数据库请求</span></div></aside><main class="ai-chat"><div class="ai-chat-intro"><span class="ai-kicker">当前诊断上下文</span><h3>直接询问任意日期与线体</h3><p>先说判断，再给证据和下一步；如果数据不足，会明确标出未知。</p></div><div id="aiWidgetMsgs" class="ai-messages" role="log" aria-live="polite" aria-label="AI 对话记录"></div><div class="ai-composer"><div class="ai-composer-box"><textarea id="aiWidgetInput" rows="2" aria-label="询问 AI 助手" placeholder="例如：查询 2026-09-10 夜班 Pro.2 Final A 的正常和加班产出"></textarea><button id="aiWidgetMic" class="ai-icon-btn" aria-label="语音输入" title="语音输入"><svg viewBox="0 0 24 24" aria-hidden="true" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg></button><button id="aiWidgetSend" class="ai-send-btn" aria-label="发送问题"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 14-7-4 14-3-6-7-1Z"/><path d="m12 13 7-8"/></svg></button></div><div class="ai-compose-hint">Enter 发送 · <kbd>Shift</kbd> + Enter 换行 · 可直接问任意日期/班次/线体</div></div></main></div>';
+       '<div class="ai-layout"><aside class="ai-rail"><span class="ai-rail-kicker">DECISION PATHS</span><div class="ai-rail-title">从哪里开始？</div><button class="ai-action" type="button" data-ai-prompt="请先给出当前范围的经营结论，再列出最需要关注的3条线体和证据。"><span class="ai-action-index">01</span><span class="ai-action-copy">今日经营结论<small>先看全局，再找重点</small></span><span class="ai-action-arrow">›</span></button><button class="ai-action" type="button" data-ai-prompt="请按欠产贡献排序，说明最需要改善的线体，并给出现场核查顺序。"><span class="ai-action-index">02</span><span class="ai-action-copy">欠产诊断<small>从差距追到现场</small></span><span class="ai-action-arrow">›</span></button><button class="ai-action" type="button" data-ai-prompt="请比较当前选定日期与前一有效日，指出产出、达成率和加班的变化。"><span class="ai-action-index">03</span><span class="ai-action-copy">前后日对比<small>看变化，不只看结果</small></span><span class="ai-action-arrow">›</span></button><button class="ai-action" type="button" data-ai-prompt="请生成一份班前会可直接使用的3分钟汇报：结果、风险、行动、责任确认。"><span class="ai-action-index">04</span><span class="ai-action-copy">班前会汇报<small>把分析变成动作</small></span><span class="ai-action-arrow">›</span></button><hr class="ai-rail-rule"><div class="ai-context-card"><span class="ai-rail-kicker">CURRENT SCOPE</span><strong id="aiWidgetScope">读取当前视图…</strong><p>可直接询问任意已归档日期、班次、车间或线体；无需先切换页面筛选。</p><span class="ai-context-tag">静态归档 · 不新增数据库请求</span></div></aside><main class="ai-chat"><div class="ai-chat-intro"><span class="ai-kicker">当前诊断上下文</span><h3>直接询问任意日期与线体</h3><p>先说判断，再给证据和下一步；如果数据不足，会明确标出未知。</p></div><div id="aiWidgetMsgs" class="ai-messages" role="log" aria-live="polite" aria-label="AI 对话记录"></div><div class="ai-composer"><div class="ai-composer-box"><textarea id="aiWidgetInput" rows="2" aria-label="询问 AI 助手" autocomplete="off" autocapitalize="sentences" autocorrect="on" spellcheck="true" inputmode="text" enterkeyhint="send" placeholder="例如：查询 2026-09-10 夜班 Pro.2 Final A 的正常和加班产出"></textarea><button id="aiWidgetMic" class="ai-icon-btn" type="button" aria-label="语音输入" aria-pressed="false" title="语音输入"><svg viewBox="0 0 24 24" aria-hidden="true" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg></button><button id="aiWidgetSend" class="ai-send-btn" type="button" aria-label="发送问题" disabled><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 14-7-4 14-3-6-7-1Z"/><path d="m12 13 7-8"/></svg></button></div><div class="ai-compose-hint">Enter 发送 · <kbd>Shift</kbd> + Enter 换行 · 可直接问任意日期/班次/线体</div></div></main></div>';
 
     document.body.appendChild(panel);
     _panel = panel;
@@ -520,6 +623,7 @@
 
   function setBusy(flag) {
     var s = ui.send;
+    requestBusy = Boolean(flag);
     if (flag) {
       s.disabled = true;
       s.classList.add("is-busy");
@@ -532,6 +636,7 @@
       s.removeAttribute("aria-busy");
       s.setAttribute("aria-label", "发送问题");
       s.innerHTML = sendIconMarkup();
+      syncComposerState();
     }
   }
 
@@ -605,33 +710,48 @@
       : '<svg viewBox="0 0 24 24" aria-hidden="true" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M9 21h6"/></svg>';
   }
 
+  function setRecordingUI(active) {
+    recording = Boolean(active);
+    if (!ui || !ui.mic) return;
+    ui.mic.innerHTML = micIconMarkup(recording);
+    ui.mic.setAttribute("aria-pressed", recording ? "true" : "false");
+    ui.mic.setAttribute("aria-label", recording ? "停止语音输入" : "语音输入");
+    ui.mic.title = recording ? "正在聆听，点击停止" : "语音输入";
+  }
+
+  function speechLanguage() {
+    var lang = String(document.documentElement.lang || "").toLowerCase();
+    if (lang.indexOf("th") === 0) return "th-TH";
+    if (lang.indexOf("en") === 0) return "en-US";
+    return "zh-CN";
+  }
+
   /* ── 语音输入 ── */
   function initSpeech() {
+    if (!ui || !ui.mic || ui.mic.getAttribute("data-ai-speech-bound") === "true") return;
+    ui.mic.setAttribute("data-ai-speech-bound", "true");
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { ui.mic.disabled = true; ui.mic.style.opacity = "0.45"; ui.mic.title = "当前浏览器不支持语音"; return; }
     recognition = new SR();
-    recognition.lang = "zh-CN";
+    recognition.lang = speechLanguage();
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     recognition.onresult = function (e) {
       var t = e.results[0][0].transcript;
       ui.input.value += (ui.input.value ? "\n" : "") + t;
-      recording = false;
-      ui.mic.innerHTML = micIconMarkup(false);
-      ui.mic.setAttribute("aria-label", "语音输入");
-      ui.mic.style.background = "#fff";
+      setRecordingUI(false);
+      ui.input.dispatchEvent(new Event("input", { bubbles: true }));
+      ui.input.focus({ preventScroll: true });
     };
-    recognition.onerror = function () { recording = false; ui.mic.innerHTML = micIconMarkup(false); ui.mic.setAttribute("aria-label", "语音输入"); ui.mic.style.background = "#fff"; };
-    recognition.onend = function () { recording = false; ui.mic.innerHTML = micIconMarkup(false); ui.mic.setAttribute("aria-label", "语音输入"); ui.mic.style.background = "#fff"; };
+    recognition.onerror = function () { setRecordingUI(false); };
+    recognition.onend = function () { setRecordingUI(false); };
     ui.mic.addEventListener("click", function () {
       if (!recognition) return;
       if (recording) { recognition.stop(); return; }
       try {
+        recognition.lang = speechLanguage();
         recognition.start();
-        recording = true;
-        ui.mic.innerHTML = micIconMarkup(true);
-        ui.mic.setAttribute("aria-label", "停止语音输入");
-        ui.mic.style.background = "#fee2e2";
+        setRecordingUI(true);
       } catch (e) { /* 已启动 */ }
     });
   }
@@ -653,11 +773,16 @@
     ui.btn = _anaBtn;
     ui.panel = _panel;
 
+    // 产出分析页可能因切换视图而重复初始化；只绑定一次，避免一次点击发送多次请求。
+    if (_panel.getAttribute("data-ai-events-bound") === "true") {
+      updateScope();
+      syncComposerState();
+      return;
+    }
+    _panel.setAttribute("data-ai-events-bound", "true");
+
     document.getElementById("aiWidgetClose").onclick = function () {
-      ui.panel.style.display = "none";
-      ui.btn.style.visibility = "visible";
-      ui.btn.style.pointerEvents = "auto";
-      ui.btn.focus();
+      closeAiPanel();
     };
     document.getElementById("aiWidgetReset").onclick = function () {
       if (ui.msgs) ui.msgs.innerHTML = "";
@@ -665,11 +790,7 @@
       addMsg("已开启新对话，之前的问题不会影响本次。", "ai");
     };
     ui.btn.addEventListener("click", function () {
-      ui.panel.style.display = "flex";
-      ui.btn.style.visibility = "hidden";
-      ui.btn.style.pointerEvents = "none";
-      updateScope();
-      ui.input.focus();
+      openAiPanel();
     });
     function send() {
       var q = ui.input.value.trim();
@@ -677,6 +798,7 @@
       addMsg(q, "user");
       ui.input.value = "";
       ui.input.style.height = "";
+      syncComposerState();
       askAI(q);
     }
     ui.quick = ui.panel.querySelectorAll("button[data-ai-prompt]");
@@ -687,8 +809,18 @@
     ui.input.addEventListener("input", function () {
       ui.input.style.height = "auto";
       ui.input.style.height = Math.min(ui.input.scrollHeight, 180) + "px";
+      syncComposerState();
     });
-    ui.input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+    var composing = false;
+    ui.input.addEventListener("compositionstart", function () { composing = true; });
+    ui.input.addEventListener("compositionend", function () { composing = false; });
+    ui.input.addEventListener("keydown", function (e) {
+      // 中文/泰文输入法组合确认时，Enter 只提交候选词，不应误触发发送。
+      if (e.key === "Enter" && !e.shiftKey && !composing && !e.isComposing && e.keyCode !== 229) {
+        e.preventDefault();
+        send();
+      }
+    });
     if (!_panel.getAttribute("data-ai-keyboard-bound")) {
       _panel.setAttribute("data-ai-keyboard-bound", "true");
       document.addEventListener("keydown", function (e) {
@@ -698,6 +830,7 @@
     }
     addMsg("我会先定位异常，再引用页面已加载的数据证据，最后给出可执行行动。你可以直接点上面的快捷问题，也可以追问任意日期、班次、车间或线体。", "ai");
     initSpeech();
+    syncComposerState();
   }
 
   /* ── 对外入口: 在产出分析页顶栏挂载 AI 按钮 ── */
