@@ -1371,7 +1371,7 @@ function renderKPIs(view) {
     setTxt(document.getElementById("kpiMotor"), planSum ? fmt(planSum) : "-");
   } else {
     // ★ 2026-09-10 改动C: 默认(非车间)视图 KPI 总览同样剔除 actual=0 未生产线(不纳入产出/计划)
-    const eligAll = lines.filter(l => (Number(l.actual)||0) > 0);
+    const eligAll = raw.filter(l => (Number(l.actual)||0) > 0);
     const totalFinal = eligAll.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
     const totalMotor = eligAll.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
     setTxt(document.getElementById("kpiFinalLbl"), t("kpiFinal"));
