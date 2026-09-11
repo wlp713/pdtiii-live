@@ -756,8 +756,86 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
     }).filter(function (item) { return !!item; });
   }
 
+  // 给 AI 建立独立的历史检索索引。它只使用本页已经加载的静态归档，
+  // 不受当前日期、班次、车间和线体筛选影响，也不会新增 Firebase 请求。
+  function aiArchiveForAssistant() {
+    if (!data || !Array.isArray(data.days)) return null;
+    var scopes = data.finishedProductLines || data.workshops || {};
+    var refs = [];
+    var refSeen = {};
+    Object.keys(scopes).forEach(function (workshop) {
+      (scopes[workshop] || []).forEach(function (line) {
+        var key = workshop + "|" + line;
+        if (refSeen[key]) return;
+        refSeen[key] = true;
+        refs.push({ workshop: workshop, line: line });
+      });
+    });
+
+    var rows = [];
+    var totals = [];
+    var dates = [];
+    var dateSeen = {};
+
+    function addDay(day) {
+      if (!day || !day.date) return;
+      var date = String(day.date);
+      if (!dateSeen[date]) {
+        dateSeen[date] = true;
+        dates.push(date);
+      }
+      refs.forEach(function (ref) {
+        var scope = day.lines && day.lines[ref.line];
+        if (!scope) return;
+        ["day", "night"].forEach(function (shift) {
+          var item = shiftMetric(scope, shift);
+          if (!item) return;
+          var attainment = item.attainment === null || item.attainment === undefined ? null : Number(item.attainment);
+          rows.push({
+            date: date, shift: shift, workshop: ref.workshop, line: ref.line,
+            normal: num(item.normal), overtime: num(item.overtime), total: num(item.total),
+            plan: num(item.plan), attainment: isFinite(attainment) ? attainment : null,
+            quality: day.quality && day.quality[shift + "Status"] ? day.quality[shift + "Status"] : ""
+          });
+        });
+      });
+      Object.keys(scopes).forEach(function (workshop) {
+        ["day", "night"].forEach(function (shift) {
+          var item = finishedWorkshopMetric(day, workshop, shift);
+          if (!item) return;
+          var attainment = item.attainment === null || item.attainment === undefined ? null : Number(item.attainment);
+          totals.push({
+            date: date, shift: shift, workshop: workshop,
+            normal: num(item.normal), overtime: num(item.overtime), total: num(item.total),
+            plan: num(item.plan), attainment: isFinite(attainment) ? attainment : null,
+            quality: day.quality && day.quality[shift + "Status"] ? day.quality[shift + "Status"] : ""
+          });
+        });
+      });
+    }
+
+    data.days.forEach(addDay);
+    // 今日实时快照如果已经由页面加载，则以它替换同日期的静态归档；仍然不产生额外请求。
+    if (todayLive && todayLive.date) {
+      var liveDate = String(todayLive.date);
+      rows = rows.filter(function (row) { return row.date !== liveDate; });
+      totals = totals.filter(function (row) { return row.date !== liveDate; });
+      delete dateSeen[liveDate];
+      dates = dates.filter(function (date) { return date !== liveDate; });
+      addDay(todayLive);
+    }
+    dates.sort();
+    return {
+      availableDates: dates,
+      rows: rows,
+      totals: totals,
+      note: "完整成品线归档索引；查询不依赖页面当前筛选，也不新增 Firebase 读取。"
+    };
+  }
+
   function publishAIContext(days, rows) {
     try {
+      window.__PDTIII_HISTORY_ARCHIVE__ = aiArchiveForAssistant();
       var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
       var isToday = isTodayMode();
       var contextDays = aiContextDays();
