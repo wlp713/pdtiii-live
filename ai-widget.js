@@ -143,6 +143,26 @@
       if (V.latest) out.push("  最新/指定日: 正常" + V.latest.normal + " 加班" + V.latest.overtime + " 总产出" + V.latest.total + " 计划" + V.latest.plan + " 达成率" + (V.latest.attainment == null ? "-" : V.latest.attainment) + "%");
       if (V.trend && V.trend.length) out.push("  趋势: " + V.trend.map(function (x) { return x.date + "总" + x.total + "/达成" + (x.attainment == null ? "-" : x.attainment) + "%"; }).join(" | "));
       if (V.topRisks && V.topRisks.length) out.push("  欠产重点: " + V.topRisks.slice(0, 5).map(function (x) { return x.line + "缺口" + x.gap + "达成" + (x.attainment == null ? "-" : x.attainment) + "%"; }).join(" | "));
+      // 白班/夜班独立归档: 页面当前只显示一个班次, 但 AI 上下文必须同时携带两种班次。
+      if (V.shiftSnapshots && V.shiftSnapshots.length) {
+        var shiftMetricText = function (m) {
+          return m ? "正常" + m.normal + " 加班" + m.overtime + " 总" + m.total + " 计划" + m.plan + " 达成率" + (m.attainment == null ? "-" : Number(m.attainment).toFixed(1)) + "%" : "未归档/无数据";
+        };
+        out.push("  白班/夜班独立归档（当前分析范围）:");
+        V.shiftSnapshots.forEach(function (s) {
+          out.push("    " + s.date + " | 白班: " + shiftMetricText(s.day) + " | 夜班: " + shiftMetricText(s.night));
+        });
+      }
+      if (V.shiftMatrix) {
+        var matrixMetricText = function (r) {
+          return r.line + " [" + r.workshop + "] 正常" + r.normal + " 加班" + r.overtime + " 总" + r.total + " 计划" + r.plan + " 达成率" + (r.attainment == null ? "-" : Number(r.attainment).toFixed(1)) + "%";
+        };
+        out.push("  指定日期线体白班/夜班明细（日期 " + V.shiftMatrix.date + ", 成品线范围）:");
+        out.push("    白班:");
+        (V.shiftMatrix.day || []).forEach(function (r) { out.push("      " + matrixMetricText(r)); });
+        out.push("    夜班:");
+        (V.shiftMatrix.night || []).forEach(function (r) { out.push("      " + matrixMetricText(r)); });
+      }
       // 完整线体矩阵(全量): 与页面矩阵逐行一致, AI 可精确回答任意线体/车间的所有指标
       if (V.matrixRows && V.matrixRows.length) {
         out.push("  ∑线体矩阵(" + V.matrixRows.length + "条):");
@@ -395,7 +415,7 @@
       query: query,
       context: ctx,
       mode: "pdtiii_operations_diagnosis_v2",
-      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
+      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。回答白班或夜班问题时，优先读取上下文中的‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
     };
     addMsg("🤖 思考中…", "ai");

@@ -61,9 +61,10 @@
     var plan = items.reduce(function (sum, item) { return sum + num(item && item.plan); }, 0);
     return { normal: normal, overtime: overtime, total: normal + overtime, plan: plan, attainment: plan > 0 ? normal / plan * 100 : null };
   }
-  function shiftMetric(scope) {
+  function shiftMetric(scope, requestedShift) {
     if (!scope) return null;
-    return state.shift === "full" ? sumMetricItems([scope.day, scope.night].filter(Boolean)) : scope[state.shift];
+    var shift = requestedShift || state.shift;
+    return shift === "full" ? sumMetricItems([scope.day, scope.night].filter(Boolean)) : scope[shift];
   }
   function shiftLabel() { return state.shift === "full" ? "全天" : (state.shift === "day" ? "白班" : "夜班"); }
   function qualityStatus(day) {
@@ -72,17 +73,17 @@
     if (day.quality.dayStatus === "partial" || day.quality.nightStatus === "partial") return "partial";
     return day.quality.dayStatus === "complete" && day.quality.nightStatus === "complete" ? "complete" : "comparable";
   }
-  function finishedWorkshopMetric(day, workshop) {
-    if (day.finishedProducts && day.finishedProducts[workshop]) return shiftMetric(day.finishedProducts[workshop]);
+  function finishedWorkshopMetric(day, workshop, requestedShift) {
+    if (day.finishedProducts && day.finishedProducts[workshop]) return shiftMetric(day.finishedProducts[workshop], requestedShift);
     var configured = (data && data.finishedProductLines && data.finishedProductLines[workshop]) || [];
     return sumMetricItems(configured.map(function (line) {
-      return day.lines && day.lines[line] ? shiftMetric(day.lines[line]) : null;
+      return day.lines && day.lines[line] ? shiftMetric(day.lines[line], requestedShift) : null;
     }).filter(Boolean));
   }
-  function metricFor(day, workshop, line) {
-    if (line) return day.lines && day.lines[line] ? shiftMetric(day.lines[line]) : null;
-    if (workshop) return finishedWorkshopMetric(day, workshop);
-    return day.totals ? shiftMetric(day.totals) : null;
+  function metricFor(day, workshop, line, requestedShift) {
+    if (line) return day.lines && day.lines[line] ? shiftMetric(day.lines[line], requestedShift) : null;
+    if (workshop) return finishedWorkshopMetric(day, workshop, requestedShift);
+    return day.totals ? shiftMetric(day.totals, requestedShift) : null;
   }
   function isTodayMode() { return state.period === "today"; }
   function usableDays() {
@@ -709,10 +710,59 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
     }).join("") || '<tr><td colspan="9" class="hist-no-row">当前条件下没有可计算的线体数据</td></tr>';
   }
 
+  function aiMetricSnapshot(item) {
+    if (!item) return null;
+    var attainment = item.attainment === null || item.attainment === undefined ? null : Number(item.attainment);
+    return {
+      normal: num(item.normal),
+      overtime: num(item.overtime),
+      total: num(item.total),
+      plan: num(item.plan),
+      attainment: isFinite(attainment) ? attainment : null
+    };
+  }
+
+  function aiContextDays() {
+    if (isTodayMode()) return todayLive ? [todayLive] : [];
+    var days = data && Array.isArray(data.days) ? data.days.slice() : [];
+    var exact = state.period === "-1" && !!state.selectedDate;
+    days = days.filter(function (day) {
+      if (exact) return day.date === state.selectedDate;
+      if (day.quality && day.quality.freshnessStatus === "stale") return false;
+      if (!state.includePartial && qualityStatus(day) === "partial") return false;
+      return !state.selectedDate || day.date <= state.selectedDate;
+    });
+    if (!exact) {
+      var period = Number(state.period);
+      if (!isNaN(period) && period > 0) days = days.slice(-period);
+    }
+    return days;
+  }
+
+  function aiLineSnapshots(day, requestedShift) {
+    if (!day) return [];
+    return lineNamesInScope().map(function (line) {
+      var item = metricFor(day, "", line, requestedShift);
+      if (!item) return null;
+      return {
+        line: line,
+        workshop: findWorkshop(line),
+        normal: num(item.normal),
+        overtime: num(item.overtime),
+        total: num(item.total),
+        plan: num(item.plan),
+        attainment: item.attainment === null || item.attainment === undefined ? null : Number(item.attainment)
+      };
+    }).filter(function (item) { return !!item; });
+  }
+
   function publishAIContext(days, rows) {
     try {
       var latest = days.length ? metricFor(days[days.length - 1], state.workshop, state.line) : null;
       var isToday = isTodayMode();
+      var contextDays = aiContextDays();
+      var contextDate = state.selectedDate || (contextDays.length ? contextDays[contextDays.length - 1].date : "");
+      var contextDay = contextDays.filter(function (day) { return day.date === contextDate; })[0] || (contextDays.length ? contextDays[contextDays.length - 1] : null);
       window.__PDTIII_HISTORY_VIEW__ = {
         scope: scopeLabel(), workshop: state.workshop || "全厂", line: state.line || "全部线体",
         shift: shiftLabel(), selectedDate: state.selectedDate || "",
@@ -726,6 +776,11 @@ var TODAY_DAY_NORMAL_END = 17 * 60 + 20;   // 白班加班起点 1040
         matrixRows: rows.map(function (row) {
           return { line: row.line, workshop: row.workshop, days: row.days, total: num(row.total), normal: num(row.normal), overtime: num(row.overtime), plan: num(row.plan), attainment: row.attainment, average: row.average, delta: row.delta, variation: row.variation, streak: row.streak, gap: row.gap };
         }),
+        // 班次独立上下文: 页面当前选中一个班次, 但 AI 需要同时看到白班与夜班归档。
+        shiftSnapshots: contextDays.slice(-14).map(function (day) {
+          return { date: day.date, day: aiMetricSnapshot(metricFor(day, state.workshop, state.line, "day")), night: aiMetricSnapshot(metricFor(day, state.workshop, state.line, "night")) };
+        }),
+        shiftMatrix: contextDay ? { date: contextDay.date, day: aiLineSnapshots(contextDay, "day"), night: aiLineSnapshots(contextDay, "night") } : null,
         note: isToday ? "产出分析与线体经营矩阵统一使用已确认成品线口径。数据来自实时看板快照(与生产看板同源)，随生产同步，非静态归档。" : "产出分析与线体经营矩阵统一使用已确认成品线口径。数据来自静态归档，不增加数据库请求。"
       };
     } catch (e) {}
