@@ -198,6 +198,7 @@
       ".ai-chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:linear-gradient(180deg,rgba(251,252,254,.76),#fbfcfe 22%)}.ai-chat-intro{padding:19px 22px 12px;border-bottom:1px solid #e8edf5;background:rgba(255,255,255,.66)}.ai-chat-intro h3{margin:4px 0 3px;font-size:17px;line-height:1.25}.ai-chat-intro p{margin:0;color:var(--ai-muted);font-size:11px}.ai-messages{flex:1;min-height:0;overflow-y:auto;padding:16px 22px 20px}.ai-message{display:flex;gap:9px;align-items:flex-start;margin:0 0 15px;animation:aiMsgIn .2s ease-out}.ai-message.user{flex-direction:row-reverse}.ai-message-avatar{display:grid;place-items:center;flex:0 0 26px;width:26px;height:26px;border-radius:9px;background:#dbe9fb;color:var(--ai-blue);font-size:10px;font-weight:900}.ai-message.user .ai-message-avatar{background:#1d5fd1;color:#fff}.ai-message-body{display:block;flex:0 1 620px;max-width:78%;min-width:0}.ai-message-meta{display:block;margin:1px 0 4px;color:#8a9ab0;font-size:9px;font-weight:800}.ai-message.user .ai-message-meta{text-align:right}.ai-message-bubble{display:block;width:fit-content;max-width:100%;padding:11px 14px;border:1px solid #e0e7f1;border-radius:4px 14px 14px 14px;background:#fff;color:#28384e;font-size:12.5px;line-height:1.68;white-space:normal;word-break:break-word;box-shadow:0 3px 10px rgba(31,58,96,.04)}.ai-message-bubble p{margin:0 0 9px}.ai-message-bubble p:last-child{margin-bottom:0}.ai-message-bubble ul{margin:5px 0 9px;padding-left:18px}.ai-message-bubble li{margin:3px 0}.ai-message-bubble .ai-answer-label{color:#1d5fd1;font-weight:900}.ai-message-bubble .ai-answer-divider{height:1px;margin:9px 0;background:#e8edf5}.ai-message-bubble .ai-answer-muted{color:#718096}.ai-message.user .ai-message-bubble{border:0;border-radius:14px 4px 14px 14px;background:#1d5fd1;color:#fff}.ai-composer{padding:12px 16px 14px;border-top:1px solid var(--ai-line);background:rgba(255,255,255,.78)}.ai-composer-box{display:flex;align-items:flex-end;gap:9px;padding:6px;border:1px solid #cbd8e8;border-radius:13px;background:#f9fbfe;transition:border-color .15s,box-shadow .15s}.ai-composer-box:focus-within{border-color:#83a9e7;box-shadow:0 0 0 3px rgba(53,110,209,.1)}.ai-composer textarea{flex:1;min-height:42px;max-height:110px;resize:none;border:0;outline:0;background:transparent;padding:8px 8px;color:var(--ai-ink);font-size:12.5px;line-height:1.5}.ai-composer textarea::placeholder{color:#94a3b8}.ai-icon-btn,.ai-send-btn{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;border-radius:10px;cursor:pointer}.ai-icon-btn{border:1px solid #d2ddea;background:#fff;color:#506b8d;font-size:17px}.ai-icon-btn:hover{background:#eef4ff;color:var(--ai-blue)}.ai-send-btn{border:0;background:#1d5fd1;color:#fff;font-size:17px}.ai-send-btn:hover{background:#164ba8;transform:translateY(-1px)}.ai-compose-hint{margin:6px 4px 0;color:#9aa9bc;font-size:9.5px}.ai-compose-hint kbd{padding:1px 4px;border:1px solid #d4dce8;border-radius:4px;background:#f4f6f9;font-family:inherit}" +
       ".ai-message.user .ai-message-body{display:flex;flex-direction:column;align-items:flex-end}.ai-message-bubble{display:block;width:fit-content;max-width:100%}" +
       "@keyframes aiMsgIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}@media (prefers-reduced-motion:reduce){#aiWidgetPanel *{transition:none!important;animation:none!important}}@media (max-width:720px){#aiWidgetPanel{width:calc(100vw - 20px);height:calc(100vh - 20px);border-radius:16px}.ai-layout{grid-template-columns:1fr}.ai-rail{display:none}.ai-chat-intro{padding:15px 16px 10px}.ai-messages{padding:14px 14px 16px}.ai-message-body{max-width:84%}.ai-panel-head{padding:13px 14px}.ai-live-dot{display:none}.ai-composer{padding:10px}.ai-compose-hint{display:none}}";
+    style.textContent += "#aiWidgetPanel .ai-message-bubble.ai-table-message{width:100%;padding:10px 12px}.ai-message-bubble h4{margin:2px 0 8px;color:#14233b;font-size:14px;line-height:1.4}.ai-message-bubble strong{font-weight:800}.ai-message-bubble code{padding:1px 4px;border-radius:4px;background:#eef2f7;color:#315176;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em}.ai-message-bubble ol{margin:5px 0 9px;padding-left:20px}.ai-message-bubble li{padding-left:2px}.ai-answer-table-wrap{width:100%;max-width:100%;margin:10px 0 4px;overflow-x:auto;border:1px solid #d8e1ec;border-radius:10px;background:#fff;box-shadow:0 2px 8px rgba(31,58,96,.04);-webkit-overflow-scrolling:touch}.ai-answer-table-wrap:focus-visible{outline:3px solid rgba(62,126,232,.38);outline-offset:2px}.ai-answer-table{width:100%;min-width:560px;border-collapse:separate;border-spacing:0;table-layout:auto;color:#28384e;font-size:12px;line-height:1.5}.ai-answer-table th,.ai-answer-table td{padding:9px 10px;text-align:left;vertical-align:top;white-space:normal;overflow-wrap:anywhere}.ai-answer-table th{background:#f2f5f9;color:#172942;font-size:11px;font-weight:900;letter-spacing:.1px}.ai-answer-table thead th+th,.ai-answer-table tbody td+td{border-left:1px solid #d8e1ec}.ai-answer-table tbody tr+tr td{border-top:1px solid #e3e9f1}.ai-answer-table tbody tr:nth-child(even) td{background:#fbfcfe}.ai-answer-table .align-center{text-align:center}.ai-answer-table .align-right{text-align:right;font-variant-numeric:tabular-nums}.ai-answer-table .ai-answer-muted{color:#8a9ab0;font-style:italic}.ai-message.user .ai-answer-table{color:#fff}.ai-message.user .ai-answer-table-wrap{border:0;background:rgba(255,255,255,.1);box-shadow:none}.ai-message.user .ai-answer-table th{background:rgba(255,255,255,.16);color:#fff}.ai-message.user .ai-answer-table td{color:#fff}.ai-message.user .ai-answer-table thead th+th,.ai-message.user .ai-answer-table tbody td+td,.ai-message.user .ai-answer-table tbody tr+tr td{border-color:rgba(255,255,255,.18)}";
     document.head.appendChild(style);
 
     var panel = document.createElement("div");
@@ -218,23 +219,139 @@
     });
   }
 
-  // 一个 AI 回复只生成一个气泡；段落、列表和换行只在气泡内部排版。
+  function formatInlineMarkdown(text) {
+    var safe = escapeHtml(text);
+    // 先转义，再只处理有限的行内语法，避免 AI 返回内容注入 HTML。
+    safe = safe.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+    safe = safe.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+    safe = safe.replace(/__([^_\n]+)__/g, "<strong>$1</strong>");
+    safe = safe.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+    return safe;
+  }
+
+  function splitMarkdownTableCells(line) {
+    var source = String(line || "").trim();
+    if (source.charAt(0) === "|") source = source.slice(1);
+    if (source.charAt(source.length - 1) === "|" && source.charAt(source.length - 2) !== "\\") {
+      source = source.slice(0, -1);
+    }
+    var cells = [], cell = "";
+    for (var i = 0; i < source.length; i++) {
+      var ch = source.charAt(i);
+      if (ch === "\\" && source.charAt(i + 1) === "|") {
+        cell += "|";
+        i++;
+      } else if (ch === "|") {
+        cells.push(cell.trim());
+        cell = "";
+      } else {
+        cell += ch;
+      }
+    }
+    cells.push(cell.trim());
+    return cells;
+  }
+
+  function isMarkdownTableDivider(line) {
+    var cells = splitMarkdownTableCells(line);
+    return cells.length >= 2 && cells.every(function (cell) {
+      return /^:?-{3,}:?$/.test(cell.trim());
+    });
+  }
+
+  function renderMarkdownTable(headerLine, dividerLine, bodyLines) {
+    var headers = splitMarkdownTableCells(headerLine);
+    var alignments = splitMarkdownTableCells(dividerLine).map(function (cell) {
+      var value = cell.trim();
+      return value.charAt(0) === ":" && value.charAt(value.length - 1) === ":"
+        ? "center"
+        : value.charAt(value.length - 1) === ":" ? "right" : "left";
+    });
+    var headerHtml = headers.map(function (cell, index) {
+      return "<th scope=\"col\" class=\"align-" + (alignments[index] || "left") + "\">" + formatInlineMarkdown(cell) + "</th>";
+    }).join("");
+    var rowsHtml = bodyLines.map(function (line) {
+      var cells = splitMarkdownTableCells(line);
+      while (cells.length < headers.length) cells.push("");
+      if (cells.length > headers.length) cells = cells.slice(0, headers.length);
+      return "<tr>" + cells.map(function (cell, index) {
+        return "<td class=\"align-" + (alignments[index] || "left") + "\">" + (cell ? formatInlineMarkdown(cell) : "<span class=\"ai-answer-muted\">未填</span>") + "</td>";
+      }).join("") + "</tr>";
+    }).join("");
+    return "<div class=\"ai-answer-table-wrap\" role=\"region\" aria-label=\"结构化数据表格\" tabindex=\"0\"><table class=\"ai-answer-table\"><thead><tr>" + headerHtml + "</tr></thead><tbody>" + rowsHtml + "</tbody></table></div>";
+  }
+
+  function formatParagraph(lines) {
+    var content = lines.map(formatInlineMarkdown).join("<br>");
+    content = content.replace(/^(结论|判断|证据|行动|建议|风险)[:：]/, "<span class=\"ai-answer-label\">$1</span>：");
+    return "<p>" + content + "</p>";
+  }
+
+  // 一个 AI 回复只生成一个气泡；表格、段落、列表和换行都在同一气泡内部排版。
   function formatAiMessage(text) {
     var raw = String(text == null ? "" : text).replace(/\r\n?/g, "\n").trim();
     if (!raw) return "<p class=\"ai-answer-muted\">无内容</p>";
-    var blocks = raw.split(/\n\s*\n/);
-    return blocks.map(function (block) {
-      var safe = escapeHtml(block);
-      var lines = safe.split("\n");
-      var isList = lines.length > 0 && lines.every(function (line) { return /^\s*(?:[-*•]|\d+[.)])\s+/.test(line) || !line.trim(); });
-      if (isList) {
-        return "<ul>" + lines.filter(function (line) { return line.trim(); }).map(function (line) {
-          return "<li>" + line.replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "") + "</li>";
-        }).join("") + "</ul>";
+    var lines = raw.split("\n");
+    var html = [], paragraph = [];
+    function flushParagraph() {
+      if (paragraph.length) {
+        html.push(formatParagraph(paragraph));
+        paragraph = [];
       }
-      safe = safe.replace(/^(结论|判断|证据|行动|建议|风险)[:：]/m, "<span class=\"ai-answer-label\">$1</span>：");
-      return "<p>" + safe.replace(/\n/g, "<br>") + "</p>";
-    }).join("");
+    }
+    var i = 0;
+    while (i < lines.length) {
+      var line = lines[i];
+      var trimmed = line.trim();
+      if (!trimmed) {
+        flushParagraph();
+        i++;
+        continue;
+      }
+
+      var heading = trimmed.match(/^#{1,6}\s+(.+)$/);
+      if (heading) {
+        flushParagraph();
+        html.push("<h4>" + formatInlineMarkdown(heading[1]) + "</h4>");
+        i++;
+        continue;
+      }
+
+      // 标准 Markdown 表格: 当前行是表头，下一行是 |---|---| 分隔线。
+      if (trimmed.indexOf("|") >= 0 && i + 1 < lines.length && isMarkdownTableDivider(lines[i + 1])) {
+        flushParagraph();
+        var tableHeader = line;
+        var tableDivider = lines[i + 1];
+        var tableRows = [];
+        i += 2;
+        while (i < lines.length && lines[i].trim() && lines[i].indexOf("|") >= 0) {
+          tableRows.push(lines[i]);
+          i++;
+        }
+        html.push(renderMarkdownTable(tableHeader, tableDivider, tableRows));
+        continue;
+      }
+
+      var listMatch = trimmed.match(/^([-*•]|\d+[.)])\s+(.+)$/);
+      if (listMatch) {
+        flushParagraph();
+        var ordered = /^\d/.test(listMatch[1]);
+        var items = [];
+        while (i < lines.length) {
+          var item = lines[i].trim().match(/^([-*•]|\d+[.)])\s+(.+)$/);
+          if (!item || (/^\d/.test(item[1]) !== ordered)) break;
+          items.push("<li>" + formatInlineMarkdown(item[2]) + "</li>");
+          i++;
+        }
+        html.push("<" + (ordered ? "ol" : "ul") + ">" + items.join("") + "</" + (ordered ? "ol" : "ul") + ">");
+        continue;
+      }
+
+      paragraph.push(line);
+      i++;
+    }
+    flushParagraph();
+    return html.join("");
   }
 
   function addMsg(text, who) {
@@ -242,7 +359,9 @@
     var d = document.createElement("div");
     d.className = "ai-message " + (who === "user" ? "user" : "ai");
     d.innerHTML = '<span class="ai-message-avatar" aria-hidden="true">' + (who === "user" ? "你" : "AI") + '</span><span class="ai-message-body"><span class="ai-message-meta">' + (who === "user" ? "你" : "经营诊断助手") + '</span><span class="ai-message-bubble"></span></span>';
-    d.querySelector(".ai-message-bubble").innerHTML = formatAiMessage(text);
+    var bubble = d.querySelector(".ai-message-bubble");
+    bubble.innerHTML = formatAiMessage(text);
+    if (bubble.querySelector(".ai-answer-table-wrap")) bubble.classList.add("ai-table-message");
     m.appendChild(d);
     m.scrollTop = m.scrollHeight;
   }
@@ -276,7 +395,7 @@
       query: query,
       context: ctx,
       mode: "pdtiii_operations_diagnosis_v2",
-      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。没有数据就明确说未知，不要臆测根因。",
+      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
     };
     addMsg("🤖 思考中…", "ai");
