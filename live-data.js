@@ -3,292 +3,92 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-10 15:20:27
+   最后写入: 2026-09-11 10:23:51
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [
     {
-      "date": "2026-09-10",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "time": "09:00-09:50",
-      "problem_th": "QA หยุดไลน์การผลิตตรวจงาน NG ออกจำนวนมาก หยุดตอน09:30น. S-series",
-      "problem_zh": "QA หยุดไลน์การผลิตตรวจงาน NG ออกจำนวนมาก หยุดตอน09:30น. S-series",
-      "plan": 143,
-      "actual": 56,
-      "impact": -87,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "time": "10:00-11:00",
-      "problem_th": "หยุดไลน์ผลิตตั้งแต่09:30-10:50น.",
-      "problem_zh": "หยุดไลน์ผลิตตั้งแต่09:30-10:50น.",
-      "plan": 169,
-      "actual": 101,
-      "impact": -68,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "08:00-09:00",
-      "problem_th": "เข็มหักเปลี่ยนใส่เข็มใหม่ไม่ได้ H-series",
-      "problem_zh": "เข็มหักเปลี่ยนใส่เข็มใหม่ไม่ได้ H-series",
-      "plan": 168,
-      "actual": 128,
-      "impact": -40,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "time": "10:00-11:00",
-      "problem_th": "เครื่องเย็บไม่เสถียรNo.1",
-      "problem_zh": "เครื่องเย็บไม่เสถียรNo.1",
-      "plan": 168,
-      "actual": 116,
-      "impact": -52,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "A",
       "line": "PRO2·A",
       "time": "08:00-09:00",
-      "problem_th": "Pe เข้าแก้ไข stoper จุดงัดปลั๊ก งานออกไม่ต่อเนื่อง (-60) งานติด Air gap , Thrust gap",
-      "problem_zh": "Pe เข้าแก้ไข stoper จุดงัดปลั๊ก งานออกไม่ต่อเนื่อง (-60) งานติด Air gap , Thrust gap",
+      "problem_th": "งานติด Air gap",
+      "problem_zh": "งานติด Air gap",
       "plan": 430,
-      "actual": 311,
-      "impact": -119,
+      "actual": 387,
+      "impact": -43,
       "shift": "day"
     },
     {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "A",
       "line": "PRO2·A",
       "time": "09:00-10:00",
-      "problem_th": "PE หยุดแก้ไขจุดงัดปลั๊ก งานออกไม่ต่อเนื่อง แก้ไขแล้ว 9:05-9:25 (-70) เปลี่ยนรุ่นการผลิต 1 ครั้ง",
-      "problem_zh": "PE หยุดแก้ไขจุดงัดปลั๊ก งานออกไม่ต่อเนื่อง แก้ไขแล้ว 9:05-9:25 (-70) เปลี่ยนรุ่นการผลิต 1 ครั้ง",
+      "problem_th": "เครื่อง Test run ไม่เสถียร ได้ทำการปรับองศาหัว test และทำความสะอาด (-30) งานติด Air gap",
+      "problem_zh": "เครื่อง Test run ไม่เสถียร ได้ทำการปรับองศาหัว test และทำความสะอาด (-30) งานติด Air gap",
       "plan": 430,
-      "actual": 297,
-      "impact": -133,
+      "actual": 363,
+      "impact": -67,
       "shift": "day"
     },
     {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "time": "10:00-11:00",
-      "problem_th": "เครื่องเช็ค KV Alarm บ่อยเช็คซ้ำ ยกลง 8 set (-35) DV Leak line out 10 set",
-      "problem_zh": "เครื่องเช็ค KV Alarm บ่อยเช็คซ้ำ ยกลง 8 set (-35) DV Leak line out 10 set",
-      "plan": 360,
-      "actual": 290,
-      "impact": -70,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "time": "11:00-12:00",
-      "problem_th": "งานติด Air gap เช็คยาก",
-      "problem_zh": "งานติด Air gap เช็คยาก",
-      "plan": 430,
-      "actual": 394,
-      "impact": -36,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "time": "13:00-14:00",
-      "problem_th": "เครื่องขัน Bolt Cover B ค่า Torque ไม่ได้ ต้องขันซ้ำ2รอบ ทำให้งานออกไม่ต่อเนื่อง",
-      "problem_zh": "เครื่องขัน Bolt Cover B ค่า Torque ไม่ได้ ต้องขันซ้ำ2รอบ ทำให้งานออกไม่ต่อเนื่อง",
-      "plan": 430,
-      "actual": 302,
-      "impact": -128,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "time": "14:00-15:00",
-      "problem_th": "PE เข้าตรวจสอบ เครื่องขัน Bolt Cover B ค่า Torque ไม่ได้ ต้องขันซ้ำ2รอบ ทำให้งานออกไม่ต่อเนื่อง",
-      "problem_zh": "PE เข้าตรวจสอบ เครื่องขัน Bolt Cover B ค่า Torque ไม่ได้ ต้องขันซ้ำ2รอบ ทำให้งานออกไม่ต่อเนื่อง",
-      "plan": 430,
-      "actual": 219,
-      "impact": -211,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "B",
       "line": "PRO2·B",
-      "time": "8:00-9:00",
-      "problem_th": "(-50) งานจาก Rotor Line มาไม่ต่อเนื่อง(-20) ท้ายไลน์ระบายงานไม่ทันบางช่วง (-30) ตัดงานก่อนเชื่อม 35 set B-Line Final",
-      "problem_zh": "(-50) งานจาก Rotor Line มาไม่ต่อเนื่อง(-20) ท้ายไลน์ระบายงานไม่ทันบางช่วง (-30) ตัดงานก่อนเชื่อม 35 set B-Line Final",
+      "time": "08:00-09:00",
+      "problem_th": "เริ่มงานปุ่มกดปล่อยงานจุดใส่ Sping Bush ใช้งานไม่ได้ แจ้ง PE แก้ไข (-78) ระหว่างรอทยอยปล่อยงาน เครื่อง Test Run หัวที่2เช็คซ้ำ2รอบ ลองเปลี่ยนลูกยางหัวเช็คไม่หาย แจ้งPE กำลังเข้าตรวจสอบ (-100) หยุดตรวจสอบ Case B DWG ไม่ตรง Teblet",
+      "problem_zh": "เริ่มงานปุ่มกดปล่อยงานจุดใส่ Sping Bush ใช้งานไม่ได้ แจ้ง PE แก้ไข (-78) ระหว่างรอทยอยปล่อยงาน เครื่อง Test Run หัวที่2เช็คซ้ำ2รอบ ลองเปลี่ยนลูกยางหัวเช็คไม่หาย แจ้งPE กำลังเข้าตรวจสอบ (-100) หยุดตรวจสอบ Case B DWG ไม่ตรง Teblet",
       "plan": 470,
-      "actual": 420,
-      "impact": -50,
+      "actual": 222,
+      "impact": -248,
       "shift": "day"
     },
     {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "9:00-10:00",
-      "problem_th": "(-198) งานจาก Rotor Line มาไม่ต่อเนื่อง(-198) B-Line Final",
-      "problem_zh": "(-198) งานจาก Rotor Line มาไม่ต่อเนื่อง(-198) B-Line Final",
-      "plan": 470,
-      "actual": 272,
-      "impact": -198,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "10:00-11:00",
-      "problem_th": "(-92) เครื่อง Test Run Alarm บ่อย  หัวเช็ค Pressure ไม่ตรง (-45) ท้ายไลน์ระบายงานไม่ทันบางช่วง (-50) ไม่ได้ตัดงานกอง",
-      "problem_zh": "(-92) เครื่อง Test Run Alarm บ่อย  หัวเช็ค Pressure ไม่ตรง (-45) ท้ายไลน์ระบายงานไม่ทันบางช่วง (-50) ไม่ได้ตัดงานกอง",
-      "plan": 390,
-      "actual": 298,
-      "impact": -92,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
       "time": "08:00-09:00",
-      "problem_th": "เปลี่ยนรุ่น1ครั้ง-60 พนักงานไม่ครบจุดขาด4คน-66 (ได้ทดแทนแล้ว)",
-      "problem_zh": "เปลี่ยนรุ่น1ครั้ง-60 พนักงานไม่ครบจุดขาด4คน-66 (ได้ทดแทนแล้ว)",
+      "problem_th": "เครื่องขัน COVER B ลงไม่ตรง-31 (ip เข้าตรวจสอบปัญหาหน้างานแล้ว)",
+      "problem_zh": "เครื่องขัน COVER B ลงไม่ตรง-31 (ip เข้าตรวจสอบปัญหาหน้างานแล้ว)",
       "plan": 444,
-      "actual": 318,
-      "impact": -126,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "09:00-10:00",
-      "problem_th": "Rotor line เปลี่ยนรุ่นงานมาไม่ต่อเนื่อง",
-      "problem_zh": "Rotor line เปลี่ยนรุ่นงานมาไม่ต่อเนื่อง",
-      "plan": 444,
-      "actual": 287,
-      "impact": -157,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "10:00-11:00",
-      "problem_th": "อ่างน้ำ OVEN มีการปรับเปลี่ยนการแขวนคอมและหยุดไลน์บ่อย งานระบายไม่ทัน-192 (ไม่ได้ตัดงานกอง)",
-      "problem_zh": "อ่างน้ำ OVEN มีการปรับเปลี่ยนการแขวนคอมและหยุดไลน์บ่อย งานระบายไม่ทัน-192 (ไม่ได้ตัดงานกอง)",
-      "plan": 370,
-      "actual": 178,
-      "impact": -192,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "11:00-12:00",
-      "problem_th": "เปลี่ยนรุ่น1ครั้ง-70 อ่างน้ำ OVEN ระบายงานไม่ทัน-60(ไม่ได้ตัดงานกอง)",
-      "problem_zh": "เปลี่ยนรุ่น1ครั้ง-70 อ่างน้ำ OVEN ระบายงานไม่ทัน-60(ไม่ได้ตัดงานกอง)",
-      "plan": 444,
-      "actual": 314,
-      "impact": -130,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "13:00-14:00",
-      "problem_th": "เปลี่ยนรุ่น1ครั้ง-70 รอ case A รุ่น PZ65E1B ทยอยส่งในช่วงแรก",
-      "problem_zh": "เปลี่ยนรุ่น1ครั้ง-70 รอ case A รุ่น PZ65E1B ทยอยส่งในช่วงแรก",
-      "plan": 444,
-      "actual": 306,
-      "impact": -138,
+      "actual": 413,
+      "impact": -31,
       "shift": "day"
     }
   ],
   "problems_top": null,
   "first_hour": [
     {
-      "date": "2026-09-10",
-      "ws": "RPO1",
-      "series": "H系列",
-      "line": "RPO1·H系列",
-      "target": 168,
-      "actual": 128,
-      "rate": 76.2
-    },
-    {
-      "date": "2026-09-10",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "target": 169,
-      "actual": 144,
-      "rate": 85.2
-    },
-    {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "A",
       "line": "PRO2·A",
       "target": 430,
-      "actual": 311,
-      "rate": 72.3
+      "actual": 387,
+      "rate": 90.0
     },
     {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "B",
       "line": "PRO2·B",
       "target": 470,
-      "actual": 420,
-      "rate": 89.4
+      "actual": 222,
+      "rate": 47.2
     },
     {
-      "date": "2026-09-10",
+      "date": "2026-09-11",
       "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
       "target": 444,
-      "actual": 318,
-      "rate": 71.6
+      "actual": 413,
+      "rate": 93.0
     }
   ]
 };
@@ -799,6 +599,14 @@ window.__HISTORY__ = [
       "PRO2·A": 72.3,
       "PRO2·B": 89.4,
       "PRO2·C": 71.6
+    }
+  },
+  {
+    "date": "2026-09-11",
+    "first_hour": {
+      "PRO2·A": 90.0,
+      "PRO2·B": 47.2,
+      "PRO2·C": 93.0
     }
   }
 ];
