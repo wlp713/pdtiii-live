@@ -3,94 +3,13 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-11 10:23:51
+   最后写入: 2026-09-11 22:50:02
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "time": "08:00-09:00",
-      "problem_th": "งานติด Air gap",
-      "problem_zh": "งานติด Air gap",
-      "plan": 430,
-      "actual": 387,
-      "impact": -43,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "time": "09:00-10:00",
-      "problem_th": "เครื่อง Test run ไม่เสถียร ได้ทำการปรับองศาหัว test และทำความสะอาด (-30) งานติด Air gap",
-      "problem_zh": "เครื่อง Test run ไม่เสถียร ได้ทำการปรับองศาหัว test และทำความสะอาด (-30) งานติด Air gap",
-      "plan": 430,
-      "actual": 363,
-      "impact": -67,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "08:00-09:00",
-      "problem_th": "เริ่มงานปุ่มกดปล่อยงานจุดใส่ Sping Bush ใช้งานไม่ได้ แจ้ง PE แก้ไข (-78) ระหว่างรอทยอยปล่อยงาน เครื่อง Test Run หัวที่2เช็คซ้ำ2รอบ ลองเปลี่ยนลูกยางหัวเช็คไม่หาย แจ้งPE กำลังเข้าตรวจสอบ (-100) หยุดตรวจสอบ Case B DWG ไม่ตรง Teblet",
-      "problem_zh": "เริ่มงานปุ่มกดปล่อยงานจุดใส่ Sping Bush ใช้งานไม่ได้ แจ้ง PE แก้ไข (-78) ระหว่างรอทยอยปล่อยงาน เครื่อง Test Run หัวที่2เช็คซ้ำ2รอบ ลองเปลี่ยนลูกยางหัวเช็คไม่หาย แจ้งPE กำลังเข้าตรวจสอบ (-100) หยุดตรวจสอบ Case B DWG ไม่ตรง Teblet",
-      "plan": 470,
-      "actual": 222,
-      "impact": -248,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "time": "08:00-09:00",
-      "problem_th": "เครื่องขัน COVER B ลงไม่ตรง-31 (ip เข้าตรวจสอบปัญหาหน้างานแล้ว)",
-      "problem_zh": "เครื่องขัน COVER B ลงไม่ตรง-31 (ip เข้าตรวจสอบปัญหาหน้างานแล้ว)",
-      "plan": 444,
-      "actual": 413,
-      "impact": -31,
-      "shift": "day"
-    }
-  ],
+  "problems": [],
   "problems_top": null,
-  "first_hour": [
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "target": 430,
-      "actual": 387,
-      "rate": 90.0
-    },
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "target": 470,
-      "actual": 222,
-      "rate": 47.2
-    },
-    {
-      "date": "2026-09-11",
-      "ws": "PRO2",
-      "series": "C",
-      "line": "PRO2·C",
-      "target": 444,
-      "actual": 413,
-      "rate": 93.0
-    }
-  ]
+  "first_hour": []
 };
 
 window.__HISTORY__ = [
