@@ -1782,8 +1782,11 @@ function segsOf(name, curActual, curPlan) {
       ? (manualH ? hManualPlanAt(sc.shift, nowMins) : (Number(curPlan) || 0))
       : (manualH ? hManualPlanAt(sc.shift, t1) : valueAt(name, t1, true, off));
     let actual = a1 - a0, plan = p1 - p0;
-    if (actual < 0) actual = a1; // 换班清零 → 新班从0累计
-    if (plan < 0) plan = p1;
+    // ★ 2026-09-14 修复: live(进行中)段负差 = lines 实时值与 hourly 定格桶计划/实际不同步
+    //   旧逻辑兜底成 a1/p1(巨大值)把柱子撑爆/压扁。改为负差归 0(不撑爆)。
+    const _liveSeg = t1 > cmpMins;
+    if (actual < 0) actual = _liveSeg ? 0 : a1; // 换班清零 → 新班从0累计; live 数据不同步 → 0
+    if (plan < 0) plan = _liveSeg ? 0 : p1; // live 数据不同步 → 0(不撑爆); 非 live 保持换班清零兜底
     segs.push({ h: t1 / 60, lab: k + 1, live: t1 > cmpMins, base: false, pm: false,
       actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1, ot: segIsOt(isNight, t0, t1) });
   }
