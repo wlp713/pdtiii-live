@@ -1474,7 +1474,7 @@ function maybeSnapFirstHour() {
     const map = {};
     (state.lines || []).forEach(l => {
       if (!MAIN_SET.has(normName(l.name))) return;
-      const segs = segsOf(l.name, l.actual || 0, l.plan || 0);
+      const segs = segsOf(l.name, l.actual || 0, l.plan || 0, l.target);
       const s1 = segs[0];
       if (!s1) return;
       const p = Number(s1.plan) || 0;
@@ -1724,7 +1724,7 @@ function valueAt(name, t, usePlan, dayOff) {
 // ★ 2026-08-29 v5.22 班次时段(用户拍板口径)+10分钟快照桶: 休息时段不产柱、不计入时段; 快照加密后时段边界值准确
 //   段号 lab = 时段号(1起); live 段 = 当前进行中; 休息中/交班空档 → 无 live 段(全部定格)
 //   时段表见 DAY_SEGS/NIGHT_SEGS (休息已剔除, 如午休 12:00-13:00 直接不在表内)
-function segsOf(name, curActual, curPlan) {
+function segsOf(name, curActual, curPlan, curTarget) {
   const nowMins = bkkMins(); // ★ v5.42 泰国当前分钟(与设备时区无关)
   const sc = shiftSegAt(nowMins);
   const segs = [];
@@ -1774,13 +1774,16 @@ function segsOf(name, curActual, curPlan) {
     const off = postMid ? -1 : 0;
     // ★ 2026-09-07 手动目标覆盖: H-Series 的 plan 不用实时 plan/valueAt, 改用同一条手工曲线,
     //   保证小时图段目标、表格 plan、达成率全部一致(其它线走原逻辑不受影响)。
+    // ★ 2026-09-14 推广: Final 线同样启用前端手工目标(数据端偶尔桶 plan 倒挂/突变 → 前端用日目标兜底)。
     const manualH = isManualHLine(name);
+    const manualTgt = manualLineTarget(name, curTarget);
+    const manual = manualH || manualTgt > 0;
     const a0 = first ? 0 : valueAt(name, t0, false, off);
     const a1 = (t1 > cmpMins) ? (Number(curActual) || 0) : valueAt(name, t1, false, off);
-    let p0 = first ? 0 : (manualH ? hManualPlanAt(sc.shift, t0) : valueAt(name, t0, true, off));
+    let p0 = first ? 0 : (manual ? hManualPlanAt(sc.shift, t0, manualH ? H_MANUAL_TARGET : manualTgt) : valueAt(name, t0, true, off));
     let p1 = (t1 > cmpMins)
-      ? (manualH ? hManualPlanAt(sc.shift, nowMins) : (Number(curPlan) || 0))
-      : (manualH ? hManualPlanAt(sc.shift, t1) : valueAt(name, t1, true, off));
+      ? (manual ? hManualPlanAt(sc.shift, nowMins, manualH ? H_MANUAL_TARGET : manualTgt) : (Number(curPlan) || 0))
+      : (manual ? hManualPlanAt(sc.shift, t1, manualH ? H_MANUAL_TARGET : manualTgt) : valueAt(name, t1, true, off));
     let actual = a1 - a0, plan = p1 - p0;
     // ★ 2026-09-14 修复: live(进行中)段负差 = lines 实时值与 hourly 定格桶计划/实际不同步
     //   旧逻辑兜底成 a1/p1(巨大值)把柱子撑爆/压扁。改为负差归 0(不撑爆)。
@@ -1829,6 +1832,16 @@ function isManualHLine(name) {
   //   两种写法都要判: 带横杠(线上实测)与无横杠(记忆/旧口径)都命中。
   return m === "motorhseries" || m === "motorh-series";
 }
+// ★ 2026-09-14 推广: Final 线也用前端手工目标(不信数据端 hourly 桶 plan, 避免桶 plan 倒挂/突变)。
+//   日目标取数据端 l.target(存在才启用; A/B/C/D=3300/3600/3400/1600)。H-Series 固定 1800。
+function manualLineTarget(name, dataTarget) {
+  if (isManualHLine(name)) return H_MANUAL_TARGET;
+  if (FINAL_SET.has(normName(name))) {
+    const t = Number(dataTarget);
+    return t > 0 ? t : 0;               // 无数据目标 → 不启用(不能用错误基准)
+  }
+  return 0;
+}
 // 该班次「正常工作时间」累计分钟: 指加班起点前应为正常生产的时间。
 // 白班: DAY_SEGS 中完全不跨 17:20 的段(前8段)= 460 分钟。
 // 夜班: 因 OT_NIGHT_START=1790 落在段 [1770,1830] 中间, 正常部分只计 1770→1790 共 20 分钟,
@@ -1846,11 +1859,12 @@ function hManualNormalMins(shift) {
 // 手动累计目标: 返回该班的分钟基准下 t(当天0点为基准, 夜班跨天>1440)对应的累计目标。
 //   口径: 正常时段目标线性推到 H_MANUAL_TARGET(1800) 于加班起点(白班17:20 / 夜班5:50)达成;
 //   加班时段从 1800 基准继续按同 pace 累加 —「加班目标基于该目标继续推移」, 跨加班段的正常/加班部分无缝衔接。
-function hManualPlanAt(shift, t) {
+function hManualPlanAt(shift, t, target) {
+  const TGT = target || H_MANUAL_TARGET;                 // ★ 2026-09-14 参数化: 可复用给 Final 线(日目标各自不同)
   const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
   const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
   const nm = hManualNormalMins(shift) || 1;
-  const pace = H_MANUAL_TARGET / nm;                     // 统一速率(目标/正常分钟)
+  const pace = TGT / nm;                     // 统一速率(目标/正常分钟)
   // 1) 正常累计: 累加所有完全/部分位于加班起点前的段(跨段截断到 otStart)
   let cum = 0;
   for (const [t0, t1] of table) {
@@ -2076,7 +2090,7 @@ function drawBar(main) {
     //   maxV 必须覆盖 actual, 否则超额柱(actual>plan)会溢出画布。
     const maxVl = Math.max(1, l.plan || 0, l.actual || 0); // 该线自身 plan/actual 较大者 = 满格基准
     if (segShow) {
-      const segs = segsOf(l.name, l.actual, l.plan);
+      const segs = segsOf(l.name, l.actual, l.plan, l.target);
       drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
       drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
     } else {
@@ -2550,18 +2564,20 @@ async function refresh() {
     state.lines = [...dedupMap.values()];
     // ★ 2026-09-07 手动目标覆盖: 仅 H-Series — 覆盖 plan/target/eff, 让表格达成率、趋势、排名一致
     //   用同一条手工目标线; 其他线体与原逻辑完全一致不受影响。
+    // ★ 2026-09-14 推广: Final 线数据端偶发桶 plan 倒挂 → 同样用前端手工目标(日目标取数据端 l.target)覆盖。
     state.lines.forEach(l => {
-      if (!isManualHLine(l.name)) return;
+      const mTgt = manualLineTarget(l.name, l.target);
+      if (!mTgt) return;
       const sc = shiftSegAt(bkkMins());
       const isNight = sc.shift === "night";
       const nowM = isNight && bkkMins() < NIGHT_END ? bkkMins() + 1440 : bkkMins();
-      const mp = Math.round(hManualPlanAt(sc.shift, nowM)); // 手工累计计划(取整, 不保留小数点)
-      l.target = H_MANUAL_TARGET;                            // 日目标 = 1800
+      const mp = Math.round(hManualPlanAt(sc.shift, nowM, mTgt)); // 手工累计计划(取整, 不保留小数点)
+      l.target = isManualHLine(l.name) ? H_MANUAL_TARGET : mTgt;   // 日目标: H=1800 / Final=数据端目标
       l.plan = mp;                                           // 实时累计目标 = 手工曲线(整数)
       const a = Number(l.actual) || 0;
       l.eff = mp > 0 ? Math.round(a / mp * 1000) / 10 : (l.eff == null ? null : l.eff); // 达成率按手工目标重算
       l.cb = a - mp;                                         // 差额同步
-      window.__H_DEBUG = { ok: true, name: l.name, plan: mp, target: H_MANUAL_TARGET, actual: a, at: new Date().toLocaleTimeString() };
+      if (isManualHLine(l.name)) window.__H_DEBUG = { ok: true, name: l.name, plan: mp, target: H_MANUAL_TARGET, actual: a, at: new Date().toLocaleTimeString() };
     });
     state.hourly = d.hourly || {};
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
