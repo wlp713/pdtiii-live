@@ -1673,11 +1673,17 @@ function valueAt(name, t, usePlan, dayOff) {
     //   该过滤只在真实白班时段生效, 夜班(postMid dayOff=-1 及 20:30-24:00)路径完全不受影响。
     const nowMi = bkkMins();
     const isDayQry = (dayOff === 0) && nowMi >= DAY_START && nowMi < NIGHT_START;
+    // ★ 2026-09-14 数据端已给 hourly 桶加班里日标识 d(以8:00为界; 凌晨00:00-08:00桶归前一班里日)。
+    //   优先按 d 精确匹配「当前班里日」取桶 → 彻底根治跨班次残留桶污染, 不再靠分钟范围猜。
+    //   兼容: 若某桶无 d(数据端未回填/历史桶) → 回退到下面 isDayQry 分钟范围兜底。
+    const curDaily = bkkDateStr(bkkDay0() - (nowMi < 8 * 60 ? 86400000 : 0));
     const pts = [];
     for (const sn of snaps) {
       let m = snapMins(sn);
       if (post && m < NIGHT_END) m += 1440; // 凌晨桶 → 班次日后半夜
-      if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue; // 白班只认本白班组桶 [8:00,20:20]
+      const hasD = (sn.d !== undefined && sn.d !== null && String(sn.d) !== "");
+      if (hasD) { if (String(sn.d) !== curDaily) continue; }            // d 精确匹配当前班里日
+      else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue; // 无 d 回退旧白班分钟过滤
       pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
     }
     pts.sort(function (a, b) { return a.m - b.m; });
