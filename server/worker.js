@@ -170,7 +170,9 @@ export default {
     }
 
     try {
-      const { query = "", context = "", conversation_id = "" } = await request.json();
+      const body0 = await request.json();
+      const { query = "", context = "", conversation_id = "" } = body0;
+      const wantStream = body0.stream === true || body0.stream === 1;   // ★ 2026-09-14 前端传 stream:true 走流式(首字即出)
       if (!String(query).trim()) {
         return new Response(JSON.stringify({ error: "query 不能为空" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -185,23 +187,28 @@ export default {
         + (context ? "\n\n[产出数据]\n" + context + "\n[用户提问] " : "\n[用户提问] ")
         + query;
 
-      const difyRes = await fetch(UPSTREAM, {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + API_KEY,
-          "AIGC-USER": AIGC_USER,
-          "Content-Type": "application/json",
+      // ★ 2026-09-14 上游超时/重试 (AbortController); DeepSeek 长响应可能慢 → 90s 上限 + 失败自动重试1次
+      const T1 = AbortSignal.timeout(90000);
+      const _post = (signal) => fetch(UPSTREAM, {
+        method: "POST", headers: {
+          "Authorization": "Bearer " + API_KEY, "AIGC-USER": AIGC_USER, "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: {},
-          query: prompt,
-          response_mode: "streaming",
-          conversation_id: String(conversation_id || ""),
-          user: AIGC_USER,
-          files: [],
+          inputs: {}, query: prompt, response_mode: "streaming",
+          conversation_id: String(conversation_id || ""), user: AIGC_USER, files: [],
         }),
+        signal,
       });
-
+      let difyRes = null;
+      try { difyRes = await _post(T1); }
+      catch (e1) {   // 首次失败/超时 → 重试一次
+        try { difyRes = await _post(AbortSignal.timeout(90000)); }
+        catch (e2) {
+          return new Response(JSON.stringify({ error: "上游请求失败(已重试): " + (e2.name === "TimeoutError" ? "响应超时, 请稍后重试" : String(e2.message)) }), {
+            status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
       if (!difyRes.ok) {
         const t = await difyRes.text();
         return new Response(JSON.stringify({ error: "上游错误 HTTP " + difyRes.status, detail: t.slice(0, 300) }), {
@@ -209,7 +216,15 @@ export default {
         });
       }
 
-      // 聚和 streaming SSE → 完整 answer
+      // ── 流式模式: 直接把 Dify 的 SSE 透传给前端(边生成边显示, 首字即出) ──
+      if (wantStream && difyRes.body) {
+        return new Response(difyRes.body, {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+        });
+      }
+
+      // ── 非流式兼容: 聚合 SSE → 完整 answer JSON ──
       const text = await difyRes.text();
       let answer = "";
       let cid = String(conversation_id || "");

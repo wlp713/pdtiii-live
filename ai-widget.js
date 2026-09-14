@@ -666,13 +666,22 @@
       mode: "pdtiii_operations_diagnosis_v2",
       response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
+      ,stream: true                    // ★ 2026-09-14 走流式(边生成边显示)
     };
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 35000) : null;
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 120000) : null;  // ★ 120s (DeepSeek 长响应)
     function clearRequestTimeout() {
       if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
     }
     addMsg("正在生成回答…", "ai");
+    var liveEl = null;   // 流式: 边生成边更新
+    function liveBubble() {
+      if (liveEl) return liveEl;
+      var last = ui.msgs.lastElementChild;
+      if (last && last.textContent === "正在生成回答…") { ui.msgs.removeChild(last); }
+      liveEl = addMsg("", "ai");
+      return liveEl;
+    }
     setBusy(true);
     fetch(CFG.proxyUrl, {
       method: "POST",
@@ -680,11 +689,52 @@
       body: JSON.stringify(payload),
       signal: controller ? controller.signal : undefined
     })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status);
+        // ★ 流式: 用 ReadableStream reader 逐块读 SSE
+        if (r.body && r.body.getReader && payload.stream) {
+          var reader = r.body.getReader();
+          var decoder = new TextDecoder();
+          var acc = "";
+          var cidSav = "";
+          function flush() {
+            return reader.read().then(function (_r) {
+              if (_r.done) {
+                clearRequestTimeout(); setBusy(false);
+                if (cidSav) saveConvId(cidSav);
+                return;
+              }
+              acc += decoder.decode(_r.value, { stream: true });
+              var lines = acc.split("\n"); acc = lines.pop();
+              for (var i = 0; i < lines.length; i++) {
+                var ln = lines[i].trim();
+                if (!ln.startsWith("data:")) continue;
+                var j = ln.slice(5).trim();
+                if (!j || j === "[DONE]") continue;
+                try {
+                  var o = JSON.parse(j);
+                  if (o.event === "agent_message" && typeof o.answer === "string") {
+                    liveBubble().innerHTML = formatAiMessage(o.answer);
+                  }
+                  if (o.conversation_id) cidSav = o.conversation_id;
+                  if (o.event === "message_end") {
+                    clearRequestTimeout(); setBusy(false);
+                    if (cidSav) saveConvId(cidSav);
+                    reader.cancel().catch(function(){});
+                    return;
+                  }
+                } catch (e) {}
+              }
+              return flush();
+            });
+          }
+          return flush();
+        }
+        return r.json(); })
       .then(function (data) {
+        // 非流式分支 (未走 reader 时)
+        if (!data) return;
         clearRequestTimeout();
         setBusy(false);
-        // 替换占位消息
         var last = ui.msgs.lastElementChild;
         if (last && last.textContent === "正在生成回答…") last.remove();
         if (data && data.conversation_id) saveConvId(data.conversation_id);
