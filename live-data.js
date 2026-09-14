@@ -3,13 +3,116 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-12 00:00:02
+   最后写入: 2026-09-14 10:10:13
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [],
+  "problems": [
+    {
+      "date": "2026-09-14",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่องเย็บNo.2 ฮีดเตอรฺไม่ร้อนแก้ไขแล้ว10นาทีงานออกไม่ต่อเนื่อง S -series",
+      "problem_zh": "2 号缝纫机 加热器不热。 10分钟后修好，工作不断停止。 S系列",
+      "plan": 169,
+      "actual": 111,
+      "impact": -58,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "time": "09:00-09:50",
+      "problem_th": "ไม่พบเห็นปัญหา",
+      "problem_zh": "没看出问题",
+      "plan": 143,
+      "actual": 151,
+      "impact": 8,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "time": "08:00-09:00",
+      "problem_th": "เครื่อง Slot ฟีล์มบี้ -ขึ้นไม่ครบ หยุด08:26 กำลังแก้ไข เครื่องเย็บเข็มแทงลวด หยุด08:43-08:55 F-series",
+      "problem_zh": "槽片机-未完成，停止08:26，编辑，订书机，订书机停止08:43-08:55 F系列",
+      "plan": 141,
+      "actual": 129,
+      "impact": -12,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "time": "08:00-09:00",
+      "problem_th": "air gap check ยาก",
+      "problem_zh": "气隙检查困难",
+      "plan": 431,
+      "actual": 400,
+      "impact": -31,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "08:00-09:00",
+      "problem_th": "งานรั่ว DV line out-50 (ตรวจพบ VALVE รั่วจำนวนมาก) พนักงานจุดเชื่อม pipe มี 2 คนทำให้งานออกไม่ต่อเนื่อง-94(หัวหน้างานเข้าเชื่อมช่วยเป็นระยะ)",
+      "problem_zh": "泄漏工作 DV 线路输出 - 50（检测到许多泄漏的阀门） 有 2 名管道焊接工人，导致工作不连续 - 94（主管定期进来帮助焊接）",
+      "plan": 444,
+      "actual": 300,
+      "impact": -144,
+      "shift": "day"
+    }
+  ],
   "problems_top": null,
-  "first_hour": []
+  "first_hour": [
+    {
+      "date": "2026-09-14",
+      "ws": "RPO1",
+      "series": "F系列",
+      "line": "RPO1·F系列",
+      "target": 141,
+      "actual": 129,
+      "rate": 91.5
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "RPO1",
+      "series": "S系列",
+      "line": "RPO1·S系列",
+      "target": 169,
+      "actual": 111,
+      "rate": 65.7
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "PRO2",
+      "series": "A",
+      "line": "PRO2·A",
+      "target": 431,
+      "actual": 400,
+      "rate": 92.8
+    },
+    {
+      "date": "2026-09-14",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "target": 444,
+      "actual": 300,
+      "rate": 67.6
+    }
+  ]
 };
 
 window.__HISTORY__ = [
@@ -526,6 +629,15 @@ window.__HISTORY__ = [
       "PRO2·A": 90.0,
       "PRO2·B": 47.2,
       "PRO2·C": 93.0
+    }
+  },
+  {
+    "date": "2026-09-14",
+    "first_hour": {
+      "RPO1·F系列": 91.5,
+      "RPO1·S系列": 65.7,
+      "PRO2·A": 92.8,
+      "PRO2·C": 67.6
     }
   }
 ];
