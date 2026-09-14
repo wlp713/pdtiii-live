@@ -116,11 +116,13 @@
     return fetch(HC_API + "/" + date + ".json", { signal: typeof AbortSignal !== "undefined" ? AbortSignal.timeout(6000) : undefined })
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (!j || typeof j !== "object") return "";
+        if (!j || typeof j !== "object") { return "[E2. 每日人数快照 (日期 " + date + ")] 该日尚无出勤/加班人数数据"; }
         var lines = [];
+        var any = false;
         Object.keys(HC_WS_ALIAS).forEach(function (ws) {
           var h = j[ws];
-          if (!h || typeof h !== "object") { lines.push("  " + HC_WS_ALIAS[ws] + " 未填"); return; }
+          if (!h || typeof h !== "object") { return; }
+          any = true;
           var d = (h.d === undefined || h.d === null || h.d === "") ? null : Number(h.d);
           var dO = (h.dO === undefined || h.dO === null || h.dO === "") ? null : Number(h.dO);
           var n = (h.n === undefined || h.n === null || h.n === "") ? null : Number(h.n);
@@ -131,7 +133,8 @@
           lines.push("  " + HC_WS_ALIAS[ws] + " 出勤(正常)" + (normal || "未填") + "人 加班" + (ot || 0) + "人 加班占比" + (rate === null ? "-" : rate.toFixed(1) + "%") +
             (d !== null ? " (白班" + d + "/" + (dO === null ? 0 : dO) + ")" : "") + (n !== null ? " (夜班" + n + "/" + (nO === null ? 0 : nO) + ")" : ""));
         });
-        return "[E2. 该日产出分析页人数 (按问句实时查库)]\n" + lines.join("\n");
+        if (!any) return "[E2. 每日人数快照 (日期 " + date + ")] 该日尚无出勤/加班人数数据";
+        return "[E2. 每日人数快照 (日期 " + date + "，按问句实时查库)]\n以下是该日期各车间的【出勤/加班人数】，与历史归档的产出数量是两回事——回答‘出勤人数/加班人数/加班占比’时绝对使用本 E2 段的数值，不要用历史归档里的产出件数：\n" + lines.join("\n");
       })
       .catch(function () { return ""; });
   }
