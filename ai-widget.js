@@ -93,6 +93,49 @@
     return dates.filter(function (date) { return !!found[date]; });
   }
 
+  /* ── 产出分析页人数(出勤/加班)按问句日期实时补查 (方案A) ── */
+  var HC_API = "https://dm111-e8a7d-default-rtdb.firebaseio.com/analysis/hc";
+  var HC_WS_ALIAS = { "ws1": "Pro.1", "ws2": "Pro.2", "ws3": "Pro.3", "ws4": "Pro.4", "ws5": "Pro.5", "ws6": "Pro.6" };
+  /* 从问句解析出目标日期(YYYY-MM-DD)，支持今天/昨天/前天；解析不出返回 null */
+  function parseHCDate(query) {
+    var q = String(query || "");
+    var found = [];
+    q.replace(/(20\d{2})\s*(?:年|[-/.])\s*(\d{1,2})\s*(?:月|[-/.])\s*(\d{1,2})\s*日?/g, function (_, y, m, d) { found.push(y + "-" + ("0" + Number(m)).slice(-2) + "-" + ("0" + Number(d)).slice(-2)); return _; });
+    q.replace(/(\d{1,2})\s*月\s*(\d{1,2})\s*(?:日|号)?/g, function (_, m, d) { found.push((new Date().getFullYear()) + "-" + ("0" + Number(m)).slice(-2) + "-" + ("0" + Number(d)).slice(-2)); return _; });
+    q.replace(/(?:^|[^\d])(\d{1,2})\s*[-/]\s*(\d{1,2})(?:日|号)?(?!\d)/g, function (_, m, d) { found.push((new Date().getFullYear()) + "-" + ("0" + Number(m)).slice(-2) + "-" + ("0" + Number(d)).slice(-2)); return _; });
+    var rel = /前天|前日|the\s*day\s*before\s*yesterday/i.test(q) ? 2 : (/昨天|昨日|yesterday/i.test(q) ? 1 : (/今天|今日|today/i.test(q) ? 0 : null));
+    if (rel !== null) { var dt = new Date(); dt.setDate(dt.getDate() - rel); found.push(dt.getFullYear() + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2)); }
+    if (!found.length) return null;
+    /* 取第一个(通常唯一) */
+    return found[found.length - 1];
+  }
+  /* fetch 指定日期产出分析页人数，返回按车间格式化文本(无数据返回 "") */
+  function fetchHCAttendance(date) {
+    date = String(date || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return Promise.resolve("");
+    return fetch(HC_API + "/" + date + ".json", { signal: typeof AbortSignal !== "undefined" ? AbortSignal.timeout(6000) : undefined })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || typeof j !== "object") return "";
+        var lines = [];
+        Object.keys(HC_WS_ALIAS).forEach(function (ws) {
+          var h = j[ws];
+          if (!h || typeof h !== "object") { lines.push("  " + HC_WS_ALIAS[ws] + " 未填"); return; }
+          var d = (h.d === undefined || h.d === null || h.d === "") ? null : Number(h.d);
+          var dO = (h.dO === undefined || h.dO === null || h.dO === "") ? null : Number(h.dO);
+          var n = (h.n === undefined || h.n === null || h.n === "") ? null : Number(h.n);
+          var nO = (h.nO === undefined || h.nO === null || h.nO === "") ? null : Number(h.nO);
+          var normal = ((d === null ? 0 : d) + (n === null ? 0 : n)) || 0;
+          var ot = ((dO === null ? 0 : dO) + (nO === null ? 0 : nO)) || 0;
+          var rate = normal > 0 ? (ot / normal * 100) : null;
+          lines.push("  " + HC_WS_ALIAS[ws] + " 出勤(正常)" + (normal || "未填") + "人 加班" + (ot || 0) + "人 加班占比" + (rate === null ? "-" : rate.toFixed(1) + "%") +
+            (d !== null ? " (白班" + d + "/" + (dO === null ? 0 : dO) + ")" : "") + (n !== null ? " (夜班" + n + "/" + (nO === null ? 0 : nO) + ")" : ""));
+        });
+        return "[E2. 该日产出分析页人数 (按问句实时查库)]\n" + lines.join("\n");
+      })
+      .catch(function () { return ""; });
+  }
+
   function archiveShiftFromQuery(query) {
     var q = String(query || "").toLowerCase();
     var hasNight = /夜班|晚班|night(?:\s*shift)?/.test(q);
@@ -167,7 +210,7 @@
   }
 
   /* ── 数据采集: 从网页已加载的数据(零新增请求)组全量上下文 ── */
-  function collectContext(query) {
+  function collectContext(query, hcExtra) {
     var out = [];
     var now = new Date();
     out.push("当前本地时间: " + now.toLocaleString("zh-CN", { hour12: false }));
@@ -246,6 +289,9 @@
           (A.otVsNormalRate!==null?" 加班效率/正常效率="+A.otVsNormalRate+"%":""));
       }
     }
+
+    /* E2. 按问句日期实时查产出分析页人数(方案A: 不依赖页面当前选中日期) */
+    if (hcExtra) out.push("\n" + hcExtra);
 
     /* F. 当前历史分析视图: 让 AI 知道用户正在看什么, 不新增请求 */
     var V = (typeof window.__PDTIII_HISTORY_VIEW__ !== "undefined") ? window.__PDTIII_HISTORY_VIEW__ : null;
@@ -657,9 +703,17 @@
     try { localStorage.removeItem("aiWidget_convId"); } catch(e){}
   }
 
-  /* ── 实际调用代理 (转发到美的 Dify) ── */
   function askAI(query) {
-    var ctx = collectContext(query);
+    var hcDate = parseHCDate(query);
+    var hcExtraPromise = fetchHCAttendance(hcDate);   /* 无目标日期时 Promise.resolve("") */
+    hcExtraPromise.then(function (hcExtra) {
+      doAsk(query, hcExtra);
+    });
+  }
+
+  /* 实际调用代理 (转发到美的 Dify) */
+  function doAsk(query, hcExtra) {
+    var ctx = collectContext(query, hcExtra);
     var payload = {
       query: query,
       context: ctx,
