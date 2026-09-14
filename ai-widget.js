@@ -674,13 +674,22 @@
       if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
     }
     addMsg("正在生成回答…", "ai");
-    var liveEl = null;   // 流式: 边生成边更新
+    var fullAnswer = "";   // ★ 累积完整回答
+    // ★ 用 DOM 定位最后一条 AI 气泡并复用(不依赖 addMsg 返回值, 杜绝每块新建气泡)
     function liveBubble() {
-      if (liveEl) return liveEl;
-      var last = ui.msgs.lastElementChild;
-      if (last && last.textContent === "正在生成回答…") { ui.msgs.removeChild(last); }
-      liveEl = addMsg("", "ai");
-      return liveEl;
+      var ms = ui.msgs;
+      for (var i = ms.children.length - 1; i >= 0; i--) {
+        if (ms.children[i].className.indexOf("user") < 0) return ms.children[i].querySelector(".ai-message-bubble");
+      }
+      addMsg("", "ai");
+      return ui.msgs.lastElementChild.querySelector(".ai-message-bubble");
+    }
+    function liveBubbleEl() {   // 返回可写的包裹层(用于最终替换)
+      var ms = ui.msgs;
+      for (var i = ms.children.length - 1; i >= 0; i--) {
+        if (ms.children[i].className.indexOf("user") < 0) return ms.children[i];
+      }
+      return ms.lastElementChild;
     }
     setBusy(true);
     fetch(CFG.proxyUrl, {
@@ -700,6 +709,7 @@
             return reader.read().then(function (_r) {
               if (_r.done) {
                 clearRequestTimeout(); setBusy(false);
+                if (fullAnswer) liveBubbleEl().classList.add("ai-table-message-v2");  // 无实际作用, 保持气泡
                 if (cidSav) saveConvId(cidSav);
                 return;
               }
@@ -713,7 +723,8 @@
                 try {
                   var o = JSON.parse(j);
                   if (o.event === "agent_message" && typeof o.answer === "string") {
-                    liveBubble().innerHTML = formatAiMessage(o.answer);
+                    fullAnswer += o.answer;                     // ★ 累积
+                    liveBubble().innerHTML = formatAiMessage(fullAnswer);
                   }
                   if (o.conversation_id) cidSav = o.conversation_id;
                   if (o.event === "message_end") {
