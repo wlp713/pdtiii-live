@@ -130,6 +130,11 @@ const KNOWLEDGE = [
   {
     keys: ["PSI", "库存", "出勤", "大纲", "规划", "预测"],
     text: "PSI=生产Production-销售Sales-库存Inventory规划, 用于月度排产与人力/库存推演。核心内容含: 会议主资料、全年/月度预测、26年出勤大纲(人员出勤日历)、产线排布及型谱、预测明细、系列结构、预测与订单数据; 附件也分多剧本滚动规划。"
+  },
+  {
+    // ★ 2026-09-14 人力布局 Manpower (来源: 效率管控/A____Man power lay-out update 1 __ Aug'26.xlsx, 表 25 Aug'26 当前Current口径)
+    keys: ["人力", "人员", "人数", "定岗", "多少人", "几个人", "定员", "Manpower", "man power", "布局", "人手", "出勤人数", "配置"],
+    text: "人力布局(2026-08-25版当前Current口径, 各车间/线体人数; 数据源: Man power lay-out 生产人员配置表8月): 生产总人数约907人。分车间当前合计—— Pro.1=136、Pro.2=466、Pro.3=83、Pro.4=165、Pro.5=27、Pro.6=30; 生产车间Total=907, Dept职能部门约144。 各车间线体配置: Pro.1(电机)= Motor AC line 20、Motor CL/3Phase 3、Motor WL 18、Motor H-Series 34、Motor F Line 15、Motor S Line 18、Roller Vanishing(H) 10、PTC 3、ACC 7、MLS 1、Document 1、PC 2、QC 1、Delivery 2、Manager 1, 其余辅助0; Pro.2(装配)= Final A Line 67、Final B Line 78、Final C Line 43、Final D Line 31、Water Line 41、Oven Line 42、Shipping A 31、Shipping B 38、Shipping C 42、D-Pipe 1、Washing 9、Valve assembly 12、QC·Comp.cutting-Rework 15、Manager·Leader·Office 7、Support welding machine 2、Support Employee leave 3; Pro.3(Welding)= H Series A line 12、H Series(robot) B line 19、WL+H C line 14、FL D line 12、Press Low Up 6、Washing LO 4、Washing up 4、Press shaft 2、Leader 2、Transfer 3、QC 2、Material 1、Section 2; Pro.4= Frame WL 2、Frame H 21、C-Shaft 37、Piston WL 6、Piston H 17、Rod WL 10、BW WL 4、Head line 13、Matching FL 3、Matching H series 34、Matching WL+Edit Top 7、QC line 4、Section(Mgr+Sup+Follow) 7; Pro.5= Frame FL 6、Piston FL 8、Cylinder 8、Slider 5; Pro.6= Stator+Rotor 6、Valve 3、H.Cover 9、Rotor CL 4、Rotor WL 4、Transport 1、Manager·MLS 3; Dept(PC/PE·IP/QA辅助)= Planning Control 5、Planning(Follow) 1、FG Control 17、Pallet Control 5、Incomming&Material Handling 20。以上为8月中下旬工位/定置口径人表当前值, 若问具体某线可对号。"
   }
 ];
 /* 按关键词返回命中的知识正文 (简单子串匹配, 一次可能命中多条) */
