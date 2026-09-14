@@ -1668,10 +1668,16 @@ function valueAt(name, t, usePlan, dayOff) {
     //     今天凌晨 [0, NIGHT_END) 桶 → +1440 ; 昨日前半夜 [1230,1440) 桶 → 原值
     //   排序后即真实班次时间序 [1230..1410, 1470(=00:30)..1910(=07:50)], 查询边界 t(班次日分钟)直接比较。
     const post = (dayOff === -1);
+    // ★ 2026-09-14 修复: 白班查询过滤掉其它班次的桶(今晨夜班残留 actual=0 桶 + 昨日前半夜桶)。
+    //   否则 valueAt 找 <=t 的下一个桶时命中这些零桶, 触发"换班清零"外推, 把白班第一段(8:00-9:00)数值抹成 0。
+    //   该过滤只在真实白班时段生效, 夜班(postMid dayOff=-1 及 20:30-24:00)路径完全不受影响。
+    const nowMi = bkkMins();
+    const isDayQry = (dayOff === 0) && nowMi >= DAY_START && nowMi < NIGHT_START;
     const pts = [];
     for (const sn of snaps) {
       let m = snapMins(sn);
       if (post && m < NIGHT_END) m += 1440; // 凌晨桶 → 班次日后半夜
+      if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue; // 白班只认本白班组桶 [8:00,20:20]
       pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
     }
     pts.sort(function (a, b) { return a.m - b.m; });
