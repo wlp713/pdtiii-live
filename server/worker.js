@@ -134,7 +134,27 @@ const KNOWLEDGE = [
   {
     // ★ 2026-09-14 人力布局 Manpower (来源: 效率管控/A____Man power lay-out update 1 __ Aug'26.xlsx, 表 25 Aug'26 当前Current口径)
     keys: ["人力", "人员", "人数", "定岗", "多少人", "几个人", "定员", "Manpower", "man power", "布局", "人手", "出勤人数", "配置"],
-    text: "人力布局(2026-08-25版当前Current口径, 各车间/线体人数; 数据源: Man power lay-out 生产人员配置表8月): 生产总人数约907人。分车间当前合计—— Pro.1=136、Pro.2=466、Pro.3=83、Pro.4=165、Pro.5=27、Pro.6=30; 生产车间Total=907, Dept职能部门约144。 各车间线体配置: Pro.1(电机)= Motor AC line 20、Motor CL/3Phase 3、Motor WL 18、Motor H-Series 34、Motor F Line 15、Motor S Line 18、Roller Vanishing(H) 10、PTC 3、ACC 7、MLS 1、Document 1、PC 2、QC 1、Delivery 2、Manager 1, 其余辅助0; Pro.2(装配)= Final A Line 67、Final B Line 78、Final C Line 43、Final D Line 31、Water Line 41、Oven Line 42、Shipping A 31、Shipping B 38、Shipping C 42、D-Pipe 1、Washing 9、Valve assembly 12、QC·Comp.cutting-Rework 15、Manager·Leader·Office 7、Support welding machine 2、Support Employee leave 3; Pro.3(Welding)= H Series A line 12、H Series(robot) B line 19、WL+H C line 14、FL D line 12、Press Low Up 6、Washing LO 4、Washing up 4、Press shaft 2、Leader 2、Transfer 3、QC 2、Material 1、Section 2; Pro.4= Frame WL 2、Frame H 21、C-Shaft 37、Piston WL 6、Piston H 17、Rod WL 10、BW WL 4、Head line 13、Matching FL 3、Matching H series 34、Matching WL+Edit Top 7、QC line 4、Section(Mgr+Sup+Follow) 7; Pro.5= Frame FL 6、Piston FL 8、Cylinder 8、Slider 5; Pro.6= Stator+Rotor 6、Valve 3、H.Cover 9、Rotor CL 4、Rotor WL 4、Transport 1、Manager·MLS 3; Dept(PC/PE·IP/QA辅助)= Planning Control 5、Planning(Follow) 1、FG Control 17、Pallet Control 5、Incomming&Material Handling 20。以上为8月中下旬工位/定置口径人表当前值, 若问具体某线可对号。"
+    text: "人力布局(2026-08-25版当前Current口径, 各车间/线体人数; 数据源: Man power lay-out 生产人员配置表8月): 生产总人数约907人。分车间当前合计—— Pro.1=136、Pro.2=466、Pro.3=83、Pro.4=165、Pro.5=27、Pro.6=30; 生产车间Total=907, Dept职能部门约144。 各车间线体配置: Pro.1(电机)= Motor AC line 20、Motor CL/3Phase 3、Motor WL 18、Motor H-Series 34、Motor F Line 15、Motor S Line 18、Roller Vanishing(H) 10、PTC 3、ACC 7、MLS 1、Document 1、PC 2、QC 1、Delivery 2、Manager 1, 其余辅助0; Pro.2(装配)= Final A Line 67、Final B Line 78、Final C Line 43、Final D Line 31、Water Line 41、Oven Line 42、Shipping A 31、Shipping B 38、Shipping C 42、D-Pipe 1、Washing 9、Valve assembly 12、QC·Comp.cutting-Rework 15、Manager·Leader·Office 7、Support welding machine 2、Support Employee leave 3; Pro.3(Welding)= H Series A line 12、H Series(robot) B line 19、WL+H C line 14、FL D line 12、Press Low Up 6、Washing LO 4、Washing up 4、Press shaft 2、Leader 2、Transfer 3、QC 2、Material 1、Section 2; Pro.4= Frame WL 2、Frame H 21、C-Shaft 37、Piston WL 6、Piston H 17、Rod WL 10、BW WL 4、Head line 13、Matching FL 3、Matching H series 34、Matching WL+Edit Top 7、QC line 4、Section(Mgr+Sup+Follow) 7; Pro.5= Frame FL 6、Piston FL 8、Cylinder 8、Slider 5; Pro.6= Stator+Rotor 6、Valve 3、H.Cover 9、Rotor CL 4、Rotor WL 4、Transport 1、Manager·MLS 3; Dept(PC/PE·IP/QA辅助)= Planning Control 5、Planning(Follow) 1、FG Control 17、Pallet Control 5、Incomming&Material Handling 20。以上为8月中下旬工位/定置口径人表当前值, 若问具体某线可对号。",
+  },
+  {
+    // ★ 2026-09-14 智能制造成熟度评审框架 (来源: 26成熟度/美集品供字[2025]056号 26年智能制造成熟度评价标准.xlsx)
+    keys: ["成熟度", "智能制造成熟度", "评审", "评价标准", "评审框架", "等级", "维度", "智能制造成熟", "人才育成", "绿带", "黑带"],
+    text: "26年集团智能制造成熟度评价标准(美集品供字[2025]056号), 评价水平分0无管理/1入门-status/2基本-Basic/3标准-Standard(部分维度到4先进5专业), 海外工厂以2~3为达标线。覆盖17个评审模块(海外工厂常用): EHS(设备电气/特种设备/用电/危险作业/LOTO/物流安全/承包商/消防/职业健康/环保)、绿色制造(碳排放45%·能源30%·废弃物15%·水15%)、拉动(生产安定化/价值流/PSI型谱/内部拉动/外部拉动/系统融合)、物流(物流基础/精益物流/智能物流)、畅流(5S与目视化/连续流布局/SW现场应用/TPM现场应用/SMED现场应用)、日常管理(SQDIP/人才育成/事前/事中/事后/生产安定化/DMS系统)、自动化、信息化、总装、工艺研究、模具、钣金、注塑、电子、研产衔接、工人管理。日常管理(DM)模块关键达标: SQDIP指标三级分解现场目视化; 人才育成DM绿带占比>60%、铁三角绿带>60%、厂长黑带>80%、部门长黑带>80%; 事前4M有效率>85%按时点检率>90%; 事中安灯响应<5min; 事后问题暴露且事件有效闭环; 生产安定化线小时达成率≥80%短暂停改善5%节拍匹配80%人员10min到场、标杆线体正常运作; DMS系统实际操作(厂长/生产/工艺/品质/设备/物流/综合/铁三角/部门长/经理会用DMS)。畅流SW:SOP节拍符合度70%新员工岗前培训2人/5人; TPM重点设备停机LOSS目视化; SMED换型时间同比改善≥10%、内外部作业区分。"
+  },
+  {
+    // ★ 2026-09-14 MBS精益工具箱 (来源: 精益课件/MBS-*教材)
+    keys: ["MBS", "精益工具", "SMED", "TPM", "价值流", "VSM", "标准化", "5S", "快速换型", "改善周", "标准作业", "山积表", "LCIA"],
+    text: "MBS(美的精益生产系统)核心工具箱: ①SMED快速换型——内外作业分离、并行作业、换型时间分秒分析, 记录表含换型过程逐秒记录, 目标换型时间改善≥10%; ②TPM全员设备维护——设备自主保全/专业保全/点检, 重点设备停机LOSS目视化, 标杆设备周期性维保计划; ③5S与目视化——整理整顿清扫清洁素养, 评价用5S检查标准表(车间逐项打分), 问题点≤10个抽查; ④标准作业(标准化工作)——含节拍时间TT/作业顺序/在制品WIP标准量, 五表一书(实例表/山积表/工序能力表/标准作业票/作业要领书), 节拍与SOP节拍符合度≥70%; ⑤价值流图VSM——画现状/未来图, 识别浪费与断点, 一年两循环改善周; ⑥山积表(标准工时&线平衡分析)——各工位作业时间堆积, 找出瓶颈工位, 均衡负荷. 日常管理4.0=DMS数字化系统(事前点检/事中安灯/事后闭环). LCIA低成本智能自动化. 少人化/自动化: 减岗减人不算折算减人, 平均减人金额<50万."
+  },
+  {
+    // ★ 2026-09-14 人工成本计算口径 (来源: SOP_人工成本计算协作.md v3.0)
+    keys: ["人工成本", "成本计算", "单台成本", "unitCost", "费率", "加班费", "人工成本计算", "O类"],
+    text: "人工成本计算口径(生产效率看板成本区, SOP v3.0): 数据流=打卡文件→龙虾算工时(正常工时/加班工时/人数·按部门)→配合产量(万李鹏每日上午发)+费率表(曾芝萍维护)→分部门算正常人工成本与加班费(O类=加班费)→输出单台成本与UPPH→上网页. 关键公式: 单台成本unitCost=部门总成本÷产量; UPPH=产量÷总工时(件/人·时); 加班费=加班工时×加班费率. 输出文件: Excel(部门×累计/日均/每日, 底部汇总加班费合计/加班人数/产量/正常工时/加班工时/总工时/UPPH) 与 labor-cost-data.js(每部门 regularCost正常成本/otCost加班费/totalCost总成本/output产量/unitCost单台成本/upph). 校验锚点: 总人数1000~1150人(正常生产日), 总成本>0, 单台成本对比历史偏差>50%报警, 各部门成本之和=总成本. 费率表变更→重新计算+重推网页."
+  },
+  {
+    // ★ 2026-09-14 工人管理考核维度 (来源: 成熟度标准 工人管理sheet)
+    keys: ["工人管理", "流失率", "缺勤", "连续出勤", "离职", "自离", "招聘", "用工", "月休", "旺季"],
+    text: "集团成熟度工人管理考核(海外工厂口径, 占比权重0.15~0.25): 关键指标——年度累计流失率≤65%或同比降5%, 自离占比≤35%; 招聘渠道≥2种(借调/旺季学生工/HRO); 连续出勤超13天占比<10%, 月休天数4天达成率>90%. 加分项(上限5分): 校企合作大批量输送、'新匠星'标杆培养体系/前置双师培养、招聘突破性创新渠道、全民推荐批量入职、员工关怀后勤SOP稳定人才."
   }
 ];
 /* 按关键词返回命中的知识正文 (简单子串匹配, 一次可能命中多条) */
