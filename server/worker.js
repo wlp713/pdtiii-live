@@ -72,6 +72,51 @@ const SYSPROMPT = `你是'PDT III生产运营与精益改善AI专家'。你的�
 【回答前内部检查(不展示给用户)】: 用的哪天哪班数据/数据更新时间/完整或截取/是否缺人数计划时长/公式是否合口径/是否混淆达成率与相对变化率/是否把相关写成根因/建议是否具体可执行可验证/是否保护安全质量/用户能否30秒看懂。`;
 const UPSTREAM = "https://aigc.midea.com/dify/server/v1/chat-messages";
 
+/* ──────────────────────────────────────────────
+ * 公司知识库(后端, 不下发前端; 由关键词命中注入 prompt)
+ * 内容: 从「效率管控」资料整理出的稳定口径/制度/现场知识。
+ * 注意: 只放稳定口径与规则, 不放会过时的具体某日数据快照(当日数字走前端 context)。
+ * 新增条目: 在下方加 { keys:[..关键词..], text:"..正文.." } 即可。
+ * ────────────────────────────────────────────── */
+const KNOWLEDGE = [
+  {
+    keys: ["白班", "夜班", "加班", "班次", "时段", "8.00", "20.30"],
+    text: "班次周期: 白班正常08:00-17:20, 加班17:20-20:20(最多3h); 夜班正常20:30-次日05:50, 加班05:50-07:50(最多2h)。日计划按白班/夜班分别设定; 班里日以每天8:00为界, 凌晨00:00-08:00的产出归属前一晚班次。"
+  },
+  {
+    keys: ["达成率", "欠产", "超产", "差异", "综合达成"],
+    text: "产出达成口径: 实时达成率=当前实际÷当前累计计划×100%; 差异=实际-计划(负=欠产, 正=超产); 综合达成率=各线实际合计÷各线计划合计×100%, 禁止直接平均各线达成率(计划量不同)。计划为0或缺失不计算; 缺失不等于0。"
+  },
+  {
+    keys: ["UPPH", "人均", "效率", "工时", "人时", "提升率"],
+    text: "效率口径: UPPH(人均小时效率)=产出量÷总工时(件/人·时); 正常人均小时效率=正常时段产出÷正常出勤人数÷8小时(白班夜班正常效率都用8h); 加班进行中=已产生加班产出÷加班人数÷已过有效加班时长, 结束后分母最多3h(夜班2h)。效率日报提升率=(实际UPPH-目标UPPH)÷目标UPPH×100%。"
+  },
+  {
+    keys: ["车间", "分组", "Pro.1", "Pro.2", "Pro.3", "PRO1", "PRO2"],
+    text: "车间分组有两套口径, 不能未经说明混比: ①主看板=PRO1/PRO2·Rotor-Fin/PRO2·Shipping/PRO3/PRO4·Hon-Pist/PRO4·Body-Pin/PRO5/辅助其他; ②产出分析页=Pro.1~Pro.6。问车间时须写明用的是哪套。"
+  },
+  {
+    keys: ["线体", "产线", "S系列", "F系列", "Motor", "转子", "C-Shaft"],
+    text: "典型线体-车间归属: Motor AC/CL/WL/F-Series/H-Series/S-Series属PRO1(电机); Final A/B/C/D与Rotor A/B/C/D属PRO2·Rot/Fin; Inspection A-D属PRO2·Ship; Welding A-D属PRO3; Frame/Piston/C-Shaft Body/C-Shaft Pin属PRO4; Frame Honing等属PRO5。产品系列主要有S系/F系/H系/WL等。"
+  },
+  {
+    keys: ["SQDIP", "安全", "NG", "不良", "5S", "MO", "完工率"],
+    text: "SQDIP口径(车间级管控五维): Safety安全(目标0事故), 5S(目标20), NG rate不良率, NG cost不良损失, LOSS损失(目标≤1000), MO completion完工率, UPPH人时效率。四车间UPPH目标基准参考: PRO1≈9.2, PRO2≈4.43, PRO3≈22.5, PRO4≈10(月度目标, 以当期生效文件为准)。"
+  },
+  {
+    keys: ["提升", "举措", "改善", "效率突破", "PLC", "双班"],
+    text: "效率提升常用关键举措: 装配恢复双班10小时模式并紧盯线小时产出; A/B线PLC程序改善; 转子热套冷却改善; S系列电机产能提升; 通过技术改善/自动化/工艺变革实现少人化与节拍提升。"
+  }
+];
+/* 按关键词返回命中的知识正文 (简单子串匹配, 一次可能命中多条) */
+function kbFor(q) {
+  var s = String(q || "").toLowerCase();
+  var hit = KNOWLEDGE.filter(function (k) {
+    return k.keys.some(function (x) { return s.indexOf(x) >= 0; });
+  });
+  return hit.map(function (k) { return "- " + k.text; }).join("\n");
+}
+
 export default {
   async fetch(request, env) {
     // CORS
@@ -109,7 +154,10 @@ export default {
       }
 
       // 角色系统提示词 + 产出数据上下文 + 用户问题
+      // 公司知识库命中注入 (关键词匹配, 稳定口径/制度; 前端与网页看不到, 仅Worker后端携带)
+      const kb = kbFor(query + "\n" + (context || ""));
       const prompt = SYSPROMPT
+        + (kb ? "\n\n【公司知识库·权威依据(回答公司制度/口径/现场规则问题以此为准)】\n" + kb + "\n(知识库未覆盖的如实说明不清楚, 不编造公司口径)" : "")
         + (context ? "\n\n[产出数据]\n" + context + "\n[用户提问] " : "\n[用户提问] ")
         + query;
 
