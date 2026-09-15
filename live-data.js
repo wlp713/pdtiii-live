@@ -3,114 +3,122 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-14 10:10:13
+   最后写入: 2026-09-15 14:10:15
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
   "problems": [
     {
-      "date": "2026-09-14",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "time": "08:00-09:00",
-      "problem_th": "เครื่องเย็บNo.2 ฮีดเตอรฺไม่ร้อนแก้ไขแล้ว10นาทีงานออกไม่ต่อเนื่อง S -series",
-      "problem_zh": "2 号缝纫机 加热器不热。 10分钟后修好，工作不断停止。 S系列",
-      "plan": 169,
-      "actual": 111,
-      "impact": -58,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-14",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "time": "09:00-09:50",
-      "problem_th": "ไม่พบเห็นปัญหา",
-      "problem_zh": "没看出问题",
-      "plan": 143,
-      "actual": 151,
-      "impact": 8,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-14",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "time": "08:00-09:00",
-      "problem_th": "เครื่อง Slot ฟีล์มบี้ -ขึ้นไม่ครบ หยุด08:26 กำลังแก้ไข เครื่องเย็บเข็มแทงลวด หยุด08:43-08:55 F-series",
-      "problem_zh": "槽片机-未完成，停止08:26，编辑，订书机，订书机停止08:43-08:55 F系列",
-      "plan": 141,
-      "actual": 129,
-      "impact": -12,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-14",
+      "date": "2026-09-15",
       "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
+      "series": "B",
+      "line": "PRO2·B",
       "time": "08:00-09:00",
-      "problem_th": "air gap check ยาก",
-      "problem_zh": "气隙检查困难",
-      "plan": 431,
-      "actual": 400,
-      "impact": -31,
+      "problem_th": "รองานจาก rotor line เปลี่ยนรุ่นทำให้งานขาดความต่อเนื่อง",
+      "problem_zh": "等待来自转子线的工作来改变模型导致工作缺乏连续性。",
+      "plan": 470,
+      "actual": 223,
+      "impact": -247,
       "shift": "day"
     },
     {
-      "date": "2026-09-14",
+      "date": "2026-09-15",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "09:00-10:00",
+      "problem_th": "ต่อเนื่องเปลี่ยนรุ่นงานทยอยออกจากตู้ cooling ทำความเย็นไม่ทัน",
+      "problem_zh": "继续更换机型，工作逐渐脱离冷却柜，冷却不及时。",
+      "plan": 470,
+      "actual": 368,
+      "impact": -102,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-15",
+      "ws": "PRO2",
+      "series": "B",
+      "line": "PRO2·B",
+      "time": "11:00-12:00",
+      "problem_th": "รองานจาก rotor line ผลกระทบจากเครื่องขันเบา วางฝา cover a ไม่ตรง แจ้ง PE เข้าแก้ไขแล้ว (-51) ติดตาม แก้ไขลวดเชื่อม pipe พันกัน ตัดต่อใหม่ (-40) แก้ไขแล้ว",
+      "problem_zh": "等待转子线工作。来自轻型拧紧机的冲击。盖子放置不正确。通知 PE。已经修复（-51）。跟进。修复缠结的管道焊丝。重新切割（-40）。已修复的。",
+      "plan": 470,
+      "actual": 379,
+      "impact": -91,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-15",
       "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
       "time": "08:00-09:00",
-      "problem_th": "งานรั่ว DV line out-50 (ตรวจพบ VALVE รั่วจำนวนมาก) พนักงานจุดเชื่อม pipe มี 2 คนทำให้งานออกไม่ต่อเนื่อง-94(หัวหน้างานเข้าเชื่อมช่วยเป็นระยะ)",
-      "problem_zh": "泄漏工作 DV 线路输出 - 50（检测到许多泄漏的阀门） 有 2 名管道焊接工人，导致工作不连续 - 94（主管定期进来帮助焊接）",
+      "problem_th": "Rotor line หยุดรอ VALVE เป็นระยะ งานมาไม่ต่อเนื่อง-61 (นำ stock เข้าหมด ระหว่างรอ)",
+      "problem_zh": "转子线定期停止等待VALVE，工作不连续-61（等待时所有库存都被带入）",
       "plan": 444,
-      "actual": 300,
-      "impact": -144,
+      "actual": 383,
+      "impact": -61,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-15",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "10:00-11:00",
+      "problem_th": "เครื่องเพลส B/W ตัวประคองน๊อตขาด-190 (PE แก้ไขแล้ว ระหว่างแก้ไขให้พนักงานช่วยประคองแทน)",
+      "problem_zh": "黑白贴片机，断螺母支架-190（PE已已修复，已修复时请员工帮忙支撑）",
+      "plan": 370,
+      "actual": 180,
+      "impact": -190,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-15",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "11:00-12:00",
+      "problem_th": "ต่อเนื่องจากเครื่องเพลส B/W เสีย-57 หยุดรอ VALVE เป็นระยะ",
+      "problem_zh": "从损坏的 Place B/W machine-57 继续，定期停下来等待 VALVE。",
+      "plan": 444,
+      "actual": 331,
+      "impact": -113,
+      "shift": "day"
+    },
+    {
+      "date": "2026-09-15",
+      "ws": "PRO2",
+      "series": "C",
+      "line": "PRO2·C",
+      "time": "13:00-14:00",
+      "problem_th": "เปลี่ยนรุ่นข้าม MODEL 1 ครั้ง ตามแผน ปรับตั้งเครื่องจักรและรองานจาก Rotor line-280 (เปลี่ยนเสร็จแล้ว)",
+      "problem_zh": "按计划跨MODEL 1更换型号，调整机器设置并等待Rotor line-280的工作（更换完成）",
+      "plan": 444,
+      "actual": 164,
+      "impact": -280,
       "shift": "day"
     }
   ],
   "problems_top": null,
   "first_hour": [
     {
-      "date": "2026-09-14",
-      "ws": "RPO1",
-      "series": "F系列",
-      "line": "RPO1·F系列",
-      "target": 141,
-      "actual": 129,
-      "rate": 91.5
-    },
-    {
-      "date": "2026-09-14",
-      "ws": "RPO1",
-      "series": "S系列",
-      "line": "RPO1·S系列",
-      "target": 169,
-      "actual": 111,
-      "rate": 65.7
-    },
-    {
-      "date": "2026-09-14",
+      "date": "2026-09-15",
       "ws": "PRO2",
-      "series": "A",
-      "line": "PRO2·A",
-      "target": 431,
-      "actual": 400,
-      "rate": 92.8
+      "series": "B",
+      "line": "PRO2·B",
+      "target": 470,
+      "actual": 223,
+      "rate": 47.4
     },
     {
-      "date": "2026-09-14",
+      "date": "2026-09-15",
       "ws": "PRO2",
       "series": "C",
       "line": "PRO2·C",
       "target": 444,
-      "actual": 300,
-      "rate": 67.6
+      "actual": 383,
+      "rate": 86.3
     }
   ]
 };
@@ -635,9 +643,18 @@ window.__HISTORY__ = [
     "date": "2026-09-14",
     "first_hour": {
       "RPO1·F系列": 91.5,
+      "RPO1·H系列": 101.8,
       "RPO1·S系列": 65.7,
       "PRO2·A": 92.8,
+      "PRO2·B": 78.5,
       "PRO2·C": 67.6
+    }
+  },
+  {
+    "date": "2026-09-15",
+    "first_hour": {
+      "PRO2·B": 47.4,
+      "PRO2·C": 86.3
     }
   }
 ];
