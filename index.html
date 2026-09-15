@@ -295,6 +295,8 @@
   .conn-status.err .dot { background: #f85149; box-shadow: 0 0 6px rgba(248,81,73,.6); }
   .conn-status.rest .dot { background: #8b949e; }
   .conn-status.rest { color: #8b949e; border-style: dashed; }
+  /* ★ 2026-09-15 实时时钟: 与连接状态同排, 更小更灰(与统计周期分开放, 标题不再混秒) */
+  .clock { font-size: 10px; color: rgba(139,148,158,.78); font-variant-numeric: tabular-nums; letter-spacing: .4px; white-space: nowrap; margin-left: 2px; }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
     70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
@@ -475,7 +477,9 @@
   .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
   .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 1.2s infinite; }
   .eff-ok { color: var(--green); font-weight: 600; }
+  .eff-warn { color: var(--orange); font-weight: 600; }
   .eff-bad { color: var(--red); font-weight: 600; }
+  .eff-zero { color: #8b1616; font-weight: 600; }
   .pos { color: var(--green); }
   .neg { color: var(--red); }
   .zero { color: var(--gray); }
@@ -568,6 +572,7 @@
   <div class="header-right">
     <button class="btn" id="langBtn" title="Switch language">EN</button>
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
+    <span class="clock" id="clock"></span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
@@ -975,7 +980,11 @@ function shortName(name) {
 function hitEff(e) { return e !== null && e !== undefined && !isNaN(e) && e >= 90; }
 function effClass(e) {
   if (e === null || e === undefined || isNaN(e)) return "";
-  return e >= 90 ? "eff-ok" : "eff-bad";
+  // ★ 2026-09-15 四档色: ≥90绿 / 80-89.9橙 / <80红 / 0深红 — 细分警报级别, 真正严重的不被淹没
+  if (e >= 90) return "eff-ok";
+  if (e >= 80) return "eff-warn";
+  if (e > 0) return "eff-bad";
+  return "eff-zero";
 }
 function signClass(v) {
   if (v === null || v === undefined || isNaN(v)) return "zero";
@@ -1337,7 +1346,13 @@ function renderKPIs(view) {
   const bLines = raw.filter(l => !(wsSel === "PRO2R" && !FINAL_SET.has(normName(l.name))));
   const eligLines = bLines.filter(l => (Number(l.actual)||0) > 0); // ★ 改动C(2026-09-10): actual=0=没生产 → 剔除综合达成率+WS Plan(简单粗暴, 按用户要求不再用 isStoppedRun)
   const running = bLines.filter(l => l.status === "RUNNING" || l.status === "运行");
-  setTxt(document.getElementById("kpiRun"), running.length);
+  // ★ 2026-09-15 语义对齐: 大数字只数「运行且有产出」的线(与达成线体分母一致, 避免 8 vs 6 打架)
+  //   无产出的运行线(如 WL/F 未开班)不计入; 副标题仍展示「主要 X 条·全部 Y 条」完整口径。
+  const runProd = running.filter(l => (Number(l.actual) || 0) > 0);
+  const runEl = document.getElementById("kpiRun");
+  setTxt(runEl, runProd.length);
+  const runDen = eligLines.length || 1; // 有产出线数为分母, 避免除零
+  setCls(runEl, "value " + (runProd.length >= Math.ceil(runDen*0.8) ? "green" : runProd.length >= Math.ceil(runDen*0.5) ? "orange" : "red"));
   // ★ 2026-09-04: 车间模式下副标题改为车间 n 条·全部 a 条 (默认=主要 m 条·全部 a 条)
   setTxt(document.getElementById("kpiRunSub"), wsMode
     ? t("kpiWsRunFmt").replace("{n}", bLines.length).replace("{a}", state.lines.length)
@@ -1356,7 +1371,10 @@ function renderKPIs(view) {
   const hit = eligRunning.filter(l => hitEff(l.eff));
   const eh = document.getElementById("kpiHit");
   setTxt(eh, hit.length + "/" + eligRunning.length);
-  setCls(eh, "value " + (hit.length > 0 ? "green" : "orange"));
+  // ★ 2026-09-15 按比例着色(与手机端一致): ≥60%绿 / ≥40%橙 / 其余红 — 管理者扫一眼即懂状态
+  const hitDen = eligRunning.length || 1;
+  const hitRatio = hit.length / hitDen;
+  setCls(eh, "value " + (hitRatio >= 0.6 ? "green" : hitRatio >= 0.4 ? "orange" : "red"));
   const hitNames = hit.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
   setTxt(document.getElementById("kpiHitSub"), hitNames || t("noHit"));
   if (wsMode) {
@@ -2521,12 +2539,15 @@ function updatePeriodLabel() {
   if (!pl || pl.dataset.frozen === "1") return;
   const p = bkkParts(); // ★ v5.42 泰国时间(标题时钟 = 工厂时钟, 与设备时区无关)
   const hh = p.hh, mm = p.mm, ss = p.ss;
-  // ★ 2026-08-28 班次化: 显示当前班次+时段, 如 "8/28 晚班 第2段 21:40-22:40 22:23:10"
+  // ★ 2026-08-28 班次化: 显示当前班次+时段, 如 "8/28 白班 第6段 14:00-15:00"(秒已拆到右上时钟)
   const sc = shiftSegAt(p.mins);
   const isZh = (typeof lang === "undefined") || lang === "zh";
   const shiftTxt = sc.shift === "night" ? (isZh ? "晚班" : "Night") : (isZh ? "白班" : "Day");
   const segTxt = (isZh ? "第" : "Seg ") + sc.idx + (isZh ? "段" : "");
-  pl.textContent = p.M + "/" + p.D + " " + shiftTxt + " " + segTxt + " " + fmtSegMin(sc.t0) + "-" + fmtSegMin(sc.t1) + " " + hh + ":" + mm + ":" + ss;
+  // ★ 2026-09-15 标题只留统计周期(日期·班次·时段), 实时秒拆到右上 #clock, 两者不再混排
+  pl.textContent = p.M + "/" + p.D + " · " + shiftTxt + " · " + segTxt + " " + fmtSegMin(sc.t0) + "-" + fmtSegMin(sc.t1);
+  const ck = document.getElementById("clock");
+  if (ck) ck.textContent = hh + ":" + mm + ":" + ss; // 实时时钟(与连接状态同排, 见 CSS .clock)
   // ★ v6.0 加班时段整页特效: 到加班时段给 body 加 .ot-live → CSS 变色/顶部金色光晕(简单特效, 不流动)
   document.body.classList.toggle("ot-live", isOtNow(p.mins));
 }
