@@ -579,6 +579,13 @@
   .kpi:hover { border-color: #3d444d; box-shadow: 0 5px 18px rgba(0,0,0,.3), 0 0 0 1px rgba(88,166,255,.08); }
   .panel:hover { border-color: #2e343c; }
   body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 24px 2px rgba(255,176,50,.28); }
+
+  /* ④ 主表行 hover 微反馈: 纯黑底原本 hover 看不见, 加轻微蓝底提亮 + 平滑过渡(不影响 miss/stalled 专属配色) */
+  #mainTable tbody tr { transition: background .15s ease; }
+  #mainTable tbody tr:hover td { background: rgba(88,166,255,.07); }
+
+  /* ⑤ 选中文字配色通配到主题色 (默认是白/黑, 太刺) */
+  ::selection { background: var(--blue); color: #0d1117; }
 </style>
 </head>
 <body>
