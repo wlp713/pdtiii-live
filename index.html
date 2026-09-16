@@ -560,6 +560,22 @@
   body.ot-live .header h1,
   body.ot-live #periodLabel { color: #ffd479; text-shadow: 0 0 10px rgba(255,186,60,.8); }
   body.ot-live .panel { box-shadow: 0 0 24px 2px rgba(255,176,50,.28); }
+
+  /* ★★★ v8.1 质感打磨三件套 (2026-09-16, 纯CSS不碰布局/JS) ★★★ */
+  /* ① 自定义滚动条: 薄/暗/圆角, 消除系统默认粗条在纯黑面板上的突兀感 */
+  * { scrollbar-width: thin; scrollbar-color: #2c2c33 transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #2c2c33; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3a44; border: 2px solid transparent; background-clip: padding-box; }
+  ::-webkit-scrollbar-corner { background: transparent; }
+  /* ② 数字字体强化: KPI值 + 数据数字列用等宽数字栈, 对得更齐更有仪表感 */
+  .kpi .value, #mainTable td, .mod-table td, .ex-table td { font-family: "Consolas", "SF Mono", "Segoe UI", "Microsoft YaHei", monospace; }
+  /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 微弱投影, 不花哨 */
+  .kpi, .panel { transition: border-color .15s, box-shadow .15s; }
+  .kpi:hover { border-color: #3d444d; box-shadow: 0 5px 18px rgba(0,0,0,.3), 0 0 0 1px rgba(88,166,255,.08); }
+  .panel:hover { border-color: #2e343c; }
+  body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 24px 2px rgba(255,176,50,.28); }
 </style>
 </head>
 <body>
