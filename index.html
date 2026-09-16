@@ -402,14 +402,15 @@
   #mainTable td { padding: 3px 6px; font-weight: 700; }  /* ★ 2026-09-04: 产出数据加粗与详细页一致(原缺, detail 有 #pages-wrap td 700) */
   /* ★ 2026-09-04: 产出数字(Actual/Plan/差异/达成率/UPH)加大字号, 更清晰 */
   /* ★ 2026-09-04 v2: 再加大一号 — 数字列 13px→15px, 线体名 14px(原继承表 11.5px) */
+  /* ★ 2026-09-16: 再加大 — 数字列 15px→17px, 线体名 14px→16px (日常模式) */
   #mainTable td:nth-child(4), #mainTable td:nth-child(5), #mainTable td:nth-child(6),
-  #mainTable td:nth-child(7), #mainTable td:nth-child(8) { font-size: 15px; }
+  #mainTable td:nth-child(7), #mainTable td:nth-child(8) { font-size: 17px; }
   body.battle-mode #mainTable td:nth-child(4), body.battle-mode #mainTable td:nth-child(5),
   body.battle-mode #mainTable td:nth-child(6), body.battle-mode #mainTable td:nth-child(7),
   body.battle-mode #mainTable td:nth-child(8) { font-size: 13px; }  /* detail模式较窄, 保持13px不溢出 */
   #mainTable th { padding: 3px 6px; }
   /* ★ 2026-09-04 v2: 线体名加大 (基础模式 14px; detail 模式 12.5px) */
-  #mainTable td.line-name { font-size: 14px; }
+  #mainTable td.line-name { font-size: 16px; }
   body.battle-mode #mainTable td.line-name { font-size: 12.5px; }
   /* ★ 2026-09-04 v3: 分割线方向修正 — 删掉列间竖线(用户确认不要竖着的线), 改为行与行之间的横向分割线
      横向线用 td 底部 2px 柔和亮线(替代全局 1px 暗线#21262d 几乎不可见), 基础模式生效; 末行收口不画线
