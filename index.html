@@ -571,8 +571,9 @@
   ::-webkit-scrollbar-thumb { background: #2c2c33; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
   ::-webkit-scrollbar-thumb:hover { background: #3a3a44; border: 2px solid transparent; background-clip: padding-box; }
   ::-webkit-scrollbar-corner { background: transparent; }
-  /* ② 数字字体强化: KPI值 + 数据数字列用等宽数字栈, 对得更齐更有仪表感 */
-  .kpi .value, #mainTable td, .mod-table td, .ex-table td { font-family: "Consolas", "SF Mono", "Segoe UI", "Microsoft YaHei", monospace; }
+  /* ② 数字字体: 回到 Segoe UI(Windows 原生 900 加粗清晰), 不用 Consolas——原因: Consolas 最高只 700,
+        font-weight:800 会被回落成 700, 所以加粗跟没加粗看不出区别。对齐用 tabular-nums 保住, 更清爽好看。 */
+  .kpi .value, #mainTable td, .mod-table td, .ex-table td { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-weight: 800; }
   /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 微弱投影, 不花哨 */
   .kpi, .panel { transition: border-color .15s, box-shadow .15s; }
   .kpi:hover { border-color: #3d444d; box-shadow: 0 5px 18px rgba(0,0,0,.3), 0 0 0 1px rgba(88,166,255,.08); }
