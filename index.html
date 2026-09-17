@@ -1727,8 +1727,13 @@ function valueAt(name, t, usePlan, dayOff) {
       let m = snapMins(sn);
       if (post && m < NIGHT_END) m += 1440; // 凌晨桶 → 班次日后半夜
       const hasD = (sn.d !== undefined && sn.d !== null && String(sn.d) !== "");
-      if (hasD) { if (String(sn.d) !== curDaily) continue; }            // d 精确匹配当前班里日
-      else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue; // 无 d 回退旧白班分钟过滤
+      // ★ 2026-09-17 修复: 前半夜搬运桶(20:30-23:30, 分钟窗口 [1230,1440)) 数据端每晚刷新 actual
+      //   但搬运时漏更新 d 戳(仍首次写入日) → 严格 d 匹配会误判【无前半夜数据】→ 夜班前4段折叠成灰条。
+      //   该窗口天然只属夜班, 跨班污染由 isDayQry 分钟范围兜底挡住; 故夜间查询对此窗口按分钟放行,
+      //   后半夜桶(≥1470)仍严格 d 匹配防污染。
+      const preMidNight = (!isDayQry) && m >= NIGHT_START && m < 1440; // 非白班查询的前半夜桶
+      if (hasD) { if (!preMidNight && String(sn.d) !== curDaily) continue; } // d 匹配当前班里日
+      else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue;       // 无 d 回退旧白班分钟过滤
       pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
     }
     pts.sort(function (a, b) { return a.m - b.m; });
@@ -1797,14 +1802,17 @@ function segsOf(name, curActual, curPlan, curTarget) {
     if (Array.isArray(preArr)) {
       // ★ 2026-09-15 修复: 必须按当前班里日(d)过滤 — 旧桶(其它日期)不算有前半夜覆盖,
       //   否则整夜累计会被塞进 seg1(巨柱)+ seg2/3=0。与 valueAt 的 d 过滤口径一致。
+      // ★ 2026-09-17 修复: 数据端每晚刷新前半夜桶 actual 但搬运时漏更新 d(常为首次写入日旧日期),
+      //   若仍严格 d 匹配会把【本夜班的真实前半夜桶】误判掉 → 折叠成灰条(即用户反馈: 夜班前4段合并)。
+      //   故对前半夜窗口 [1230,1440) 的桶按分钟放行: 该窗口天然只属夜班, 不会跨班污染;
+      //   桶在则说明本夜班确有前半夜数据 → 不折叠, seg1-4 正常分离(与 valueAt 放行口径一致)。
       const _bd = bkkDay0() - (bkkMins() < NIGHT_END ? 86400000 : 0);
       const _bp = bkkParts(_bd);
       const _curD = _bp.y + "-" + String(_bp.M).padStart(2, "0") + "-" + String(_bp.D).padStart(2, "0");
       for (const _sn of preArr) {
         const _m = snapMins(_sn);
-        if (_m >= 1230 && _m < 1440) {
-          const _dd = String(_sn.d == null ? "" : _sn.d);
-          if (_dd === "" || _dd === _curD) { hasPreMid = true; break; }
+        if (_m >= NIGHT_START && _m < 1440) {
+          hasPreMid = true; break;  // 前半夜窗口桶即视为有覆盖(不依赖旧 d 戳)
         }
       }
     }
