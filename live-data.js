@@ -3,76 +3,13 @@
    - attendance: 每日各车间出勤（来源: 美的云盘 GAT Attendance）
    - problems:   线体问题点（来源: 桌面Excel, 每2小时同步）
    - __HISTORY__: 每日17:00达成率快照 (来源: data.json, 趋势分析用)
-   最后写入: 2026-09-18 14:40:07
+   最后写入: 2026-09-18 22:30:02
    ═══════════════════════════════════════════════════════════ */
 window.__LIVE_DATA__ = {
   "attendance": null,
-  "problems": [
-    {
-      "date": "2026-09-18",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "08:00-09:00",
-      "problem_th": "แก้ไขเครื่องกด spring bush กดลงไม่สุด แจ้ง PE เข้าแก้ไข รอการแก้ไข ระหว่างรอ ให้พนักงานกด Manuel (-99) ติดตาม",
-      "problem_zh": "แก้ไขเครื่องกด spring bush กดลงไม่สุด แจ้ง PE เข้าแก้ไข รอการแก้ไข ระหว่างรอ ให้พนักงานกด Manuel (-99) ติดตาม",
-      "plan": 470,
-      "actual": 371,
-      "impact": -99,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-18",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "10:00-11:00",
-      "problem_th": "รองานจาก rotor line ผลกระทบจาก แก้ไขเครื่องกด spring pin ทำงานไม่เสถียร เครื่อง alarm บ่อย (-52) แก้ไขแล้ว ติดตาม",
-      "problem_zh": "รองานจาก rotor line ผลกระทบจาก แก้ไขเครื่องกด spring pin ทำงานไม่เสถียร เครื่อง alarm บ่อย (-52) แก้ไขแล้ว ติดตาม",
-      "plan": 390,
-      "actual": 338,
-      "impact": -52,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-18",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "11:00-12:00",
-      "problem_th": "รองานจากตู้ cooling ทำความเย็นไม่ทัน ผลกระทบจาก เครื่องกด spring pin ทำงานไม่เสถียร (-23) รองานจาก rotor line ผลกระทบจาก bolt spring เป็น สนิม Qa สั่งหยุดไลน์แก้ไข (-80) แก้ไขเปลี่ยน bolt ใหม่",
-      "problem_zh": "รองานจากตู้ cooling ทำความเย็นไม่ทัน ผลกระทบจาก เครื่องกด spring pin ทำงานไม่เสถียร (-23) รองานจาก rotor line ผลกระทบจาก bolt spring เป็น สนิม Qa สั่งหยุดไลน์แก้ไข (-80) แก้ไขเปลี่ยน bolt ใหม่",
-      "plan": 470,
-      "actual": 367,
-      "impact": -103,
-      "shift": "day"
-    },
-    {
-      "date": "2026-09-18",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "time": "13:00-14:00",
-      "problem_th": "ผลกระทบต่อเนื่อง แก้ไขเปลี่ยน bolt spring งานยังมาไม่ต่อเนื่อง",
-      "problem_zh": "ผลกระทบต่อเนื่อง แก้ไขเปลี่ยน bolt spring งานยังมาไม่ต่อเนื่อง",
-      "plan": 470,
-      "actual": 439,
-      "impact": -31,
-      "shift": "day"
-    }
-  ],
+  "problems": [],
   "problems_top": null,
-  "first_hour": [
-    {
-      "date": "2026-09-18",
-      "ws": "PRO2",
-      "series": "B",
-      "line": "PRO2·B",
-      "target": 470,
-      "actual": 371,
-      "rate": 78.9
-    }
-  ]
+  "first_hour": []
 };
 
 window.__HISTORY__ = [
