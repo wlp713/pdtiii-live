@@ -293,17 +293,25 @@
       else if (/(^|[^a-z])ip([^a-z]|$)/.test(qRaw)) dpDeptTok = "ip";
       else if (/(^|[^a-z])qa([^a-z]|$)/.test(qRaw)) dpDeptTok = "qa";
       else if (/changemodel|modelchang|换型|换模/.test(qRaw)) dpDeptTok = "changemodel";
+      /* 线体识别: X线/Final X / X line / line X  → 一律=PRO.2 装配车间的 final A-D 线 (首字母=线体) */
+      var dpLine = null;
+      var mLine = qRaw.match(/([a-d])\s*线/) || qRaw.match(/final\s*([a-d])\b/) || qRaw.match(/([a-d])\s*line\s/) || qRaw.match(/\bline\s*([a-d])\b/) || qRaw.match(/([a-d])\s*(สาย|ไลน)/);
+      if (mLine) dpLine = mLine[1].toLowerCase();
       var dpFiltered = dpRows.filter(function (p) {
         if (dpSelDates.length && dpSelDates.indexOf(String(p.date)) < 0) return false;
         if (dpShift && dpShift !== "full") { var n = /NIGHT/i.test(p.shift || ""); if ((dpShift === "night") !== n) return false; }
-        if (dpDeptTok && p.dept) { if ((p.dept || "").toLowerCase() !== dpDeptTok) return false; }
+        if (dpLine) { /* 线体问题: 强制只算 PRO.2 装配, 按班次首字母匹配线体 */
+          if (!p.dept || (p.dept || "").toLowerCase() !== "pro.2") return false;
+          if ((p.shift || "").toLowerCase().charAt(0) !== dpLine) return false;
+        } else if (dpDeptTok && p.dept) { if ((p.dept || "").toLowerCase() !== dpDeptTok) return false; }
         return true;
       });
       var dpDeptLabel = dpDeptTok ? dpDeptTok.toUpperCase() : "";
+      var dpLineLabel = dpLine ? (dpLine.toUpperCase() + "线(PRO.2装配 final " + dpLine.toUpperCase() + "线)") : "";
       var dpCount = dpFiltered.length;
-      var dpScopeSuffix = dpDeptTok ? (" 部门=" + dpDeptLabel) : (dpShift && dpShift !== "full" ? " 班次=" + (dpShift === "day" ? "白班" : "夜班") : "");
+      var dpScopeSuffix = dpLine ? ("线体=" + dpLineLabel) : (dpDeptTok ? (" 部门=" + dpDeptLabel) : (dpShift && dpShift !== "full" ? " 班次=" + (dpShift === "day" ? "白班" : "夜班") : ""));
       if (dpDates.length && dpCount < dpRows.length) {
-        var dpScopeNote = (dpSelDates.length ? "日期=" + dpSelDates.join(",") : "") + (dpDeptTok ? ((dpSelDates.length ? " " : "") + "部门=" + dpDeptLabel) : "");
+        var dpScopeNote = (dpSelDates.length ? "日期=" + dpSelDates.join(",") : "") + ((dpLine ? " 线体=" + dpLineLabel : "") + (dpDeptTok && !dpLine ? (" " + "部门=" + dpDeptLabel) : ""));
         out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpRows.length + "条, 本问句命中 " + dpCount + " 条 (" + (dpScopeNote || "全部") + ")]");
       } else {
         out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpCount + "条" + dpScopeSuffix + "]");
@@ -333,7 +341,7 @@
       } else {
         out.push("本次条件无命中条目。");
       }
-      out.push("口径: 导入的每日制程问题点。泰语为原始描述; 责任部门=dept(PE/IP/QA/PRO.1-4/CHANGEMODEL换型); 影响数=该问题造成的产出缺口。回答语言跟随提问语言——泰语提问用泰语原文总结, 中文提问把泰语翻译成中文再分析。");
+      out.push("口径: 导入的每日制程问题点。泰语为原始描述; 责任部门=dept(PE/IP/QA/PRO.1-4/CHANGEMODEL换型); 影响数=该问题造成的产出缺口。线体解释: 用户问'A/B/C/D线'时一律指PRO.2装配车间的final A-D四条线(条目的班次首字母=线体), 问题点目前只在PRO.2装配记录, 其他车间没有数据。回答语言跟随提问语言——泰语提问用泰语原文总结, 中文提问把泰语翻译成中文再分析。");
     }
 
     /* E. 产出分析页数据: 出勤人数/加班效率/车间明细 (由 analysis-page 导出) */
@@ -782,7 +790,7 @@
       query: query,
       context: ctx,
       mode: "pdtiii_operations_diagnosis_v2",
-      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。当用户问及每日制程问题点时（上下文中的‘每日制程问题点日志’节），回答语言必须跟随提问语言：若用户用泰语提问，直接用日志中的泰语原文概括并作答；若用户用中文提问，则先把泰语原文翻译成中文再给出总结与分析。回答问题点倾向/归因时，依据‘按日×部门汇总’的条数和影响合计、结合泰语原文描述判断，优先统计影响数(impact)大和出现频次高的问题，不要臆造。",
+      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。当用户问及每日制程问题点时（上下文中的‘每日制程问题点日志’节），回答语言必须跟随提问语言：若用户用泰语提问，直接用日志中的泰语原文概括并作答；若用户用中文提问，则先把泰语原文翻译成中文再给出总结与分析。回答问题点倾向/归因时，依据‘按日×部门汇总’的条数和影响合计、结合泰语原文描述判断，优先统计影响数(impact)大和出现频次高的问题，不要臆造。当用户询问某线体的最大/主要问题时（A线/B线/C线/D线、final A-D 线等）：该线体一律指 PRO.2 装配车间(零件装配)的 final A-D 四条线，线体字母=问题点条目的班次首字母；只能依据上下文‘每日制程问题点日志’节中该日期、该线体(PRO.2)的条目来回答，优先按影响数(impact)排序取最大，并翻译其泰语描述；绝不引用实时产出数据或其他车间(PRO.3/PRO.4/PE/IP/QA)里名称相似的同字母线体，因为问题点目前只在 PRO.2 装配记录，其他车间没有问题点数据。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
       ,stream: true                    // ★ 2026-09-14 走流式(边生成边显示)
     };
