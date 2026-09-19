@@ -275,6 +275,67 @@
       });
     }
 
+    /* H. 每日制程问题点日志(导入) 字段: 日期 班次 责任部门 影响数 泰语原文 */
+    var DP = (typeof window.__DAILY_PROBLEMS__ !== "undefined") ? window.__DAILY_PROBLEMS__ : null;
+    if (DP && DP.byDate) {
+      var dpDates = Object.keys(DP.byDate).sort();
+      var dpRows = [];
+      dpDates.forEach(function (dd) { dpRows = dpRows.concat(DP.byDate[dd] || []); });
+      /* 过滤: 日期条件(有则按日期) / 班次 / 部门 token */
+      var dpQ = normalizeArchiveToken(query);
+      var dpSelDates = archiveDatesFromQuery(query, dpDates);
+      var dpShift = archiveShiftFromQuery(query);
+      var dpDeptTok = null;
+      var qRaw = String(query || "").toLowerCase();
+      var mDept = qRaw.match(/pro\s*\.?\s*([1-4])/);
+      if (mDept) dpDeptTok = "pro." + mDept[1];
+      else if (/(^|[^a-z])pe([^a-z]|$)/.test(qRaw)) dpDeptTok = "pe";
+      else if (/(^|[^a-z])ip([^a-z]|$)/.test(qRaw)) dpDeptTok = "ip";
+      else if (/(^|[^a-z])qa([^a-z]|$)/.test(qRaw)) dpDeptTok = "qa";
+      else if (/changemodel|modelchang|换型|换模/.test(qRaw)) dpDeptTok = "changemodel";
+      var dpFiltered = dpRows.filter(function (p) {
+        if (dpSelDates.length && dpSelDates.indexOf(String(p.date)) < 0) return false;
+        if (dpShift && dpShift !== "full") { var n = /NIGHT/i.test(p.shift || ""); if ((dpShift === "night") !== n) return false; }
+        if (dpDeptTok && p.dept) { if ((p.dept || "").toLowerCase() !== dpDeptTok) return false; }
+        return true;
+      });
+      var dpDeptLabel = dpDeptTok ? dpDeptTok.toUpperCase() : "";
+      var dpCount = dpFiltered.length;
+      var dpScopeSuffix = dpDeptTok ? (" 部门=" + dpDeptLabel) : (dpShift && dpShift !== "full" ? " 班次=" + (dpShift === "day" ? "白班" : "夜班") : "");
+      if (dpDates.length && dpCount < dpRows.length) {
+        var dpScopeNote = (dpSelDates.length ? "日期=" + dpSelDates.join(",") : "") + (dpDeptTok ? ((dpSelDates.length ? " " : "") + "部门=" + dpDeptLabel) : "");
+        out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpRows.length + "条, 本问句命中 " + dpCount + " 条 (" + (dpScopeNote || "全部") + ")]");
+      } else {
+        out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpCount + "条" + dpScopeSuffix + "]");
+      }
+      out.push("字段: 日期 | 班次(shift)·责任部门(dept) | 影响数(impact,产出缺口) | 泰语原文描述");
+      /* 按日+部门汇总(影响合计), 便于快速归因 */
+      var dpSum = {};
+      dpFiltered.forEach(function (p) {
+        var k = p.date + "|" + (p.dept || "-");
+        if (!dpSum[k]) dpSum[k] = { date: p.date, dept: p.dept || "-", n: 0, imp: 0 };
+        dpSum[k].n += 1; dpSum[k].imp += (Number(p.impact) || 0);
+      });
+      var dpSumKeys = Object.keys(dpSum).sort();
+      if (dpSumKeys.length) {
+        out.push("按日×部门汇总(条数/影响合计):");
+        var dpCapSum = dpSumKeys.length > 40 ? dpSumKeys.slice(0, 40) : dpSumKeys;
+        dpCapSum.forEach(function (k) { var s = dpSum[k]; out.push("  " + s.date + " " + s.dept + " → " + s.n + "条/" + s.imp); });
+        if (dpSumKeys.length > 40) out.push("  …(" + (dpSumKeys.length - 40) + "个组合省略, 明细见下全量)");
+      }
+      /* 全量明细(带上过滤后上限) */
+      var dpShown = dpFiltered.length > 500 ? dpFiltered.slice(dpFiltered.length - 500) : dpFiltered;
+      if (dpShown.length) {
+        out.push("明细" + (dpShown.length < dpFiltered.length ? "(最近500条, 共" + dpFiltered.length + ")" : ":"));
+        dpShown.forEach(function (p) {
+          out.push("  [" + p.date + " " + (normalizeArchiveToken(p.shift || "").replace("-", " ").toUpperCase() || (p.shiftLabel || "")) + "] " + (p.dept || "-") + " 影响" + (p.impact === null ? "-" : p.impact) + " — " + (p.problem_th || ""));
+        });
+      } else {
+        out.push("本次条件无命中条目。");
+      }
+      out.push("口径: 导入的每日制程问题点。泰语为原始描述; 责任部门=dept(PE/IP/QA/PRO.1-4/CHANGEMODEL换型); 影响数=该问题造成的产出缺口。回答语言跟随提问语言——泰语提问用泰语原文总结, 中文提问把泰语翻译成中文再分析。");
+    }
+
     /* E. 产出分析页数据: 出勤人数/加班效率/车间明细 (由 analysis-page 导出) */
     var A = (typeof window.__ANA_DATA__ !== "undefined") ? window.__ANA_DATA__ : null;
     if (A) {
@@ -721,7 +782,7 @@
       query: query,
       context: ctx,
       mode: "pdtiii_operations_diagnosis_v2",
-      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
+      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。当用户问及每日制程问题点时（上下文中的‘每日制程问题点日志’节），回答语言必须跟随提问语言：若用户用泰语提问，直接用日志中的泰语原文概括并作答；若用户用中文提问，则先把泰语原文翻译成中文再给出总结与分析。回答问题点倾向/归因时，依据‘按日×部门汇总’的条数和影响合计、结合泰语原文描述判断，优先统计影响数(impact)大和出现频次高的问题，不要臆造。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
       ,stream: true                    // ★ 2026-09-14 走流式(边生成边显示)
     };

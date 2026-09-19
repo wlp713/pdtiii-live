@@ -1845,6 +1845,8 @@
     }
     /* AI 助手: 挂载到本页顶栏 (仅产出分析页显示) */
     if (window.initAIForAnaPage) window.initAIForAnaPage(root);
+    /* 每日制程问题点录入: 挂到顶栏 AI 按钮旁 (同排) */
+    if (window.initDailyProblemsForAnaPage) window.initDailyProblemsForAnaPage(root);
   };
   window.closeAnaPage = function () { closeHCStream(); if (root.parentNode) root.remove(); };
   setInterval(function () {
