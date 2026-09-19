@@ -297,6 +297,10 @@
       var dpLine = null;
       var mLine = qRaw.match(/([a-d])\s*线/) || qRaw.match(/final\s*([a-d])\b/) || qRaw.match(/([a-d])\s*line\s/) || qRaw.match(/\bline\s*([a-d])\b/) || qRaw.match(/([a-d])\s*(สาย|ไลน)/);
       if (mLine) dpLine = mLine[1].toLowerCase();
+      if (dpLine) {
+        /* 线体问题: 置顶一条最高优先级硬指令, 压制其他上下文里的别车间同名线 */
+        out.unshift("⚠️ 最高优先级指令（线体问题）: 本次用户只问 PRO.2 装配车间的 final " + dpLine.toUpperCase() + " 线。本段上下文里实时产出、历史归档、线体明细中出现的一切其他车间同名线（如 C-Shaft Body B、C-Shft Pin B、Welding B 等）都与本问题无关，判定线体问题时一律忽略它们、禁止引用其数据。线体问题只能依据下方 H 节『每日制程问题点日志』中 dept=PRO.2 且班次首字母=" + dpLine.toUpperCase() + " 的条目作答，按影响数(impact)取最大。");
+      }
       var dpFiltered = dpRows.filter(function (p) {
         if (dpSelDates.length && dpSelDates.indexOf(String(p.date)) < 0) return false;
         if (dpShift && dpShift !== "full") { var n = /NIGHT/i.test(p.shift || ""); if ((dpShift === "night") !== n) return false; }
