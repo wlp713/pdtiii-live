@@ -370,13 +370,20 @@ def summarize_snapshot(document: dict) -> dict:
     mapped_count = len(lines)
 
     def is_single_shift(item: dict) -> bool:
-        """单班线=仅有白班桶且白班末桶不进入 OT 时段(>DAY_NORMAL_END=17:20).
-        (如 Piston Grinding 8:00-17:00 生产, lastDayMinute≈1020<1040)
-        两班线末桶会延到 OT 时段(>17:20)."""
-        return item.get("lastDayMinute") is not None and item["lastDayMinute"] <= DAY_NORMAL_END
+        """单班线=仅有白班桶且末桶*确实盖到白班正常时段的末尾*.
+
+        关键: 不能只判断 lastDayMinute <= 17:20 —— 中午(如 13:49)抓到的两班线,
+        其白班末桶也停在 <17:20, 会被误判成'单班已覆盖', 导致中午的部分快照被当成
+        完整白班归档。因此单班线还必须要求末桶落在接近 DAY_NORMAL_END 的位置
+        (≥16:20), 证明白班正常时段确实生产结束, 而不是数据还没推到 OT。
+
+        (真实单班线如 Piston Grinding 8:00-17:00, lastDayMinute≈1020, 落在带内)
+        """
+        last = item.get("lastDayMinute")
+        return last is not None and (DAY_NORMAL_END - 60) <= last <= DAY_NORMAL_END
 
     # 覆盖判定与夜班对称：单班线(如 Piston Grinding 仅白班正常时段生产, 无 OT)
-    # 只要末桶盖满正常时段即为覆盖, 不要求到 20:10(DAY_END-10)从而不会阻塞白班.
+    # 只要末桶盖满正常时段(≥16:20)即为覆盖, 不要求到 20:10(DAY_END-10)从而不会阻塞白班.
     # 两班线(在 OT 时段[17:20,20:20]有桶, lastDayMinute>DAY_NORMAL_END)仍要求盖到 20:10.
     day_covered = sum(1 for item in lines.values()
                       if is_single_shift(item)
