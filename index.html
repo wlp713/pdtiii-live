@@ -594,7 +594,7 @@
 <div id="pages-wrap">
 <div class="header">
   <div class="title-wrap">
-    <h1><span data-i18n="boardTitle">生产实时看板</span> <span id="periodLabel" class="period-label"></span></h1>
+    <h1><span data-i18n="boardTitle">生产实时看板</span> <span id="periodLabel" class="period-label"></span><span id="buildBadge" class="period-label" style="color:#e67e22;font-weight:700"></span></h1>
   </div>
   <div class="header-right">
     <button class="btn" id="langBtn" title="Switch language">EN</button>
@@ -779,7 +779,13 @@
         .catch(function () {});
     } catch (e) {}
   }
-  if (location.protocol === "http:" || location.protocol === "https:") { chk(); setInterval(chk, 180000); }
+  if (location.protocol === "http:" || location.protocol === "https:") {
+    chk(); setInterval(chk, 180000);
+    // ★ 2026-09-23 单页后台 setInterval 被浏览器节流 → 切回前台/获得焦点时立刻补检一次, 根治手机常驻不更新
+    function fg() { chk(); }
+    document.addEventListener("visibilitychange", fg);
+    window.addEventListener("focus", fg);
+  }
 })();
 // ============ i18n 中英切换 ============
 const I18N = {
@@ -871,10 +877,13 @@ const I18N = {
 const LANG_KEY = "pdtiii_lang";
 let lang = "zh";
 try { lang = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { lang = "zh"; }
+const PDTIII_BUILD = "v20260923-方案A-目标";   // ★ 构建版本徽标: 刷新后标题栏/标签页可见, 用于确认是否拿到最新版
 function t(k) { const d = I18N[lang] || I18N.zh; return d[k] !== undefined ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
 function applyStaticI18n() {
   document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-  document.title = t("docTitle");
+  document.title = t("docTitle") + " · " + PDTIII_BUILD;
+  const bb = document.getElementById("buildBadge");
+  if (bb) bb.textContent = PDTIII_BUILD;
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
   document.querySelectorAll("[data-i18n-title]").forEach(el => { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
   const lb = document.getElementById("langBtn");
