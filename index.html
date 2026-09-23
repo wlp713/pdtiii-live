@@ -1888,13 +1888,13 @@ function isOtNow(mins) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// ★ 2026-09-23 手动目标覆盖(方案A): PRO1 的 S/F/H 三条系列
-//   目标是整班(11小时口径)总目标: H=1800 / S=1600 / F=1500, 各 /11Hr。
-//   均摊到整班工作时段, 班末(白班20:20 / 夜班7:50)恰好累计到满目标。
-//   覆盖该行的 plan/target, 并同步 eff/达成率; 其他 line 与「产出分析页」不受影响。
-const H_MANUAL_TARGET = 1800;                             // 整班总目标: H-Series 1800 / 11Hr
-const S_MANUAL_TARGET = 1600;                             // 整班总目标: S-Series 1600 / 11Hr
-const F_MANUAL_TARGET = 1500;                             // 整班总目标: F-Series 1500 / 11Hr
+// ★ 2026-09-23 手动目标覆盖: PRO1 系列
+//   H : 到下午 17:20 共 8H(旧加班起点) 目标 1500, 之后加班按同速率继续推移(会超过1500)。
+//   S : 整班总目标 1600(方案A: 均摊整班, 班末=1600)。
+//   F : 整班总目标 1500(方案A: 均摊整班, 班末=1500)。
+const H_MANUAL_TARGET = 1500;   // H-Series: 17:20 前 8H 目标 1500 (后加班推移)
+const S_MANUAL_TARGET = 1600;   // S-Series: 整班总目标 1600 /（方案A均摊）
+const F_MANUAL_TARGET = 1500;   // F-Series: 整班总目标 1500 /（方案A均摊）
 // ★ 2026-09-07 修复: normName 只去空格/点, 不去连字符 → "Motor H-Series"→"motorh-series"(带横杠)。
 //   两种写法都要判: 带横杠(线上实测)与无横杠(记忆/旧口径)都命中。
 function isManualHLine(name) {
@@ -1983,9 +1983,11 @@ function hManualPlanAtOld(shift, t, target) {
   return Math.round(cum + ot);
 }
 // 按线选择手工目标分摊:
-//   PRO1 S/F/H → 方案A(整班均摊, 班末满目标); FINAL(默认) → 原逻辑(不可受影响)。
+//   H → 原逻辑(17:20推满=目标1500 + 加班按同速率推移)
+//   S/F → 方案A(整班均摊, 班末满目标) ; FINAL(默认) → 原逻辑(数据端目标, 不可受影响)。
 function manualPlanAtLine(name, shift, t, tgt) {
-  if (isManualHLine(name) || isManualSLine(name) || isManualFLine(name)) return hManualPlanAt(shift, t, tgt);
+  if (isManualHLine(name)) return hManualPlanAtOld(shift, t, tgt);
+  if (isManualSLine(name) || isManualFLine(name)) return hManualPlanAt(shift, t, tgt);
   return hManualPlanAtOld(shift, t, tgt);
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
