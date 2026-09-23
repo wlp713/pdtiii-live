@@ -877,7 +877,7 @@ const I18N = {
 const LANG_KEY = "pdtiii_lang";
 let lang = "zh";
 try { lang = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { lang = "zh"; }
-const PDTIII_BUILD = "v20260923-方案A-目标";   // ★ 构建版本徽标: 刷新后标题栏/标签页可见, 用于确认是否拿到最新版
+const PDTIII_BUILD = "v20260923-H1500-17:20";   // ★ 构建版本徽标: 刷新后标题栏/标签页可见, 用于确认是否拿到最新版
 function t(k) { const d = I18N[lang] || I18N.zh; return d[k] !== undefined ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
 function applyStaticI18n() {
   document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
