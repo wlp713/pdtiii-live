@@ -1841,10 +1841,10 @@ function segsOf(name, curActual, curPlan, curTarget) {
     const manual = manualH || manualTgt > 0;
     const a0 = first ? 0 : valueAt(name, t0, false, off);
     const a1 = (t1 > cmpMins) ? (Number(curActual) || 0) : valueAt(name, t1, false, off);
-    let p0 = first ? 0 : (manual ? hManualPlanAt(sc.shift, t0, manualH ? H_MANUAL_TARGET : manualTgt) : valueAt(name, t0, true, off));
+    let p0 = first ? 0 : (manual ? manualPlanAtLine(name, sc.shift, t0, manualTgt) : valueAt(name, t0, true, off));
     let p1 = (t1 > cmpMins)
-      ? (manual ? hManualPlanAt(sc.shift, nowMins, manualH ? H_MANUAL_TARGET : manualTgt) : (Number(curPlan) || 0))
-      : (manual ? hManualPlanAt(sc.shift, t1, manualH ? H_MANUAL_TARGET : manualTgt) : valueAt(name, t1, true, off));
+      ? (manual ? manualPlanAtLine(name, sc.shift, nowMins, manualTgt) : (Number(curPlan) || 0))
+      : (manual ? manualPlanAtLine(name, sc.shift, t1, manualTgt) : valueAt(name, t1, true, off));
     let actual = a1 - a0, plan = p1 - p0;
     // ★ 2026-09-14 修复: live(进行中)段负差 = lines 实时值与 hourly 定格桶计划/实际不同步
     //   旧逻辑兜底成 a1/p1(巨大值)把柱子撑爆/压扁。改为负差归 0(不撑爆)。
@@ -1938,6 +1938,46 @@ function hManualPlanAt(shift, t, target) {
     if (e > t0) cum += (e - t0) * pace;
   }
   return Math.round(cum);             // 取整: 手工目标不保留小数点
+}
+// ── FINAL 线专用: 原分摊口径(加班起点推满+加班溢出) — 2026-09-23 修复: 不得改动 Final 目标 ──
+//   方案A只作用于 PRO1 的 S/F/H 三条系列; FINAL 必须保持改前的数值(数据端 l.target + 原时段计划)。
+function hManualNormalMinsOld(shift) {
+  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
+  const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
+  let m = 0;
+  for (const [t0, t1] of table) {
+    if (t0 >= otStart) break;
+    m += Math.min(t1, otStart) - t0;
+  }
+  return m;
+}
+function hManualPlanAtOld(shift, t, target) {
+  const TGT = target || H_MANUAL_TARGET;
+  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
+  const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
+  const nm = hManualNormalMinsOld(shift) || 1;
+  const pace = TGT / nm;
+  let cum = 0;
+  for (const [t0, t1] of table) {
+    if (t0 >= otStart) break;
+    const nEnd = Math.min(t, t1, otStart);
+    if (nEnd > t0) cum += (nEnd - t0) * pace;
+  }
+  let ot = 0;
+  for (const [t0, t1] of table) {
+    if (t1 <= otStart) continue;
+    if (t0 >= t) break;
+    const oEnd = Math.min(t, t1);
+    const oStart = Math.max(t0, otStart);
+    if (oEnd > oStart) ot += (oEnd - oStart) * pace;
+  }
+  return Math.round(cum + ot);
+}
+// 按线选择手工目标分摊:
+//   PRO1 S/F/H → 方案A(整班均摊, 班末满目标); FINAL(默认) → 原逻辑(不可受影响)。
+function manualPlanAtLine(name, shift, t, tgt) {
+  if (isManualHLine(name) || isManualSLine(name) || isManualFLine(name)) return hManualPlanAt(shift, t, tgt);
+  return hManualPlanAtOld(shift, t, tgt);
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   // ★ 2026-09-03 v6.2 灵活缩放基准: 段高骨架按该段 actual/plan 的较大者定位(而非只按 plan)。
@@ -2638,7 +2678,7 @@ async function refresh() {
       const sc = shiftSegAt(bkkMins());
       const isNight = sc.shift === "night";
       const nowM = isNight && bkkMins() < NIGHT_END ? bkkMins() + 1440 : bkkMins();
-      const mp = Math.round(hManualPlanAt(sc.shift, nowM, mTgt)); // 手工累计计划(取整, 不保留小数点)
+      const mp = Math.round(manualPlanAtLine(l.name, sc.shift, nowM, mTgt)); // 手工累计计划(取整, 不保留小数点)
       l.target = isManualHLine(l.name) ? H_MANUAL_TARGET : mTgt;   // 日目标: H=1800 / Final=数据端目标
       l.plan = mp;                                           // 实时累计目标 = 手工曲线(整数)
       const a = Number(l.actual) || 0;
