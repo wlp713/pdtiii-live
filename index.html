@@ -594,7 +594,7 @@
 <div id="pages-wrap">
 <div class="header">
   <div class="title-wrap">
-    <h1><span data-i18n="boardTitle">生产实时看板</span> <span id="periodLabel" class="period-label"></span><span id="buildBadge" class="period-label" style="color:#e67e22;font-weight:700"></span></h1>
+    <h1><span data-i18n="boardTitle">生产实时看板</span> <span id="periodLabel" class="period-label"></span></h1>
   </div>
   <div class="header-right">
     <button class="btn" id="langBtn" title="Switch language">EN</button>
@@ -877,13 +877,11 @@ const I18N = {
 const LANG_KEY = "pdtiii_lang";
 let lang = "zh";
 try { lang = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { lang = "zh"; }
-const PDTIII_BUILD = "v20260923-H1500-17:20";   // ★ 构建版本徽标: 刷新后标题栏/标签页可见, 用于确认是否拿到最新版
+const PDTIII_BUILD = "H1500-17:20";   // ★ 内部版本标记(仅调试用, 不在界面展示)
 function t(k) { const d = I18N[lang] || I18N.zh; return d[k] !== undefined ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
 function applyStaticI18n() {
   document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
-  document.title = t("docTitle") + " · " + PDTIII_BUILD;
-  const bb = document.getElementById("buildBadge");
-  if (bb) bb.textContent = PDTIII_BUILD;
+  document.title = t("docTitle");
   document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
   document.querySelectorAll("[data-i18n-title]").forEach(el => { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
   const lb = document.getElementById("langBtn");
