@@ -1886,17 +1886,30 @@ function isOtNow(mins) {
 //   生成方式: 沿段表逐段累加, 每段(含加班段)按统一速率 pace 推目标累计。
 //   正常段(至加班起点)累加封顶到 H_MANUAL_TARGET(1800) 作为基准; 之后进入加班段,
 //   目标在此基础上按同 pace 继续累加 — 即「加班目标基于该目标继续推移」。
-const H_MANUAL_TARGET = 1800;                             // 正常工作时间目标 1800
+const H_MANUAL_TARGET = 1800;                             // 正常工作时间目标: H-Series 1800 / 11Hr
+const S_MANUAL_TARGET = 1600;                             // S-Series 1600 / 11Hr
+const F_MANUAL_TARGET = 1500;                             // F-Series 1500 / 11Hr
+// ★ 2026-09-07 修复: normName 只去空格/点, 不去连字符 → "Motor H-Series"→"motorh-series"(带横杠)。
+//   两种写法都要判: 带横杠(线上实测)与无横杠(记忆/旧口径)都命中。
 function isManualHLine(name) {
   const m = normName(name);
-  // ★ 2026-09-07 修复: normName 只去空格/点, 不去连字符 → "Motor H-Series"→"motorh-series"(带横杠)。
-  //   两种写法都要判: 带横杠(线上实测)与无横杠(记忆/旧口径)都命中。
   return m === "motorhseries" || m === "motorh-series";
 }
-// ★ 2026-09-14 推广: Final 线也用前端手工目标(不信数据端 hourly 桶 plan, 避免桶 plan 倒挂/突变)。
-//   日目标取数据端 l.target(存在才启用; A/B/C/D=3300/3600/3400/1600)。H-Series 固定 1800。
+function isManualSLine(name) {
+  const m = normName(name);
+  return m === "motorsseries" || m === "motors-series";
+}
+function isManualFLine(name) {
+  const m = normName(name);
+  return m === "motorfseries" || m === "motorf-series";
+}
+// ★ 2026-09-23 推广: PRO1 的 S/F/H 三条系列统一用前端手工目标(不取原数据库目标),
+//   各线目标按各自 /11Hr 分摊到工作时间, 小时产出图分段由工时分摊自动保持正确。
+//   H=1800 / S=1600 / F=1500; Final 线仍取数据端 l.target(存在才启用)。
 function manualLineTarget(name, dataTarget) {
   if (isManualHLine(name)) return H_MANUAL_TARGET;
+  if (isManualSLine(name)) return S_MANUAL_TARGET;
+  if (isManualFLine(name)) return F_MANUAL_TARGET;
   if (FINAL_SET.has(normName(name))) {
     const t = Number(dataTarget);
     return t > 0 ? t : 0;               // 无数据目标 → 不启用(不能用错误基准)
