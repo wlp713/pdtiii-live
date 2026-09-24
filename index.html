@@ -1907,6 +1907,11 @@ function isManualFLine(name) {
   const m = normName(name);
   return m === "motorfseries" || m === "motorf-series";
 }
+// ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原比例拆分, 班末推满)
+function isPro4PinLine(name) {
+  const m = normName(name);
+  return m === "c-shaftpina" || m === "c-shftpinb";
+}
 // ★ 2026-09-23 推广: PRO1 的 S/F/H 三条系列统一用前端手工目标(不取原数据库目标),
 //   各线目标按各自 /11Hr 分摊到工作时间, 小时产出图分段由工时分摊自动保持正确。
 //   H=1800 / S=1600 / F=1500; Final 线仍取数据端 l.target(存在才启用)。
@@ -1915,12 +1920,10 @@ function manualLineTarget(name, dataTarget) {
   if (isManualSLine(name)) return S_MANUAL_TARGET;
   if (isManualFLine(name)) return F_MANUAL_TARGET;
   // ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原目标比例拆分)
-  //   用户要求: 到17:00两线合计目标=7000; 本覆盖接管这两条线的 plan/target, 达成率按手工目标重算。
-  const m = normName(name);
-  if (m === "c-shaftpina" || m === "c-shftpinb") {
+  //   用户要求: 到班次结束两线合计目标=7000(方案A整班均摊, 班末推满); 本覆盖接管这两条线的 plan/target。
+  if (isPro4PinLine(name)) {
     // 拆分比例来自当前数据端日目标(PinA=2880 / PinB=3030), 取整后合计恰为 7000
-    const t = (m === "c-shaftpina") ? 3411 : 3589;
-    return t;
+    return normName(name) === "c-shaftpina" ? 3411 : 3589;
   }
   if (FINAL_SET.has(normName(name))) {
     const t = Number(dataTarget);
@@ -1994,6 +1997,7 @@ function hManualPlanAtOld(shift, t, target) {
 function manualPlanAtLine(name, shift, t, tgt) {
   if (isManualHLine(name)) return hManualPlanAtOld(shift, t, tgt);
   if (isManualSLine(name) || isManualFLine(name)) return hManualPlanAt(shift, t, tgt);
+  if (isPro4PinLine(name)) return hManualPlanAt(shift, t, tgt); // 方案A: 班末推满到目标(合计7000)
   return hManualPlanAtOld(shift, t, tgt);
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
