@@ -1914,6 +1914,14 @@ function manualLineTarget(name, dataTarget) {
   if (isManualHLine(name)) return H_MANUAL_TARGET;
   if (isManualSLine(name)) return S_MANUAL_TARGET;
   if (isManualFLine(name)) return F_MANUAL_TARGET;
+  // ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原目标比例拆分)
+  //   用户要求: 到17:00两线合计目标=7000; 本覆盖接管这两条线的 plan/target, 达成率按手工目标重算。
+  const m = normName(name);
+  if (m === "c-shaftpina" || m === "c-shftpinb") {
+    // 拆分比例来自当前数据端日目标(PinA=2880 / PinB=3030), 取整后合计恰为 7000
+    const t = (m === "c-shaftpina") ? 3411 : 3589;
+    return t;
+  }
   if (FINAL_SET.has(normName(name))) {
     const t = Number(dataTarget);
     return t > 0 ? t : 0;               // 无数据目标 → 不启用(不能用错误基准)
