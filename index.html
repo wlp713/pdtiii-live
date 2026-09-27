@@ -42,17 +42,17 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    /* ★ 2026-09-28 背景 V4: 近黑高级底 + 深蓝紫细腻光斑, 苹果感雾面玻璃。
-       更暗(接近纯黑), 光斑 收窄 [比 V3 更集中/更亮], 制造更明显的明暗对比;
-       动态由 #bg-flow 流动渐变光斑 + #bg-aurora 慢速光晕承担。 */
-    background: #000001;
+    /* ★ 2026-09-28 背景 V5: 背景永远比模块深(铁律)。底色压到近纯黑, radial 光斑</
+       RGB 通道全部低于模块渐变的 rgba(13,20,36) — 否则背景会比模块亮。动态流动</
+       由 #bg-flow 的光束带承担(带之外保持深色, 整体仍深于模块)。 */
+    background: #000;
     background-image:
-      radial-gradient(90% 75% at 14% -2%, rgba(34,62,120,.40), transparent 48%),
-      radial-gradient(60% 70% at 92% 4%, rgba(14,42,96,.46), transparent 50%),
-      radial-gradient(70% 60% at 30% 78%, rgba(10,32,74,.34), transparent 55%),
-      radial-gradient(55% 55% at 85% 72%, rgba(8,26,62,.40), transparent 55%),
-      radial-gradient(120% 100% at 50% 115%, rgba(4,14,40,.60), transparent 60%),
-      linear-gradient(180deg, #010104 0%, #020309 45%, #030510 100%);
+      radial-gradient(90% 75% at 14% -2%, rgba(16,26,52,.36), transparent 48%),
+      radial-gradient(60% 70% at 92% 4%, rgba(10,20,48,.42), transparent 50%),
+      radial-gradient(70% 60% at 30% 78%, rgba(8,18,44,.36), transparent 55%),
+      radial-gradient(55% 55% at 85% 72%, rgba(7,16,40,.40), transparent 55%),
+      radial-gradient(120% 100% at 50% 115%, rgba(4,10,26,.60), transparent 60%),
+      linear-gradient(180deg, #000 0%, #010103 45%, #02040a 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -4349,16 +4349,16 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 
-<!-- ★ 2026-09-28 流动渐变背景 (纯 canvas 零依赖): 多层柔和光斑缓慢漂移纠缠, 形成“光在深底上
-     缓缓流动”的活渐变 — 工厂生产看板适用的克制/专业/科技感动态背景, 拒绝下雪式粒子。
-     多层大渐变运用叠加 → 视觉上是整体渐变在流动(不是噪点/不是网格/不是固定图)。 -->
+<!-- ★ 2026-09-28 流动渐变背景 (纯 canvas): 几条较亮的斜向光带在近黑深底上缓慢横向扫动 →
+     流动感一眼可见(光在流淌), 而带之间的区域保持近黑 → 背景整体永远深于模块。
+     工厂看板用: 如深海/极光般缓慢涌动, 克制专业、拒绝下雪粒子。 -->
 <script>
 (function () {
   function initFlow() {
     var cv = document.getElementById('bg-flow');
     if (!cv) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      startFlow(cv, true);   // 减弱动态: 画一帧静态渐变
+      startFlow(cv, true);   // 减弱动态: 画一帧静态
     } else {
       startFlow(cv, false);  // 正常: 流动动画
     }
@@ -4366,8 +4366,8 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
   function startFlow(cv, staticOnce) {
     var ctx = cv.getContext('2d');
     if (!ctx) return;
-    var W, H, DPR, blobs = [];
-    var HUES = [210, 222, 232, 200, 188];   // 深邃蓝-钢青, 冷静工厂感
+    var W, H, DPR, bands = [];
+    var HUES = [210, 220, 232];   // 深邃蓝-钢青
     function resize() {
       DPR = Math.min(2, window.devicePixelRatio || 1);
       W = window.innerWidth; H = window.innerHeight;
@@ -4377,42 +4377,42 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
       build();
     }
     function build() {
-      blobs = [];
-      // 5-7 个大面积柔和光斑, 半径约为屏幕的 0.5-1.0 倍 → 互相叠加成整体流动渐变
-      var n = 6;
-      for (var i = 0; i < n; i++) {
-        blobs.push({
-          x: Math.random() * W, y: Math.random() * H,
-          r: Math.max(W, H) * (0.42 + Math.random() * 0.55),
-          vx: (Math.random() - 0.5) * 0.30,
-          vy: (Math.random() - 0.5) * 0.22,
-          a: 0.06 + Math.random() * 0.09,          // 低总体 alpha → 克制不刺眼
-          hue: HUES[Math.floor(Math.random() * HUES.length)],
-          ph: Math.random() * 6.28, phSpd: 0.003 + Math.random() * 0.005
+      bands = [];
+      // 3 条斜向光带(横向拉伸的椭圆光斑), 宽度约屏幕 0.5-0.8 倍, 缓慢横向扫描 → 光在流动
+      for (var i = 0; i < 3; i++) {
+        bands.push({
+          y: 0.15 + Math.random() * 0.6,   // 带中心纵向位置错开
+          stretch: 2.2 + Math.random() * 2.0, // 横向拉伸比(椭圆)
+          r: Math.max(W, H) * (0.16 + Math.random() * 0.10), // 基础半径
+          x: Math.random() * W,
+          speed: (0.6 + Math.random() * 0.7), // 横向扫描速度(px/帧)
+          dir: Math.random() < 0.5 ? 1 : -1,
+          a: 0.16 + Math.random() * 0.10,      // 带亮度(hsla alpha)
+          hue: HUES[Math.floor(Math.random() * HUES.length)]
         });
       }
     }
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
       var t = now / 1000;
-      // 先铺极淡基底, 让光斑融进深色底而不是浮在表面
-      ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0, 0, W, H);
-      for (var i = 0; i < blobs.length; i++) {
-        var b = blobs[i];
-        b.ph += b.phSpd;
-        // 缓慢漂移 + 轻微正弦扰动(流动感), 到达边缘回绕
-        b.x += b.vx + Math.sin(t * 0.2 + b.ph) * 0.1;
-        b.y += b.vy + Math.cos(t * 0.16 + b.ph) * 0.08;
-        if (b.x < -b.r) b.x = W + b.r; if (b.x > W + b.r) b.x = -b.r;
-        if (b.y < -b.r) b.y = H + b.r; if (b.y > H + b.r) b.y = -b.r;
-        // 径向渐变光斑(中心淡→边缘透明), 大半径相互融合 = 流动渐变
-        var gr = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-        gr.addColorStop(0, 'hsla(' + b.hue + ',70%,' + (52 + b.a * 90) + '%,' + (b.a * (0.5 + 0.3 * Math.sin(b.ph))) + ')');
-        gr.addColorStop(0.55, 'hsla(' + b.hue + ',60%,42%,' + (b.a * 0.5) + ')');
-        gr.addColorStop(1, 'hsla(' + b.hue + ',55%,28%,0)');
-        ctx.fillStyle = gr;
-        ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < bands.length; i++) {
+        var b = bands[i];
+        b.x += b.speed * b.dir;
+        if (b.x > W + b.r * 3) b.x = -b.r * 3; if (b.x < -b.r * 3) b.x = W + b.r * 3;
+        // 椭圆光带: scale 使光斑横向拉伸成长条, 纵向保持圆形淡出
+        ctx.save();
+        ctx.translate(b.x, b.y * H);
+        ctx.scale(b.stretch, 1);
+        var g = ctx.createRadialGradient(0, 0, 0, 0, 0, b.r);
+        g.addColorStop(0, 'hsla(' + b.hue + ',88%,' + (62 + Math.sin(t * 0.4 + i) * 8) + '%,' + b.a + ')');
+        g.addColorStop(0.6, 'hsla(' + b.hue + ',75%,48%,' + (b.a * 0.45) + ')');
+        g.addColorStop(1, 'hsla(' + b.hue + ',70%,40%,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(-b.r * 1.4, -b.r * 1.4, b.r * 2.8, b.r * 2.8);
+        ctx.restore();
       }
+      ctx.globalCompositeOperation = 'source-over';
       if (!staticOnce) requestAnimationFrame(frame);
     }
     window.addEventListener('resize', function () { resize(); });
