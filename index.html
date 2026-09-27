@@ -19,82 +19,55 @@
   :root {
     /* ★ 2026-09-27 UI 重设计: 背景改深空渐变+极光光效, 面板近黑深色+玻璃边缘
        原则: 突出数字对比度优先, 视觉为数据服务 */
-    --bg: #000000;                    /* 兜底纯黑(无光效时) */
-    --panel: rgba(10,14,20,.94);      /* 面板内底: 接近纯黑, 模块内部黑底不花, 数字对比度优先 */
-    --panel2: rgba(10,14,20,.94);
-    --border: #232329;
+    --bg: #09090b;                    /* 全局主背景: 中性石墨黑, 无噪点无强渐变 */
+    --panel: rgba(18,18,21,.98);      /* 面板内底: 中性石墨 01半阶 (比背景亮半阶) */
+    --panel2: rgba(18,18,21,.98);
+    --border: rgba(255,255,255,.08);  /* 1px 工业级极细半透明边框 */
+    --border-strong: rgba(255,255,255,.15);
     --border-soft: rgba(255,255,255,.06);
-    /* 玻璃光效 token */
-    --edge-hi: rgba(150,200,255,.35); /* 玻璃上沿反光 */
-    --edge-lo: rgba(88,166,255,.05);  /* 边缘暗部 */
-    --glow-blue: rgba(88,166,255,.14);
-    --glow-cyan: rgba(56,189,248,.10);
-    --green: #3fb950;
-    --orange: #d29922;
-    --red: #f85149;
-    --gray: #a3adbb;
-    --white: #f0f6fc;
-    --blue: #58a6ff;
+    /* 石墨/边缘 token (去发光 — 取代旧 --edge-hi/glow) */
+    --edge-hi: rgba(255,255,255,.05);
+    --edge-lo: rgba(255,255,255,.02);
+    --glow-blue: rgba(255,255,255,.04);
+    --glow-cyan: rgba(255,255,255,.03);
+    /* 语义化状态色: 低饱和、克制 (取代高饱和荧光色) — 仅触发时点亮 */
+    --green: #10b981;   /* Emerald 达成 */
+    --orange: #f59e0b;  /* Amber 预警/接近 */
+    --red: #ef4444;     /* 沉稳警示红 严重落后 */
+    --gray: #a1a1aa;    /* 次要文字 */
+    --muted: #52525b;   /* 无效/表头冷灰 */
+    --white: #f4f4f5;   /* 主文字 95%白 */
+    --blue: #3b82f6;    /* 科技蓝: 实际产出主色 */
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #0a1020;
+    background: #09090b;
     background-image:
-      radial-gradient(120% 90% at 15% 0%, rgba(35,72,120,.55), transparent 60%),
-      radial-gradient(130% 100% at 85% 10%, rgba(16,52,74,.55), transparent 57%),
-      radial-gradient(90% 80% at 30% 68%, rgba(40,64,104,.30), transparent 64%),
-      radial-gradient(150% 130% at 50% 112%, rgba(18,40,66,.6), transparent 66%),
-      linear-gradient(180deg, #0a1020 0%, #0b1422 48%, #0e1828 100%);
+      radial-gradient(120% 90% at 15% 0%, rgba(255,255,255,.028), transparent 60%);
     background-attachment: fixed;
     color: var(--white);
-    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-family: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
     height: 100vh; overflow: hidden; position: relative;
     display: flex; flex-direction: column; padding: 10px 16px;
   }
-  /* ★ 2026-09-27 极光光效层: 固定覆底, 缓慢漂移, 不抢占数据 */
-  #bg-aurora {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
-  }
-  #bg-aurora::before, #bg-aurora::after {
-    content: ""; position: absolute; border-radius: 50%;
-    filter: blur(90px); opacity: .4; will-change: transform, opacity;
-  }
-  #bg-aurora::before {
-    width: 60vw; height: 60vw; left: -12vw; top: -20vh;
-    background: radial-gradient(circle, rgba(62,140,255,.32), transparent 70%);
-    animation: aurora-a 75s ease-in-out infinite alternate;
-  }
-  #bg-aurora::after {
-    width: 52vw; height: 52vw; right: -15vw; bottom: -18vh;
-    background: radial-gradient(circle, rgba(56,200,255,.28), transparent 70%);
-    animation: aurora-b 90s ease-in-out infinite alternate;
-  }
+  /* ★ 2026-09-27 背景层: 纯石墨黑无动效 (诊断: 工业大屏去渐变/去发光/去光效毛刺) */
+  #bg-aurora { display: none; }
   #scale-stage, #pages-wrap, #extra-modules { position: relative; z-index: 1; }
-  @keyframes aurora-a {
-    0%   { transform: translate(0,0) scale(1); opacity: .34; }
-    50%  { transform: translate(8vw, 4vh) scale(1.18); opacity: .46; }
-    100% { transform: translate(-4vw, 6vh) scale(1.06); opacity: .38; }
-  }
-  @keyframes aurora-b {
-    0%   { transform: translate(0,0) scale(1.1); opacity: .30; }
-    50%  { transform: translate(-6vw, -5vh) scale(.95); opacity: .42; }
-    100% { transform: translate(5vw, 3vh) scale(1.08); opacity: .35; }
-  }
-  /* ★ 2026-09-27 页面整体淡入, 避免纯黑到光效的生硬切换 */
-  #scale-stage { animation: ui-fade .6s ease-out both; }
+  /* ★ 2026-09-27 页面整体淡入 */
+  #scale-stage { animation: ui-fade .5s ease-out both; }
   @keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
-  /* ★ 2026-09-27 亮色强调文字: 温和渐变光 (仅大标题/模块标题, 小 label 保持清晰) */
-  .header h1, .panel h2 { background-image: linear-gradient(90deg, #f0f6fc, #b8d4ff 55%, #f0f6fc); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  /* 降级: 不支持 background-clip:text 时用原色 */
+  /* ★ 2026-09-27 大标题/模块标题: 纯色高亮文字 (去发光渐变, 保持专业清晰) */
+  .header h1, .panel h2 { color: var(--white); }
   @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
     .header h1, .panel h2 { background-image: none; color: var(--gray); }
   }
-  /* ★ 2026-09-27 KPI 数字轻微光晕: 突出数字主视觉, 保持语义色 */
-  .kpi .value { text-shadow: 0 0 18px rgba(88,166,255,.18), 0 0 40px rgba(88,166,255,.08); }
-  .kpi .value.green { text-shadow: 0 0 18px rgba(63,185,80,.22), 0 0 40px rgba(63,185,80,.10); }
-  .kpi .value.orange { text-shadow: 0 0 18px rgba(210,153,34,.22), 0 0 40px rgba(210,153,34,.10); }
-  .kpi .value.red { text-shadow: 0 0 18px rgba(248,81,73,.24), 0 0 40px rgba(248,81,73,.10); }
+  /* ★ 2026-09-27 KPI 数字光晕已移除 (诊断: 工业大屏去发光) — 纯色语义字, 保数字清晰 */
+  .kpi .value.green { color: var(--green); }
+  .kpi .value.orange { color: var(--orange); }
+  .kpi .value.red { color: var(--red); }
+  .kpi .value.blue { color: var(--blue); }
+  .kpi .value { color: var(--white); }
   /* ★ 2026-09-27 无障碍: 用户偏好减少动效时, 全部静止 (光效停, hover 只留颜色) */
   @media (prefers-reduced-motion: reduce) {
     #bg-aurora::before, #bg-aurora::after { animation: none !important; opacity: .4; }
@@ -404,35 +377,21 @@
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
   .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
   .kpi {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 4px 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    background-color: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 12px;
+    /* 诊断: 工业大屏去发光/去渐变/去胶囊 — 靠背景色阶+1px细边框区分层级, 无box-shadow */
     min-width: 0; display: flex; flex-direction: column; justify-content: center;
-    /* ★ 2026-09-27 低调深色 KPI 卡: 内部黑底不变, 仅顶部口沿细微光 (同 .panel 思路, 克制不铺满) */
-    border-top: 1px solid rgba(150,195,235,.28);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05),
-                inset 0 -1px 0 rgba(0,0,0,.45),
-                0 6px 16px rgba(0,0,0,.35);
-    backdrop-filter: blur(6px) saturate(120%);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
     position: relative;
-    transition: border-color .18s, box-shadow .18s;
-  }
-  .kpi::before {
-    content: ""; position: absolute; inset: 0; border-radius: 12px; z-index: -1; overflow: hidden;
-    /* 仅顶部一薄层微光, 不铺满 (同 .panel::before 思路) */
-    background: linear-gradient(180deg, rgba(150,195,235,.08), rgba(150,195,235,0) 18px);
-    pointer-events: none;
+    transition: border-color .18s, background-color .18s;
   }
   .kpi:hover {
-    border-color: rgba(120,180,255,.42);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06),
-                inset 0 0 14px rgba(88,166,255,.05),
-                0 6px 20px rgba(0,0,0,.4);
+    border-color: var(--border-strong);
+    background-color: var(--panel2);
   }
   .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0; }
   .kpi .label { font-size: 12.5px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
-  .kpi .value { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: .5px; flex-shrink: 0; }
+  .kpi .value { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: .5px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
   .kpi .sub { font-size: 11px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpi .value.green { color: var(--green); }
   .kpi .value.orange { color: var(--orange); }
@@ -443,33 +402,17 @@
     flex: 1; min-height: 0;
   }
   .panel {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 8px 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    background-color: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+    /* 诊断: 工业大屏去发光 — 无box-shadow、无口沿微光, 靠背景色阶+1px细边框区分层级 */
     display: flex; flex-direction: column; min-height: 0; min-width: 0;
-    /* ★ 2026-09-27 低调深色面板: 内部黑底不变, 仅在模块口沿(顶部)留一条细照明边缘,
-        不用整块上→下渐变覆盖实体 — 用户嫌那样廉价/古早/PPT感;
-        正确=克制: 光只存在于边缘一薄层, 实体保持近实黑保表格数字对比度 */
-    border-top: 1px solid rgba(150,195,235,.28);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.05),
-                inset 0 -1px 0 rgba(0,0,0,.45),
-                0 6px 16px rgba(0,0,0,.35);
-    backdrop-filter: blur(6px) saturate(120%);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
     position: relative;
-    transition: border-color .18s, box-shadow .18s;
-  }
-  .panel::before {
-    content: ""; position: absolute; inset: 0; border-radius: 12px; z-index: -1; overflow: hidden;
-    /* 仅顶部一薄层微光: 高度 ~22px 的柔光带, 不铺满, 模拟光线落在面板口沿 */
-    background: linear-gradient(180deg, rgba(150,195,235,.10), rgba(150,195,235,0) 22px);
-    pointer-events: none;
+    transition: border-color .18s, background-color .18s;
   }
   .panel:hover {
-    border-color: rgba(120,180,255,.42);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06),
-                inset 0 0 14px rgba(88,166,255,.05),
-                0 6px 20px rgba(0,0,0,.4);
+    border-color: var(--border-strong);
+    background-color: var(--panel2);
   }
   .panel-head {
     display: flex; justify-content: space-between; align-items: center;
@@ -552,10 +495,12 @@
   .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
   .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
   .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 1s infinite; }
-  .line-name { font-weight: 800; color: var(--white); white-space: nowrap; text-align: left; }
-  .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
-  .hit-name { color: var(--green); }
-  .miss-name { color: var(--red); }
+  .line-name { font-weight: 700; color: var(--white); white-space: nowrap; text-align: left; }
+  .rank { width: 32px; min-width: 32px; text-align: center; color: var(--gray); font-weight: 700; }
+  /* 诊断: 线体名严禁用红/荧光色造成红海 — 常规统一高亮白;
+       停滞/未达成线体名改暗暖灰提示, 红只留给「未达成差异数字」 */
+  .hit-name { color: var(--white); }
+  .miss-name { color: #a8a29e; }
   .stall-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--red);
     display: inline-block; margin-right: 6px; vertical-align: 1px;
@@ -563,32 +508,31 @@
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
   td.bar-cell { padding: 3px 10px; min-width: 230px; }
-  .hbar { position: relative; height: 16px; background: #161b22; border-radius: 8px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
+  .hbar { position: relative; height: 6px; background: #27272a; border-radius: 3px; overflow: hidden; }
   .hbar .act {
     position: absolute; left: 0; top: 0; height: 100%;
-    background: linear-gradient(180deg, #7cc4ff 0%, #58a6ff 55%, #2d7fc7 100%);
-    border-radius: 8px; min-width: 3px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+    /* 诊断: 去高光胶囊去渐变光 — 平铺低饱和科技蓝 (微弱线性渐变提质感, 无内高光) */
+    background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
+    border-radius: 3px; min-width: 3px;
   }
-  /* 未达成缺口: 红色(主题色), 从蓝条右侧延伸 — 蓝=达成, 红=未达成 */
+  /* 未达成缺口: 极暗灰底, 不抢眼 (诊断: 去除斜纹/红色高对比; 红仅用于严重落后数字/尾点) */
   .hbar .gap {
     position: absolute; left: 0; top: 0; height: 100%;
-    /* 2026-09-27: 斜纹红调淡降对比度 — 用户嫌之前太深太突兀, 融入整体低调风格 */
-    background: repeating-linear-gradient(-45deg, rgba(248,81,73,.26) 0 4px, rgba(248,81,73,.14) 4px 8px);
-    border-radius: 8px;
+    background: #2a2a2d;
+    border-radius: 3px;
   }
-  /* 超额达成(act>plan): 蓝条满格, 绿色渐变从上方覆盖超额区 (宽 on lib=%)*/
+  /* 超额达成(act>plan): 蓝条满格, 右侧极淡绿提示 (降低过饱和) */
   .hbar .act.over { width: 100% !important; }
   .hbar .over-glow {
     position: absolute; right: 0; top: 0; bottom: 0; z-index: 2;
-    background: linear-gradient(90deg, transparent, rgba(63,185,80,.55) 70%, rgba(63,185,80,.35));
-    border-radius: 0 8px 8px 0; opacity: .9;
+    background: linear-gradient(90deg, transparent, rgba(16,185,129,.35) 100%);
+    border-radius: 0 3px 3px 0; opacity: .8;
   }
-  .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
+  .hbar .p100 { position: absolute; right: 0; top: -3px; height: 12px; border-right: 1px dashed rgba(139,148,158,.4); }
   .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
   .hbar-leg i { font-style: normal; }
   .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
-  .hbar-leg .g::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: rgba(248,81,73,.55); margin-right: 3px; vertical-align: -1px; }
+  .hbar-leg .g::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: #3a3a3d; margin-right: 3px; vertical-align: -1px; }
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
@@ -603,9 +547,9 @@
        Plan 计划目标: 统一冷灰蓝 = 「计划」中性语义, 与实绩明显区分。
        达成率%列沿用 effClass 四档等级色。 */
   .col-act { font-weight: 800; }
-  .col-act.green { color: var(--green); text-shadow: 0 0 12px rgba(63,185,80,.20); }
-  .col-act.orange { color: var(--orange); text-shadow: 0 0 12px rgba(210,153,34,.18); }
-  .col-act.red { color: var(--red); text-shadow: 0 0 12px rgba(248,81,73,.22); }
+  .col-act.green { color: var(--green); }
+  .col-act.orange { color: var(--orange); }
+  .col-act.red { color: var(--red); }
   .col-plan { color: #9fb2c9; font-weight: 700; }
   th.col-act-h, th.col-plan-h { font-weight: 600; }
   th.col-act-h { color: #7ec2ff; }
@@ -701,11 +645,11 @@
   /* ② 数字字体: 回到 Segoe UI(Windows 原生 900 加粗清晰), 不用 Consolas——原因: Consolas 最高只 700,
         font-weight:800 会被回落成 700, 所以加粗跟没加粗看不出区别。对齐用 tabular-nums 保住, 更清爽好看。 */
   .kpi .value, #mainTable td, .mod-table td, .ex-table td { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-weight: 800; }
-  /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 微弱投影, 不花哨 */
-  .kpi, .panel { transition: border-color .15s, box-shadow .15s; }
-  .kpi:hover { border-color: #3d444d; box-shadow: 0 5px 18px rgba(0,0,0,.3), 0 0 0 1px rgba(88,166,255,.08); }
-  .panel:hover { border-color: #2e343c; }
-  body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 24px 2px rgba(255,176,50,.28); }
+  /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 背景提半阶, 不投影不发光 */
+  .kpi, .panel { transition: border-color .15s, background-color .15s; }
+  .kpi:hover { border-color: var(--border-strong); background-color: var(--panel2); box-shadow: none; }
+  .panel:hover { border-color: var(--border-strong); background-color: var(--panel2); box-shadow: none; }
+  body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 0 1px rgba(59,130,246,.3); }
 
   /* ④ 主表行 hover 微反馈: 纯黑底原本 hover 看不见, 加轻微蓝底提亮 + 平滑过渡(不影响 miss/stalled 专属配色) */
   #mainTable tbody tr { transition: background .15s ease; }
@@ -2255,52 +2199,9 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.strokeStyle = "rgba(88,166,255,.20)"; ctx.lineWidth = 3;
         ctx.strokeRect(cx - 0.5, yAcc - 0.5, bw + 1, perH + 1);
       }
-      // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
-      //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
-      ctx.textAlign = "center";
-      const valTxt = String(Math.round(v));
-      const hNo = s.lab;
-      // ★ 字体随段高自适应: 段越矮字越小, 避免第8段后文字放不下
-      const fBig = perH >= 26 ? 10 : perH >= 20 ? 9 : perH >= 15 ? 8 : perH >= 11 ? 7.5 : 7;
-      const fSml = Math.max(6.5, fBig - 1);
-      if (s.base || s.pm) {
-        // 上午/下午/前半夜 累计段: 灰底 + 标签 + 数值
-        const lbl = s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am"));
-        if (perH >= 14) {
-          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(lbl, cx + bw / 2, yAcc + perH / 2 - 3);
-          ctx.fillStyle = "#e6edf3"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
-        } else if (perH >= 8) {
-          ctx.fillStyle = "#8b949e"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
-        }
-      } else if (s.live) {
-        // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
-        if (perH >= 14 && hNo != null) {
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
-          ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
-        } else if (perH >= 8) {
-          ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
-        }
-      } else {
-        if (perH >= 16 && hNo != null) {
-          // 段高足够: 两行 — 编号 + 数值 (v5.32: 编号改纯白, 深底上更清晰)
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
-        } else if (perH >= 9) {
-          // 段高一般: 只写数值
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
-        }
-      }
+      // ★ 2026-09-27 图表降噪 (诊断): 去除柱内堆叠小数字 — 大屏远看趋势, 近看顶部总数;
+      //   数字是白/黄微小堆叠, 密集挤压造成噪声; 每段只保留柱形, 总量写在两柱共同顶部外侧。
     });
-  }
   if (totalH > 0) {
     // 计划与实际总数必须在同一条基准线上，统一放在两根柱的共同顶部外侧。
     // 这样标签表达的是一组对比，而不是把实际总产出误读成柱内分段数据。
@@ -2309,6 +2210,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
     const pairTopY = padT + ch - Math.max(actualPix, planPix);
     ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
     ctx.fillText(fmt(total), cx + bw / 2, pairTopY - 14);
+  }
   }
 }
 
