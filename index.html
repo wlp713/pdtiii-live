@@ -4384,7 +4384,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
           stretch: 2.2 + Math.random() * 2.0, // 横向拉伸比(椭圆)
           r: Math.max(W, H) * (0.16 + Math.random() * 0.10), // 基础半径
           x: Math.random() * W,
-          speed: (0.30 + Math.random() * 0.35), // 横向扫描速度(px/帧) — 用户要求放缓一倍(原 0.6-1.3 → 0.3-0.65)
+          speed: (0.12 + Math.random() * 0.18), // 横向扫描速度(px/帧) — 用户要求再三放慢(原 0.3-0.65 → 0.12-0.3, 近乎舒缓漂动)
           dir: Math.random() < 0.5 ? 1 : -1,
           a: 0.14 + Math.random() * 0.08,      // 带亮度(hsla alpha) — 略降适配降饱和
           hue: HUES[Math.floor(Math.random() * HUES.length)]
