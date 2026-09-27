@@ -1828,6 +1828,8 @@ function valueAt(name, t, usePlan, dayOff) {
     //   优先按 d 精确匹配「当前班里日」取桶 → 彻底根治跨班次残留桶污染, 不再靠分钟范围猜。
     //   兼容: 若某桶无 d(数据端未回填/历史桶) → 回退到下面 isDayQry 分钟范围兜底。
     const curDaily = bkkDateStr(bkkDay0() - (nowMi < 8 * 60 ? 86400000 : 0));
+    // 前一天(昨晚前半夜桶的新鲜度下界) — 2026-09-27: 供 preMidNight 新鲜度过滤使用
+    const _prevDaily = bkkDateStr(bkkDay0() - (nowMi < 8 * 60 ? 86400000 : 0) - 86400000);
     const pts = [];
     for (const sn of snaps) {
       let m = snapMins(sn);
@@ -1838,7 +1840,19 @@ function valueAt(name, t, usePlan, dayOff) {
       //   该窗口天然只属夜班, 跨班污染由 isDayQry 分钟范围兜底挡住; 故夜间查询对此窗口按分钟放行,
       //   后半夜桶(≥1470)仍严格 d 匹配防污染。
       const preMidNight = (!isDayQry) && m >= NIGHT_START && m < 1440; // 非白班查询的前半夜桶
-      if (hasD) { if (!preMidNight && String(sn.d) !== curDaily) continue; } // d 匹配当前班里日
+      if (hasD) {
+        // ★ 2026-09-27 修复: preMidNight 前半夜窗口(20:30-23:30)按分钟放行, 是为了容纳
+        //   「数据端当晚刷新 actual 但 d 戳未同步」的桶(见 09-17 注释)。但陈旧死桶(如 17 天前
+        //   的残留晚班桶)若带着非零 actual 也被放行 → 停产线晚班首段差分出假数据 → 小时图
+        //   显示非零而列表为 0。现对 preMidNight 桶追加「d 新鲜度」校验: 只放行当前班里日或其
+        //   前一天(昨晚前半夜)的桶, 更早的陈旧桶一律丢弃, 兼顾放行语义与防污染。
+        if (preMidNight) {
+          const _dStr = String(sn.d);
+          if (_dStr === curDaily || _dStr === _prevDaily) { /* 放行 */ }
+          else continue; // 非当天/昨晚的 preMidNight 桶(陈旧死桶)丢弃
+        } else if (String(sn.d) !== curDaily) continue; // 其它桶严格 d 匹配当前班里日
+      }
+      else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue;       // 无 d 回退旧白班分钟过滤
       else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue;       // 无 d 回退旧白班分钟过滤
       pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
     }
