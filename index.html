@@ -42,37 +42,68 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #09090b;
+    background: #050811;
     background-image:
-      radial-gradient(120% 90% at 15% 0%, rgba(255,255,255,.028), transparent 60%);
+      radial-gradient(110% 90% at 12% 4%, rgba(30,88,166,.32), transparent 55%),
+      radial-gradient(120% 100% at 88% 6%, rgba(14,60,110,.34), transparent 58%),
+      radial-gradient(90% 70% at 40% 88%, rgba(18,64,108,.30), transparent 62%),
+      radial-gradient(150% 120% at 50% 118%, rgba(9,30,58,.65), transparent 65%),
+      linear-gradient(180deg, #060a15 0%, #070c1a 45%, #080e1e 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
     height: 100vh; overflow: hidden; position: relative;
     display: flex; flex-direction: column; padding: 10px 16px;
   }
-  /* ★ 2026-09-27 背景层: 纯石墨黑无动效 (诊断: 工业大屏去渐变/去发光/去光效毛刺) */
-  #bg-aurora { display: none; }
+  /* ★ 2026-09-27 背景层: 深海蓝 base + 极淡流动光晕 (科技感底色, 不抢数据焦点) */
+  #bg-aurora {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  #bg-aurora::before, #bg-aurora::after {
+    content: ""; position: absolute; border-radius: 50%;
+    filter: blur(110px); opacity: .32; will-change: transform;
+  }
+  #bg-aurora::before {
+    width: 55vw; height: 55vw; left: -10vw; top: -18vh;
+    background: radial-gradient(circle, rgba(44,120,255,.28), transparent 68%);
+    animation: aurora-a 80s ease-in-out infinite alternate;
+  }
+  #bg-aurora::after {
+    width: 48vw; height: 48vw; right: -14vw; bottom: -16vh;
+    background: radial-gradient(circle, rgba(36,170,255,.22), transparent 68%);
+    animation: aurora-b 95s ease-in-out infinite alternate;
+  }
+  @keyframes aurora-a {
+    0%   { transform: translate(0,0) scale(1);   opacity: .28; }
+    50%  { transform: translate(6vw,3vh) scale(1.15); opacity: .38; }
+    100% { transform: translate(-3vw,5vh) scale(1.05); opacity: .32; }
+  }
+  @keyframes aurora-b {
+    0%   { transform: translate(0,0) scale(1.08); opacity: .24; }
+    50%  { transform: translate(-5vw,-4vh) scale(.96); opacity: .34; }
+    100% { transform: translate(4vw,2vh) scale(1.06); opacity: .28; }
+  }
   #scale-stage, #pages-wrap, #extra-modules { position: relative; z-index: 1; }
   /* ★ 2026-09-27 页面整体淡入 */
   #scale-stage { animation: ui-fade .5s ease-out both; }
   @keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
-  /* ★ 2026-09-27 大标题/模块标题: 纯色高亮文字 (去发光渐变, 保持专业清晰) */
-  .header h1, .panel h2 { color: var(--white); }
+  /* ★ 2026-09-27 大标题/模块标题: 高亮冷白, 清晰 */
+  .header h1, .panel h2 { color: #e8eef7; }
   @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-    .header h1, .panel h2 { background-image: none; color: var(--gray); }
+    .header h1, .panel h2 { color: var(--gray); }
   }
-  /* ★ 2026-09-27 KPI 数字光晕已移除 (诊断: 工业大屏去发光) — 纯色语义字, 保数字清晰 */
-  .kpi .value.green { color: var(--green); }
-  .kpi .value.orange { color: var(--orange); }
-  .kpi .value.red { color: var(--red); }
-  .kpi .value.blue { color: var(--blue); }
-  .kpi .value { color: var(--white); }
+  /* ★ 2026-09-27 KPI 数字微光晕 (恢复, 工业屏远看突出数字) — 语义色 + 柔和辉光 */
+  .kpi .value { text-shadow: 0 1px 14px rgba(70,150,255,.35), 0 0 34px rgba(70,150,255,.14); }
+  .kpi .value.green { color: var(--green); text-shadow: 0 1px 12px rgba(16,185,129,.4), 0 0 28px rgba(16,185,129,.16); }
+  .kpi .value.orange { color: var(--orange); text-shadow: 0 1px 12px rgba(245,158,11,.38), 0 0 28px rgba(245,158,11,.15); }
+  .kpi .value.red { color: var(--red); text-shadow: 0 1px 12px rgba(239,68,68,.42), 0 0 28px rgba(239,68,68,.16); }
+  .kpi .value.blue { color: var(--blue); text-shadow: 0 1px 12px rgba(59,130,246,.4), 0 0 28px rgba(59,130,246,.16); }
   /* ★ 2026-09-27 无障碍: 用户偏好减少动效时, 全部静止 (光效停, hover 只留颜色) */
   @media (prefers-reduced-motion: reduce) {
-    #bg-aurora::before, #bg-aurora::after { animation: none !important; opacity: .4; }
+    #bg-aurora::before, #bg-aurora::after { animation: none !important; opacity: .3; }
     #scale-stage { animation: none !important; }
-    .kpi, .panel { transition: border-color .18s, box-shadow .18s; }
+    .kpi, .panel { transition: border-color .18s; }
+    .kpi .value { text-shadow: none; }
   }
   /* ★ 画布容器 (v4 纯响应式): 占满视口, 永不滚动
      日常模式=仅原看板; 作战模式=原看板+扩展模块, flex按比例分配空间 */
@@ -377,17 +408,20 @@
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
   .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
   .kpi {
-    background-color: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 4px 12px;
-    /* 诊断: 工业大屏去发光/去渐变/去胶囊 — 靠背景色阶+1px细边框区分层级, 无box-shadow */
+    background: linear-gradient(180deg, rgba(22,32,52,.82), rgba(13,20,36,.88));
+    border: 1px solid rgba(90,180,255,.28);
+    border-radius: 10px; padding: 4px 12px;
+    /* 工业科技风: 毛玻璃 + 青色微光边 (克制发光, 数字对比度优先) */
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(14px) saturate(130%);
+    -webkit-backdrop-filter: blur(14px) saturate(130%);
     min-width: 0; display: flex; flex-direction: column; justify-content: center;
     position: relative;
     transition: border-color .18s, background-color .18s;
   }
   .kpi:hover {
-    border-color: var(--border-strong);
-    background-color: var(--panel2);
+    border-color: rgba(120,200,255,.5);
+    background: linear-gradient(180deg, rgba(28,40,64,.86), rgba(16,24,42,.9));
   }
   .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0; }
   .kpi .label { font-size: 12.5px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
@@ -402,23 +436,26 @@
     flex: 1; min-height: 0;
   }
   .panel {
-    background-color: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px; padding: 8px 12px;
-    /* 诊断: 工业大屏去发光 — 无box-shadow、无口沿微光, 靠背景色阶+1px细边框区分层级 */
+    background: linear-gradient(180deg, rgba(20,29,47,.86), rgba(11,17,32,.92));
+    border: 1px solid rgba(90,180,255,.24);
+    border-radius: 10px; padding: 8px 12px;
+    /* 工业科技风: 毛玻璃 + 青色微光边 (克制发光, 数字对比度优先) */
+    box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(12px) saturate(125%);
+    -webkit-backdrop-filter: blur(12px) saturate(125%);
     display: flex; flex-direction: column; min-height: 0; min-width: 0;
     position: relative;
     transition: border-color .18s, background-color .18s;
   }
   .panel:hover {
-    border-color: var(--border-strong);
-    background-color: var(--panel2);
+    border-color: rgba(120,200,255,.4);
+    background: linear-gradient(180deg, rgba(24,35,56,.88), rgba(13,20,36,.92));
   }
   .panel-head {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 4px; flex-shrink: 0;
   }
-  .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 700; letter-spacing: .5px; }
+  .panel h2 { font-size: 12.5px; color: #cdd8e8; font-weight: 700; letter-spacing: .5px; }
   .table-scroll { overflow-y: hidden; flex: 1; min-height: 0; }  /* ★ 2026-09-04: 去滚轮 — 行高由 fitMainTable 均分填满, 永不溢出 */
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
@@ -508,31 +545,33 @@
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
   td.bar-cell { padding: 3px 10px; min-width: 230px; }
-  .hbar { position: relative; height: 6px; background: #27272a; border-radius: 3px; overflow: hidden; }
+  /* ★ 2026-09-27 恢复粗壮目视化胶囊条 (车间大屏远距离可读; 高亮科技蓝发光渐变, 缺口改暗红灰底轨去大红斜纹) */
+  .hbar { position: relative; height: 18px; background: rgba(120,140,170,.22); border-radius: 9px; overflow: hidden; }
   .hbar .act {
     position: absolute; left: 0; top: 0; height: 100%;
-    /* 诊断: 去高光胶囊去渐变光 — 平铺低饱和科技蓝 (微弱线性渐变提质感, 无内高光) */
-    background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%);
-    border-radius: 3px; min-width: 3px;
+    background: linear-gradient(90deg, #2f6be0 0%, #3b82f6 55%, #66a9ff 100%);
+    border-radius: 9px; min-width: 3px;
+    box-shadow: 0 0 10px rgba(59,130,246,.45), inset 0 1px 0 rgba(255,255,255,.28);
   }
-  /* 未达成缺口: 极暗灰底, 不抢眼 (诊断: 去除斜纹/红色高对比; 红仅用于严重落后数字/尾点) */
+  /* 未达成缺口: 暗红灰底(不刺眼, 但可见), 红只用于严重落后数字 — 去引起廉价感的大红斜纹 */
   .hbar .gap {
     position: absolute; left: 0; top: 0; height: 100%;
-    background: #2a2a2d;
-    border-radius: 3px;
+    background: rgba(239,68,68,.34);
+    border-radius: 9px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.35);
   }
-  /* 超额达成(act>plan): 蓝条满格, 右侧极淡绿提示 (降低过饱和) */
+  /* 超额达成(act>plan): 蓝条满格, 右侧极淡绿提示 */
   .hbar .act.over { width: 100% !important; }
   .hbar .over-glow {
     position: absolute; right: 0; top: 0; bottom: 0; z-index: 2;
-    background: linear-gradient(90deg, transparent, rgba(16,185,129,.35) 100%);
-    border-radius: 0 3px 3px 0; opacity: .8;
+    background: linear-gradient(90deg, transparent, rgba(43,214,140,.5) 100%);
+    border-radius: 0 9px 9px 0; opacity: .85;
   }
-  .hbar .p100 { position: absolute; right: 0; top: -3px; height: 12px; border-right: 1px dashed rgba(139,148,158,.4); }
-  .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
+  .hbar .p100 { position: absolute; right: 0; top: -4px; height: 26px; border-right: 1px dashed rgba(200,214,230,.5); }
+  .hbar-leg { font-size: 10px; color: var(--gray); margin-top: 2px; display: flex; gap: 12px; }
   .hbar-leg i { font-style: normal; }
-  .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
-  .hbar-leg .g::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: #3a3a3d; margin-right: 3px; vertical-align: -1px; }
+  .hbar-leg .a::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--blue); margin-right: 4px; vertical-align: -1px; }
+  .hbar-leg .g::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: rgba(239,68,68,.5); margin-right: 4px; vertical-align: -1px; }
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
@@ -547,9 +586,9 @@
        Plan 计划目标: 统一冷灰蓝 = 「计划」中性语义, 与实绩明显区分。
        达成率%列沿用 effClass 四档等级色。 */
   .col-act { font-weight: 800; }
-  .col-act.green { color: var(--green); }
-  .col-act.orange { color: var(--orange); }
-  .col-act.red { color: var(--red); }
+  .col-act.green { color: var(--green); text-shadow: 0 0 10px rgba(16,185,129,.3); }
+  .col-act.orange { color: var(--orange); text-shadow: 0 0 10px rgba(245,158,11,.28); }
+  .col-act.red { color: var(--red); text-shadow: 0 0 10px rgba(239,68,68,.32); }
   .col-plan { color: #9fb2c9; font-weight: 700; }
   th.col-act-h, th.col-plan-h { font-weight: 600; }
   th.col-act-h { color: #7ec2ff; }
@@ -2199,8 +2238,43 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.strokeStyle = "rgba(88,166,255,.20)"; ctx.lineWidth = 3;
         ctx.strokeRect(cx - 0.5, yAcc - 0.5, bw + 1, perH + 1);
       }
-      // ★ 2026-09-27 图表降噪 (诊断): 去除柱内堆叠小数字 — 大屏远看趋势, 近看顶部总数;
-      //   数字是白/黄微小堆叠, 密集挤压造成噪声; 每段只保留柱形, 总量写在两柱共同顶部外侧。
+      // ★ 2026-09-27 恢复柱内数据标签 (车间大屏目视化: 远看趋势近看关键数字;
+      //   加 2px 深色描边保证堆叠色浅时文字仍清晰可读)
+      ctx.textAlign = "center";
+      const valTxt = String(Math.round(v));
+      const hNo = s.lab;
+      const fBig = perH >= 26 ? 10.5 : perH >= 20 ? 9.5 : perH >= 15 ? 8.5 : perH >= 11 ? 8 : 7.5;
+      const fSml = Math.max(6.5, fBig - 1);
+      // 描边 + 填色工具: 描边用深色保证浅底色上也可读
+      const L = function (txt, x, y, f, c) {
+        ctx.font = f; ctx.textAlign = "center";
+        ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,.85)"; ctx.lineJoin = "round";
+        ctx.strokeText(txt, x, y);
+        ctx.fillStyle = c; ctx.fillText(txt, x, y);
+      };
+      if (s.base || s.pm) {
+        const lbl = s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am"));
+        if (perH >= 14) {
+          L(lbl, cx + bw / 2, yAcc + perH / 2 - 3, fSml + "px sans-serif", "#9fb2c9");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#e8eef7");
+        } else if (perH >= 8) {
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#e8eef7");
+        }
+      } else if (s.live) {
+        if (perH >= 14 && hNo != null) {
+          L(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1, fSml + "px sans-serif", "#dfe7f2");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, fBig + "px sans-serif", "#e8eef7");
+        } else if (perH >= 8) {
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, fBig + "px sans-serif", "#e8eef7");
+        }
+      } else {
+        if (perH >= 16 && hNo != null) {
+          L(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1, fSml + "px sans-serif", "#dfe7f2");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
+        } else if (perH >= 9) {
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
+        }
+      }
     });
   if (totalH > 0) {
     // 计划与实际总数必须在同一条基准线上，统一放在两根柱的共同顶部外侧。
@@ -2208,8 +2282,10 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
     let actualPix = 0, planPix = 0;
     segs.forEach(x => { actualPix += Math.max(0, (x.actual || 0) / maxV * ch); planPix += Math.max(0, (x.plan || 0) / maxV * ch); });
     const pairTopY = padT + ch - Math.max(actualPix, planPix);
-    ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(fmt(total), cx + bw / 2, pairTopY - 14);
+    ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center";
+    ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0,0,0,.9)"; ctx.lineJoin = "round";
+    ctx.strokeText(fmt(total), cx + bw / 2, pairTopY - 14);
+    ctx.fillStyle = color; ctx.fillText(fmt(total), cx + bw / 2, pairTopY - 14);
   }
   }
 }
