@@ -42,13 +42,16 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #03060b;
+    /* ★ 2026-09-28 背景深度与 mesh: 整体压深到最底层(比模块更暗), 多层错落径向光斑模拟
+       不规则絮状模糊渐变 — 明暗交替制造纵深, 高级感; 背景视觉最深, 模块浮于其上 */
+    background: #020409;
     background-image:
-      radial-gradient(110% 90% at 12% 4%, rgba(34,62,108,.28), transparent 55%),
-      radial-gradient(120% 100% at 88% 6%, rgba(16,46,84,.30), transparent 58%),
-      radial-gradient(90% 70% at 40% 88%, rgba(20,52,92,.28), transparent 62%),
-      radial-gradient(150% 120% at 50% 118%, rgba(7,22,44,.72), transparent 64%),
-      linear-gradient(180deg, #040710 0%, #050a16 45%, #060b1a 100%);
+      radial-gradient(130% 100% at 8% 0%, rgba(30,66,118,.42), transparent 52%),
+      radial-gradient(70% 80% at 78% 8%, rgba(14,44,84,.50), transparent 60%),
+      radial-gradient(110% 90% at 60% 40%, rgba(8,26,54,.34), transparent 55%),
+      radial-gradient(80% 70% at 18% 82%, rgba(12,40,76,.40), transparent 60%),
+      radial-gradient(140% 110% at 92% 88%, rgba(6,18,42,.66), transparent 58%),
+      linear-gradient(180deg, #03050c 0%, #040811 45%, #050b18 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -61,27 +64,27 @@
   }
   #bg-aurora::before, #bg-aurora::after {
     content: ""; position: absolute; border-radius: 50%;
-    filter: blur(120px); opacity: .30; will-change: transform;
+    filter: blur(130px); opacity: .32; will-change: transform;
   }
   #bg-aurora::before {
-    width: 55vw; height: 55vw; left: -10vw; top: -18vh;
-    background: radial-gradient(circle, rgba(36,86,168,.22), transparent 68%);
+    width: 58vw; height: 58vw; left: -12vw; top: -16vh;
+    background: radial-gradient(circle, rgba(46,110,200,.26), transparent 66%);
     animation: aurora-a 90s ease-in-out infinite alternate;
   }
   #bg-aurora::after {
-    width: 48vw; height: 48vw; right: -14vw; bottom: -16vh;
-    background: radial-gradient(circle, rgba(28,116,178,.16), transparent 68%);
+    width: 50vw; height: 50vw; right: -16vw; bottom: -18vh;
+    background: radial-gradient(circle, rgba(34,140,208,.20), transparent 66%);
     animation: aurora-b 100s ease-in-out infinite alternate;
   }
   @keyframes aurora-a {
-    0%   { transform: translate(0,0) scale(1);   opacity: .22; }
-    50%  { transform: translate(5vw,3vh) scale(1.14); opacity: .32; }
-    100% { transform: translate(-3vw,5vh) scale(1.06); opacity: .26; }
+    0%   { transform: translate(0,0) scale(1);   opacity: .24; }
+    50%  { transform: translate(5vw,3vh) scale(1.16); opacity: .34; }
+    100% { transform: translate(-3vw,5vh) scale(1.06); opacity: .28; }
   }
   @keyframes aurora-b {
-    0%   { transform: translate(0,0) scale(1.08); opacity: .18; }
-    50%  { transform: translate(-5vw,-4vh) scale(.96); opacity: .28; }
-    100% { transform: translate(4vw,2vh) scale(1.06); opacity: .22; }
+    0%   { transform: translate(0,0) scale(1.1); opacity: .20; }
+    50%  { transform: translate(-5vw,-4vh) scale(.94); opacity: .30; }
+    100% { transform: translate(4vw,2vh) scale(1.06); opacity: .24; }
   }
   #scale-stage, #pages-wrap, #extra-modules { position: relative; z-index: 1; }
   /* ★ 2026-09-27 页面整体淡入 */
@@ -2317,21 +2320,18 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       }
     });
   if (totalH > 0) {
-    // 计划与实际总数必须在同一条基准线上，统一放在两根柱的共同顶部外侧。
-    // 这样标签表达的是一组对比，而不是把实际总产出误读成柱内分段数据。
-    let actualPix = 0, planPix = 0;
-    segs.forEach(x => { actualPix += Math.max(0, (x.actual || 0) / maxV * ch); planPix += Math.max(0, (x.plan || 0) / maxV * ch); });
-    const pairTopY = padT + ch - Math.max(actualPix, planPix);
-    // ⭐ 2026-09-28 顶部总和标签自适应: 柱子上方留出空间才放顶部; 若柱子满高把位置顶到
-    //   绘图区上缘以上(会钻出画布/压图例/穿模), 则自动把标签平移到柱子顶内侧下沿,
-    //   保证标签永远落在绘图区内、不与柱边界和相邻标签相撞。
-    const minLabelY = padT + 6;
-    let totalLabelY = pairTopY - 14;
-    if (totalLabelY < minLabelY) totalLabelY = pairTopY + 13; // 上方放不下 → 改到柱顶内沿下方
-    if (totalLabelY > padT + ch - 4) totalLabelY = padT + ch - 4; // 兜底: 不越过绘图区下缘
+    // ⭐ 2026-09-28 顶部总和标签 V2: 绑到柱子「真实可视化顶部」topY(=padT+ch-skelPix,
+    //   柱体骨架累计同源), 永远画在柱顶正上方固定间距, 跟随柱子动态成长
+    //   (数据更新→柱顶变化→标签同步上移/下移)。不再用 old 的 pairTopY(sum of 实际/计划 pix)
+    //   那种与柱体顶不一致的基准 — 那会把标签算进柱体内造成重叠。
+    //   柱顶之上若超出绘图区上缘(padT), 则落在 padT 上方的空白留白区(画布顶 legend 之下),
+    //   仍不触柱体; 唯一硬钳制是文字不越过画布顶端(留 3px)。
     ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
-    ctx.shadowColor = "rgba(0,0,0,.6)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
-    ctx.fillStyle = color; ctx.fillText(fmt(total), cx + bw / 2, totalLabelY);
+    let lblY = topY - 9;                       // 柱顶正上方 9px
+    if (lblY - 11 < 3) lblY = 3 + 11;          // 大多数超出柱顶时仍保证文字头部在画布内
+    if (lblY > padT + ch - 4) lblY = padT + ch - 4; // 兜底: 不越过绘图区下缘
+    ctx.shadowColor = "rgba(0,0,0,.7)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.fillStyle = color; ctx.fillText(fmt(total), cx + bw / 2, lblY);
     ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
   }
   }
@@ -2442,11 +2442,10 @@ function drawBar(main) {
       const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
       drawRoundedBar(ctx, cx + 1.5, padT + ch - pH, bw, pH, "#e4b44b", "#b87912");
       ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-      const pairTop = padT + ch - Math.max(aH, pH);
-      // ⭐ 2026-09-28 顶部总和标签自适应(同 drawStacked): 柱顶上方空间不足则落到柱顶内沿下方, 不穿模
-      const tMin = padT + 5;
-      let tLy = pairTop - 13;
-      if (tLy < tMin) tLy = pairTop + 12;
+      const pairTop = padT + ch - Math.max(aH, pH);   // 两短柱共同最高顶(真实柱顶)
+      // ⭐ 2026-09-28 顶部总和标签 V2 (非分段): 绑真实柱顶, 始终放柱顶正上方, 不钻柱体
+      let tLy = pairTop - 8;
+      if (tLy - 10 < 3) tLy = 3 + 10;
       if (tLy > padT + ch - 4) tLy = padT + ch - 4;
       if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, tLy);
       ctx.fillStyle = "#d29922";
