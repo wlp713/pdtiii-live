@@ -44,7 +44,7 @@
   body {
     /* ★ 2026-09-28 背景 V4: 近黑高级底 + 深蓝紫细腻光斑, 苹果感雾面玻璃。
        更暗(接近纯黑), 光斑 收窄 [比 V3 更集中/更亮], 制造更明显的明暗对比;
-       动态由 #bg-particles 尘埃粒子 + #bg-aurora 慢速光晕承担。 */
+       动态由 #bg-flow 流动渐变光斑 + #bg-aurora 慢速光晕承担。 */
     background: #000001;
     background-image:
       radial-gradient(90% 75% at 14% -2%, rgba(34,62,120,.40), transparent 48%),
@@ -98,8 +98,8 @@
     50%  { transform: translate(-5vw,-4vh) scale(.94); opacity: .30; }
     100% { transform: translate(4vw,2vh) scale(1.06); opacity: .24; }
   }
-  /* ★ 2026-09-28 粒子层: 固定全屏, 置于数据层(z-index:1)之下、背景之上 */
-  #bg-particles {
+  /* ★ 2026-09-28 流动渐变层: 固定全屏, 置于数据层(z-index:1)之下、背景之上 */
+  #bg-flow {
     position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block;
   }
   #scale-stage, #pages-wrap, #extra-modules { position: relative; z-index: 1; }
@@ -734,8 +734,8 @@
 <body>
 <!-- ★ 2026-09-27 极光光效背景层: 置于最底, 数据层之上有 z-index:1 -->
 <div id="bg-aurora"><i></i></div>
-<!-- ★ 2026-09-28 漂浮微光尘埃粒子层: 零依赖 canvas 高级粒子动效(细碎/慢速/景深/微光), 数据层之下 -->
-<canvas id="bg-particles" aria-hidden="true"></canvas>
+<!-- ★ 2026-09-28 流动渐变光斑层: 多层柔和光斑缓慢流动形成“活渐变”, 数据层之下 -->
+<canvas id="bg-flow" aria-hidden="true"></canvas>
 <!-- ★ 画布缩放层 (2026-08-20): 日常模式=原看板等比缩放, 作战模式=新增模块后整体按比例缩小 -->
 <div id="scale-stage">
 <div id="pages-wrap">
@@ -4349,26 +4349,25 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 
-<!-- ★ 2026-09-28 高级尘埃粒子背景 (纯 canvas 零依赖): 细碎微光、慢速漂浮、景深明暗、随机闪烁 —
-     现代官网(苹果/微软/vite)同款高级设计感。避开 10 年代感(连线网格/霓虹点阵)。
-     参数: 粒子少而细(约 55-90 粒)、两层景深(近亮大/远暗小)、慢速慵趣漂移、不回弹不连线。 -->
+<!-- ★ 2026-09-28 流动渐变背景 (纯 canvas 零依赖): 多层柔和光斑缓慢漂移纠缠, 形成“光在深底上
+     缓缓流动”的活渐变 — 工厂生产看板适用的克制/专业/科技感动态背景, 拒绝下雪式粒子。
+     多层大渐变运用叠加 → 视觉上是整体渐变在流动(不是噪点/不是网格/不是固定图)。 -->
 <script>
 (function () {
-  function initParticles() {
-    var cv = document.getElementById('bg-particles');
+  function initFlow() {
+    var cv = document.getElementById('bg-flow');
     if (!cv) return;
-    if (!window.matchMedia || !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // 正常: 启动动画
-      startParticles(cv);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      startFlow(cv, true);   // 减弱动态: 画一帧静态渐变
     } else {
-      // 减弱动态: 只画一帧静态尘埃
-      startParticles(cv, true);
+      startFlow(cv, false);  // 正常: 流动动画
     }
   }
-  function startParticles(cv, staticOnce) {
+  function startFlow(cv, staticOnce) {
     var ctx = cv.getContext('2d');
     if (!ctx) return;
-    var W, H, DPR, parts = [];
+    var W, H, DPR, blobs = [];
+    var HUES = [210, 222, 232, 200, 188];   // 深邃蓝-钢青, 冷静工厂感
     function resize() {
       DPR = Math.min(2, window.devicePixelRatio || 1);
       W = window.innerWidth; H = window.innerHeight;
@@ -4378,59 +4377,50 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
       build();
     }
     function build() {
-      var area = W * H;
-      var count = Math.round(Math.min(95, Math.max(42, area / 42000))); // 自适应: 大屏约 70-90 粒, 克制
-      parts = [];
-      for (var i = 0; i < count; i++) {
-        var layer = Math.random() < 0.5 ? 0 : 1;         // 0=远层(暗/小/慢) 1=近层(亮/大/微快)
-        var deep = layer === 0;
-        parts.push({
+      blobs = [];
+      // 5-7 个大面积柔和光斑, 半径约为屏幕的 0.5-1.0 倍 → 互相叠加成整体流动渐变
+      var n = 6;
+      for (var i = 0; i < n; i++) {
+        blobs.push({
           x: Math.random() * W, y: Math.random() * H,
-          r: deep ? (0.4 + Math.random() * 0.9) : (1.0 + Math.random() * 1.9),
-          spdX: (Math.random() - 0.5) * (deep ? 0.10 : 0.22),
-          spdY: (deep ? 0.03 : 0.07) + Math.random() * 0.08,
-          a: deep ? (0.10 + Math.random() * 0.16) : (0.22 + Math.random() * 0.30),
-          tw: Math.random() * 6.28, twSpd: 0.015 + Math.random() * 0.03,
-          hue: Math.random() < 0.8 ? '210' : (Math.random() < 0.5 ? '232' : '188')
+          r: Math.max(W, H) * (0.42 + Math.random() * 0.55),
+          vx: (Math.random() - 0.5) * 0.30,
+          vy: (Math.random() - 0.5) * 0.22,
+          a: 0.06 + Math.random() * 0.09,          // 低总体 alpha → 克制不刺眼
+          hue: HUES[Math.floor(Math.random() * HUES.length)],
+          ph: Math.random() * 6.28, phSpd: 0.003 + Math.random() * 0.005
         });
       }
     }
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
       var t = now / 1000;
-      for (var i = 0; i < parts.length; i++) {
-        var p = parts[i];
-        p.x += p.spdX; p.y += p.spdY;
-        p.tw += p.twSpd;                            // 相位持续增长 → 亮度持续呼吸闪烁
-        if (p.x < -12) p.x = W + 12; if (p.x > W + 12) p.x = -12;
-        if (p.y < -12) p.y = H + 12; if (p.y > H + 12) p.y = -12;
-        var glow = 0.55 + 0.45 * Math.sin(p.tw);          // 随机呼吸明暗
-        var alpha = p.a * (0.45 + 0.55 * glow);
-        // 高亮核: 中心更亮 (径向微光, 不减廉价光晕的饱满感)
-        ctx.fillStyle = 'hsla(' + p.hue + ',90%,78%,' + alpha + ')';
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, 6.2832);
-        ctx.fill();
-        // 柔和光晕: 大半径低 alpha 径向渐变 (景深感/高级微光, 不刺眼)
-        if (p.r > 1.1) {
-          var gr = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4.2);
-          gr.addColorStop(0, 'hsla(' + p.hue + ',85%,75%,' + (alpha * 0.28) + ')');
-          gr.addColorStop(1, 'hsla(' + p.hue + ',85%,75%,0)');
-          ctx.fillStyle = gr;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.r * 4.2, 0, 6.2832);
-          ctx.fill();
-        }
+      // 先铺极淡基底, 让光斑融进深色底而不是浮在表面
+      ctx.fillStyle = 'rgba(0,0,0,0)'; ctx.fillRect(0, 0, W, H);
+      for (var i = 0; i < blobs.length; i++) {
+        var b = blobs[i];
+        b.ph += b.phSpd;
+        // 缓慢漂移 + 轻微正弦扰动(流动感), 到达边缘回绕
+        b.x += b.vx + Math.sin(t * 0.2 + b.ph) * 0.1;
+        b.y += b.vy + Math.cos(t * 0.16 + b.ph) * 0.08;
+        if (b.x < -b.r) b.x = W + b.r; if (b.x > W + b.r) b.x = -b.r;
+        if (b.y < -b.r) b.y = H + b.r; if (b.y > H + b.r) b.y = -b.r;
+        // 径向渐变光斑(中心淡→边缘透明), 大半径相互融合 = 流动渐变
+        var gr = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+        gr.addColorStop(0, 'hsla(' + b.hue + ',70%,' + (52 + b.a * 90) + '%,' + (b.a * (0.5 + 0.3 * Math.sin(b.ph))) + ')');
+        gr.addColorStop(0.55, 'hsla(' + b.hue + ',60%,42%,' + (b.a * 0.5) + ')');
+        gr.addColorStop(1, 'hsla(' + b.hue + ',55%,28%,0)');
+        ctx.fillStyle = gr;
+        ctx.fillRect(0, 0, W, H);
       }
       if (!staticOnce) requestAnimationFrame(frame);
-      else void t;
     }
     window.addEventListener('resize', function () { resize(); });
     resize();
     requestAnimationFrame(frame);
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initParticles);
-  else initParticles();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFlow);
+  else initFlow();
 })();
 </script>
 </body>
