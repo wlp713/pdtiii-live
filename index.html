@@ -42,17 +42,16 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    /* ★ 2026-09-28 背景 V5: 背景永远比模块深(铁律)。底色压到近纯黑, radial 光斑</
-       RGB 通道全部低于模块渐变的 rgba(13,20,36) — 否则背景会比模块亮。动态流动</
-       由 #bg-flow 的光束带承担(带之外保持深色, 整体仍深于模块)。 */
+    /* ★ 2026-09-28 背景 V6: 加深 + 降饱和。用户要求整体更暗、饱和度更低。
+       底色近纯黑, radial 光斑 RGB 进一步压暗(更低饱和的灰蓝, 接近夜色), 仍远深于模块。 */
     background: #000;
     background-image:
-      radial-gradient(90% 75% at 14% -2%, rgba(16,26,52,.36), transparent 48%),
-      radial-gradient(60% 70% at 92% 4%, rgba(10,20,48,.42), transparent 50%),
-      radial-gradient(70% 60% at 30% 78%, rgba(8,18,44,.36), transparent 55%),
-      radial-gradient(55% 55% at 85% 72%, rgba(7,16,40,.40), transparent 55%),
-      radial-gradient(120% 100% at 50% 115%, rgba(4,10,26,.60), transparent 60%),
-      linear-gradient(180deg, #000 0%, #010103 45%, #02040a 100%);
+      radial-gradient(90% 75% at 14% -2%, rgba(14,20,38,.32), transparent 48%),
+      radial-gradient(60% 70% at 92% 4%, rgba(9,15,34,.38), transparent 50%),
+      radial-gradient(70% 60% at 30% 78%, rgba(7,13,30,.33), transparent 55%),
+      radial-gradient(55% 55% at 85% 72%, rgba(6,11,28,.36), transparent 55%),
+      radial-gradient(120% 100% at 50% 115%, rgba(4,8,20,.50), transparent 60%),
+      linear-gradient(180deg, #000 0%, #010102 45%, #020308 100%);
     background-attachment: fixed;
     color: var(--white);
     font-family: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
@@ -4385,9 +4384,9 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
           stretch: 2.2 + Math.random() * 2.0, // 横向拉伸比(椭圆)
           r: Math.max(W, H) * (0.16 + Math.random() * 0.10), // 基础半径
           x: Math.random() * W,
-          speed: (0.6 + Math.random() * 0.7), // 横向扫描速度(px/帧)
+          speed: (0.30 + Math.random() * 0.35), // 横向扫描速度(px/帧) — 用户要求放缓一倍(原 0.6-1.3 → 0.3-0.65)
           dir: Math.random() < 0.5 ? 1 : -1,
-          a: 0.16 + Math.random() * 0.10,      // 带亮度(hsla alpha)
+          a: 0.14 + Math.random() * 0.08,      // 带亮度(hsla alpha) — 略降适配降饱和
           hue: HUES[Math.floor(Math.random() * HUES.length)]
         });
       }
@@ -4405,9 +4404,9 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
         ctx.translate(b.x, b.y * H);
         ctx.scale(b.stretch, 1);
         var g = ctx.createRadialGradient(0, 0, 0, 0, 0, b.r);
-        g.addColorStop(0, 'hsla(' + b.hue + ',88%,' + (62 + Math.sin(t * 0.4 + i) * 8) + '%,' + b.a + ')');
-        g.addColorStop(0.6, 'hsla(' + b.hue + ',75%,48%,' + (b.a * 0.45) + ')');
-        g.addColorStop(1, 'hsla(' + b.hue + ',70%,40%,0)');
+        g.addColorStop(0, 'hsla(' + b.hue + ',62%,' + (62 + Math.sin(t * 0.4 + i) * 8) + '%,' + b.a + ')');
+        g.addColorStop(0.6, 'hsla(' + b.hue + ',55%,48%,' + (b.a * 0.45) + ')');
+        g.addColorStop(1, 'hsla(' + b.hue + ',50%,40%,0)');
         ctx.fillStyle = g;
         ctx.fillRect(-b.r * 1.4, -b.r * 1.4, b.r * 2.8, b.r * 2.8);
         ctx.restore();
