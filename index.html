@@ -229,9 +229,13 @@
   .ex-btn:hover { background: rgba(88,166,255,.15); }
   .ex-btn:focus-visible, .trend-line-pick:focus-visible, .ex-collapse:focus-visible { outline: 2px solid rgba(88,166,255,.75); outline-offset: 2px; }
   .ex-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    /* ★ 2026-09-28 统一面板风: 与主面板(.panel/.kpi)同款玻璃渐变, 且比大背景更深一档, 边框淡化 */
+    background: linear-gradient(180deg, rgba(13,20,36,.62) 0%, rgba(8,13,26,.84) 55%, rgba(6,10,20,.93) 100%);
+    border: 1px solid rgba(90,180,255,.13); border-radius: 10px;
     padding: 6px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    backdrop-filter: blur(10px) saturate(120%);
   }
+  .ex-card:hover { border-color: rgba(120,200,255,.22); }
   #pages-wrap .chart-box { border-radius: 10px; }
   #pages-wrap #chartBar { filter: drop-shadow(0 3px 5px rgba(0,0,0,.16)); }
   .ex-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
@@ -408,20 +412,20 @@
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
   .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
   .kpi {
-    background: linear-gradient(180deg, rgba(30,44,70,.55) 0%, rgba(16,24,42,.78) 55%, rgba(10,16,30,.9) 100%);
-    border: 1px solid rgba(90,180,255,.28);
+    /* ★ 2026-09-28 模块颜色不可比大背景浅: 整体压深到深海底一档, 半透明渐变保留玻璃感, 边框淡化 */
+    background: linear-gradient(180deg, rgba(13,20,36,.62) 0%, rgba(8,13,26,.84) 55%, rgba(6,10,20,.93) 100%);
+    border: 1px solid rgba(90,180,255,.14);
     border-radius: 10px; padding: 4px 12px;
-    /* 工业科技风: 毛玻璃 + 青色微光边 (克制发光, 数字对比度优先) */
-    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
-    backdrop-filter: blur(14px) saturate(130%);
-    -webkit-backdrop-filter: blur(14px) saturate(130%);
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(14px) saturate(125%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
     min-width: 0; display: flex; flex-direction: column; justify-content: center;
     position: relative;
     transition: border-color .18s, background-color .18s;
   }
   .kpi:hover {
-    border-color: rgba(120,200,255,.5);
-    background: linear-gradient(180deg, rgba(36,52,82,.6) 0%, rgba(20,30,50,.82) 55%, rgba(12,18,34,.92) 100%);
+    border-color: rgba(120,200,255,.3);
+    background: linear-gradient(180deg, rgba(17,26,44,.66) 0%, rgba(10,16,30,.86) 55%, rgba(7,12,22,.94) 100%);
   }
   .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0; }
   .kpi .label { font-size: 12.5px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
@@ -436,20 +440,20 @@
     flex: 1; min-height: 0;
   }
   .panel {
-    background: linear-gradient(180deg, rgba(26,38,60,.6) 0%, rgba(14,22,38,.82) 55%, rgba(9,15,28,.92) 100%);
-    border: 1px solid rgba(90,180,255,.24);
+    /* ★ 2026-09-28 模块颜色不可比大背景浅: 整体压深到深海底一档, 半透明渐变保留玻璃感, 边框淡化 */
+    background: linear-gradient(180deg, rgba(13,20,36,.62) 0%, rgba(8,13,26,.84) 55%, rgba(6,10,20,.93) 100%);
+    border: 1px solid rgba(90,180,255,.12);
     border-radius: 10px; padding: 8px 12px;
-    /* 工业科技风: 毛玻璃 + 青色微光边 (克制发光, 数字对比度优先) */
-    box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.05);
-    backdrop-filter: blur(12px) saturate(125%);
-    -webkit-backdrop-filter: blur(12px) saturate(125%);
+    box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
     display: flex; flex-direction: column; min-height: 0; min-width: 0;
     position: relative;
     transition: border-color .18s, background-color .18s;
   }
   .panel:hover {
-    border-color: rgba(120,200,255,.4);
-    background: linear-gradient(180deg, rgba(32,46,72,.64) 0%, rgba(17,26,44,.84) 55%, rgba(11,17,32,.92) 100%);
+    border-color: rgba(120,200,255,.3);
+    background: linear-gradient(180deg, rgba(17,26,44,.66) 0%, rgba(10,16,30,.86) 55%, rgba(7,12,22,.94) 100%);
   }
   .panel-head {
     display: flex; justify-content: space-between; align-items: center;
@@ -696,8 +700,8 @@
   .kpi .value, #mainTable td, .mod-table td, .ex-table td { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-weight: 800; }
   /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 背景提半阶, 不投影不发光 */
   .kpi, .panel { transition: border-color .15s, background-color .15s; }
-  .kpi:hover { border-color: var(--border-strong); background-color: var(--panel2); box-shadow: none; }
-  .panel:hover { border-color: var(--border-strong); background-color: var(--panel2); box-shadow: none; }
+  .kpi:hover { border-color: rgba(120,200,255,.3); background-color: transparent; box-shadow: inherit; }
+  .panel:hover { border-color: rgba(120,200,255,.3); background-color: transparent; box-shadow: inherit; }
   body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 0 1px rgba(59,130,246,.3); }
 
   /* ④ 主表行 hover 微反馈: 纯黑底原本 hover 看不见, 加轻微蓝底提亮 + 平滑过渡(不影响 miss/stalled 专属配色) */
@@ -2318,9 +2322,16 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
     let actualPix = 0, planPix = 0;
     segs.forEach(x => { actualPix += Math.max(0, (x.actual || 0) / maxV * ch); planPix += Math.max(0, (x.plan || 0) / maxV * ch); });
     const pairTopY = padT + ch - Math.max(actualPix, planPix);
+    // ⭐ 2026-09-28 顶部总和标签自适应: 柱子上方留出空间才放顶部; 若柱子满高把位置顶到
+    //   绘图区上缘以上(会钻出画布/压图例/穿模), 则自动把标签平移到柱子顶内侧下沿,
+    //   保证标签永远落在绘图区内、不与柱边界和相邻标签相撞。
+    const minLabelY = padT + 6;
+    let totalLabelY = pairTopY - 14;
+    if (totalLabelY < minLabelY) totalLabelY = pairTopY + 13; // 上方放不下 → 改到柱顶内沿下方
+    if (totalLabelY > padT + ch - 4) totalLabelY = padT + ch - 4; // 兜底: 不越过绘图区下缘
     ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
     ctx.shadowColor = "rgba(0,0,0,.6)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
-    ctx.fillStyle = color; ctx.fillText(fmt(total), cx + bw / 2, pairTopY - 14);
+    ctx.fillStyle = color; ctx.fillText(fmt(total), cx + bw / 2, totalLabelY);
     ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
   }
   }
@@ -2432,9 +2443,14 @@ function drawBar(main) {
       drawRoundedBar(ctx, cx + 1.5, padT + ch - pH, bw, pH, "#e4b44b", "#b87912");
       ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
       const pairTop = padT + ch - Math.max(aH, pH);
-      if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, pairTop - 14);
+      // ⭐ 2026-09-28 顶部总和标签自适应(同 drawStacked): 柱顶上方空间不足则落到柱顶内沿下方, 不穿模
+      const tMin = padT + 5;
+      let tLy = pairTop - 13;
+      if (tLy < tMin) tLy = pairTop + 12;
+      if (tLy > padT + ch - 4) tLy = padT + ch - 4;
+      if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, tLy);
       ctx.fillStyle = "#d29922";
-      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, pairTop - 14);
+      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, tLy);
     }
     // ★ 2026-09-04: 线体名加粗提亮 (与主表加粗风格一致)
     // ★ 2026-09-04 12:31: 名称自适应 — PRO4 多线体时槽宽窄, 固定 11px 会重叠/挤出。
