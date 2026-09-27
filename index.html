@@ -4348,9 +4348,9 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 
-<!-- ★ 2026-09-28 流动渐变背景 (纯 canvas): 几条较亮的斜向光带在近黑深底上缓慢横向扫动 →
-     流动感一眼可见(光在流淌), 而带之间的区域保持近黑 → 背景整体永远深于模块。
-     工厂看板用: 如深海/极光般缓慢涌动, 克制专业、拒绝下雪粒子。 -->
+<!-- ★ 2026-09-28 背景动效 (纯 canvas): 深海极光式光场 — 多个柔光大光斑围绕各自锚点做多频
+     正弦呼吸漂移, 彼此浸染成一片缓缓涌动的液态光场。无生硬线性位移 → 与模块的
+     backdrop-filter blur 自然融合(模块背后真有光流动的雾面层次)。带外近黑 → 背景深于模块。 -->
 <script>
 (function () {
   function initFlow() {
@@ -4377,16 +4377,20 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     }
     function build() {
       bands = [];
-      // 3 条斜向光带(横向拉伸的椭圆光斑), 宽度约屏幕 0.5-0.8 倍, 缓慢横向扫描 → 光在流动
-      for (var i = 0; i < 3; i++) {
+      // ★ 2026-09-28 V8: 深海极光光场 — 多个大柔光斑各自围绕锚点做多频正弦呼吸漂移,
+      //   彼此浸染成一片缓慢涌动的光场。无生硬线性位移 → 配合模块 backdrop blur 呈现
+      //   “光在模块背后流动”的自然雾面层次。带外保持近黑 → 背景仍深于模块。很低频很慢。
+      for (var i = 0; i < 7; i++) {
         bands.push({
-          y: 0.15 + Math.random() * 0.6,   // 带中心纵向位置错开
-          stretch: 2.2 + Math.random() * 2.0, // 横向拉伸比(椭圆)
-          r: Math.max(W, H) * (0.16 + Math.random() * 0.10), // 基础半径
-          x: Math.random() * W,
-          speed: (0.12 + Math.random() * 0.18), // 横向扫描速度(px/帧) — 用户要求再三放慢(原 0.3-0.65 → 0.12-0.3, 近乎舒缓漂动)
-          dir: Math.random() < 0.5 ? 1 : -1,
-          a: 0.14 + Math.random() * 0.08,      // 带亮度(hsla alpha) — 略降适配降饱和
+          ax: Math.random() * W,                  // 锚点(漂移中心)
+          ay: H * (0.10 + Math.random() * 0.8),
+          r: Math.max(W, H) * (0.22 + Math.random() * 0.22), // 大光斑半径
+          stretch: 0.7 + Math.random() * 1.4,     // 轻微椭圆化
+          // 两个不同频率的正弦漂移 → 有机涌动(慢)
+          f1: 0.05 + Math.random() * 0.05,  amp1x: 18 + Math.random() * 30, amp1y: 10 + Math.random() * 18,
+          f2: 0.11 + Math.random() * 0.09,  amp2x: 6 + Math.random() * 10,  amp2y: 5 + Math.random() * 9,
+          p1: Math.random() * 6.28, p2: Math.random() * 6.28,   // 相位错开
+          a: 0.06 + Math.random() * 0.07,         // 低 alpha → 浸染不刺眼
           hue: HUES[Math.floor(Math.random() * HUES.length)]
         });
       }
@@ -4394,19 +4398,20 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     function frame(now) {
       ctx.clearRect(0, 0, W, H);
       var t = now / 1000;
-      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalCompositeOperation = 'lighter';   // 光斑叠加更亮 → 浸染融合的液态光场
       for (var i = 0; i < bands.length; i++) {
         var b = bands[i];
-        b.x += b.speed * b.dir;
-        if (b.x > W + b.r * 3) b.x = -b.r * 3; if (b.x < -b.r * 3) b.x = W + b.r * 3;
-        // 椭圆光带: scale 使光斑横向拉伸成长条, 纵向保持圆形淡出
+        // 围绕锚点的双频正弦漂移 → 有机涌动(位置不累加, 无生硬滑走)
+        var x = b.ax + Math.sin(t * b.f1 + b.p1) * b.amp1x + Math.sin(t * b.f2 + b.p2) * b.amp2x;
+        var y = b.ay + Math.cos(t * b.f1 * 0.8 + b.p1) * b.amp1y + Math.sin(t * b.f2 * 0.9 + b.p2) * b.amp2y;
         ctx.save();
-        ctx.translate(b.x, b.y * H);
+        ctx.translate(x, y);
         ctx.scale(b.stretch, 1);
         var g = ctx.createRadialGradient(0, 0, 0, 0, 0, b.r);
-        g.addColorStop(0, 'hsla(' + b.hue + ',62%,' + (62 + Math.sin(t * 0.4 + i) * 8) + '%,' + b.a + ')');
-        g.addColorStop(0.6, 'hsla(' + b.hue + ',55%,48%,' + (b.a * 0.45) + ')');
-        g.addColorStop(1, 'hsla(' + b.hue + ',50%,40%,0)');
+        var breath = 0.75 + 0.25 * Math.sin(t * 0.1 + i * 1.7);   // 极慢亮度呼吸
+        g.addColorStop(0, 'hsla(' + b.hue + ',60%,' + (60 + breath * 10) + '%,' + (b.a * breath) + ')');
+        g.addColorStop(0.55, 'hsla(' + b.hue + ',54%,45%,' + (b.a * 0.5 * breath) + ')');
+        g.addColorStop(1, 'hsla(' + b.hue + ',48%,34%,0)');
         ctx.fillStyle = g;
         ctx.fillRect(-b.r * 1.4, -b.r * 1.4, b.r * 2.8, b.r * 2.8);
         ctx.restore();
