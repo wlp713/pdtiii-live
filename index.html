@@ -1957,10 +1957,12 @@ function segsOf(name, curActual, curPlan, curTarget) {
       ? (manual ? manualPlanAtLine(name, sc.shift, nowMins, manualTgt) : (Number(curPlan) || 0))
       : (manual ? manualPlanAtLine(name, sc.shift, t1, manualTgt) : valueAt(name, t1, true, off));
     let actual = a1 - a0, plan = p1 - p0;
-    // ★ 2026-09-27 停产线防假数(回退 valueAt 数据源后补): valueAt 恢复消费 09-11 前半夜桶+白班桶后,
-    //   停产线(curActual===0)晚班可能被遗留桶差分出非零假数(用户原报"小时图有数/列表没数")。
-    //   停产线晚班任意段实际/目标一律归0(不画假柱); 白班另有 isDayQry 桶匹配不受影响。
-    if (isNight && !(Number(curActual) > 0)) { actual = 0; plan = 0; }
+    // ★ 2026-09-27 停产线防假数(回退 valueAt 数据源后): valueAt 恢复消费 09-11 前半夜桶+白班桶后,
+    //   停产线(curActual===0)晚班实际可能被遗留桶差分出非零假数(用户原报"小时图有数/列表没数")。
+    //   处理: 只把「实际」归0(停产线本就无产出, 不画假实际柱), 但「目标」保留照常画出
+    //   (数据端的 plan 桶不含停产线每天的目标曲线, 应正常显示目标柱)。白班另有 isDayQry 桶匹配不受影响。
+    if (isNight && !(Number(curActual) > 0)) { actual = 0; }
+    // ★ 2026-09-14 修复: live(进行中)段负差
     // ★ 2026-09-14 修复: live(进行中)段负差 = lines 实时值与 hourly 定格桶计划/实际不同步
     //   旧逻辑兜底成 a1/p1(巨大值)把柱子撑爆/压扁。改为负差归 0(不撑爆)。
     const _liveSeg = t1 > cmpMins;
