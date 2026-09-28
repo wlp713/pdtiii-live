@@ -1807,12 +1807,14 @@ function checkStalls() {
     const m = stallMinutesOf(l);
     if (m < NOTIFY_MIN || m > MAX_NOTIFY_MIN) return;
     const last = notified[key] || 0;
-    if (nowTs - last > 10 * 60 * 1000) {
+    if (nowTs - last > 20 * 60 * 1000) {  // ★ 2026-09-28 每 20 分钟提醒一次
       notified[key] = nowTs;
       changed = true;
       try {
-        new Notification(t("notifTitle") + shortName(l.name), {
-          body: t("notifBody") + new Date().toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour12: false })
+        // ★ 2026-09-28 中泰双语通知体(工厂泰国同事可读): 中文 + 泰文同时呈现
+        const nowStr = new Date().toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour12: false });
+        new Notification("⚠️ 线体停滞 สายหยุด: " + shortName(l.name), {
+          body: "已停滞 " + m + " 分钟 / หยุด " + m + " นาที · " + nowStr + "\nกรุณาตรวจสอบสายการผลิต 请检查产线"
         });
       } catch (e) { /* ignore */ }
     }
