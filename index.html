@@ -537,7 +537,7 @@
   tr.stalled-row.lv1 td { background: rgba(210,153,34,.12); }
   /* ★ 2026-09-28 性能/观感: 闪烁只动背景色(原整行 opacity 触发合成层重绘→大屏卡顿)。仅红色(≥30min)闪烁, 更柔也更流畅 */
   tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
-  tr.stalled-row.lv3 td { background: rgba(248,81,73,.22); animation: stallRowBlink 1.8s infinite; }
+  tr.stalled-row.lv3 td { background: rgba(248,81,73,.22); animation: stallRowBlink 4.5s infinite; }
   tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
   tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
   tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
@@ -555,14 +555,14 @@
   .st.stall .stall-time { margin-left: 4px; }
   .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
   .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
-  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 1s infinite; }
+  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 2.8s infinite; }
   .line-name { font-weight: 700; color: var(--white); white-space: nowrap; text-align: left; }
   .rank { width: 32px; min-width: 32px; text-align: center; color: var(--gray); font-weight: 700; }
   /* ★ 2026-09-28 线体名第一列统一纯白(用户: 更显眼); 双色用于区分_强调,_红只留给数字 */
   .hit-name { color: #ffffff; }
   .miss-name { color: #f2f5f9; }
   /* ⚠️ Breakdown 停线通知: ≥5min 整行红背景呼吸闪烁(只动背景色, 流畅) + 进度条内写时长; 恢复生产自动消失 */
-  tr.breakdown-row td { background: rgba(248,81,73,.24); animation: stallRowBlink 1.8s infinite; }
+  tr.breakdown-row td { background: rgba(248,81,73,.24); animation: stallRowBlink 4.5s infinite; }
   tr.breakdown-row:hover td { background: rgba(248,81,73,.38); }
   tr.breakdown-row td.line-name { color: #ffffff; }
   .hbar .bd-label {
@@ -575,7 +575,7 @@
   .stall-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--red);
     display: inline-block; margin-right: 6px; vertical-align: 1px;
-    animation: blink 1s infinite;
+    animation: blink 2.8s infinite;
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
   td.bar-cell { padding: 3px 10px; min-width: 230px; }
@@ -610,7 +610,7 @@
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
   .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
-  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 1.2s infinite; }
+  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 3s infinite; }
   .eff-ok { color: var(--green); font-weight: 600; }
   .eff-warn { color: var(--orange); font-weight: 600; }
   .eff-bad { color: var(--red); font-weight: 600; }
