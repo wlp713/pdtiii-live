@@ -1186,6 +1186,8 @@ function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
 //   恢复正常生产时 actual 变化 → start 时间戳刷新 → 自动消失。
 //   判定: 非计划停产 + 该线曾产出(actual>0, 防"未开工线"误判) + 停够5分钟阈值
 const BREAKDOWN_MIN = 5;
+// ★ 2026-09-28 通知上限: 停滞超 2 小时视为停产, 不再发停滞弹窗频繁打扰
+const MAX_NOTIFY_MIN = 120;
 // ⭐ 2026-09-28 修复: 服务端已标 STALLED 的线直接计入停线(时长取本地记录或至少按阈值显示, 不依赖本地时间戳),
 //   解决「本地 stallStartMap 无记录 → 永远不触发 → 停线闪烁/时长显示不出来」的 bug。
 function breakdownMinutesOf(l) {
@@ -1799,6 +1801,10 @@ function checkStalls() {
   let changed = false;
   stalled.forEach(l => {
     const key = normName(l.name);
+    // ★ 2026-09-28 通知阈值: 停滞超过 MAX_NOTIFY_MIN(2小时)没恢复 → 大概率是停产, 不再弹窗打扰。
+    //   只对“短时异常停滞”(5分钟~2小时)发通知。
+    const m = stallMinutesOf(l);
+    if (m > MAX_NOTIFY_MIN) return;
     const last = notified[key] || 0;
     if (nowTs - last > 10 * 60 * 1000) {
       notified[key] = nowTs;
