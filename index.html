@@ -65,46 +65,43 @@
   }
   #bg-aurora::before, #bg-aurora::after {
     content: ""; position: absolute; border-radius: 50%;
-    filter: blur(130px); opacity: .34; will-change: transform;
+    filter: blur(130px); opacity: .38; will-change: transform;
   }
   #bg-aurora::before {
     width: 60vw; height: 60vw; left: -12vw; top: -16vh;
     background: radial-gradient(circle, rgba(48,116,210,.30), transparent 66%);
-    animation: aurora-a 70s ease-in-out infinite alternate;
+    /* 2026-09-28 静态: 取消流动动画 */
   }
   #bg-aurora::after {
     width: 52vw; height: 52vw; right: -16vw; bottom: -18vh;
     background: radial-gradient(circle, rgba(36,148,214,.24), transparent 66%);
-    animation: aurora-b 82s ease-in-out infinite alternate;
+    /* 2026-09-28 静态: 取消流动动画 */
   }
   /* 苹果式整体呼吸: 细碎慢速明暗脉动叠层, 制造可感知的动态渐变(不廉价不刺眼) */
   #bg-aurora i {
     position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(90% 80% at 30% 20%, rgba(30,66,130,.10), transparent 60%),
                 radial-gradient(80% 90% at 75% 70%, rgba(20,52,110,.08), transparent 60%);
-    animation: aurora-breath 26s ease-in-out infinite;
+    /* 2026-09-28 静态: 取消整体呼吸动画 */
   }
   @keyframes aurora-breath {
-    0%,100% { opacity: .5;  transform: scale(1); }
-    50%     { opacity: .85; transform: scale(1.05); }
+    0%,100% { opacity: .6;  transform: scale(1); }
   }
   @keyframes aurora-a {
-    0%   { transform: translate(0,0) scale(1);   opacity: .24; }
-    50%  { transform: translate(5vw,3vh) scale(1.16); opacity: .34; }
-    100% { transform: translate(-3vw,5vh) scale(1.06); opacity: .28; }
+    0%,100% { transform: translate(0,0) scale(1);   opacity: .3; }
   }
   @keyframes aurora-b {
-    0%   { transform: translate(0,0) scale(1.1); opacity: .20; }
-    50%  { transform: translate(-5vw,-4vh) scale(.94); opacity: .30; }
-    100% { transform: translate(4vw,2vh) scale(1.06); opacity: .24; }
+    0%,100% { transform: translate(0,0) scale(1);  opacity: .26; }
   }
   /* ★ 2026-09-28 流动渐变层: 固定全屏, 置于数据层(z-index:1)之下、背景之上 */
+  /* 2026-09-28 静态背景: 关闭流动光场 canvas, 只保留 body 静态渐变 (对比大一点点) */
   #bg-flow {
-    position: fixed; inset: 0; z-index: 0; pointer-events: none; display: block;
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none;
   }
   #scale-stage, #pages-wrap, #extra-modules { position: relative; z-index: 1; }
   /* ★ 2026-09-27 页面整体淡入 */
-  #scale-stage { animation: ui-fade .5s ease-out both; }
+  /* 2026-09-28 静态: 取消页面淡入动画 */
+  #scale-stage { animation: none; }
   @keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
   /* ★ 2026-09-27 大标题/模块标题: 高亮冷白, 清晰 */
   .header h1, .panel h2 { color: #e8eef7; }
@@ -425,7 +422,7 @@
     background: rgba(248,81,73,.14); border: 1px solid rgba(248,81,73,.45);
     border-radius: 8px; padding: 6px 12px; margin-bottom: 8px;
     font-size: 13px; color: var(--red); font-weight: 600; flex-shrink: 0;
-    animation: blink 1.5s infinite;
+    /* 2026-09-28 静态: 取消横幅闪烁 */
   }
   .stall-banner .slist { font-weight: 400; color: var(--white); }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
@@ -535,9 +532,10 @@
   tr.stalled-row td { background: rgba(248,81,73,.1); }
   /* ---- 停滞分级: 黄 <15min / 橙 15-30min / 红 >=30min(闪烁) ---- */
   tr.stalled-row.lv1 td { background: rgba(210,153,34,.12); }
-  /* ★ 2026-09-28 性能/观感: 闪烁只动背景色(原整行 opacity 触发合成层重绘→大屏卡顿)。仅红色(≥30min)闪烁, 更柔也更流畅 */
+  /* ★ 2026-09-28 静态红色高亮框: 取消闪烁, 停滞(≥30min)用常亮红底+红框, 一眼可见不晃眼 */
   tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
-  tr.stalled-row.lv3 td { background: rgba(248,81,73,.22); animation: stallRowBlink 4.5s infinite; }
+  tr.stalled-row.lv3 td { background: rgba(248,81,73,.26); }
+  tr.stalled-row.lv3 { box-shadow: inset 0 0 0 2px rgba(248,81,73,.9); }
   tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
   tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
   tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
@@ -555,14 +553,15 @@
   .st.stall .stall-time { margin-left: 4px; }
   .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
   .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
-  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 2.8s infinite; }
+  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; }
   .line-name { font-weight: 700; color: var(--white); white-space: nowrap; text-align: left; }
   .rank { width: 32px; min-width: 32px; text-align: center; color: var(--gray); font-weight: 700; }
   /* ★ 2026-09-28 线体名第一列统一纯白(用户: 更显眼); 双色用于区分_强调,_红只留给数字 */
   .hit-name { color: #ffffff; }
   .miss-name { color: #f2f5f9; }
-  /* ⚠️ Breakdown 停线通知: ≥5min 整行红背景呼吸闪烁(只动背景色, 流畅) + 进度条内写时长; 恢复生产自动消失 */
-  tr.breakdown-row td { background: rgba(248,81,73,.24); animation: stallRowBlink 4.5s infinite; }
+  /* ⚠️ Breakdown 停线通知: ≥5min 静态红底+红框高亮(不再闪) + 进度条内写时长; 恢复生产自动消失 */
+  tr.breakdown-row td { background: rgba(248,81,73,.3); }
+  tr.breakdown-row { box-shadow: inset 0 0 0 2px rgba(248,81,73,1); }
   tr.breakdown-row:hover td { background: rgba(248,81,73,.38); }
   tr.breakdown-row td.line-name { color: #ffffff; }
   .hbar .bd-label {
@@ -575,7 +574,6 @@
   .stall-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--red);
     display: inline-block; margin-right: 6px; vertical-align: 1px;
-    animation: blink 2.8s infinite;
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
   td.bar-cell { padding: 3px 10px; min-width: 230px; }
@@ -610,7 +608,7 @@
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
   .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
-  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 3s infinite; }
+  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); }
   .eff-ok { color: var(--green); font-weight: 600; }
   .eff-warn { color: var(--orange); font-weight: 600; }
   .eff-bad { color: var(--red); font-weight: 600; }
@@ -735,8 +733,7 @@
 <body>
 <!-- ★ 2026-09-27 极光光效背景层: 置于最底, 数据层之上有 z-index:1 -->
 <div id="bg-aurora"><i></i></div>
-<!-- ★ 2026-09-28 流动渐变光斑层: 多层柔和光斑缓慢流动形成“活渐变”, 数据层之下 -->
-<canvas id="bg-flow" aria-hidden="true"></canvas>
+<!-- 2026-09-28 静态背景: bg-flow 流动光场 canvas 已移除, 只保留静态背景渐变 -->
 <!-- ★ 画布缩放层 (2026-08-20): 日常模式=原看板等比缩放, 作战模式=新增模块后整体按比例缩小 -->
 <div id="scale-stage">
 <div id="pages-wrap">
