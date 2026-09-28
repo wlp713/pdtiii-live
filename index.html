@@ -4472,8 +4472,14 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <script src="ai-widget.js?v=20260920nostream"></script>
 <!-- ★ 2026-09-03 v6.4 PWA: 添加到主屏幕后全屏独立运行, 效果同 App; SW 网络优先, 不缓存 Firebase 数据 -->
 <script>
+// ★ 2026-09-28 缓存自检: 若页面是从旧 SW 缓存壳(缺停滞/横幅功能)加载 → 自动清缓存并刷新, 避免“大屏有、电脑没有”的版本不一致。
+if (typeof isStalled !== "function" ) {
+  try { if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }); } catch (e) {}
+  try { if (window.caches) caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }); } catch (e) {}
+  location.reload();
+}
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20260908archivev2').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20260928stallfix').catch(function () {});
 }
 </script>
 </html>
