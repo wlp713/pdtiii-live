@@ -1638,7 +1638,11 @@ try { stallStartMap = JSON.parse(localStorage.getItem(STALL_START_KEY) || "{}") 
 try { lastActualMap = JSON.parse(localStorage.getItem(STALL_LAST_KEY) || "{}") || {}; } catch (e) { lastActualMap = {}; }
 function stallMinutesOf(l) {
   const ts = stallStartMap[normName(l.name)];
-  if (!ts) return 0;
+  if (!ts) {
+    // ★ 2026-09-28 跨端一致修复: 服务端已标 STALLED 的线, 本地(首次访问/新设备)无时间戳时
+    //   直接按阈值计 — 避免“不同浏览器记录不同/本地无记录就显示 0 或不显示”造成各端不一致。
+    return isStalled(l) ? BREAKDOWN_MIN : 0;
+  }
   return Math.max(0, Math.floor((Date.now() - ts) / 60000));
 }
 function stallLevelOf(l) {
@@ -1766,7 +1770,9 @@ function todayKey() { return bkkDateStr(); } // ★ v5.42 泰国日历日
 function dayKeyOf(d) { return bkkDateStr(typeof d === "number" ? d : d.getTime()); }
 // ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
-  const stalled = state.lines.filter(l => isStalled(l) && !isPlannedOff(l) && MAIN_SET.has(normName(l.name)));
+  // ★ 2026-09-28 修复: 停滞预警不再只限 MAIN_SET(主营 8 条) —— 否则停滞线在属下线体车间时,
+  //   主营视图横幅/通知永远不出现 → “显示不出来”。改为全局扫描全部线体, 任何视图都能看到。
+  const stalled = state.lines.filter(l => isStalled(l) && !isPlannedOff(l));
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
@@ -4377,7 +4383,8 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     var W, H, DPR, bands = [];
     var HUES = [210, 220, 232];   // 深邃蓝-钢青
     function resize() {
-      DPR = Math.min(2, window.devicePixelRatio || 1);
+      // ★ 2026-09-28 性能: DPR 上限降到 1.5 —— 背景光斑本身模糊, 高 DPR 徒增像素负载(卡顿主因之一)
+      DPR = Math.min(1.5, window.devicePixelRatio || 1);
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       cv.style.width = W + 'px'; cv.style.height = H + 'px';
@@ -4389,7 +4396,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
       // ★ 2026-09-28 V8: 深海极光光场 — 多个大柔光斑各自围绕锚点做多频正弦呼吸漂移,
       //   彼此浸染成一片缓慢涌动的光场。无生硬线性位移 → 配合模块 backdrop blur 呈现
       //   “光在模块背后流动”的自然雾面层次。带外保持近黑 → 背景仍深于模块。很低频很慢。
-      for (var i = 0; i < 7; i++) {
+      for (var i = 0; i < 6; i++) {
         bands.push({
           ax: Math.random() * W,                  // 锚点(漂移中心)
           ay: H * (0.10 + Math.random() * 0.8),
