@@ -2002,7 +2002,29 @@ function segsOf(name, curActual, curPlan, curTarget) {
   const nowMins = bkkMins(); // ★ v5.42 泰国当前分钟(与设备时区无关)
   const sc = shiftSegAt(nowMins);
   const segs = [];
-  const isNight = sc.shift === "night";
+  let isNight = sc.shift === "night";
+  // ★ 2026-09-28 根治「C线小时图=0/与列表不一致」: 小时图时段表应跟【该线自身班次】, 而不是全局当前班次。
+  //   问题: 现在是夜班(20:30后), segsOf 却把所有线按夜班10段去 hourly 桶差分; 白班线(如 Final C)
+  //   当天只有白班桶(480~1220分), 夜班边界查出来的都是同一个白班终值 → 每段差分=0 → 图全 0。
+  //   而旁边列表用 lines 实时值(curActual=942) → 有数。于是「图0、列表有数」永远对不上。
+  //   修复: 若该线 hourly 桶明显全是白班分钟 → 强制走白班的 DAY_SEGS(显示它当天白班完成产出)。
+  //   反之夜班线(桶含≥1230/跨凌晨)保持原样。两班都有的线(罕见)按当前点:
+  const _buckets = hourlyArrOf(name);
+  if (isNight && Array.isArray(_buckets) && _buckets.length) {
+    let hasNightBuck = false;
+    for (let _i = 0; _i < _buckets.length; _i++) {
+      const _m = snapMins(_buckets[_i]);
+      // ★ 2026-09-28 修正: 只有【有实际产出】且属夜班窗口的桶才算夜班覆盖。
+      //   凌晨占位桶(h=30..530, actual=0, 带d)只是数据端残留, 不是真夜班数据 → 不计,
+      //   否则白班线(如 Final C)会被误判成“有夜班桶”而不转白班(图依旧全0)。
+      const _v = Number(_buckets[_i].actual) || 0;
+      if (_v > 0 && (_m >= NIGHT_START || _m < NIGHT_END)) { hasNightBuck = true; break; }
+    }
+    if (!hasNightBuck) isNight = false; // 该线只有白班桶 → 用白班时段画(图不再空白)
+    // ★ 同步把班次判定 sc.shift 改成白班, 否则后续 manualPlanAtLine/hFinalCPlanAt 仍按夜班
+    //   算 plan(收到 shift='night' 去查夜班表) → 白班线目标会错/变0。
+    if (!isNight && sc.shift === "night") sc.shift = "day";
+  }
   const table = isNight ? NIGHT_SEGS : DAY_SEGS;
   const endCap = isNight ? NIGHT_END + 24 * 60 : DAY_END;
   // ★ 2026-09-02 v5.30 修复: 凌晨 0:00-8:00 属夜班次日, 夜班时段起点(1230+)全大于当前分钟数(0-480),
