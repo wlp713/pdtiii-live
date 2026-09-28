@@ -4378,28 +4378,38 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
 
-<!-- ★ 2026-09-28 背景动效 (纯 canvas): 深海极光式光场 — 多个柔光大光斑围绕各自锚点做多频
-     正弦呼吸漂移, 彼此浸染成一片缓缓涌动的液态光场。无生硬线性位移 → 与模块的
-     backdrop-filter blur 自然融合(模块背后真有光流动的雾面层次)。带外近黑 → 背景深于模块。 -->
+<!-- ★ 2026-09-28 背景动效 (纯 canvas): 深海极光式光场 — 多柔光大光斑围绕锚点多频正弦呼吸漂移,
+     互相浸染成缓慢涌动的液态光场。★ 2026-09-28 性能自适应: 分4档自动降级, 低性能设备也能流畅 --->
 <script>
 (function () {
+  // ★ 2026-09-28 性能档位: 依据屏幕尺寸/DPR/硬件并发线程自适应, 低档自动减光斑/降DPR/降fps/去叠加
+  //   高档: 6斑 DPR1.5 24fps | 中: 4斑 DPR1 15fps | 低: 3斑 DPR1 10fps 无lighter | 极低: 静态一帧
+  var HW = (navigator.hardwareConcurrency || 8);
+  var DPRn = (window.devicePixelRatio || 1);
+  var BIG_SCREEN = (window.screen && window.screen.width >= 1900);
+  var tier; var cfg;
+  function pickTier() {
+    // 判断基准: 设备像素比高+屏幕大+线程多 = 强; 反之弱
+    var score = (DPRn >= 2 ? 3 : (DPRn >= 1.5 ? 2 : 1)) + (BIG_SCREEN ? 2 : 0) + (HW >= 8 ? 2 : (HW >= 4 ? 1 : 0));
+    if (score >= 6)      { tier = 0; cfg = { n: 6, dpr: 1.5, fps: 24, lighter: true }; }
+    else if (score >= 4) { tier = 1; cfg = { n: 4, dpr: 1,   fps: 15, lighter: true }; }
+    else if (score >= 2) { tier = 2; cfg = { n: 3, dpr: 1,   fps: 10, lighter: false }; }
+    else                 { tier = 3; cfg = { n: 0, dpr: 1,   fps: 0,  lighter: false }; } // 极低: 静态
+  }
+  pickTier();
   function initFlow() {
     var cv = document.getElementById('bg-flow');
     if (!cv) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      startFlow(cv, true);   // 减弱动态: 画一帧静态
-    } else {
-      startFlow(cv, false);  // 正常: 流动动画
-    }
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { tier = 3; cfg = { n: 0, dpr: 1, fps: 0, lighter: false }; }
+    startFlow(cv);
   }
-  function startFlow(cv, staticOnce) {
+  function startFlow(cv) {
     var ctx = cv.getContext('2d');
     if (!ctx) return;
     var W, H, DPR, bands = [];
-    var HUES = [210, 220, 232];   // 深邃蓝-钢青
+    var HUES = [210, 220, 232];
     function resize() {
-      // ★ 2026-09-28 性能: DPR 上限降到 1.5 —— 背景光斑本身模糊, 高 DPR 徒增像素负载(卡顿主因之一)
-      DPR = Math.min(1.5, window.devicePixelRatio || 1);
+      DPR = Math.min(cfg.dpr, window.devicePixelRatio || 1);
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       cv.style.width = W + 'px'; cv.style.height = H + 'px';
@@ -4408,42 +4418,47 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     }
     function build() {
       bands = [];
-      // ★ 2026-09-28 V8: 深海极光光场 — 多个大柔光斑各自围绕锚点做多频正弦呼吸漂移,
-      //   彼此浸染成一片缓慢涌动的光场。无生硬线性位移 → 配合模块 backdrop blur 呈现
-      //   “光在模块背后流动”的自然雾面层次。带外保持近黑 → 背景仍深于模块。很低频很慢。
-      for (var i = 0; i < 6; i++) {
+      var n = tier === 3 ? 2 : cfg.n; // 极低档放2个静态光斑(仍有点层次, 但完全不gif动)
+      for (var i = 0; i < n; i++) {
         bands.push({
-          ax: Math.random() * W,                  // 锚点(漂移中心)
-          ay: H * (0.10 + Math.random() * 0.8),
-          r: Math.max(W, H) * (0.22 + Math.random() * 0.22), // 大光斑半径
-          stretch: 0.7 + Math.random() * 1.4,     // 轻微椭圆化
-          // 两个不同频率的正弦漂移 → 有机涌动(慢)
-          f1: 0.05 + Math.random() * 0.05,  amp1x: 18 + Math.random() * 30, amp1y: 10 + Math.random() * 18,
-          f2: 0.11 + Math.random() * 0.09,  amp2x: 6 + Math.random() * 10,  amp2y: 5 + Math.random() * 9,
-          p1: Math.random() * 6.28, p2: Math.random() * 6.28,   // 相位错开
-          a: 0.06 + Math.random() * 0.07,         // 低 alpha → 浸染不刺眼
+          ax: Math.random() * W, ay: H * (0.12 + Math.random() * 0.76),
+          r: Math.max(W, H) * (0.24 + Math.random() * 0.2),
+          stretch: 0.7 + Math.random() * 1.3,
+          f1: 0.05 + Math.random() * 0.05, amp1x: 18 + Math.random() * 28, amp1y: 10 + Math.random() * 16,
+          f2: 0.11 + Math.random() * 0.09, amp2x: 6 + Math.random() * 9,  amp2y: 5 + Math.random() * 8,
+          p1: Math.random() * 6.28, p2: Math.random() * 6.28,
+          a: 0.05 + Math.random() * 0.06,
           hue: HUES[Math.floor(Math.random() * HUES.length)]
         });
       }
     }
+    var lastT = 0; var frameCount = 0; var fpsAccum = 0; var dropTally = 0; var degraded = false;
+    var frameStart = Date.now();
     function frame(now) {
-      // ★ 2026-09-28 性能修复: 节流到 ~24fps(约42ms一帧), 并切后台时跳过重绘(非停止 rAF, 恢复即继续)。
       if (document.hidden) { requestAnimationFrame(frame); return; }
-      if (now - lastT < 42) { requestAnimationFrame(frame); return; }
-      lastT = now;
+      var interval = cfg.fps ? (1000 / cfg.fps) : 1e9;  // fps=0(极低) → 只画第一帧后静止
+      if (now - lastT < interval) { requestAnimationFrame(frame); return; }
+      // ★ 运行中自调优: 若持续严重掉帧(实际fps远低于目标) → 自动再降一级(至多降到静态)
+      lastT = now; frameCount++;
+      if (now - frameStart >= 5000 && tier < 3) {
+        var actual = frameCount * 1000 / (now - frameStart);
+        if (actual < Math.min(cfg.fps - 3, cfg.fps * 0.45)) dropTally++;
+        else dropTally = 0;
+        frameStart = now; frameCount = 0;
+        if (dropTally >= 2) {
+          degradeOnce(); // 连续两次检测都是严重掉帧 → 降级
+        }
+      }
       ctx.clearRect(0, 0, W, H);
       var t = now / 1000;
-      ctx.globalCompositeOperation = 'lighter';   // 光斑叠加更亮 → 浸染融合的液态光场
+      if (cfg.lighter) ctx.globalCompositeOperation = 'lighter';
       for (var i = 0; i < bands.length; i++) {
         var b = bands[i];
-        // 围绕锚点的双频正弦漂移 → 有机涌动(位置不累加, 无生硬滑走)
         var x = b.ax + Math.sin(t * b.f1 + b.p1) * b.amp1x + Math.sin(t * b.f2 + b.p2) * b.amp2x;
         var y = b.ay + Math.cos(t * b.f1 * 0.8 + b.p1) * b.amp1y + Math.sin(t * b.f2 * 0.9 + b.p2) * b.amp2y;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.scale(b.stretch, 1);
+        ctx.save(); ctx.translate(x, y); ctx.scale(b.stretch, 1);
         var g = ctx.createRadialGradient(0, 0, 0, 0, 0, b.r);
-        var breath = 0.75 + 0.25 * Math.sin(t * 0.1 + i * 1.7);   // 极慢亮度呼吸
+        var breath = 0.75 + 0.25 * Math.sin(t * 0.1 + i * 1.7);
         g.addColorStop(0, 'hsla(' + b.hue + ',60%,' + (60 + breath * 10) + '%,' + (b.a * breath) + ')');
         g.addColorStop(0.55, 'hsla(' + b.hue + ',54%,45%,' + (b.a * 0.5 * breath) + ')');
         g.addColorStop(1, 'hsla(' + b.hue + ',48%,34%,0)');
@@ -4452,11 +4467,36 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
         ctx.restore();
       }
       ctx.globalCompositeOperation = 'source-over';
-      if (!staticOnce) requestAnimationFrame(frame);
+      if (cfg.fps) requestAnimationFrame(frame);
+    }
+    function degradeOnce() {
+      if (tier >= 3) return;
+      tier++; // 0->1->2->3
+      if (tier === 1)      { cfg = { n: 4, dpr: 1, fps: 15, lighter: true }; }
+      else if (tier === 2) { cfg = { n: 3, dpr: 1, fps: 10, lighter: false }; }
+      else                 { cfg = { n: 0, dpr: 1, fps: 0, lighter: false }; } // 降到静态(光斑保留, 不再动)
+      dropTally = 0;
+      build();
     }
     window.addEventListener('resize', function () { resize(); });
-    var lastT = 0;
     resize();
+    // 极低档: 直接画一帧静态后停止动画(不进入带时间闸的 frame, 避免被 interval 闸住空白)
+    if (cfg.fps === 0) {
+      ctx.clearRect(0, 0, W, H);
+      var tt = 0;
+      for (var si = 0; si < bands.length; si++) {
+        var sb = bands[si];
+        ctx.save(); ctx.translate(sb.ax, sb.ay); ctx.scale(sb.stretch, 1);
+        var sg = ctx.createRadialGradient(0, 0, 0, 0, 0, sb.r);
+        sg.addColorStop(0, 'hsla(' + sb.hue + ',60%,64%,' + (sb.a * 0.85) + ')');
+        sg.addColorStop(0.55, 'hsla(' + sb.hue + ',54%,45%,' + (sb.a * 0.5) + ')');
+        sg.addColorStop(1, 'hsla(' + sb.hue + ',48%,34%,0)');
+        ctx.fillStyle = sg;
+        ctx.fillRect(-sb.r * 1.4, -sb.r * 1.4, sb.r * 2.8, sb.r * 2.8);
+        ctx.restore();
+      }
+      return;
+    }
     requestAnimationFrame(frame);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFlow);
