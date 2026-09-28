@@ -1667,7 +1667,13 @@ function trackStallStart() {
     /* ★ 2026-09-10: 扩大追踪到全部线体(含车间非主线), 供停线剔除综合达成率用 */
     const a = Number(l.actual) || 0;
     const prev = lastActualMap[k];
-    if (prev === undefined || Math.abs(a - prev) >= 0.5) {
+    if (prev === undefined) {
+      // ★ 2026-09-28 跨端一致: 首次见到就已是停滞的线(status=STALLED), 不写本机时间戳 ——
+      //   否则每台设备都从“自己第一次打开”起算, 时长各异; 改走 stallMinutesOf 的服务端兜底(至少阈值, 各端一致可见)
+      lastActualMap[k] = a;
+      changed = true;
+      if (!isStalled(l)) stallStartMap[k] = nowTs;   // 非停滞线才用本机观测起点
+    } else if (Math.abs(a - prev) >= 0.5) {
       lastActualMap[k] = a;
       stallStartMap[k] = nowTs;
       changed = true;
