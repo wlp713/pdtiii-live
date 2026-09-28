@@ -1186,18 +1186,26 @@ function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
 //   恢复正常生产时 actual 变化 → start 时间戳刷新 → 自动消失。
 //   判定: 非计划停产 + 该线曾产出(actual>0, 防"未开工线"误判) + 停够5分钟阈值
 const BREAKDOWN_MIN = 5;
+// ⭐ 2026-09-28 修复: 服务端已标 STALLED 的线直接计入停线(时长取本地记录或至少按阈值显示, 不依赖本地时间戳),
+//   解决「本地 stallStartMap 无记录 → 永远不触发 → 停线闪烁/时长显示不出来」的 bug。
+function breakdownMinutesOf(l) {
+  if (!l) return 0;
+  const m = stallMinutesOf(l);
+  // 服务端已标记停滞(实际已停产多时), 但本地从未变化过 → 用 max(本地,阈值) 兜底, 让显示不缺席
+  return isStalled(l) ? Math.max(m, BREAKDOWN_MIN) : m;
+}
 function isBreakdown(l) {
   if (!l) return false;
   if (isPlannedOff(l)) return false;
   if (!(Number(l.actual) > 0)) return false; // 从没产出不算停线(还没开工/未排班)
-  return stallMinutesOf(l) >= BREAKDOWN_MIN;
+  return breakdownMinutesOf(l) >= BREAKDOWN_MIN;
 }
 function breakdownMin(l) {
-  return isBreakdown(l) ? stallMinutesOf(l) : 0;
+  return isBreakdown(l) ? breakdownMinutesOf(l) : 0;
 }
 function breakdownLabel(l) {
   if (!isBreakdown(l)) return "";
-  const mm = Math.max(stallMinutesOf(l), BREAKDOWN_MIN);
+  const mm = Math.max(breakdownMinutesOf(l), BREAKDOWN_MIN);
   return (lang === "zh") ? ("⛔ 停线 " + mm + "分") : ("⛔ Breakdown " + mm + "m");
 }
 // ★ 2026-09-10 改动C: 停线判定 — 计划停机 / server停滞标记 / 客户端观察约30分钟产出无变化 → 剔除综合达成率+综合计划
@@ -4397,6 +4405,10 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
       }
     }
     function frame(now) {
+      // ★ 2026-09-28 性能修复: 节流到 ~24fps(约42ms一帧), 并切后台时跳过重绘(非停止 rAF, 恢复即继续)。
+      if (document.hidden) { requestAnimationFrame(frame); return; }
+      if (now - lastT < 42) { requestAnimationFrame(frame); return; }
+      lastT = now;
       ctx.clearRect(0, 0, W, H);
       var t = now / 1000;
       ctx.globalCompositeOperation = 'lighter';   // 光斑叠加更亮 → 浸染融合的液态光场
@@ -4421,6 +4433,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
       if (!staticOnce) requestAnimationFrame(frame);
     }
     window.addEventListener('resize', function () { resize(); });
+    var lastT = 0;
     resize();
     requestAnimationFrame(frame);
   }
