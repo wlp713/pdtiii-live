@@ -535,8 +535,9 @@
   tr.stalled-row td { background: rgba(248,81,73,.1); }
   /* ---- 停滞分级: 黄 <15min / 橙 15-30min / 红 >=30min(闪烁) ---- */
   tr.stalled-row.lv1 td { background: rgba(210,153,34,.12); }
+  /* ★ 2026-09-28 性能/观感: 闪烁只动背景色(原整行 opacity 触发合成层重绘→大屏卡顿)。仅红色(≥30min)闪烁, 更柔也更流畅 */
   tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
-  tr.stalled-row.lv3 td { background: rgba(248,81,73,.28); animation: stallRowBlink 1.2s infinite; }
+  tr.stalled-row.lv3 td { background: rgba(248,81,73,.22); animation: stallRowBlink 1.8s infinite; }
   tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
   tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
   tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
@@ -545,7 +546,7 @@
   tr.planned-off td.line-name { color: #9da7b3; }
   tr.planned-off:hover td { background: #2f353e !important; }
   tr.planned-off .stall-dot { background: #8b949e !important; box-shadow: none; }
-  @keyframes stallRowBlink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
+  @keyframes stallRowBlink { 0%,100% { background-color: rgba(248,81,73,.12); } 50% { background-color: rgba(248,81,73,.32); } }
   .stall-time {
     display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
     font-size: 10px; font-weight: 600; padding: 0 6px; border-radius: 8px;
@@ -560,8 +561,8 @@
   /* ★ 2026-09-28 线体名第一列统一纯白(用户: 更显眼); 双色用于区分_强调,_红只留给数字 */
   .hit-name { color: #ffffff; }
   .miss-name { color: #f2f5f9; }
-  /* ⚠️ Breakdown 停线通知: ≥5min 整行红光闪烁 + 进度条内写时长; 恢复生产自动消失 */
-  tr.breakdown-row td { background: rgba(248,81,73,.30); animation: stallRowBlink 1.1s infinite; }
+  /* ⚠️ Breakdown 停线通知: ≥5min 整行红背景呼吸闪烁(只动背景色, 流畅) + 进度条内写时长; 恢复生产自动消失 */
+  tr.breakdown-row td { background: rgba(248,81,73,.24); animation: stallRowBlink 1.8s infinite; }
   tr.breakdown-row:hover td { background: rgba(248,81,73,.38); }
   tr.breakdown-row td.line-name { color: #ffffff; }
   .hbar .bd-label {
