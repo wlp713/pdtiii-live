@@ -105,3 +105,19 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 CAPTURED shift=night productionDate=2026-09-28 file=/mnt/c/Users/19777/Desktop/pdtiii-live/history/shifts/2026-09-28-night.json
 DONE days=34 usableDay=20 usableNight=32
 rc=0
+[main 6058cdf] archive: 本机 cron 归档更新 2026-09-29 08:00
+ 6 files changed, 581 insertions(+), 114 deletions(-)
+ create mode 100644 history/shifts/2026-09-28-night.json
+To https://github.com/wlp713/pdtiii-live.git
+ ! [rejected]        main -> main (non-fast-forward)
+error: failed to push some refs to 'https://github.com/wlp713/pdtiii-live.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+[2026-09-29 08:00:01 +07] pushed 6058cdf
+=== [2026-09-29 20:31:01 +07] python3 scripts/archive_daily.py --shift auto ===
+CAPTURED shift=day productionDate=2026-09-29 file=/mnt/c/Users/19777/Desktop/pdtiii-live/history/shifts/2026-09-29-day.json
+CAPTURED shift=night productionDate=2026-09-28 file=/mnt/c/Users/19777/Desktop/pdtiii-live/history/shifts/2026-09-28-night.json
+DONE days=35 usableDay=21 usableNight=32
+rc=0
