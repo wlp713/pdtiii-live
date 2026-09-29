@@ -1180,7 +1180,19 @@ function signClass(v) {
   if (v < 0) return "neg";
   return "zero";
 }
-function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+// ★ 2026-09-29 全厂全停滞保险: 数据端异常把全部线体同时标为 STALLED(如白班刚开工误判)
+//   时, 视为数据异常而非真实全厂停滞 — 不再显示任何停滞标记/横幅/通知, 避免"全厂崩了"的虚假告警。
+function isGlobalStallAll() {
+  const ls = state.lines || [];
+  const total = ls.filter(l => !isPlannedOff(l)).length;
+  if (total === 0) return false;
+  const sAll = ls.filter(l => !isPlannedOff(l) && (l.stalled === true || l.status === "STALLED")).length;
+  return sAll === total;
+}
+function isStalled(l) {
+  if (isGlobalStallAll()) return false;   // 全厂全停滞 → 视为数据异常, 不标停滞(标记/横幅/通知/红行/红点全消)
+  return l.stalled === true || l.status === "STALLED";
+}
 // ⭐ 2026-09-28 停线通知 Breakdown: 线休正常生产中停 ≥5 分钟触发 → 整行红光闪烁 + 进度条内写时长。
 //   时长复用 stallStartMap(actual 最后变化时刻, localStorage 持久化), 每刷新自动累加;
 //   恢复正常生产时 actual 变化 → start 时间戳刷新 → 自动消失。
@@ -1200,6 +1212,7 @@ function breakdownMinutesOf(l) {
 function isBreakdown(l) {
   if (!l) return false;
   if (isPlannedOff(l)) return false;
+  if (isGlobalStallAll()) return false; // ★ 2026-09-29 全厂全停滞异常: 不标停线
   if (!(Number(l.actual) > 0)) return false; // 从没产出不算停线(还没开工/未排班)
   return breakdownMinutesOf(l) >= BREAKDOWN_MIN;
 }
@@ -1236,6 +1249,7 @@ function isPlannedOff(l) {
 function stHtml(l) {
   let stCls, stTxt;
   if (isPlannedOff(l)) { stCls = "off"; stTxt = t("stPlannedOff"); }
+  else if (isGlobalStallAll() && (l.actual > 0 || l.status === "STALLED")) { stCls = "run"; stTxt = t("stRun"); } // ★ 2026-09-29 全厂全停滞异常: 有产出/被误标的线显“运行”, 不显停滞
   else if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
   else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = t("stRun"); }
   else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = t("stOff"); }
