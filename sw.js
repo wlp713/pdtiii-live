@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v10'; // 2026-09-23 手机端强制更新到 PRO1目标方案A (旧v9壳持旧index) // ★ 2026-09-09 强制刷新: 修复午休/第四时段全黑(旧缓存壳)
+var CACHE = 'pdtiii-shell-v11'; // 2026-09-28 停滞功能修复后强制旧壳刷新(v10持旧index, 导致电脑端停滞字样不显示)
 var CORE = [
   './',
   './index.html',

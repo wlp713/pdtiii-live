@@ -87,3 +87,21 @@ CAPTURED shift=day productionDate=2026-09-25 file=/mnt/c/Users/19777/Desktop/pdt
 CAPTURED shift=night productionDate=2026-09-24 file=/mnt/c/Users/19777/Desktop/pdtiii-live/history/shifts/2026-09-24-night.json
 DONE days=33 usableDay=20 usableNight=31
 rc=0
+[main 98368d5] archive: 本机 cron 归档更新 2026-09-25 20:31
+ 6 files changed, 23 insertions(+), 2 deletions(-)
+ create mode 100644 history/2026-09-24.json
+ create mode 100644 history/shifts/2026-09-24-night.json
+ create mode 100644 history/shifts/2026-09-25-day.json
+To https://github.com/wlp713/pdtiii-live.git
+ ! [rejected]        main -> main (fetch first)
+error: failed to push some refs to 'https://github.com/wlp713/pdtiii-live.git'
+hint: Updates were rejected because the remote contains work that you do
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+[2026-09-25 20:31:01 +07] pushed 98368d5
+=== [2026-09-29 08:00:01 +07] python3 scripts/archive_daily.py --shift auto ===
+CAPTURED shift=night productionDate=2026-09-28 file=/mnt/c/Users/19777/Desktop/pdtiii-live/history/shifts/2026-09-28-night.json
+DONE days=34 usableDay=20 usableNight=32
+rc=0

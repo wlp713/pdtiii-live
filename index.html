@@ -17,28 +17,109 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <style>
   :root {
-    /* ★ 2026-09-02 v5.35 按用户要求: 模块底色也改纯黑, 边框保留原色 */
-    --bg: #000000;
-    --panel: #000000;
-    --panel2: #000000;
-    --border: #232329;
-    --border-soft: rgba(255,255,255,.06); /* 2026-09-15: 次级装饰边框用半透明白, 克制层级, 让数据块成为主角 */
-    --green: #3fb950;
-    --orange: #d29922;
-    --red: #f85149;
-    --gray: #a3adbb;
-    --white: #f0f6fc;
-    --blue: #58a6ff;
+    /* ★ 2026-09-27 UI 重设计: 背景改深空渐变+极光光效, 面板近黑深色+玻璃边缘
+       原则: 突出数字对比度优先, 视觉为数据服务 */
+    --bg: #09090b;                    /* 全局主背景: 中性石墨黑, 无噪点无强渐变 */
+    --panel: rgba(18,18,21,.98);      /* 面板内底: 中性石墨 01半阶 (比背景亮半阶) */
+    --panel2: rgba(18,18,21,.98);
+    --border: rgba(255,255,255,.08);  /* 1px 工业级极细半透明边框 */
+    --border-strong: rgba(255,255,255,.15);
+    --border-soft: rgba(255,255,255,.06);
+    /* 石墨/边缘 token (去发光 — 取代旧 --edge-hi/glow) */
+    --edge-hi: rgba(255,255,255,.05);
+    --edge-lo: rgba(255,255,255,.02);
+    --glow-blue: rgba(255,255,255,.04);
+    --glow-cyan: rgba(255,255,255,.03);
+    /* 语义化状态色: 低饱和、克制 (取代高饱和荧光色) — 仅触发时点亮 */
+    --green: #10b981;   /* Emerald 达成 */
+    --orange: #f59e0b;  /* Amber 预警/接近 */
+    --red: #ef4444;     /* 沉稳警示红 严重落后 */
+    --gray: #a1a1aa;    /* 次要文字 */
+    --muted: #52525b;   /* 无效/表头冷灰 */
+    --white: #f4f4f5;   /* 主文字 95%白 */
+    --blue: #3b82f6;    /* 科技蓝: 实际产出主色 */
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; }
   body {
-    background: #000000;
+    /* ★ 2026-09-28 背景 V7: 接近纯黑。用户要求光束色不变、背景压近纯黑。
+       大幅降低 radial 光斑的 alpha 与 RGB(仅保留极弱夜色层次), 基底纯黑 #000。
+       (光束动效层 #bg-flow 不动色值, 只让底更黑突出光束。) */
+    background: #000;
+    background-image:
+      radial-gradient(90% 75% at 14% -2%, rgba(12,16,28,.16), transparent 48%),
+      radial-gradient(60% 70% at 92% 4%, rgba(9,13,24,.18), transparent 50%),
+      radial-gradient(70% 60% at 30% 78%, rgba(7,11,20,.14), transparent 55%),
+      radial-gradient(55% 55% at 85% 72%, rgba(6,10,18,.16), transparent 55%),
+      radial-gradient(120% 100% at 50% 115%, rgba(5,8,14,.22), transparent 60%),
+      linear-gradient(180deg, #000 0%, #000 45%, #010103 100%);
     background-attachment: fixed;
     color: var(--white);
-    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    font-family: "Inter", -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
     height: 100vh; overflow: hidden; position: relative;
     display: flex; flex-direction: column; padding: 10px 16px;
+  }
+  /* ★ 2026-09-28 背景层: 深海蓝压暗 + 降饱和, 絮状mesh明暗层次更清(高级感), 流动光晕克制动效 */
+  #bg-aurora {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  #bg-aurora::before, #bg-aurora::after {
+    content: ""; position: absolute; border-radius: 50%;
+    filter: blur(130px); opacity: .38; will-change: transform;
+  }
+  #bg-aurora::before {
+    width: 60vw; height: 60vw; left: -12vw; top: -16vh;
+    background: radial-gradient(circle, rgba(48,116,210,.30), transparent 66%);
+    /* 2026-09-28 静态: 取消流动动画 */
+  }
+  #bg-aurora::after {
+    width: 52vw; height: 52vw; right: -16vw; bottom: -18vh;
+    background: radial-gradient(circle, rgba(36,148,214,.24), transparent 66%);
+    /* 2026-09-28 静态: 取消流动动画 */
+  }
+  /* 苹果式整体呼吸: 细碎慢速明暗脉动叠层, 制造可感知的动态渐变(不廉价不刺眼) */
+  #bg-aurora i {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(90% 80% at 30% 20%, rgba(30,66,130,.10), transparent 60%),
+                radial-gradient(80% 90% at 75% 70%, rgba(20,52,110,.08), transparent 60%);
+    /* 2026-09-28 静态: 取消整体呼吸动画 */
+  }
+  @keyframes aurora-breath {
+    0%,100% { opacity: .6;  transform: scale(1); }
+  }
+  @keyframes aurora-a {
+    0%,100% { transform: translate(0,0) scale(1);   opacity: .3; }
+  }
+  @keyframes aurora-b {
+    0%,100% { transform: translate(0,0) scale(1);  opacity: .26; }
+  }
+  /* ★ 2026-09-28 流动渐变层: 固定全屏, 置于数据层(z-index:1)之下、背景之上 */
+  /* 2026-09-28 静态背景: 关闭流动光场 canvas, 只保留 body 静态渐变 (对比大一点点) */
+  #bg-flow {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none;
+  }
+  #scale-stage, #pages-wrap, #extra-modules { position: relative; z-index: 1; }
+  /* ★ 2026-09-27 页面整体淡入 */
+  /* 2026-09-28 静态: 取消页面淡入动画 */
+  #scale-stage { animation: none; }
+  @keyframes ui-fade { from { opacity: 0; } to { opacity: 1; } }
+  /* ★ 2026-09-27 大标题/模块标题: 高亮冷白, 清晰 */
+  .header h1, .panel h2 { color: #e8eef7; }
+  @supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+    .header h1, .panel h2 { color: var(--gray); }
+  }
+  /* ★ 2026-09-27 KPI 数字微光晕 (恢复, 工业屏远看突出数字) — 语义色 + 柔和辉光 */
+  .kpi .value { text-shadow: 0 1px 14px rgba(70,150,255,.35), 0 0 34px rgba(70,150,255,.14); }
+  .kpi .value.green { color: var(--green); text-shadow: 0 1px 12px rgba(16,185,129,.4), 0 0 28px rgba(16,185,129,.16); }
+  .kpi .value.orange { color: var(--orange); text-shadow: 0 1px 12px rgba(245,158,11,.38), 0 0 28px rgba(245,158,11,.15); }
+  .kpi .value.red { color: var(--red); text-shadow: 0 1px 12px rgba(239,68,68,.42), 0 0 28px rgba(239,68,68,.16); }
+  .kpi .value.blue { color: var(--blue); text-shadow: 0 1px 12px rgba(59,130,246,.4), 0 0 28px rgba(59,130,246,.16); }
+  /* ★ 2026-09-27 无障碍: 用户偏好减少动效时, 全部静止 (光效停, hover 只留颜色) */
+  @media (prefers-reduced-motion: reduce) {
+    #bg-aurora::before, #bg-aurora::after, #bg-aurora i { animation: none !important; opacity: .3; }
+    #scale-stage { animation: none !important; }
+    .kpi, .panel { transition: border-color .18s; }
+    .kpi .value { text-shadow: none; }
   }
   /* ★ 画布容器 (v4 纯响应式): 占满视口, 永不滚动
      日常模式=仅原看板; 作战模式=原看板+扩展模块, flex按比例分配空间 */
@@ -164,9 +245,13 @@
   .ex-btn:hover { background: rgba(88,166,255,.15); }
   .ex-btn:focus-visible, .trend-line-pick:focus-visible, .ex-collapse:focus-visible { outline: 2px solid rgba(88,166,255,.75); outline-offset: 2px; }
   .ex-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
+    /* ★ 2026-09-28 统一面板风: 与主面板(.panel/.kpi)同款玻璃渐变, 且比大背景更深一档, 边框淡化 */
+    background: linear-gradient(180deg, rgba(13,20,36,.62) 0%, rgba(8,13,26,.84) 55%, rgba(6,10,20,.93) 100%);
+    border: 1px solid rgba(90,180,255,.13); border-radius: 10px;
     padding: 6px 10px; box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    backdrop-filter: blur(10px) saturate(120%);
   }
+  .ex-card:hover { border-color: rgba(120,200,255,.22); }
   #pages-wrap .chart-box { border-radius: 10px; }
   #pages-wrap #chartBar { filter: drop-shadow(0 3px 5px rgba(0,0,0,.16)); }
   .ex-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
@@ -337,20 +422,30 @@
     background: rgba(248,81,73,.14); border: 1px solid rgba(248,81,73,.45);
     border-radius: 8px; padding: 6px 12px; margin-bottom: 8px;
     font-size: 13px; color: var(--red); font-weight: 600; flex-shrink: 0;
-    animation: blink 1.5s infinite;
+    /* 2026-09-28 静态: 取消横幅闪烁 */
   }
   .stall-banner .slist { font-weight: 400; color: var(--white); }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
   .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
   .kpi {
-    background: var(--panel); border: 1px solid var(--border);
+    /* ★ 2026-09-28 模块颜色不可比大背景浅: 整体压深到深海底一档, 半透明渐变保留玻璃感, 边框淡化 */
+    background: linear-gradient(180deg, rgba(13,20,36,.62) 0%, rgba(8,13,26,.84) 55%, rgba(6,10,20,.93) 100%);
+    border: 1px solid rgba(90,180,255,.14);
     border-radius: 10px; padding: 4px 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    box-shadow: 0 6px 18px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.05);
+    backdrop-filter: blur(14px) saturate(125%);
+    -webkit-backdrop-filter: blur(14px) saturate(125%);
     min-width: 0; display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+    transition: border-color .18s, background-color .18s;
+  }
+  .kpi:hover {
+    border-color: rgba(120,200,255,.3);
+    background: linear-gradient(180deg, rgba(17,26,44,.66) 0%, rgba(10,16,30,.86) 55%, rgba(7,12,22,.94) 100%);
   }
   .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0; }
   .kpi .label { font-size: 12.5px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
-  .kpi .value { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: .5px; flex-shrink: 0; }
+  .kpi .value { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: .5px; flex-shrink: 0; font-variant-numeric: tabular-nums; }
   .kpi .sub { font-size: 11px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpi .value.green { color: var(--green); }
   .kpi .value.orange { color: var(--orange); }
@@ -361,22 +456,33 @@
     flex: 1; min-height: 0;
   }
   .panel {
-    background: var(--panel); border: 1px solid var(--border);
+    /* ★ 2026-09-28 模块颜色不可比大背景浅: 整体压深到深海底一档, 半透明渐变保留玻璃感, 边框淡化 */
+    background: linear-gradient(180deg, rgba(13,20,36,.62) 0%, rgba(8,13,26,.84) 55%, rgba(6,10,20,.93) 100%);
+    border: 1px solid rgba(90,180,255,.12);
     border-radius: 10px; padding: 8px 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    box-shadow: 0 8px 24px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
     display: flex; flex-direction: column; min-height: 0; min-width: 0;
+    position: relative;
+    transition: border-color .18s, background-color .18s;
+  }
+  .panel:hover {
+    border-color: rgba(120,200,255,.3);
+    background: linear-gradient(180deg, rgba(17,26,44,.66) 0%, rgba(10,16,30,.86) 55%, rgba(7,12,22,.94) 100%);
   }
   .panel-head {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 4px; flex-shrink: 0;
   }
-  .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 700; letter-spacing: .5px; }
+  .panel h2 { font-size: 12.5px; color: #cdd8e8; font-weight: 700; letter-spacing: .5px; }
   .table-scroll { overflow-y: hidden; flex: 1; min-height: 0; }  /* ★ 2026-09-04: 去滚轮 — 行高由 fitMainTable 均分填满, 永不溢出 */
   table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
   th {
     text-align: right; padding: 3px 6px; color: var(--gray);
     font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
-    font-size: 11px; position: sticky; top: 0; background: var(--panel); z-index: 1;
+    font-size: 11px; position: sticky; top: 0;
+    background: rgba(10,14,20,.98); z-index: 1;  /* ★ 2026-09-27: sticky 表头用近不透明, 滚动不透出 */
   }
   th:first-child, td:first-child { text-align: left; }
   th[data-sort] { cursor: pointer; user-select: none; }
@@ -426,8 +532,11 @@
   tr.stalled-row td { background: rgba(248,81,73,.1); }
   /* ---- 停滞分级: 黄 <15min / 橙 15-30min / 红 >=30min(闪烁) ---- */
   tr.stalled-row.lv1 td { background: rgba(210,153,34,.12); }
+  /* ★ 2026-09-28 静态红色高亮: 取消闪烁与描边方框, 改用「左侧红色竖条 + 淡红底」精致告警行 */
   tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
-  tr.stalled-row.lv3 td { background: rgba(248,81,73,.28); animation: stallRowBlink 1.2s infinite; }
+  tr.stalled-row.lv3 td { background: rgba(248,81,73,.26); }
+  tr.stalled-row.lv3 { box-shadow: none; }
+  tr.stalled-row.lv3 td:first-child { box-shadow: inset 5px 0 0 0 rgba(248,81,73,.95); }
   tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
   tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
   tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
@@ -436,7 +545,7 @@
   tr.planned-off td.line-name { color: #9da7b3; }
   tr.planned-off:hover td { background: #2f353e !important; }
   tr.planned-off .stall-dot { background: #8b949e !important; box-shadow: none; }
-  @keyframes stallRowBlink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
+  @keyframes stallRowBlink { 0%,100% { background-color: rgba(248,81,73,.12); } 50% { background-color: rgba(248,81,73,.32); } }
   .stall-time {
     display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
     font-size: 10px; font-weight: 600; padding: 0 6px; border-radius: 8px;
@@ -445,44 +554,79 @@
   .st.stall .stall-time { margin-left: 4px; }
   .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
   .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
-  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 1s infinite; }
-  .line-name { font-weight: 800; color: var(--white); white-space: nowrap; text-align: left; }
-  .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
-  .hit-name { color: var(--green); }
-  .miss-name { color: var(--red); }
+  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; }
+  .line-name { font-weight: 700; color: var(--white); white-space: nowrap; text-align: left; }
+  .rank { width: 32px; min-width: 32px; text-align: center; color: var(--gray); font-weight: 700; }
+  /* ★ 2026-09-28 线体名第一列统一纯白(用户: 更显眼); 双色用于区分_强调,_红只留给数字 */
+  .hit-name { color: #ffffff; }
+  .miss-name { color: #f2f5f9; }
+  /* ⚠️ Breakdown 停线通知: ≥5min 静态红底+红框高亮(不再闪) + 进度条内写时长; 恢复生产自动消失 */
+  tr.breakdown-row td { background: rgba(248,81,73,.3); }
+  tr.breakdown-row { box-shadow: none; }
+  tr.breakdown-row td:first-child { box-shadow: inset 5px 0 0 0 rgba(248,81,73,1); }
+  tr.breakdown-row:hover td { background: rgba(248,81,73,.38); }
+  tr.breakdown-row td.line-name { color: #ffffff; }
+  .hbar .bd-label {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+    z-index: 3; text-align: center; pointer-events: none; white-space: nowrap;
+    font-weight: 800; font-size: 13px; letter-spacing: .3px;
+    color: #ffd9d4; text-shadow: 0 0 6px rgba(248,81,73,.85), 0 1px 2px rgba(0,0,0,.8);
+  }
+  .hbar.bd { border: 1px solid rgba(248,81,73,.85); box-shadow: 0 0 10px rgba(248,81,73,.5), inset 0 0 12px rgba(248,81,73,.25); }
   .stall-dot {
     width: 8px; height: 8px; border-radius: 50%; background: var(--red);
     display: inline-block; margin-right: 6px; vertical-align: 1px;
-    animation: blink 1s infinite;
   }
   /* ---- 横向条形图列（列表×图表融合） ---- */
   td.bar-cell { padding: 3px 10px; min-width: 230px; }
-  .hbar { position: relative; height: 16px; background: #161b22; border-radius: 8px; overflow: hidden; }
+  /* ★ 2026-09-27 恢复粗壮目视化胶囊条 (车间大屏远距离可读; 高亮科技蓝发光渐变, 缺口改暗红灰底轨去大红斜纹) */
+  .hbar { position: relative; height: 18px; background: rgba(120,140,170,.22); border-radius: 9px; overflow: hidden; }
   .hbar .act {
     position: absolute; left: 0; top: 0; height: 100%;
-    background: linear-gradient(90deg, #58a6ff, #79c0ff);
-    border-radius: 8px; min-width: 3px;
+    background: linear-gradient(90deg, #2f6be0 0%, #3b82f6 55%, #66a9ff 100%);
+    border-radius: 9px; min-width: 3px;
+    box-shadow: 0 0 10px rgba(59,130,246,.45), inset 0 1px 0 rgba(255,255,255,.28);
   }
-  /* 未达成缺口: 红色(主题色), 从蓝条右侧延伸 — 蓝=达成, 红=未达成 */
+  /* 未达成缺口: 暗红灰底(不刺眼, 但可见), 红只用于严重落后数字 — 去引起廉价感的大红斜纹 */
   .hbar .gap {
     position: absolute; left: 0; top: 0; height: 100%;
-    background: rgba(248,81,73,.55);
-    border-radius: 8px;
+    background: rgba(239,68,68,.34);
+    border-radius: 9px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,.35);
   }
-  .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
-  .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
+  /* 超额达成(act>plan): 蓝条满格, 右侧极淡绿提示 */
+  .hbar .act.over { width: 100% !important; }
+  .hbar .over-glow {
+    position: absolute; right: 0; top: 0; bottom: 0; z-index: 2;
+    background: linear-gradient(90deg, transparent, rgba(43,214,140,.5) 100%);
+    border-radius: 0 9px 9px 0; opacity: .85;
+  }
+  .hbar .p100 { position: absolute; right: 0; top: -4px; height: 26px; border-right: 1px dashed rgba(200,214,230,.5); }
+  .hbar-leg { font-size: 10px; color: var(--gray); margin-top: 2px; display: flex; gap: 12px; }
   .hbar-leg i { font-style: normal; }
-  .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
-  .hbar-leg .g::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: rgba(248,81,73,.55); margin-right: 3px; vertical-align: -1px; }
+  .hbar-leg .a::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--blue); margin-right: 4px; vertical-align: -1px; }
+  .hbar-leg .g::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: rgba(239,68,68,.5); margin-right: 4px; vertical-align: -1px; }
   .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
   .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
   .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
   .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
-  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 1.2s infinite; }
+  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); }
   .eff-ok { color: var(--green); font-weight: 600; }
   .eff-warn { color: var(--orange); font-weight: 600; }
   .eff-bad { color: var(--red); font-weight: 600; }
   .eff-zero { color: #8b1616; font-weight: 600; }
+  /* ★ 2026-09-27 UI: 实际达成 vs 计划目标 双色列 —
+       Actual 实际达成: 按达成等级着色(绿达成/橙接近/红欠产) = 「已发生」的实绩语义;
+       Plan 计划目标: 统一冷灰蓝 = 「计划」中性语义, 与实绩明显区分。
+       达成率%列沿用 effClass 四档等级色。 */
+  .col-act { font-weight: 800; }
+  .col-act.green { color: var(--green); text-shadow: 0 0 10px rgba(16,185,129,.3); }
+  .col-act.orange { color: var(--orange); text-shadow: 0 0 10px rgba(245,158,11,.28); }
+  .col-act.red { color: var(--red); text-shadow: 0 0 10px rgba(239,68,68,.32); }
+  .col-plan { color: #9fb2c9; font-weight: 700; }
+  th.col-act-h, th.col-plan-h { font-weight: 600; }
+  th.col-act-h { color: #7ec2ff; }
+  th.col-plan-h { color: #9fb2c9; }
   .pos { color: var(--green); }
   .neg { color: var(--red); }
   .zero { color: var(--gray); }
@@ -574,11 +718,11 @@
   /* ② 数字字体: 回到 Segoe UI(Windows 原生 900 加粗清晰), 不用 Consolas——原因: Consolas 最高只 700,
         font-weight:800 会被回落成 700, 所以加粗跟没加粗看不出区别。对齐用 tabular-nums 保住, 更清爽好看。 */
   .kpi .value, #mainTable td, .mod-table td, .ex-table td { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-weight: 800; }
-  /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 微弱投影, 不花哨 */
-  .kpi, .panel { transition: border-color .15s, box-shadow .15s; }
-  .kpi:hover { border-color: #3d444d; box-shadow: 0 5px 18px rgba(0,0,0,.3), 0 0 0 1px rgba(88,166,255,.08); }
-  .panel:hover { border-color: #2e343c; }
-  body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 24px 2px rgba(255,176,50,.28); }
+  /* ③ KPI / 主面板微反馈: hover 边框轻微提亮 + 背景提半阶, 不投影不发光 */
+  .kpi, .panel { transition: border-color .15s, background-color .15s; }
+  .kpi:hover { border-color: rgba(120,200,255,.3); background-color: transparent; box-shadow: inherit; }
+  .panel:hover { border-color: rgba(120,200,255,.3); background-color: transparent; box-shadow: inherit; }
+  body.ot-live .kpi:hover, body.ot-live .panel:hover { box-shadow: 0 0 0 1px rgba(59,130,246,.3); }
 
   /* ④ 主表行 hover 微反馈: 纯黑底原本 hover 看不见, 加轻微蓝底提亮 + 平滑过渡(不影响 miss/stalled 专属配色) */
   #mainTable tbody tr { transition: background .15s ease; }
@@ -589,6 +733,9 @@
 </style>
 </head>
 <body>
+<!-- ★ 2026-09-27 极光光效背景层: 置于最底, 数据层之上有 z-index:1 -->
+<div id="bg-aurora"><i></i></div>
+<!-- 2026-09-28 静态背景: bg-flow 流动光场 canvas 已移除, 只保留静态背景渐变 -->
 <!-- ★ 画布缩放层 (2026-08-20): 日常模式=原看板等比缩放, 作战模式=新增模块后整体按比例缩小 -->
 <div id="scale-stage">
 <div id="pages-wrap">
@@ -629,7 +776,7 @@
         <thead>
           <tr>
             <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">Output</th>
-            <th data-sort="actual">Actual</th><th data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th>
+            <th class="col-act-h" data-sort="actual">Actual</th><th class="col-plan-h" data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -1020,6 +1167,13 @@ function effClass(e) {
   if (e > 0) return "eff-bad";
   return "eff-zero";
 }
+// ★ 2026-09-27 UI: Actual(实际达成)列按达成等级着色 — 与达成率列同级语义(绿/橙/红), 达实绩一眼可辨
+function actClass(e) {
+  if (e === null || e === undefined || isNaN(e)) return "col-act";
+  if (e >= 90) return "col-act green";
+  if (e >= 80) return "col-act orange";
+  return "col-act red";
+}
 function signClass(v) {
   if (v === null || v === undefined || isNaN(v)) return "zero";
   if (v > 0) return "pos";
@@ -1027,6 +1181,36 @@ function signClass(v) {
   return "zero";
 }
 function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+// ⭐ 2026-09-28 停线通知 Breakdown: 线休正常生产中停 ≥5 分钟触发 → 整行红光闪烁 + 进度条内写时长。
+//   时长复用 stallStartMap(actual 最后变化时刻, localStorage 持久化), 每刷新自动累加;
+//   恢复正常生产时 actual 变化 → start 时间戳刷新 → 自动消失。
+//   判定: 非计划停产 + 该线曾产出(actual>0, 防"未开工线"误判) + 停够5分钟阈值
+const BREAKDOWN_MIN = 5;
+// ★ 2026-09-28 通知区间: 停滞达到 NOTIFY_MIN(20分钟) 才弹窗提醒; 超 MAX_NOTIFY_MIN(2小时)视为停产不再弹。
+const NOTIFY_MIN = 20;
+const MAX_NOTIFY_MIN = 120;
+// ⭐ 2026-09-28 修复: 服务端已标 STALLED 的线直接计入停线(时长取本地记录或至少按阈值显示, 不依赖本地时间戳),
+//   解决「本地 stallStartMap 无记录 → 永远不触发 → 停线闪烁/时长显示不出来」的 bug。
+function breakdownMinutesOf(l) {
+  if (!l) return 0;
+  const m = stallMinutesOf(l);
+  // 服务端已标记停滞(实际已停产多时), 但本地从未变化过 → 用 max(本地,阈值) 兜底, 让显示不缺席
+  return isStalled(l) ? Math.max(m, BREAKDOWN_MIN) : m;
+}
+function isBreakdown(l) {
+  if (!l) return false;
+  if (isPlannedOff(l)) return false;
+  if (!(Number(l.actual) > 0)) return false; // 从没产出不算停线(还没开工/未排班)
+  return breakdownMinutesOf(l) >= BREAKDOWN_MIN;
+}
+function breakdownMin(l) {
+  return isBreakdown(l) ? breakdownMinutesOf(l) : 0;
+}
+function breakdownLabel(l) {
+  if (!isBreakdown(l)) return "";
+  const mm = Math.max(breakdownMinutesOf(l), BREAKDOWN_MIN);
+  return (lang === "zh") ? ("⛔ 停线 " + mm + "分") : ("⛔ Breakdown " + mm + "m");
+}
 // ★ 2026-09-10 改动C: 停线判定 — 计划停机 / server停滞标记 / 客户端观察约30分钟产出无变化 → 剔除综合达成率+综合计划
 function isStoppedRun(l) {
   if (isPlannedOff(l)) return true;
@@ -1129,12 +1313,20 @@ function hbarHtml(l) {
   const act = Number(l.actual) || 0;
   const aw = plan > 0 ? Math.max(0, Math.min(100, act / plan * 100)) : 0;
   const gw = plan > 0 ? Math.max(0, Math.min(100, (plan - act) / plan * 100)) : 0; // 未达成缺口(红色)
+  const over = plan > 0 && act > plan;
+  const overW = over ? Math.min(100, (act - plan) / plan * 100) : 0;
   const stalledCls = isPlannedOff(l) ? " style=\"border:1px solid rgba(139,148,158,.45)\"" : (isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "");
   // ★ 2026-09-04 修复: gap 必须从蓝条右端(aw%)向右延伸到 100% (缺口=目标-实际)。
   //   旧代码 gap 也 left:0 → 整条被后插入且不透明的 .act 盖住 → 未达成看不出红色。
-  return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
-    (gw > 0 ? `<div class="gap" style="left:${aw}%;width:${gw}%"></div>` : "") +
-    `<div class="act" style="width:${aw}%"></div></div>`;
+  // ★ 2026-09-27 UI: 超额(act>plan)时蓝条满格(100%), 100%左侧贴一段绿色渐变=超额; act width 折到 100 内,
+  //   超额量用负 left/extra width 表达(仍由 overflow 保证不越界, 绿泽贴在目标线右侧视觉)。
+  // ⭐ 2026-09-28 Breakdown 停线通知: ≥5min 时进度条加红边+淡红底, 条内叠放 "⛔ 停线 N分" 标签(时长实时累加)
+  const bd = isBreakdown(l);
+  const bdLabel = bd ? `<div class="bd-label">${breakdownLabel(l)}</div>` : "";
+  const hbarCls = bd ? "hbar bd" : "hbar";
+  return `<div class="${hbarCls}"${stalledCls}><div class="p100"></div>` +
+    (over ? `<div class="over-glow" style="width:${overW}%"></div>` : (gw > 0 ? `<div class="gap" style="left:${aw}%;width:${gw}%"></div>` : "")) +
+    `<div class="act${over ? " over":""}" style="width:${Math.min(100, aw)}%"></div>${bdLabel}</div>`;
 }
 
 function renderTable() {
@@ -1153,14 +1345,15 @@ function renderTable() {
       const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
       let cls = "";
       if (isPlannedOff(l)) cls = "planned-off";
+      else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
       else if (miss) cls = "miss";
-      const dot = (isPlannedOff(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+      const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       return `<tr class="${cls}"><td class="rank">${idx + 1}</td>` +
         `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
         `<td class="bar-cell">${hbarHtml(l)}</td>` +
-        `<td>${fmt(l.actual)}</td>` +
-        `<td>${fmt(l.plan)}</td>` +
+        `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
+        `<td class="col-plan">${fmt(l.plan)}</td>` +
         `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
         `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
         `<td class="uph-cell">${uphTxt(l, now)}</td></tr>`;
@@ -1207,10 +1400,11 @@ function renderTable() {
       const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
       let cls = "";
       if (isPlannedOff(l)) cls = "planned-off";
+      else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
       else if (miss) cls = "miss";
       if (tr.className !== cls) tr.className = cls;
-      const dot = (isPlannedOff(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+      const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       const htmls = [
         String(idx + 1),
         dot + l.name.trim(),
@@ -1221,7 +1415,7 @@ function renderTable() {
         fmt1(l.eff),
         uphTxt(l, now)
       ];
-      const clses = ["rank", "line-name " + lineNameCls(l), "bar-cell", "", "", signClass(l.cb), effClass(l.eff), "uph-cell"];
+      const clses = ["rank", "line-name " + lineNameCls(l), "bar-cell", actClass(l.eff), "col-plan", signClass(l.cb), effClass(l.eff), "uph-cell"];
       Array.from(tr.cells).forEach(function (td, ci) {
         if (ci >= 8) return;
         if (td.className !== clses[ci]) td.className = clses[ci];
@@ -1249,16 +1443,17 @@ function renderTable() {
         const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
         let cls = "";
         if (isPlannedOff(l)) cls = "planned-off";
-        else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
+        else if (isBreakdown(l)) cls = "breakdown-row";
+      else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
         else if (miss) cls = "miss";
         if (tr.className !== cls) tr.className = cls;
-        const dot = (isPlannedOff(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+        const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
           `<td class="rank">${idx + 1}</td>` +
           `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
           `<td class="bar-cell">${hbarHtml(l)}</td>` +
-          `<td>${fmt(l.actual)}</td>` +
-          `<td>${fmt(l.plan)}</td>` +
+          `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
+          `<td class="col-plan">${fmt(l.plan)}</td>` +
           `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
           `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
           `<td class="uph-cell">${uphTxt(l, now)}</td>`;
@@ -1446,7 +1641,11 @@ try { stallStartMap = JSON.parse(localStorage.getItem(STALL_START_KEY) || "{}") 
 try { lastActualMap = JSON.parse(localStorage.getItem(STALL_LAST_KEY) || "{}") || {}; } catch (e) { lastActualMap = {}; }
 function stallMinutesOf(l) {
   const ts = stallStartMap[normName(l.name)];
-  if (!ts) return 0;
+  if (!ts) {
+    // ★ 2026-09-28 跨端一致修复: 服务端已标 STALLED 的线, 本地(首次访问/新设备)无时间戳时
+    //   直接按阈值计 — 避免“不同浏览器记录不同/本地无记录就显示 0 或不显示”造成各端不一致。
+    return isStalled(l) ? BREAKDOWN_MIN : 0;
+  }
   return Math.max(0, Math.floor((Date.now() - ts) / 60000));
 }
 function stallLevelOf(l) {
@@ -1471,7 +1670,13 @@ function trackStallStart() {
     /* ★ 2026-09-10: 扩大追踪到全部线体(含车间非主线), 供停线剔除综合达成率用 */
     const a = Number(l.actual) || 0;
     const prev = lastActualMap[k];
-    if (prev === undefined || Math.abs(a - prev) >= 0.5) {
+    if (prev === undefined) {
+      // ★ 2026-09-28 跨端一致: 首次见到就已是停滞的线(status=STALLED), 不写本机时间戳 ——
+      //   否则每台设备都从“自己第一次打开”起算, 时长各异; 改走 stallMinutesOf 的服务端兜底(至少阈值, 各端一致可见)
+      lastActualMap[k] = a;
+      changed = true;
+      if (!isStalled(l)) stallStartMap[k] = nowTs;   // 非停滞线才用本机观测起点
+    } else if (Math.abs(a - prev) >= 0.5) {
       lastActualMap[k] = a;
       stallStartMap[k] = nowTs;
       changed = true;
@@ -1574,7 +1779,9 @@ function todayKey() { return bkkDateStr(); } // ★ v5.42 泰国日历日
 function dayKeyOf(d) { return bkkDateStr(typeof d === "number" ? d : d.getTime()); }
 // ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
 function checkStalls() {
-  const stalled = state.lines.filter(l => isStalled(l) && !isPlannedOff(l) && MAIN_SET.has(normName(l.name)));
+  // ★ 2026-09-28 修复: 停滞预警不再只限 MAIN_SET(主营 8 条) —— 否则停滞线在属下线体车间时,
+  //   主营视图横幅/通知永远不出现 → “显示不出来”。改为全局扫描全部线体, 任何视图都能看到。
+  const stalled = state.lines.filter(l => isStalled(l) && !isPlannedOff(l));
   const banner = document.getElementById("stallBanner");
   if (stalled.length) {
     banner.style.display = "flex";
@@ -1595,13 +1802,18 @@ function checkStalls() {
   let changed = false;
   stalled.forEach(l => {
     const key = normName(l.name);
+    // ★ 2026-09-28 通知区间: 停滞达到 20 分钟才弹(不满不早打扰); 超 2 小时(停产)不再弹。
+    const m = stallMinutesOf(l);
+    if (m < NOTIFY_MIN || m > MAX_NOTIFY_MIN) return;
     const last = notified[key] || 0;
-    if (nowTs - last > 10 * 60 * 1000) {
+    if (nowTs - last > 20 * 60 * 1000) {  // ★ 2026-09-28 每 20 分钟提醒一次
       notified[key] = nowTs;
       changed = true;
       try {
-        new Notification(t("notifTitle") + shortName(l.name), {
-          body: t("notifBody") + new Date().toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour12: false })
+        // ★ 2026-09-28 中泰双语通知体(工厂泰国同事可读): 中文 + 泰文同时呈现
+        const nowStr = new Date().toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour12: false });
+        new Notification("⚠️ 线体停滞 สายหยุด: " + shortName(l.name), {
+          body: "已停滞 " + m + " 分钟 / หยุด " + m + " นาที · " + nowStr + "\nกรุณาตรวจสอบสายการผลิต 请检查产线"
         });
       } catch (e) { /* ignore */ }
     }
@@ -1739,6 +1951,11 @@ function valueAt(name, t, usePlan, dayOff) {
       //   该窗口天然只属夜班, 跨班污染由 isDayQry 分钟范围兜底挡住; 故夜间查询对此窗口按分钟放行,
       //   后半夜桶(≥1470)仍严格 d 匹配防污染。
       const preMidNight = (!isDayQry) && m >= NIGHT_START && m < 1440; // 非白班查询的前半夜桶
+      // ★ 2026-09-17: 前半夜桶(20:30-23:30)按分钟放行, 是晚班小时图分段的数据来源
+      //   (数据端每晚以 MySQL 同步只写白班 08:00-20:20 桶; 现存的前半夜桶即 09-11 那批 + 白班桶外推,
+      //   前端靠它们在晚班时段差分出各时段产量)。2026-09-27 曾误加 isNightQry/d新鲜度过滤,
+      //   把晚班全部数据源滤掉 → 在产线晚班分段消失(回归用户原报的 bug)。已回退; 停产线防假数
+      //   改在 segsOf 层处理(curActual===0 → 晚班段归0), 不再污染 valueAt 数据源。
       if (hasD) { if (!preMidNight && String(sn.d) !== curDaily) continue; } // d 匹配当前班里日
       else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue;       // 无 d 回退旧白班分钟过滤
       pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
@@ -1785,7 +2002,29 @@ function segsOf(name, curActual, curPlan, curTarget) {
   const nowMins = bkkMins(); // ★ v5.42 泰国当前分钟(与设备时区无关)
   const sc = shiftSegAt(nowMins);
   const segs = [];
-  const isNight = sc.shift === "night";
+  let isNight = sc.shift === "night";
+  // ★ 2026-09-28 根治「C线小时图=0/与列表不一致」: 小时图时段表应跟【该线自身班次】, 而不是全局当前班次。
+  //   问题: 现在是夜班(20:30后), segsOf 却把所有线按夜班10段去 hourly 桶差分; 白班线(如 Final C)
+  //   当天只有白班桶(480~1220分), 夜班边界查出来的都是同一个白班终值 → 每段差分=0 → 图全 0。
+  //   而旁边列表用 lines 实时值(curActual=942) → 有数。于是「图0、列表有数」永远对不上。
+  //   修复: 若该线 hourly 桶明显全是白班分钟 → 强制走白班的 DAY_SEGS(显示它当天白班完成产出)。
+  //   反之夜班线(桶含≥1230/跨凌晨)保持原样。两班都有的线(罕见)按当前点:
+  const _buckets = hourlyArrOf(name);
+  if (isNight && Array.isArray(_buckets) && _buckets.length) {
+    let hasNightBuck = false;
+    for (let _i = 0; _i < _buckets.length; _i++) {
+      const _m = snapMins(_buckets[_i]);
+      // ★ 2026-09-28 修正: 只有【有实际产出】且属夜班窗口的桶才算夜班覆盖。
+      //   凌晨占位桶(h=30..530, actual=0, 带d)只是数据端残留, 不是真夜班数据 → 不计,
+      //   否则白班线(如 Final C)会被误判成“有夜班桶”而不转白班(图依旧全0)。
+      const _v = Number(_buckets[_i].actual) || 0;
+      if (_v > 0 && (_m >= NIGHT_START || _m < NIGHT_END)) { hasNightBuck = true; break; }
+    }
+    if (!hasNightBuck) isNight = false; // 该线只有白班桶 → 用白班时段画(图不再空白)
+    // ★ 同步把班次判定 sc.shift 改成白班, 否则后续 manualPlanAtLine/hFinalCPlanAt 仍按夜班
+    //   算 plan(收到 shift='night' 去查夜班表) → 白班线目标会错/变0。
+    if (!isNight && sc.shift === "night") sc.shift = "day";
+  }
   const table = isNight ? NIGHT_SEGS : DAY_SEGS;
   const endCap = isNight ? NIGHT_END + 24 * 60 : DAY_END;
   // ★ 2026-09-02 v5.30 修复: 凌晨 0:00-8:00 属夜班次日, 夜班时段起点(1230+)全大于当前分钟数(0-480),
@@ -1853,6 +2092,12 @@ function segsOf(name, curActual, curPlan, curTarget) {
       ? (manual ? manualPlanAtLine(name, sc.shift, nowMins, manualTgt) : (Number(curPlan) || 0))
       : (manual ? manualPlanAtLine(name, sc.shift, t1, manualTgt) : valueAt(name, t1, true, off));
     let actual = a1 - a0, plan = p1 - p0;
+    // ★ 2026-09-27 停产线防假数(回退 valueAt 数据源后): valueAt 恢复消费 09-11 前半夜桶+白班桶后,
+    //   停产线(curActual===0)晚班实际可能被遗留桶差分出非零假数(用户原报"小时图有数/列表没数")。
+    //   处理: 只把「实际」归0(停产线本就无产出, 不画假实际柱), 但「目标」保留照常画出
+    //   (数据端的 plan 桶不含停产线每天的目标曲线, 应正常显示目标柱)。白班另有 isDayQry 桶匹配不受影响。
+    if (isNight && !(Number(curActual) > 0)) { actual = 0; }
+    // ★ 2026-09-14 修复: live(进行中)段负差
     // ★ 2026-09-14 修复: live(进行中)段负差 = lines 实时值与 hourly 定格桶计划/实际不同步
     //   旧逻辑兜底成 a1/p1(巨大值)把柱子撑爆/压扁。改为负差归 0(不撑爆)。
     const _liveSeg = t1 > cmpMins;
@@ -1907,6 +2152,17 @@ function isManualFLine(name) {
   const m = normName(name);
   return m === "motorfseries" || m === "motorf-series";
 }
+// ★ 2026-09-24 Final C 专属: 白班到 17:00(第1020分钟)累计目标=3000, 之后按相同速率推移到班末
+const FINAL_C_DAY_ANCHOR = 17 * 60;          // 白班锚点 17:00 (分钟)
+const FC_MANUAL_TARGET = 3000;              // Final C: 17:00 前 8.5H 目标 3000 (后推移)
+function isFinalCLine(name) {
+  return normName(name) === "finalcline";
+}
+// ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原比例拆分, 班末推满)
+function isPro4PinLine(name) {
+  const m = normName(name);
+  return m === "c-shaftpina" || m === "c-shftpinb";
+}
 // ★ 2026-09-23 推广: PRO1 的 S/F/H 三条系列统一用前端手工目标(不取原数据库目标),
 //   各线目标按各自 /11Hr 分摊到工作时间, 小时产出图分段由工时分摊自动保持正确。
 //   H=1800 / S=1600 / F=1500; Final 线仍取数据端 l.target(存在才启用)。
@@ -1914,6 +2170,14 @@ function manualLineTarget(name, dataTarget) {
   if (isManualHLine(name)) return H_MANUAL_TARGET;
   if (isManualSLine(name)) return S_MANUAL_TARGET;
   if (isManualFLine(name)) return F_MANUAL_TARGET;
+  // ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原目标比例拆分)
+  //   用户要求: 到班次结束两线合计目标=7000(方案A整班均摊, 班末推满); 本覆盖接管这两条线的 plan/target。
+  if (isPro4PinLine(name)) {
+    // 拆分比例来自当前数据端日目标(PinA=2880 / PinB=3030), 取整后合计恰为 7000
+    return normName(name) === "c-shaftpina" ? 3411 : 3589;
+  }
+  // ★ 2026-09-24 Final C: 白班到 17:00 目标累计 3000(专属锚点), 覆盖数据端目标
+  if (isFinalCLine(name)) return FC_MANUAL_TARGET;
   if (FINAL_SET.has(normName(name))) {
     const t = Number(dataTarget);
     return t > 0 ? t : 0;               // 无数据目标 → 不启用(不能用错误基准)
@@ -1980,12 +2244,39 @@ function hManualPlanAtOld(shift, t, target) {
   }
   return Math.round(cum + ot);
 }
+// ★ 2026-09-24 Final C 专属曲线: 白班到 17:00(第1020分钟)累计目标=3000, 之后按相同速率推移到班末。
+//   速率 = 3000 / (17:00 前的工作分钟数); 17:00 后继续以同速率累加(不再停在 3000, 而是推满班末)。
+//   夜班仍用通用 old 锚点逻辑(加班起点 5:50 推满 + 推移), 目标同为 3000。
+function hFinalCPlanAt(shift, t, target) {
+  const TGT = target || FC_MANUAL_TARGET;
+  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
+  if (shift === "night") {
+    // 夜班: 复用 old 锚点(5:50 加班起点推满 3000 + 之后推移)
+    return hManualPlanAtOld(shift, t, TGT);
+  }
+  const anchor = FINAL_C_DAY_ANCHOR;              // 1700
+  let nm = 0;                                     // 17:00 前的工作分钟
+  for (const [t0, t1] of table) {
+    if (t0 >= anchor) break;
+    nm += Math.min(t1, anchor) - t0;
+  }
+  const pace = TGT / (nm || 1);
+  let cum = 0;
+  for (const [t0, t1] of table) {
+    if (t0 >= t) break;
+    const e = Math.min(t, t1);
+    if (e > t0) cum += (e - t0) * pace;
+  }
+  return Math.round(cum);
+}
 // 按线选择手工目标分摊:
 //   H → 原逻辑(17:20推满=目标1500 + 加班按同速率推移)
 //   S/F → 方案A(整班均摊, 班末满目标) ; FINAL(默认) → 原逻辑(数据端目标, 不可受影响)。
 function manualPlanAtLine(name, shift, t, tgt) {
   if (isManualHLine(name)) return hManualPlanAtOld(shift, t, tgt);
   if (isManualSLine(name) || isManualFLine(name)) return hManualPlanAt(shift, t, tgt);
+  if (isPro4PinLine(name)) return hManualPlanAt(shift, t, tgt); // 方案A: 班末推满到目标(合计7000)
+  if (isFinalCLine(name)) return hFinalCPlanAt(shift, t, tgt); // Final C: 白班17:00锚定3000后推移
   return hManualPlanAtOld(shift, t, tgt);
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
@@ -2003,10 +2294,9 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   //   v6.2: drawable 判定改用 actual/plan 较大者, 否则纯超额段(actual≫plan)会因 plan/maxV 过小误判不可画
   const drawable = segs.some(function (s) { return (Math.max(s.plan || 0, s.actual || 0) / maxV) * ch >= 0.5; });
   if (!segs.length || !drawable) {
-    // 无分段数据: 纯色累计柱
+    // 无分段数据: 纯色累计柱 (2026-09-27 UI: 圆角渐变)
     const base = padT + ch - totalH;
-    ctx.fillStyle = color;
-    ctx.fillRect(cx, base, bw, totalH);
+    drawRoundedBar(ctx, cx, base, bw, totalH, key === "plan" ? "#e8b94e" : "#7cc4ff", key === "plan" ? "#c47f15" : "#2f78d6");
   } else {
     let yAcc = padT + ch;
     segs.forEach((s, idx) => {
@@ -2029,8 +2319,15 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       const vPix = Math.max(0, Math.min((v / maxV) * ch, perH));
       if (vPix > 0.5) {
         // v6.0: 加班段实际(蓝)也用金色系强调
-        ctx.fillStyle = s.ot ? (key === "plan" ? "#f0b93a" : "#2d7dff") : color;
-        ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
+        // ★ 2026-09-27 UI: 值柱改用垂直渐变+顶部圆角(浅顶深底) — 更精致的光泽质感, 语义色不变
+        if (s.ot) {
+          ctx.fillStyle = key === "plan" ? "#f0b93a" : "#2d7dff";
+          drawRoundedBar(ctx, cx, yAcc + perH - vPix, bw, vPix, key === "plan" ? "#f6c95f" : "#55a3ff", key === "plan" ? "#d8961f" : "#2257b5");
+        } else if (key === "plan") {
+          drawRoundedBar(ctx, cx, yAcc + perH - vPix, bw, vPix, "#e8b94e", "#c47f15");
+        } else {
+          drawRoundedBar(ctx, cx, yAcc + perH - vPix, bw, vPix, "#7cc4ff", "#2f78d6");
+        }
       } else if (s.ot) {
         // 加班段且该段无达成量: 铺一层金色浅底以示仍在加班窗口
         ctx.fillStyle = "rgba(240,169,58,.30)";
@@ -2052,60 +2349,66 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.strokeStyle = "rgba(88,166,255,.20)"; ctx.lineWidth = 3;
         ctx.strokeRect(cx - 0.5, yAcc - 0.5, bw + 1, perH + 1);
       }
-      // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
-      //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
+      // ★ 2026-09-28 柱内数据标签: 去黑色描边, 改「白+极淡影」加粗黑体数字 —
+      //   远看清晰不廉价, 浅色柱上也保有基础对比; 加粗黑体权重保证大屏可读
       ctx.textAlign = "center";
       const valTxt = String(Math.round(v));
       const hNo = s.lab;
-      // ★ 字体随段高自适应: 段越矮字越小, 避免第8段后文字放不下
-      const fBig = perH >= 26 ? 10 : perH >= 20 ? 9 : perH >= 15 ? 8 : perH >= 11 ? 7.5 : 7;
+      const fBig = perH >= 26 ? 11 : perH >= 20 ? 10 : perH >= 15 ? 9 : perH >= 11 ? 8.5 : 7.5;
       const fSml = Math.max(6.5, fBig - 1);
+      // 纯 fillText(无描边), 白加粗 + 极淡投影提对比; 色阶白作为基准, 语义不靠柱内色
+      const L = function (txt, x, y, f, c) {
+        ctx.font = f; ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+        ctx.fillStyle = c; ctx.fillText(txt, x, y);
+        ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      };
       if (s.base || s.pm) {
-        // 上午/下午/前半夜 累计段: 灰底 + 标签 + 数值
         const lbl = s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am"));
         if (perH >= 14) {
-          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(lbl, cx + bw / 2, yAcc + perH / 2 - 3);
-          ctx.fillStyle = "#e6edf3"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+          L(lbl, cx + bw / 2, yAcc + perH / 2 - 3, fSml + "px sans-serif", "#bfd0e4");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
         } else if (perH >= 8) {
-          ctx.fillStyle = "#8b949e"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
         }
       } else if (s.live) {
-        // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
         if (perH >= 14 && hNo != null) {
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
-          ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+          L(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1, fSml + "px sans-serif", "#dfe7f2");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
         } else if (perH >= 8) {
-          ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
         }
       } else {
         if (perH >= 16 && hNo != null) {
-          // 段高足够: 两行 — 编号 + 数值 (v5.32: 编号改纯白, 深底上更清晰)
-          ctx.fillStyle = "#ffffff"; ctx.font = fSml + "px sans-serif";
-          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+          L(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1, fSml + "px sans-serif", "#bfd0e4");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
         } else if (perH >= 9) {
-          // 段高一般: 只写数值
-          ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
-          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
         }
       }
     });
-  }
   if (totalH > 0) {
-    // 计划与实际总数必须在同一条基准线上，统一放在两根柱的共同顶部外侧。
-    // 这样标签表达的是一组对比，而不是把实际总产出误读成柱内分段数据。
-    let actualPix = 0, planPix = 0;
-    segs.forEach(x => { actualPix += Math.max(0, (x.actual || 0) / maxV * ch); planPix += Math.max(0, (x.plan || 0) / maxV * ch); });
-    const pairTopY = padT + ch - Math.max(actualPix, planPix);
-    ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-    ctx.fillText(fmt(total), cx + bw / 2, pairTopY - 14);
+    // ⭐ 2026-09-28 顶部总和标签 V2: 绑到柱子「真实可视化顶部」topY(=padT+ch-skelPix,
+    //   柱体骨架累计同源), 永远画在柱顶正上方固定间距, 跟随柱子动态成长
+    //   (数据更新→柱顶变化→标签同步上移/下移)。不再用 old 的 pairTopY(sum of 实际/计划 pix)
+    //   那种与柱体顶不一致的基准 — 那会把标签算进柱体内造成重叠。
+    //   柱顶之上若超出绘图区上缘(padT), 则落在 padT 上方的空白留白区(画布顶 legend 之下),
+    //   仍不触柱体; 唯一硬钳制是文字不越过画布顶端(留 3px)。
+    // ⭐ 2026-09-28 顶部总和标签 V3: 锚定真实柱顶 + 4位数自适应缩字号(防相邻柱标签碰撞)
+    ctx.textAlign = "center";
+    const labelTxt = fmt(total);
+    // 可用宽度 = 柱宽(bw) 的 90%; 4位数/宽标签时从 11px 逐级降到 7px, 避免与相邻柱/线体标签碰撞
+    const capW = Math.max(14, bw * 0.9);
+    let lfs = 11;
+    ctx.font = "bold " + lfs + "px sans-serif";
+    while (lfs > 7 && ctx.measureText(labelTxt).width > capW) { lfs -= 0.5; ctx.font = "bold " + lfs + "px sans-serif"; }
+    let lblY = topY - 9;                       // 柱顶正上方 9px
+    if (lblY - 11 < 3) lblY = 3 + 11;          // 大多数超出柱顶时仍保证文字头部在画布内
+    if (lblY > padT + ch - 4) lblY = padT + ch - 4; // 兜底: 不越过绘图区下缘
+    ctx.shadowColor = "rgba(0,0,0,.7)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.fillStyle = color; ctx.fillText(labelTxt, cx + bw / 2, lblY);
+    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  }
   }
 }
 
@@ -2213,11 +2516,24 @@ function drawBar(main) {
       const pCum = l.plan || 0;
       const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
       drawRoundedBar(ctx, cx + 1.5, padT + ch - pH, bw, pH, "#e4b44b", "#b87912");
-      ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
-      const pairTop = padT + ch - Math.max(aH, pH);
-      if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, pairTop - 14);
+      ctx.fillStyle = "#58a6ff"; ctx.textAlign = "center";
+      const pairTop = padT + ch - Math.max(aH, pH);   // 两短柱共同最高顶(真实柱顶)
+      // ⭐ 2026-09-28 顶部总和标签 V3 (非分段): 绑真实柱顶 + 4位数自适应缩字号, 不钻柱体不碰撞
+      let tLy = pairTop - 8;
+      if (tLy - 10 < 3) tLy = 3 + 10;
+      if (tLy > padT + ch - 4) tLy = padT + ch - 4;
+      // 实际柱标签字号: 按柱宽 bw 自适应(相接右侧还有计划柱, 超宽会碰撞)
+      const aTxt = fmt(l.actual);
+      let afs = 9; ctx.font = "bold " + afs + "px sans-serif";
+      while (afs > 6.5 && ctx.measureText(aTxt).width > bw * 0.9) { afs -= 0.5; ctx.font = "bold " + afs + "px sans-serif"; }
+      ctx.shadowColor = "rgba(0,0,0,.6)"; ctx.shadowBlur = 2; ctx.shadowOffsetY = 1;
+      if (aH > 0) ctx.fillText(aTxt, cx - bw - 1.5 + bw / 2, tLy);
       ctx.fillStyle = "#d29922";
-      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, pairTop - 14);
+      const pTxt = fmt(pCum);
+      let pfs = 9; ctx.font = "bold " + pfs + "px sans-serif";
+      while (pfs > 6.5 && ctx.measureText(pTxt).width > bw * 0.9) { pfs -= 0.5; ctx.font = "bold " + pfs + "px sans-serif"; }
+      if (pH > 0) ctx.fillText(pTxt, cx + 1.5 + bw / 2, tLy);
+      ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
     }
     // ★ 2026-09-04: 线体名加粗提亮 (与主表加粗风格一致)
     // ★ 2026-09-04 12:31: 名称自适应 — PRO4 多线体时槽宽窄, 固定 11px 会重叠/挤出。
@@ -4082,6 +4398,132 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 </script>
 <!-- 版本浮层: 确认当前加载的版本 (防缓存混淆) -->
 <button id="restoreModsBtn" onclick="resetModuleLayout()" title="显示被折叠的模块" style="position:fixed;right:8px;bottom:26px;z-index:99999;font-size:10px;color:#9aa7b8;background:rgba(18,24,34,.75);border:1px solid #2a3444;border-radius:8px;padding:2px 8px;cursor:pointer;opacity:.6;display:none">🔁 恢复模块</button>
+
+<!-- ★ 2026-09-28 背景动效 (纯 canvas): 深海极光式光场 — 多柔光大光斑围绕锚点多频正弦呼吸漂移,
+     互相浸染成缓慢涌动的液态光场。★ 2026-09-28 性能自适应: 分4档自动降级, 低性能设备也能流畅 --->
+<script>
+(function () {
+  // ★ 2026-09-28 性能档位: 依据屏幕尺寸/DPR/硬件并发线程自适应, 低档自动减光斑/降DPR/降fps/去叠加
+  //   高档: 6斑 DPR1.5 24fps | 中: 4斑 DPR1 15fps | 低: 3斑 DPR1 10fps 无lighter | 极低: 静态一帧
+  var HW = (navigator.hardwareConcurrency || 8);
+  var DPRn = (window.devicePixelRatio || 1);
+  var BIG_SCREEN = (window.screen && window.screen.width >= 1900);
+  var tier; var cfg;
+  function pickTier() {
+    // 判断基准: 设备像素比高+屏幕大+线程多 = 强; 反之弱
+    var score = (DPRn >= 2 ? 3 : (DPRn >= 1.5 ? 2 : 1)) + (BIG_SCREEN ? 2 : 0) + (HW >= 8 ? 2 : (HW >= 4 ? 1 : 0));
+    if (score >= 6)      { tier = 0; cfg = { n: 6, dpr: 1.5, fps: 24, lighter: true }; }
+    else if (score >= 4) { tier = 1; cfg = { n: 4, dpr: 1,   fps: 15, lighter: true }; }
+    else if (score >= 2) { tier = 2; cfg = { n: 3, dpr: 1,   fps: 10, lighter: false }; }
+    else                 { tier = 3; cfg = { n: 0, dpr: 1,   fps: 0,  lighter: false }; } // 极低: 静态
+  }
+  pickTier();
+  function initFlow() {
+    var cv = document.getElementById('bg-flow');
+    if (!cv) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { tier = 3; cfg = { n: 0, dpr: 1, fps: 0, lighter: false }; }
+    startFlow(cv);
+  }
+  function startFlow(cv) {
+    var ctx = cv.getContext('2d');
+    if (!ctx) return;
+    var W, H, DPR, bands = [];
+    var HUES = [210, 220, 232];
+    function resize() {
+      DPR = Math.min(cfg.dpr, window.devicePixelRatio || 1);
+      W = window.innerWidth; H = window.innerHeight;
+      cv.width = W * DPR; cv.height = H * DPR;
+      cv.style.width = W + 'px'; cv.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      build();
+    }
+    function build() {
+      bands = [];
+      var n = tier === 3 ? 2 : cfg.n; // 极低档放2个静态光斑(仍有点层次, 但完全不gif动)
+      for (var i = 0; i < n; i++) {
+        bands.push({
+          ax: Math.random() * W, ay: H * (0.12 + Math.random() * 0.76),
+          r: Math.max(W, H) * (0.24 + Math.random() * 0.2),
+          stretch: 0.7 + Math.random() * 1.3,
+          f1: 0.05 + Math.random() * 0.05, amp1x: 18 + Math.random() * 28, amp1y: 10 + Math.random() * 16,
+          f2: 0.11 + Math.random() * 0.09, amp2x: 6 + Math.random() * 9,  amp2y: 5 + Math.random() * 8,
+          p1: Math.random() * 6.28, p2: Math.random() * 6.28,
+          a: 0.05 + Math.random() * 0.06,
+          hue: HUES[Math.floor(Math.random() * HUES.length)]
+        });
+      }
+    }
+    var lastT = 0; var frameCount = 0; var fpsAccum = 0; var dropTally = 0; var degraded = false;
+    var frameStart = Date.now();
+    function frame(now) {
+      if (document.hidden) { requestAnimationFrame(frame); return; }
+      var interval = cfg.fps ? (1000 / cfg.fps) : 1e9;  // fps=0(极低) → 只画第一帧后静止
+      if (now - lastT < interval) { requestAnimationFrame(frame); return; }
+      // ★ 运行中自调优: 若持续严重掉帧(实际fps远低于目标) → 自动再降一级(至多降到静态)
+      lastT = now; frameCount++;
+      if (now - frameStart >= 5000 && tier < 3) {
+        var actual = frameCount * 1000 / (now - frameStart);
+        if (actual < Math.min(cfg.fps - 3, cfg.fps * 0.45)) dropTally++;
+        else dropTally = 0;
+        frameStart = now; frameCount = 0;
+        if (dropTally >= 2) {
+          degradeOnce(); // 连续两次检测都是严重掉帧 → 降级
+        }
+      }
+      ctx.clearRect(0, 0, W, H);
+      var t = now / 1000;
+      if (cfg.lighter) ctx.globalCompositeOperation = 'lighter';
+      for (var i = 0; i < bands.length; i++) {
+        var b = bands[i];
+        var x = b.ax + Math.sin(t * b.f1 + b.p1) * b.amp1x + Math.sin(t * b.f2 + b.p2) * b.amp2x;
+        var y = b.ay + Math.cos(t * b.f1 * 0.8 + b.p1) * b.amp1y + Math.sin(t * b.f2 * 0.9 + b.p2) * b.amp2y;
+        ctx.save(); ctx.translate(x, y); ctx.scale(b.stretch, 1);
+        var g = ctx.createRadialGradient(0, 0, 0, 0, 0, b.r);
+        var breath = 0.75 + 0.25 * Math.sin(t * 0.1 + i * 1.7);
+        g.addColorStop(0, 'hsla(' + b.hue + ',60%,' + (60 + breath * 10) + '%,' + (b.a * breath) + ')');
+        g.addColorStop(0.55, 'hsla(' + b.hue + ',54%,45%,' + (b.a * 0.5 * breath) + ')');
+        g.addColorStop(1, 'hsla(' + b.hue + ',48%,34%,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(-b.r * 1.4, -b.r * 1.4, b.r * 2.8, b.r * 2.8);
+        ctx.restore();
+      }
+      ctx.globalCompositeOperation = 'source-over';
+      if (cfg.fps) requestAnimationFrame(frame);
+    }
+    function degradeOnce() {
+      if (tier >= 3) return;
+      tier++; // 0->1->2->3
+      if (tier === 1)      { cfg = { n: 4, dpr: 1, fps: 15, lighter: true }; }
+      else if (tier === 2) { cfg = { n: 3, dpr: 1, fps: 10, lighter: false }; }
+      else                 { cfg = { n: 0, dpr: 1, fps: 0, lighter: false }; } // 降到静态(光斑保留, 不再动)
+      dropTally = 0;
+      build();
+    }
+    window.addEventListener('resize', function () { resize(); });
+    resize();
+    // 极低档: 直接画一帧静态后停止动画(不进入带时间闸的 frame, 避免被 interval 闸住空白)
+    if (cfg.fps === 0) {
+      ctx.clearRect(0, 0, W, H);
+      var tt = 0;
+      for (var si = 0; si < bands.length; si++) {
+        var sb = bands[si];
+        ctx.save(); ctx.translate(sb.ax, sb.ay); ctx.scale(sb.stretch, 1);
+        var sg = ctx.createRadialGradient(0, 0, 0, 0, 0, sb.r);
+        sg.addColorStop(0, 'hsla(' + sb.hue + ',60%,64%,' + (sb.a * 0.85) + ')');
+        sg.addColorStop(0.55, 'hsla(' + sb.hue + ',54%,45%,' + (sb.a * 0.5) + ')');
+        sg.addColorStop(1, 'hsla(' + sb.hue + ',48%,34%,0)');
+        ctx.fillStyle = sg;
+        ctx.fillRect(-sb.r * 1.4, -sb.r * 1.4, sb.r * 2.8, sb.r * 2.8);
+        ctx.restore();
+      }
+      return;
+    }
+    requestAnimationFrame(frame);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFlow);
+  else initFlow();
+})();
+</script>
 </body>
 <!-- 2026-09-06: 静态历史经营分析模块 + 车间产出分析独立页 -->
 <script src="analysis-history.js?v=20260911aiarchive2"></script>
@@ -4094,8 +4536,14 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <script src="ai-widget.js?v=20260920nostream"></script>
 <!-- ★ 2026-09-03 v6.4 PWA: 添加到主屏幕后全屏独立运行, 效果同 App; SW 网络优先, 不缓存 Firebase 数据 -->
 <script>
+// ★ 2026-09-28 缓存自检: 若页面是从旧 SW 缓存壳(缺停滞/横幅功能)加载 → 自动清缓存并刷新, 避免“大屏有、电脑没有”的版本不一致。
+if (typeof isStalled !== "function" ) {
+  try { if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }); } catch (e) {}
+  try { if (window.caches) caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); }); } catch (e) {}
+  location.reload();
+}
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20260908archivev2').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20260928stallfix').catch(function () {});
 }
 </script>
 </html>
