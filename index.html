@@ -141,6 +141,13 @@
   /* 作战模式垂直 3:2 分配: 原看板占 60% (3/5) + 新增模块占 40% (2/5), 固定比例不挤压 */
   body.battle-mode #pages-wrap { flex: 0 0 66%; }
   body.battle-mode #extra-modules { flex: 0 0 34%; min-height: 0; margin-top: 6px; }
+  /* ★ 2026-09-30 用户要求: 基础(daily)页面也要显示 📈 Rate Trend — 只露 mod-trend, 隐藏另两模块与拖拽手柄 */
+  body:not(.battle-mode) #pages-wrap { flex: 0 0 68%; }
+  body:not(.battle-mode) #extra-modules { flex: 0 0 32%; min-height: 0; margin-top: 6px; }
+  body:not(.battle-mode) #extra-modules #mod-attendance,
+  body:not(.battle-mode) #extra-modules #mod-problems,
+  body:not(.battle-mode) #extra-modules .trend-handle { display: none !important; }
+  body:not(.battle-mode) #extra-modules #mod-trend { flex: 1 1 100%; width: 100%; min-height: 0; }
   /* 出勤窄条: 最左, 占底部行宽 1/5 最多 (20%), 可拖拽改宽 */
   .att-narrow { width: 20%; min-width: 150px; max-width: 220px; flex: 0 0 20%; min-height: 0; }
   .att-narrow .ex-body { display: flex; flex-direction: column; gap: 3px; }
@@ -3354,7 +3361,10 @@ function applyScale() {
   document.body.classList.toggle("battle-mode", battle);
   // ② 扩展模块区显隐
   const extra = document.getElementById("extra-modules");
-  if (extra) extra.style.display = battle ? "flex" : "none";
+  // ★ 2026-09-30: 基础模式也要显示 📈 Rate Trend → 两种模式都露出 extra-modules;
+  //   基础模式仅保留 mod-trend（出勤/问题/拖拽由 CSS 隐藏），详情模式三列全显 (CSS 控制)
+  if (extra) extra.style.display = "flex";
+  document.body.classList.toggle("daily-trend", !battle);
   const modeBtn = document.getElementById("modeBtn");
   if (modeBtn) modeBtn.textContent = battle ? t("modeDaily") : t("modeDetail");
   // ★ 2026-09-04 UPPH 效率图已删除, 小时产出图独占图表空间; 不再需要隐藏逻辑
@@ -3384,7 +3394,9 @@ function setViewMode(mode) {
   viewMode = mode;
   try { localStorage.setItem(EXTRA_VIEW_KEY, mode); } catch (e) {}
   const extra = document.getElementById("extra-modules");
-  if (extra) extra.style.display = (mode === "battle") ? "flex" : "none";
+  // ★ 2026-09-30: 基础模式也要显示 Rate Trend → 两模式都露 extra-modules(容器), 露哪些模块由 CSS 控制;
+  //   基础只露 mod-trend, 详情三列全显
+  if (extra) extra.style.display = "flex";
   // 注意: 不再单独调 applyScale —— renderExtra() 内部已调用, 避免双重 rAF 重绘闪烁
   renderExtra();
 }
