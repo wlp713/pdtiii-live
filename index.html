@@ -253,6 +253,12 @@
   }
   .ex-card:hover { border-color: rgba(120,200,255,.22); }
   #pages-wrap .chart-box { border-radius: 10px; }
+  /* ★ 2026-09-30 基础(daily)页专属 Rate Trend: 右栏小时图下方, 宽度对齐; 详情/作战页隐藏此副本(仍用底部 mod-trend), 两边互不影响 */
+  body.battle-mode #mod-trend-base { display: none !important; }
+  body:not(.battle-mode) #pages-wrap .chart-col .chart-box { flex: 1 1 60%; }
+  body:not(.battle-mode) #mod-trend-base { flex: 0 0 40%; }
+  #mod-trend-base #chartTrendBase { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; padding: 2px; }
+
   #pages-wrap #chartBar { filter: drop-shadow(0 3px 5px rgba(0,0,0,.16)); }
   .ex-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
   .ex-card-head h2 { font-size: 13px; color: var(--white); font-weight: 700; letter-spacing: .5px; }
@@ -790,6 +796,23 @@
         <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><span class="lg-gap" data-i18n="lgGap">Shortfall 欠产缺口</span><span class="lg-over" data-i18n="lgOver">Overtarget 超额</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label></div>
         <canvas id="chartBar"></canvas>
       </div>
+      <!-- ★ 2026-09-30 基础(daily)页专属: 📈 Rate Trend -- 位于小时产出图下方(右栏), 宽度与小时图对齐; 仅基础模式显示; 详情/作战页仍用底部 extra 的 mod-trend, 两者互不影响 -->
+      <section id="mod-trend-base" class="ex-card trend-wide">
+        <div class="ex-card-head">
+          <h2><span id="trendTitleTextBase">📈 达成率趋势分析</span></h2>
+          <div class="ex-src" id="trend-src-base" data-i18n="srcSnapshot">SRC: 每日17:00快照</div>
+          <button class="ex-collapse" onclick="toggleModuleBase()" data-i18n-title="collapseTitle">—</button>
+        </div>
+        <button class="ex-expand" onclick="openDetail('trend')" title="⛶ 查看详细趋势图" data-i18n-title="expandTrend">⛶</button>
+        <div class="ex-body">
+          <div id="trendModeBarBase" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
+            <button class="ex-btn trend-mode-btn" id="trendModeRateBtnBase" onclick="setTrendMode('rate')" style="font-size:10px;padding:1px 8px">📊 达成率</button>
+            <button class="ex-btn trend-mode-btn" id="trendModeFirstBtnBase" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时</button>
+            <span id="trendModeHintBase" style="font-size:9px;color:var(--gray)"></span>
+          </div>
+          <div id="chartTrendBase"></div>
+        </div>
+      </section>
     </div>
   </div>
 </div>
@@ -3400,6 +3423,16 @@ function toggleModule(id) {
   syncRestoreBtn();
   applyScale();
 }
+// 基础页专属趋势块 折叠/展开 (只影响 #mod-trend-base, 不影响详情页底部 mod-trend)
+function toggleModuleBase() {
+  const el = document.getElementById("mod-trend-base");
+  const body = el ? el.querySelector(".ex-body") : null;
+  const btn = el ? el.querySelector(".ex-collapse") : null;
+  if (!el || !body) return;
+  const hidden = body.style.display === "none";
+  body.style.display = hidden ? "" : "none";
+  if (btn) btn.textContent = hidden ? "＋" : "—";
+}
 // 右下角浮动恢复按钮: 有模块被折叠才显示 (fixed 不占布局)
 function syncRestoreBtn() {
   const b = document.getElementById("restoreModsBtn");
@@ -3695,6 +3728,19 @@ function renderTrend() {
   // 顶部按钮行已移除 (2026-08-21): 卡片自身可点击切换, 省出高度给卡片放大
   if (wrap) wrap.innerHTML = "";
   drawTrend();
+  // ★ 2026-09-30 基础页专属副本同步 (仅基础模式显示; 详情页用底部 mod-trend, 不受影响)
+  const bwrap = document.getElementById("chartTrendBase");
+  if (bwrap) {
+    const bttl = document.getElementById("trendTitleTextBase");
+    if (bttl && ttl) bttl.textContent = ttl.textContent;
+    const brb = document.getElementById("trendModeRateBtnBase");
+    const bfb = document.getElementById("trendModeFirstBtnBase");
+    if (brb) brb.style.background = trendMode === "rate" ? "var(--accent)" : "";
+    if (bfb) bfb.style.background = trendMode === "first" ? "var(--accent)" : "";
+    const bh = document.getElementById("trendModeHintBase");
+    if (bh && hint) bh.textContent = hint.textContent;
+    drawTrend("chartTrendBase");
+  }
 }
 function toggleTrendLine(el) {
   const n = el.getAttribute("data-line");
@@ -3713,8 +3759,8 @@ function closeLineDetail() {
   closeDetail();
 }
 // 折线图绘制: 改为 sparkline 卡片网格 (2026-08-21 用户要求: 线太多靠颜色区分吃力 → 每条线独立小卡, 标题+最新值+升降箭头+迷你折线, 趋势一目了然)
-function drawTrend() {
-  const wrap = document.getElementById("chartTrend");
+function drawTrend(cid) {
+  const wrap = document.getElementById(cid || "chartTrend");
   const hist = getTrendHist();
   if (!wrap) return;
   const days = hist.slice(-7); // ★ 2026-08-28: 最多显示最近7天趋势
