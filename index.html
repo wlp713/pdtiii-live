@@ -4413,7 +4413,25 @@ Object.keys(collapseMap).forEach(id => {
 // 初始化: 模式显示 + 渲染 + 定时刷新
 setViewMode(viewMode);
 initTrendResize();
-window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); try { scheduleFitMainTable(); } catch (e) {} });
+// ★ 2026-10-02 resize 统一调度: rAF 合并同帧多次 resize → 一帧算一次布局
+//   (拖动窗口时 resize 高频触发, 原逻辑每次同步算 applyScale+syncHandlePos+行高, 弱设备会卡)
+let _viewportRaf = 0;
+function onViewportChange() {
+  if (_viewportRaf) return;   // 同帧已排队, 忽略后续事件
+  _viewportRaf = requestAnimationFrame(function () {
+    _viewportRaf = 0;
+    if (typeof applyScale === "function") { try { applyScale(); } catch (e) {} }
+    if (typeof syncHandlePos === "function") { try { syncHandlePos(); } catch (e) {} }
+    try { scheduleFitMainTable(); } catch (e) {}
+  });
+}
+window.addEventListener("resize", onViewportChange);
+// ★ 2026-10-02 网络恢复自动刷新: 页面开着、断网→恢复(未切前台)时不再干等最长5分钟 reloadLiveData
+if (typeof window.addEventListener === "function") {
+  window.addEventListener("online", function () {
+    try { if (typeof refresh === "function") { refresh(); scheduleNextRefresh(); } } catch (e) {}
+  });
+}
 // ★ 2026-09-04 10:40: ResizeObserver 兜底 —— 模式切换/模块折叠/缩放/全屏等不影响 window.resize 的
 //   布局变化, 只要 .table-scroll 尺寸变了就自动重算行高, 保证任何分辨率/任何布局都铺满
 (function () {
