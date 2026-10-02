@@ -1546,10 +1546,14 @@ function fitMainTable() {
   const baseHeight = canFill ? Math.floor(available / count) : minHeight;
   // 除不尽时的剩余像素: 前 remainder 行各多 1px, 避免底部细缝
   const remainder = canFill ? available - baseHeight * count : 0;
-  // ★ 2026-09-04 闪烁优化: 幂等跳过 — 行数+可用高没变时行高已正确, 不再重设
-  //   (行复用 diff 后行节点/内联高度保留; 每 10s 刷新无谓重设会触发重排/闪烁)
-  if (fitMainTable._sig === count + "x" + available) return;
-  fitMainTable._sig = count + "x" + available;
+  // ★ 2026-10-02 幂等判断改为「实际铺满度」而非比对 _sig(count+available):
+  //   原 _sig 缓存(行数+可用高)在『详情↔基础』来回切换/PRO2R 整表重建时残留旧值:
+  //   容器瞬时被测小→按小 available 把行设紧凑→_sig 记录该紧凑值→此后不再重算(即用户看到的"自动收缩成紧凑行距、下方大片空白")。
+  //   新逻辑累加每行 getBoundingClientRect().height 得实际行总高, 与当前容器实测可用高比:
+  //   |实际总高 − available| ≤ 2px 才跳过; 否则立即按当前实测重算铺满 → 任何瞬态收缩下一拍自动纠正、零闪烁。
+  let totalPx = 0;
+  for (let di = 0; di < count; di++) { totalPx += rows[di].getBoundingClientRect().height; }
+  if (Math.abs(totalPx - available) <= 2) return;   // 已铺满(容差2px)→零改动零闪烁; 否则下方强制重算铺满
   rows.forEach(function (row, index) {
     const h = baseHeight + (index < remainder ? 1 : 0);
     row.style.height = h + "px";
@@ -1559,11 +1563,17 @@ function fitMainTable() {
 
 // ★ 2026-09-04 10:40: 统一调度入口(防抖 rAF), 任何布局变化后调用一次即可
 let _fitTableFrame = 0;
+let _fitTableTimer = 0;
 function scheduleFitMainTable() {
   cancelAnimationFrame(_fitTableFrame);
+  if (_fitTableTimer) { clearTimeout(_fitTableTimer); _fitTableTimer = 0; }
   _fitTableFrame = requestAnimationFrame(function () {
     // 双 rAF: 第一帧让布局变化(模式切换/折叠/flex)生效, 第二帧拿到新容器高度再均分
     requestAnimationFrame(function () { fitMainTable(); });
+    // ★ 2026-10-02 兜底: 模式切换后表格重排可能滞后于 rAF(扩展模块 display 切换 + flex 重排),
+    //   再加一次延迟重算, 确保『切回基础模式』时容器高度已归位、行高真正铺满;
+    //   配合上面的 DOM 实况核对, 已铺满时二次调用零改动、无闪烁。
+    _fitTableTimer = setTimeout(function () { fitMainTable(); }, 120);
   });
 }
 
@@ -4415,6 +4425,10 @@ window.addEventListener("resize", function(){ applyScale(); syncHandlePos(); try
   }
 })();
 setInterval(renderExtra, 60000);
+// ★ 2026-10-02 兜底自愈(真正写入): 每 5s 校准一次数据表行高铺满。
+//   即便 refresh 在休息/后台暂停、ResizeObserver 因尺寸未变而不触发、或某次重建瞬时测小,
+//   fitMainTable 的「实际铺满度」判断也会在下一拍把行拉回铺满; 已铺满时提前 return, 零开销零闪烁。
+setInterval(function () { try { fitMainTable(); } catch (e) {} }, 5000);
 attSyncFromRemote(); // 2026-08-21: 页面加载即拉取云端出勤 (跨端同步)
 setInterval(attSyncFromRemote, 7200000); // 每2小时同步一次 (2026-08-21 11:46 用户要求: 60s太浪费资源)
 // ★ 每日17:00自动快照 (页面开着时): 检查是否到17:00且今天未快照过
