@@ -121,6 +121,17 @@
     .kpi, .panel { transition: border-color .18s; }
     .kpi .value { text-shadow: none; }
   }
+  /* ★ 2026-10-01 低性能模式: 老旧设备卡顿主因是『静态但昂贵的GPU重绘』——
+     全屏 blur(130px) 光斑 + backdrop-filter 毛玻璃 + KPI 文字发光 + 层级阴影。
+     不『动』但每次数据轮询/重渲染都整屏重绘, 弱GPU(iGPU)负荷大。
+     body.low-perf 全部砍掉: 只留纯底色, 数据可读性不变, 性能明显提升。
+     触发: 弱设备自动 / prefers-reduced-motion / ?low=1 或 localStorage pdt_lowperf=1 */
+  body.low-perf #bg-aurora::before, body.low-perf #bg-aurora::after,
+  body.low-perf #bg-aurora i { display: none !important; }
+  body.low-perf #bg-aurora { background: transparent; }
+  body.low-perf * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  body.low-perf .kpi .value { text-shadow: none !important; }
+  body.low-perf .panel, body.low-perf .kpi { box-shadow: none !important; }
   /* ★ 画布容器 (v4 纯响应式): 占满视口, 永不滚动
      日常模式=仅原看板; 作战模式=原看板+扩展模块, flex按比例分配空间 */
   #scale-stage {
@@ -2201,9 +2212,9 @@ function isManualFLine(name) {
   const m = normName(name);
   return m === "motorfseries" || m === "motorf-series";
 }
-// ★ 2026-09-24 Final C 专属: 白班到 17:00(第1020分钟)累计目标=3000, 之后按相同速率推移到班末
+// ★ 2026-09-24 Final C 专属: 白班到 17:00(第1020分钟)累计目标=3400, 之后按相同速率推移到班末
 const FINAL_C_DAY_ANCHOR = 17 * 60;          // 白班锚点 17:00 (分钟)
-const FC_MANUAL_TARGET = 3000;              // Final C: 17:00 前 8.5H 目标 3000 (后推移)
+const FC_MANUAL_TARGET = 3400;              // Final C: 17:00 前 8.5H 目标 3400 (后推移)
 function isFinalCLine(name) {
   return normName(name) === "finalcline";
 }
@@ -2225,7 +2236,7 @@ function manualLineTarget(name, dataTarget) {
     // 拆分比例来自当前数据端日目标(PinA=2880 / PinB=3030), 取整后合计恰为 7000
     return normName(name) === "c-shaftpina" ? 3411 : 3589;
   }
-  // ★ 2026-09-24 Final C: 白班到 17:00 目标累计 3000(专属锚点), 覆盖数据端目标
+  // ★ 2026-09-24 Final C: 白班到 17:00 目标累计 3400(专属锚点), 覆盖数据端目标
   if (isFinalCLine(name)) return FC_MANUAL_TARGET;
   if (FINAL_SET.has(normName(name))) {
     const t = Number(dataTarget);
@@ -2293,14 +2304,14 @@ function hManualPlanAtOld(shift, t, target) {
   }
   return Math.round(cum + ot);
 }
-// ★ 2026-09-24 Final C 专属曲线: 白班到 17:00(第1020分钟)累计目标=3000, 之后按相同速率推移到班末。
-//   速率 = 3000 / (17:00 前的工作分钟数); 17:00 后继续以同速率累加(不再停在 3000, 而是推满班末)。
-//   夜班仍用通用 old 锚点逻辑(加班起点 5:50 推满 + 推移), 目标同为 3000。
+// ★ 2026-09-24 Final C 专属曲线: 白班到 17:00(第1020分钟)累计目标=3400, 之后按相同速率推移到班末。
+//   速率 = 3400 / (17:00 前的工作分钟数); 17:00 后继续以同速率累加(不再停在 3400, 而是推满班末)。
+//   夜班仍用通用 old 锚点逻辑(加班起点 5:50 推满 + 推移), 目标同为 3400。
 function hFinalCPlanAt(shift, t, target) {
   const TGT = target || FC_MANUAL_TARGET;
   const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
   if (shift === "night") {
-    // 夜班: 复用 old 锚点(5:50 加班起点推满 3000 + 之后推移)
+    // 夜班: 复用 old 锚点(5:50 加班起点推满 3400 + 之后推移)
     return hManualPlanAtOld(shift, t, TGT);
   }
   const anchor = FINAL_C_DAY_ANCHOR;              // 1700
@@ -2325,7 +2336,7 @@ function manualPlanAtLine(name, shift, t, tgt) {
   if (isManualHLine(name)) return hManualPlanAtOld(shift, t, tgt);
   if (isManualSLine(name) || isManualFLine(name)) return hManualPlanAt(shift, t, tgt);
   if (isPro4PinLine(name)) return hManualPlanAt(shift, t, tgt); // 方案A: 班末推满到目标(合计7000)
-  if (isFinalCLine(name)) return hFinalCPlanAt(shift, t, tgt); // Final C: 白班17:00锚定3000后推移
+  if (isFinalCLine(name)) return hFinalCPlanAt(shift, t, tgt); // Final C: 白班17:00锚定3400后推移
   return hManualPlanAtOld(shift, t, tgt);
 }
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
@@ -4616,6 +4627,25 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initFlow);
   else initFlow();
+})();
+</script>
+<script>
+/* ★ 2026-10-01 低性能模式开关 (无效化/默认关); 弱设备或用户偏好时自动开启 */
+(function () {
+  function applyLow(b) {
+    document.body.classList.toggle('low-perf', !!b);
+    try { localStorage.setItem('pdt_lowperf', b ? '1' : '0'); } catch (e) {}
+  }
+  try {
+    var q = new URLSearchParams(location.search).get('low');
+    if (q === '0') { applyLow(false); return; }
+    if (q === '1') { applyLow(true); return; }
+    if (localStorage.getItem('pdt_lowperf') === '1') { applyLow(true); return; }
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { applyLow(true); return; }
+    var HW = navigator.hardwareConcurrency || 4;
+    var DPR = window.devicePixelRatio || 1;
+    if (HW <= 4 || DPR < 1.5) { applyLow(true); }
+  } catch (e) {}
 })();
 </script>
 </body>
