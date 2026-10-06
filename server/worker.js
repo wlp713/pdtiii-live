@@ -295,12 +295,14 @@ export default {
       // ── 非流式兼容: 聚合 SSE → 完整 answer JSON ──
       const rawText = await difyRes.text();
       let parsed = parseSSE(rawText);
-      let note = rawCtx.length > CTX_LIMIT ? "产出数据上下文过长, 已自动截断" : "";
+      let note = "";
+      // 上下文截断属常规静默处理, 不进 note(否则每条回答都带提示很烦); 用字段标记备查
+      const ctxTrimmed = rawCtx.length > CTX_LIMIT;
       const j = (o) => new Response(JSON.stringify(o), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
 
-      if (parsed.answer) return j({ answer: parsed.answer, conversation_id: parsed.cid, note: note || undefined });
+      if (parsed.answer) return j({ answer: parsed.answer, conversation_id: parsed.cid, note: note || undefined, ctx_trimmed: ctxTrimmed || undefined });
 
       // 空回答: 命中 token 超限 → 逐级降级 (① 开新对话 ② 再压缩上下文), 尽量把答案救回来
       if (TOKEN_OVER.test(String(parsed.upErr || ""))) {
