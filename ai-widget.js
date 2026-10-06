@@ -820,6 +820,19 @@
   }
   function clearConvId() {
     try { localStorage.removeItem("aiWidget_convId"); } catch(e){}
+    try { localStorage.removeItem("aiWidget_convTurns"); } catch(e){}
+  }
+
+  /* ★ 2026-10-06 多轮历史会累积进上游每次请求(每轮都带 SYSPROMPT+上下文), 长了就 400「token 超上限」
+     → 本地记录轮数, 满 3 轮自动开新对话, 从源头少出现超限 */
+  var CONV_MAX_TURNS = 3;
+  function convTurns() { try { return parseInt(localStorage.getItem("aiWidget_convTurns") || "0", 10) || 0; } catch(e){ return 0; } }
+  function setConvTurns(n) { try { localStorage.setItem("aiWidget_convTurns", String(n)); } catch(e){} }
+  var CTX_MAX_CHARS = 12000;
+  function clipContext(s) {
+    s = String(s || "");
+    if (s.length <= CTX_MAX_CHARS) return s;
+    return s.slice(0, Math.round(CTX_MAX_CHARS * 0.7)) + "\n…（上下文过长已截断）…\n" + s.slice(-Math.round(CTX_MAX_CHARS * 0.3));
   }
 
   function askAI(query) {
@@ -835,17 +848,23 @@
   /* 实际调用代理 (转发到美的 Dify) */
   function doAsk(query, hcExtra, isRetry) {
     var ctx = "";
-    try { ctx = collectContext(query, hcExtra); }
+    try { ctx = clipContext(collectContext(query, hcExtra)); }
     catch (ctxErr) {
       // ★ 2026-10-06 上下文构建异常时降级提问, 绝不静默; 页面数据异常时仍能拿到 AI 回答
       ctx = "（页面上下文构建异常, 已按最小上下文提问: " + ((ctxErr && ctxErr.message) || ctxErr) + "）";
+    }
+    var convId = loadConvId();
+    var newConvNotice = "";
+    if (convId && convTurns() >= CONV_MAX_TURNS) {
+      // 轮数已达上限 → 主动开新对话, 避免上游「输入 token 超上限」400
+      clearConvId(); convId = ""; newConvNotice = "（对话轮数已达上限，已自动开启新对话，避免上游超限）\n\n";
     }
     var payload = {
       query: query,
       context: ctx,
       mode: "pdtiii_operations_diagnosis_v2",
       response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。当用户问及每日制程问题点时（上下文中的‘每日制程问题点日志’节），回答语言必须跟随提问语言：若用户用泰语提问，直接用日志中的泰语原文概括并作答；若用户用中文提问，则先把泰语原文翻译成中文再给出总结与分析。回答问题点倾向/归因时，依据‘按日×部门汇总’的条数和影响合计、结合泰语原文描述判断，优先统计影响数(impact)大和出现频次高的问题，不要臆造。当用户询问某线体的最大/主要问题时（A线/B线/C线/D线、final A-D 线等）：该线体一律指 PRO.2 装配车间(零件装配)的 final A-D 四条线，线体字母=问题点条目的班次首字母；只能依据上下文‘每日制程问题点日志’节中该日期、该线体(PRO.2)的条目来回答，优先按影响数(impact)排序取最大，并翻译其泰语描述；绝不引用实时产出数据或其他车间(PRO.3/PRO.4/PE/IP/QA)里名称相似的同字母线体，因为问题点目前只在 PRO.2 装配记录，其他车间没有问题点数据。",
-      conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
+      conversation_id: convId    // 带上历史会话ID, 实现多轮记忆(超轮数上限时会自动置空开新对话)
       ,stream: false                   // ★ 2026-09-20 默认改非流式: 单次返回完整答案, 绕开慢网络/公司代理下 SSE 流卡在"正在生成回答…"的问题
     };
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -928,15 +947,15 @@
         setBusy(false);
         var last = ui.msgs.lastElementChild;
         if (last && last.textContent === "正在生成回答…") last.remove();
-        if (data && data.conversation_id) saveConvId(data.conversation_id);
+        if (data && data.conversation_id) { saveConvId(data.conversation_id); setConvTurns(convTurns() + 1); }
         var answer = (data && (data.answer || data.reply)) || "";
         if (!answer) {
-          // ★ 2026-10-06 代理 200 但无内容: 自动重试一次; 仍空则给出可诊断的原因, 不再只显示"无响应"
-          if (!isRetry) { return doAsk(query, hcExtra, true); }
+          // ★ 2026-10-06 代理 200 但无内容: 先降级(清历史开新对话)重试一次; 仍空则给出可诊断的原因, 不再只显示"无响应"
+          if (!isRetry) { clearConvId(); return doAsk(query, hcExtra, true); }
           addMsg(emptyAnswerReport(data), "ai");
           return;
         }
-        addMsg(String(answer), "ai");
+        addMsg(String(newConvNotice || (data && data.note ? "（提示：" + data.note + "）\n\n" : "")) + String(answer), "ai");
       })
       .catch(function (e) {
         clearRequestTimeout();
@@ -955,8 +974,19 @@
   /* ★ 2026-10-06 空答案诊断文案 (代理连通但上游无内容时) */
   function emptyAnswerReport(data) {
     var bits = [];
-    if (data && data.error) bits.push("代理返回: " + String(data.error).slice(0, 160));
+    var errStr = String((data && data.error) || "");
+    var tokenOver = /token count exceeds|maximum number|invalid_param|INVALID_ARGUMENT|context length|too long/i.test(errStr + String((data && data.detail) || ""));
+    if (errStr) bits.push("代理返回: " + errStr.slice(0, 160));
     if (data && data.detail) bits.push("上游原文: " + String(data.detail).slice(0, 200));
+    if (tokenOver) {
+      // ★ 2026-10-06 真因已能识别(上游输入 token 超上限): 给出针对性处置, 而不是笼统"再问一次"
+      return "AI 这次没能回答（已自动开新对话 + 压缩数据上下文重试，仍被上游拦下）。\n\n"
+        + "原因已定位：**输入内容超过上游模型上限**（上游原文：" + errStr.slice(0, 120) + "…）。"
+        + "常见于一次问得太宽（同时要比很多日期/很多线体）或同一对话轮数太多。\n"
+        + (bits.length ? "\n诊断信息：\n- " + bits.join("\n- ") + "\n" : "")
+        + "\n建议：① 点右上角「+」开新对话再问一次；② 把问题问窄一点（例如只问某个车间/某一天）；③ 仍不行就截图给维护人。\n\n"
+        + "先看页面内快速诊断：\n\n" + localBrief();
+    }
     return "AI 这次没有返回内容（已自动重试 1 次，仍为空）。\n\n"
       + "判断：" + proxyHealthHint() + "。常见原因是上游模型偶发空返回、并发达上限或额度用尽。\n"
       + (bits.length ? "\n诊断信息：\n- " + bits.join("\n- ") + "\n" : "")

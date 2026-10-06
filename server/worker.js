@@ -209,32 +209,73 @@ export default {
       // 角色系统提示词 + 产出数据上下文 + 用户问题
       // 公司知识库命中注入 (关键词匹配, 稳定口径/制度; 前端与网页看不到, 仅Worker后端携带)
       const kb = kbFor(query + "\n" + (context || ""));
-      const prompt = SYSPROMPT
+
+      // ★ 2026-10-06 修「AI 无响应」真因: 上游返回 400 INVALID_ARGUMENT「input token count exceeds the maximum number」。
+      //   吃 token 的两个地方: ① 产出数据上下文过长 ② 同一 conversation_id 多轮历史累积。
+      //   对策: 上下文封顶(+超长取头尾) + 命中超限时自动降级重试(先开新对话, 再压缩上下文)。
+      const CTX_LIMIT = 12000;
+      const rawCtx = String(context || "");
+      const trimCtx = (s, limit) => (s.length <= limit ? s : (s.slice(0, Math.round(limit * 0.7)) + "\n…(上下文过长已截断)…\n" + s.slice(-Math.round(limit * 0.3))));
+      const mkPrompt = (ctx) => SYSPROMPT
         + (kb ? "\n\n【公司知识库·权威依据(回答公司制度/口径/现场规则问题以此为准)】\n" + kb + "\n(知识库未覆盖的如实说明不清楚, 不编造公司口径)" : "")
-        + (context ? "\n\n[产出数据]\n" + context + "\n[用户提问] " : "\n[用户提问] ")
+        + (ctx ? "\n\n[产出数据]\n" + ctx + "\n[用户提问] " : "\n[用户提问] ")
         + query;
+      const prompt = mkPrompt(trimCtx(rawCtx, CTX_LIMIT));
+      const TOKEN_OVER = /token count exceeds|maximum number of|invalid_param|INVALID_ARGUMENT|context length|too long/i;
 
       // ★ 2026-09-14 上游超时/重试 (AbortController); DeepSeek 长响应可能慢 → 90s 上限 + 失败自动重试1次
-      const T1 = AbortSignal.timeout(90000);
-      const _post = (signal) => fetch(UPSTREAM, {
+      const _post = (signal, p, cid) => fetch(UPSTREAM, {
         method: "POST", headers: {
           "Authorization": "Bearer " + API_KEY, "AIGC-USER": AIGC_USER, "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          inputs: {}, query: prompt, response_mode: "streaming",
-          conversation_id: String(conversation_id || ""), user: AIGC_USER, files: [],
+          inputs: {}, query: p, response_mode: "streaming",
+          conversation_id: String(cid || ""), user: AIGC_USER, files: [],
         }),
         signal,
       });
-      let difyRes = null;
-      try { difyRes = await _post(T1); }
-      catch (e1) {   // 首次失败/超时 → 重试一次
-        try { difyRes = await _post(AbortSignal.timeout(90000)); }
-        catch (e2) {
-          return new Response(JSON.stringify({ error: "上游请求失败(已重试): " + (e2.name === "TimeoutError" ? "响应超时, 请稍后重试" : String(e2.message)) }), {
-            status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
-          });
+      const callUpstream = async (p, cid) => {
+        try { return await _post(AbortSignal.timeout(90000), p, cid); }
+        catch (e1) {   // 首次失败/超时 → 重试一次
+          try { return await _post(AbortSignal.timeout(90000), p, cid); }
+          catch (e2) {
+            const err = new Error("上游请求失败(已重试): " + (e2.name === "TimeoutError" ? "响应超时, 请稍后重试" : String(e2.message)));
+            err.upstreamFail = true;
+            throw err;
+          }
         }
+      };
+      // SSE 解析: 聚合 agent_message/message, 捕获 error 事件与已出现的事件名
+      const parseSSE = (text) => {
+        let answer = "", cid = String(conversation_id || ""), upErr = "", lastCid = "";
+        const evSeen = {};
+        for (const line of String(text || "").split("\n")) {
+          const t = line.trim();
+          if (!t.startsWith("data:")) continue;
+          const json = t.slice(5).trim();
+          if (!json || json === "[DONE]") continue;
+          try {
+            const o = JSON.parse(json);
+            evSeen[o.event || "?"] = (evSeen[o.event || "?"] || 0) + 1;
+            if ((o.event === "agent_message" || o.event === "message") && typeof o.answer === "string") answer += o.answer;
+            if (o.event === "error") {
+              const raw = typeof o.message === "string" ? o.message : JSON.stringify(o);
+              upErr = (String(o.code || "") + " " + raw).trim().slice(0, 300);
+            }
+            if (o.conversation_id) lastCid = String(o.conversation_id);
+            if (o.event === "message_end") { if (o.conversation_id) cid = o.conversation_id; break; }
+            if (o.conversation_id && !cid) cid = o.conversation_id;
+          } catch (e) { /* 忽略单行解析失败 */ }
+        }
+        if (!cid && lastCid) cid = lastCid;
+        return { answer, cid, upErr, evSeen };
+      };
+      let difyRes = null;
+      try { difyRes = await callUpstream(prompt, conversation_id); }
+      catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (!difyRes.ok) {
         const t = await difyRes.text();
@@ -252,41 +293,37 @@ export default {
       }
 
       // ── 非流式兼容: 聚合 SSE → 完整 answer JSON ──
-      const text = await difyRes.text();
-      let answer = "";
-      let cid = String(conversation_id || "");
-      let upErr = "";
-      const evSeen = {};
-      let lastCid = "";
-      for (const line of text.split("\n")) {
-        const t = line.trim();
-        if (!t.startsWith("data:")) continue;
-        const json = t.slice(5).trim();
-        if (!json || json === "[DONE]") continue;
-        try {
-          const o = JSON.parse(json);
-          evSeen[o.event || "?"] = (evSeen[o.event || "?"] || 0) + 1;
-          // ★ 2026-10-06 兼容 message 事件(部分 Dify 应用只发 message 不发 agent_message), 否则会误报空回答
-          if ((o.event === "agent_message" || o.event === "message") && typeof o.answer === "string") answer += o.answer;
-          if (o.event === "error") upErr = String(o.message || o.code || "").slice(0, 200) || "上游返回 error 事件";
-          if (o.conversation_id) lastCid = String(o.conversation_id);
-          if (o.event === "message_end") { if (o.conversation_id) cid = o.conversation_id; break; }
-          if (o.conversation_id && !cid) cid = o.conversation_id;
-        } catch (e) { /* 忽略单行解析失败 */ }
-      }
-      if (!cid && lastCid) cid = lastCid;
-
-      const out = { answer, conversation_id: cid };
-      if (!answer) {
-        // ★ 2026-10-06 空回答时回传可诊断信息, 前端不再只显示"无响应"
-        out.error = upErr ? ("上游错误: " + upErr) : "上游返回空内容(未产出 agent_message)";
-        out.upstream_events = Object.keys(evSeen).map((k) => k + "×" + evSeen[k]).join(", ") || "(无 SSE 事件)";
-        out.detail = String(text || "").slice(0, 400);
-      }
-
-      return new Response(JSON.stringify(out), {
+      const rawText = await difyRes.text();
+      let parsed = parseSSE(rawText);
+      let note = rawCtx.length > CTX_LIMIT ? "产出数据上下文过长, 已自动截断" : "";
+      const j = (o) => new Response(JSON.stringify(o), {
         status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+
+      if (parsed.answer) return j({ answer: parsed.answer, conversation_id: parsed.cid, note: note || undefined });
+
+      // 空回答: 命中 token 超限 → 逐级降级 (① 开新对话 ② 再压缩上下文), 尽量把答案救回来
+      if (TOKEN_OVER.test(String(parsed.upErr || ""))) {
+        try {
+          const r2 = parseSSE(await (await callUpstream(prompt, "")).text());
+          if (r2.answer) return j({ answer: r2.answer, conversation_id: r2.cid, note: "对话历史过长, 已自动开启新对话后回答" });
+          const smallCtx = trimCtx(rawCtx, 4000);
+          const r3 = parseSSE(await (await callUpstream(mkPrompt(smallCtx), "")).text());
+          if (r3.answer) return j({ answer: r3.answer, conversation_id: r3.cid, note: "数据上下文过大, 已自动压缩后回答(分析可能略粗)" });
+          parsed = r3;
+        } catch (e) { /* 降级重试本身失败 → 走下面统一诊断输出 */ }
+      }
+
+      const out = { answer: parsed.answer, conversation_id: parsed.cid };
+      if (!parsed.answer) {
+        // ★ 2026-10-06 空回答回传可诊断信息, 前端不再只显示"无响应"
+        out.error = parsed.upErr ? ("上游错误: " + parsed.upErr) : "上游返回空内容(未产出 agent_message)";
+        out.upstream_events = Object.keys(parsed.evSeen).map((k) => k + "×" + parsed.evSeen[k]).join(", ") || "(无 SSE 事件)";
+        out.detail = String(rawText || "").slice(0, 400);
+        if (TOKEN_OVER.test(String(parsed.upErr || ""))) out.error = "输入内容超过上游模型上限(已自动开新对话+压缩上下文重试仍未成功): " + parsed.upErr;
+      }
+
+      return j(out);
     } catch (e) {
       return new Response(JSON.stringify({ error: "Worker 错误: " + e.message }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
