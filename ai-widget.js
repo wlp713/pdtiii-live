@@ -299,13 +299,14 @@
       if (mLine) dpLine = mLine[1].toLowerCase();
       if (dpLine) {
         /* 线体问题: 置顶一条最高优先级硬指令, 压制其他上下文里的别车间同名线 */
-        out.unshift("⚠️ 最高优先级指令（线体问题）: 本次用户只问 PRO.2 装配车间的 final " + dpLine.toUpperCase() + " 线。本段上下文里实时产出、历史归档、线体明细中出现的一切其他车间同名线（如 C-Shaft Body B、C-Shft Pin B、Welding B 等）都与本问题无关，判定线体问题时一律忽略它们、禁止引用其数据。线体问题只能依据下方 H 节『每日制程问题点日志』中 dept=PRO.2 且班次首字母=" + dpLine.toUpperCase() + " 的条目作答，按影响数(impact)取最大。");
+        out.unshift("⚠️ 最高优先级指令（线体问题）: 本次用户只问 PRO.2 装配车间的 final " + dpLine.toUpperCase() + " 线。本段上下文里实时产出、历史归档、线体明细中出现的一切其他车间同名线（如 C-Shaft Body B、C-Shft Pin B、Welding B 等）都与本问题无关，判定线体问题时一律忽略它们、禁止引用其数据。线体问题只能依据下方 H 节『每日制程问题点日志』中班次首字母=" + dpLine.toUpperCase() + " 的条目作答(dept 为 PRO.2 或未标注都算, 因为问题点只在 PRO.2 装配记录)，按影响数(impact)取最大。若 H 节显示 0 条命中, 必须先看该节日期的「按日×部门汇总」是否有「-」(未标注部门)行, 不要再断言无数据。");
       }
       var dpFiltered = dpRows.filter(function (p) {
         if (dpSelDates.length && dpSelDates.indexOf(String(p.date)) < 0) return false;
         if (dpShift && dpShift !== "full") { var n = /NIGHT/i.test(p.shift || ""); if ((dpShift === "night") !== n) return false; }
-        if (dpLine) { /* 线体问题: 强制只算 PRO.2 装配, 按班次首字母匹配线体 */
-          if (!p.dept || (p.dept || "").toLowerCase() !== "pro.2") return false;
+        if (dpLine) { /* 线体问题: 按班次首字母匹配线体; 责任部门为 PRO.2 或未标注(导入的老记录很多没带部门, 问题点日志本身就只在 PRO.2 装配记录) */
+          var dv = (p.dept || "").toLowerCase();
+          if (dv && dv !== "pro.2") return false;
           if ((p.shift || "").toLowerCase().charAt(0) !== dpLine) return false;
         } else if (dpDeptTok && p.dept) { if ((p.dept || "").toLowerCase() !== dpDeptTok) return false; }
         return true;
@@ -321,6 +322,7 @@
         out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpCount + "条" + dpScopeSuffix + "]");
       }
       out.push("字段: 日期 | 班次(shift)·责任部门(dept) | 影响数(impact,产出缺口) | 泰语原文描述");
+      out.push("注: dept 为「-」表示该条未标注责任部门(不表示无部门); 线体问题按班次首字母(A/B/C/D = final A-D 线)匹配, 与 dept 是否标注无关。");
       /* 按日+部门汇总(影响合计), 便于快速归因 */
       var dpSum = {};
       dpFiltered.forEach(function (p) {

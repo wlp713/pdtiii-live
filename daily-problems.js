@@ -30,10 +30,24 @@
     return bd;
   }
 
+  /* ★ 2026-10-06 数据自愈: 早期导入把夜班写成 "B LINE N"(N=夜班) 没被识别 → shift 空;
+     部门未标注 → dept 空。读取时用 raw 重新解析补齐, 老数据不用重新录入。 */
+  function healEntry(r) {
+    var p = Object.assign({}, r);
+    if (p.raw && (!p.shift || !p.dept)) {
+      var q = parseLine(p.raw);
+      if (q) {
+        if (!p.shift && q.shift) { p.shift = q.shift; p.shiftLabel = q.shiftLabel || p.shiftLabel || ""; }
+        if (!p.dept && q.dept) p.dept = q.dept;
+      }
+    }
+    return p;
+  }
+
   function overlay(dst, src) {
     if (!src) return dst;
     Object.keys(src).forEach(function (date) {
-      if (Array.isArray(src[date]) && src[date].length) dst[date] = src[date].map(function (r) { return Object.assign({}, r); });
+      if (Array.isArray(src[date]) && src[date].length) dst[date] = src[date].map(healEntry);
     });
     return dst;
   }
@@ -100,9 +114,12 @@
     var dmm = line.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
     if (dmm) out.date = normalizeDate(dmm[0]);
     var rest = dmm ? line.slice(dmm[0].length) : line;
-    var sm = rest.match(/^\s*([A-D])\s*(LINE\s*)?(DAY|NIGHT)\b/i);
+    var sm = rest.match(/^\s*([A-D])\s*(LINE\s*)?(DAY|NIGHT|D|N)(?=\s|$)/i);
     if (sm) {
-      out.shift = sm[1].toUpperCase() + "-" + sm[3].toUpperCase();
+      var sfx = sm[3].toUpperCase();
+      if (sfx === "D") sfx = "DAY";          // ★ 2026-10-06 兼容 "B LINE N" / "A LINE D" 简写
+      if (sfx === "N") sfx = "NIGHT";
+      out.shift = sm[1].toUpperCase() + "-" + sfx;
       out.shiftLabel = sm[0].trim();
       rest = rest.slice(sm[0].length);
     }
