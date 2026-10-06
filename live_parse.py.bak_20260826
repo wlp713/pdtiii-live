@@ -1,0 +1,443 @@
+#!/usr/bin/env python3
+"""Live parser: read latest pktmon pcapng -> extract S2C payloads -> parse lines -> update data.json.
+Usage: python3 live_parse.py [pcapng_path]
+"""
+import struct, re, json, sys, os, datetime
+import urllib.request
+
+DASH = "/mnt/c/Users/19777/Desktop/PDTIII_Dashboard/data.json"
+CACHE = "/mnt/c/Users/19777/Desktop/PDTIII_Dashboard/lines_cache.json"  # 持久缓存: 没抓到的线沿用旧值, 线永不消失
+HOUR_CACHE = "/mnt/c/Users/19777/Desktop/PDTIII_Dashboard/hourly_cache.json"  # 小时产量快照: 每线每小时末的累计值
+# 云端中转: Firebase Realtime Database (dm111-e8a7d, 公开读写) — 独立路径 pdtiii, 与 DMS 数据隔离
+FIREBASE_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json"
+DEFAULT_PCAP = "/mnt/c/Users/19777/Desktop/pdtiii_auto/cap_live.pcapng"
+NAME_RE = re.compile(rb'\x1e([A-Za-z][A-Za-z0-9\- ]{1,24}?)\x1e {16}\x1e')  # ★ 加 \x1e 字段边界前缀: 只匹配完整线名字段, 杜绝从名字中间匹配出子串碎片
+
+# 压缩标记: 可能出现在线名中间(如 Welding D \x00\x00p\x02line)或字段中间(如 62.8\x00\x00p\x020)
+# → 必须在正则匹配前对整条流做清理, 否则线名被拆成残片(ng D line/g D line/line...)或字段错位
+STREAM_CLEAN_RE = [
+    re.compile(rb'\x14\x00\x00p\x02'),
+    re.compile(rb'\x00\x00p\x02'),
+    re.compile(rb'\x00+p'),
+]
+def clean_stream(b):
+    for r in STREAM_CLEAN_RE:
+        b = r.sub(b'', b)
+    return b
+
+def _norm(n): return (n or "").lower().replace(" ", "").replace("\t", "")
+# ★ 主要线体白名单(与看板 MAIN_LINES 一致): 名字子串判定时优先保护真实线名
+MAIN_LINES = [
+    "Final A line", "Final B Line", "Final C line", "Final D line",
+    "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
+]
+MAIN_SET = {_norm(x) for x in MAIN_LINES}
+
+# 压包污染前缀: 真名前被吃掉/拼接上这些字符产生变体 (TruC-Shaft Body C, TrueB, Trning FL...)
+POLLUTED_PREFIXES = ("true", "tru", "tr", "tc", "fi", "inspectel", "inspect")
+
+def _polluted(name, protect=None):
+    """名字以已知污染前缀开头且不是白名单真名 → 视为压包污染变体。
+    protect: 额外保护的真实线名(norm 集合), 如 Inspection A-D(以 inspect 开头但不是污染)。
+    """
+    nk = _norm(name)
+    if nk in MAIN_SET:
+        return False
+    if protect and nk in protect:
+        return False
+    for p in POLLUTED_PREFIXES:
+        if nk.startswith(p):
+            # 剩余部分太短(纯垃圾如 TrueB/Truline) 或 剩余部分是常见词根(如 line/CL/B)
+            rest = nk[len(p):]
+            if len(rest) <= 4 or rest in ("line", "cl", "b", "fl", "a", "c"):
+                return True
+            return False
+    return False
+
+def fragment_drop(keys, protect=None):
+    """子串残片清理判定(2026-08-07 v2 方向修正): 返回待删除键集合。
+    protect: 额外保护的真实线名(norm 集合), 防止真实线被误判为污染前缀变体。
+    背景: 压包污染会产生 'TruC-Shaft Body C'(真名前缀污染) / 'C  line'(真名被截断的残片)
+          等变体。v1 修复把'删长名'作为默认分支, 导致垃圾残片 'C  line' ⊂ 真名 'Final C line'
+          时误删真名、留下残片 → Final C line 等白名单线的小时快照被每轮删除。
+    铁律: 白名单真名(MAIN_SET)任何情况下不得删。
+    规则(按优先级):
+      1. 名字过短(<5) → 残片, 删
+      2. 污染前缀开头且剩余部分为纯垃圾 → 污染变体, 删
+      3. 短名是长名(去空格后)的子串:
+         a. 短名在白名单且长名不在 → 长名是污染变体, 删长名
+         b. 长名在白名单 → 短名是残片, 删短名 (C  line ⊂ Final C line → 删 C  line)
+         c. 长名 = 污染前缀 + 短名 → 删长名 (TruC-Shaft Body C = Tru + C-Shaft Body C)
+         d. 其余包含关系(两者都不在白名单、长名无污染前缀) → 删短名
+            (短名是长名被截断的残片: 'elding D line'⊂'Welding D line', 'ction B'⊂'Inspection B')
+    """
+    norm = {k: _norm(k) for k in keys}
+    drop = set()
+    for k in keys:
+        nk = norm[k]
+        if len(k) < 5:
+            drop.add(k); continue
+        if _polluted(k, protect):
+            drop.add(k); continue
+        for k2 in keys:
+            if k2 == k or len(norm[k2]) <= len(nk):
+                continue
+            nk2 = norm[k2]
+            if nk and nk in nk2:
+                if nk in MAIN_SET and nk2 not in MAIN_SET:
+                    drop.add(k2)          # 短名是白名单真名 → 长名是污染变体
+                elif nk2 in MAIN_SET:
+                    drop.add(k)           # 长名是白名单真名 → 短名是残片
+                elif _polluted(k2, protect) and nk2.endswith(nk):
+                    drop.add(k2)          # 长名是污染变体(如 TruC-Shaft Body C=Tru+C-Shaft Body C) → 删长名
+                else:
+                    drop.add(k)           # 其余: 短名是长名的截断残片 → 删短名
+                break
+    return drop
+
+def junk_drop(keys, real_names, snap_counts):
+    """缓存垃圾线清理(2026-08-07 v2): 返回待删除键集合。
+    判据(比子串配对更稳, 不依赖残片与真名同时在场):
+      真实线 = 白名单 ∪ 昨天/今天有快照的线 ∪ 本轮解析到的线
+      1. 名字是某个真实线名(去空格后)的子串 → 残片变体, 删
+         (tion B ⊂ Inspection B, C  line ⊂ Final C line/Rotor C  line, g D line ⊂ Welding D line)
+      2. 非真实线且今天+昨天快照总数 < 2 → 无证据垃圾, 删
+         (Rotor B LinPin B 拼接垃圾 / T A line / Trning FL / TrueHoning FL 一次性污染)
+    注意: 不删真实线本身(即使今天没抓到也保留, 如停推的 Inspection/Welding C line)。
+    """
+    real_norms = {_norm(x) for x in real_names}
+    drop = set()
+    for k in keys:
+        nk = _norm(k)
+        if nk in real_norms:
+            continue  # 真实线, 保留
+        # 1. 是真实线名的子串 → 残片
+        if any(nk and len(rn) > len(nk) and nk in rn for rn in real_norms):
+            drop.add(k)
+            continue
+        # 2. 无快照证据(今天+昨天合计 < 2) → 垃圾
+        if snap_counts.get(k, 0) < 2:
+            drop.add(k)
+    return drop
+
+
+def _protect_from_hourly():
+    """从 hourly_cache 提取受保护的真实线名(norm 集合): 昨天/前天有快照的线都是真实线,
+    防止被 _polluted 前缀规则误删 (如 Inspection A-D 以 'inspect' 开头但不是污染)。
+    """
+    protect = set(MAIN_SET)
+    try:
+        with open(HOUR_CACHE, encoding="utf-8") as f:
+            _hc = json.load(f)
+        for _day, _sn in _hc.items():
+            for _k in _sn.keys():
+                protect.add(_norm(_k))
+    except Exception:
+        pass
+    return protect
+
+
+def _snap_sane(snaps, cand):
+    """快照合理性校验(2026-08-07 v2): 防脏值污染 hourly 快照。
+    判据:
+      1. 累计值单调不减: actual/plan 倒退(>容忍) → 脏 (Motor AC h11=437→h12=349 倒退)
+      2. 增量突增: 单小时增量 > 有效正增量均值*4 且 >300 → 脏 (Motor F-Series h12 +1078)
+    有效增量 = 跳过午休段(h11→h12 / h12→h13)的相邻正增量;
+    有效增量 < 2 时跳过突增检测(快照链不完整如 Final C [11,12,13], 均值不可靠, 只做单调性)。
+    返回 True=可写入, False=拒绝。
+    """
+    if not snaps:
+        return True
+    prev = snaps[-1]
+    pa = prev.get("actual") or 0
+    pp = prev.get("plan") or 0
+    ca = cand.get("actual") or 0
+    cp = cand.get("plan") or 0
+    # 1. 单调性(容忍 1 的浮点/取整噪声)
+    if ca < pa - 1 or cp < pp - 1:
+        return False
+    # 2. 增量突增: 只用工作时段正增量(跳过午休段), 有效增量 <2 时不检测
+    def _work_deltas(key):
+        ds = []
+        for i in range(1, len(snaps)):
+            h0, h1 = snaps[i-1]["h"], snaps[i]["h"]
+            if h0 == 12 or h1 == 12 or h0 == 11 and h1 == 12 or h0 == 12 and h1 == 13:
+                continue  # 午休段(11→12 / 12→13)不构成有效产能增量
+            d = (snaps[i].get(key) or 0) - (snaps[i-1].get(key) or 0)
+            if d > 0:
+                ds.append(d)
+        return ds
+    for key, cv, pv in (("actual", ca, pa), ("plan", cp, pp)):
+        ds = _work_deltas(key)
+        if len(ds) >= 2:
+            avg = sum(ds[-3:]) / len(ds[-3:])
+            if avg > 0 and (cv - pv) > avg * 4 and (cv - pv) > 300:
+                return False
+    return True
+
+
+def parse_pcapng(path):
+    data = open(path, "rb").read()
+    pos = 0
+    s2c = b""
+    while pos + 12 <= len(data):
+        btype, blen = struct.unpack_from("<II", data, pos)
+        if blen < 12 or pos + blen > len(data):
+            break
+        if btype == 0x00000006:
+            caplen = struct.unpack_from("<I", data, pos + 24)[0]
+            pkt = data[pos + 32 : pos + 32 + caplen]
+            if len(pkt) >= 54:
+                # IP at offset 10, TCP header after IHL
+                if pkt[10] >> 4 == 4:
+                    ihl = (pkt[10] & 0x0F) * 4
+                    tcp_off = 10 + ihl
+                    sport, dport = struct.unpack_from(">HH", pkt, tcp_off)
+                    if sport == 7001:
+                        hlen = (pkt[tcp_off + 12] >> 4) * 4
+                        s2c += pkt[tcp_off + hlen:]
+        pos += blen
+    return s2c
+
+def clean(field):
+    # remove compression/garbage markers that can split tokens (e.g. Tr<00 00 p 02>ue)
+    field = re.sub(rb'\x14\x00\x00p\x02', b'', field)
+    field = re.sub(rb'\x00\x00p\x02', b'', field)
+    field = re.sub(rb'\x00+p', b'', field)
+    return "".join(chr(b) if 32 <= b < 127 else "" for b in field).strip()
+
+def num(s):
+    s2 = re.sub(r'[A-Za-z]', '', s)
+    m = re.match(r'-?\d+(?:\.\d+)?', s2)
+    return float(m.group(0)) if m else None
+
+def parse(s2c):
+    s2c = clean_stream(s2c)  # ★ 整流清理压缩标记后再匹配线名/字段
+    _cand, order = {}, []
+    for m in NAME_RE.finditer(s2c):
+        name = clean(m.group(1))
+        if not name:
+            continue
+        # ★ 丢弃残片线名(真实线名长度>=6; 残片如 'line'/'ne'/'B' 是被压包破坏名字的重复推送)
+        if len(name) < 5:
+            continue
+        chunk = s2c[m.end():m.end()+400]
+        parts = [clean(p) for p in chunk.split(b"\x1e")]
+        if len(parts) < 12:
+            continue
+        status_flag = parts[9:12]
+        if len(status_flag) < 3 or status_flag[0] != "True":
+            continue
+        _cand[name] = {
+            "name": name,
+            "target": num(parts[1]),
+            "plan": num(parts[2]),
+            "start": parts[3],
+            "updated": parts[4],
+            "actual": max(0.0, num(parts[5]) or 0),  # ★ 负值保护: 抓包错位解析出负数时截断为 0
+            "cb": num(parts[6]),
+            "eff": num(parts[7]),
+            "ip": next((p for p in parts[12:] if re.match(r'^\d+\.\d+\.\d+\.\d+$', p)), ""),
+        }
+        if name not in order:
+            order.append(name)
+    # ★ 统一过滤子串残片(2026-08-06): 白名单保护, 'TFinal A line' 变体被删, 真名保留
+    _drop = fragment_drop(list(_cand.keys()), _protect_from_hourly())
+    for k in _drop:
+        del _cand[k]
+    order = [n for n in order if n not in _drop]
+    return _cand, order
+
+def main():
+    pcap = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PCAP
+    s2c = parse_pcapng(pcap)
+    if not s2c:
+        print("ERR no 7001 S2C data in", pcap)
+        sys.exit(1)
+    lines, order = parse(s2c)
+    if not lines:
+        print("ERR no lines parsed")
+        sys.exit(1)
+    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # ---- 持久缓存合并: 本轮抓到的线更新, 没抓到的沿用旧值 ----
+    cache = {"order": [], "lines": {}}
+    try:
+        with open(CACHE, encoding="utf-8") as f:
+            cache = json.load(f)
+        if not isinstance(cache.get("lines"), dict):
+            cache = {"order": [], "lines": {}}
+    except Exception:
+        cache = {"order": [], "lines": {}}
+    merged = cache["lines"]
+    merged_order = cache["order"]
+    # ★ 清理缓存中遗留的残片线名: 长度<5 或 是另一个更长线名的子串(去空格后)
+    #   'otor C  line'⊂'Rotor C  line'、'line'⊂'Welding D line'、'otor CL'⊂'Motor CL'
+    #   这些是名字被压包吃掉首字母/中间部分后的重复记录, 数据与完整线重复, 可安全丢弃
+    bad = fragment_drop(list(merged.keys()), _protect_from_hourly())
+    # ★ 2026-08-07 v2: merged 清理同样接 junk_drop — 删残片子串 + 无快照证据的垃圾线
+    #   真实线 = 白名单 ∪ 本轮解析线名 ∪ 非今天有快照的线
+    _mc = {}
+    try:
+        with open(HOUR_CACHE, encoding="utf-8") as f:
+            _hc_tmp = json.load(f)
+        for _day, _sn in _hc_tmp.items():
+            for _k, _v in _sn.items():
+                if not isinstance(_v, list):
+                    continue
+                _mc[_k] = _mc.get(_k, 0) + len(_v)
+    except Exception:
+        _hc_tmp = {}
+    _mreal = set(MAIN_SET) | set(lines.keys())
+    for _day, _sn in _hc_tmp.items():
+        if _day == now[:10]:
+            continue
+        _mreal |= set(_sn.keys())
+    bad |= junk_drop(list(merged.keys()), _mreal, _mc)
+    for k in bad:
+        del merged[k]
+    if bad:
+        merged_order = [n for n in merged_order if n not in bad]
+    STALL_ROUNDS = 8   # 连续8轮(≈5分钟) actual 无变化 → 停滞 (37s/轮)
+    # 停滞检测白名单 MAIN_SET 已在模块级定义
+    for name, rec in lines.items():
+        rec["pushed"] = now          # 最后推送时间(本轮刚抓到)
+        is_main = _norm(name) in MAIN_SET
+        if name not in merged:
+            merged_order.append(name)
+            rec["stallCnt"] = 0
+            rec["prevActual"] = rec.get("actual")
+            rec["stalled"] = False
+            merged[name] = rec
+        else:
+            old = merged[name]
+            prev = old.get("actual")
+            cur = rec.get("actual") or 0
+            # ★ 只对运行中的线(actual>0)检测停滞: actual<=0 的线(-OFF/未运行)不累积, 避免误报
+            if is_main and cur > 0 and prev is not None and abs(cur - (prev or 0)) < 0.5:
+                rec["stallCnt"] = (old.get("stallCnt") or 0) + 1
+            else:
+                rec["stallCnt"] = 0
+            rec["stalled"] = is_main and cur > 0 and rec["stallCnt"] >= STALL_ROUNDS
+            merged[name] = rec
+    # ---- 小时产量快照: 每个小时首次出现时定格记录累计值, 前端差值算每小时产量/目标 ----
+    # ★ 只定格不覆盖: 快照在小时首次出现时写入一次, 当前小时内不再更新
+    #   ⚠️ 旧逻辑每轮覆盖当前小时快照 → h16=实时值 → 前端把第8时段(16-17)产量算进第7时段(15-16),
+    #      live 段恒=0, 时段错位 (用户 16:30 反馈的 bug)
+    hourly_cache = {}
+    try:
+        with open(HOUR_CACHE, encoding="utf-8") as f:
+            hourly_cache = json.load(f)
+        if not isinstance(hourly_cache, dict):
+            hourly_cache = {}
+    except Exception:
+        hourly_cache = {}
+    today = now[:10]
+    hour = int(now[11:13])
+    day_snaps = hourly_cache.setdefault(today, {})
+    for name, rec in lines.items():
+        snaps = day_snaps.setdefault(name, [])
+        if not snaps or snaps[-1]["h"] != hour:
+            _cand = {"h": hour, "actual": rec.get("actual") or 0, "plan": rec.get("plan") or 0}
+            # ★ 2026-08-07: 快照合理性校验, 防脏值(倒退/突增)写进 hourly 快照
+            if _snap_sane(snaps, _cand):
+                snaps.append(_cand)
+    # ★ 清理当天快照里的历史碎片键(旧版解析出的 'g D line'/'line'/'otor CL' 等)
+    #   白名单 = 合并后的完整线名(本轮+缓存兜底), 避免偶发缺抓误删; 再补子串残片检测
+    _cur_names = list(merged.keys())
+    _cur_norm = {_norm(x) for x in _cur_names}
+    _snap_keys = list(day_snaps.keys())
+    # ★ 2026-08-06 修复: 子串残片判定交给 fragment_drop(白名单保护), 不再无脑删子串
+    _drop_snap = fragment_drop(_snap_keys, _protect_from_hourly())
+    # ★ 2026-08-07 v2: junk_drop 补充清理 — 残片子串 + 无快照证据的垃圾线
+    #   真实线 = 白名单 ∪ 本轮解析线名 ∪ 昨天(非今天)有快照的线
+    _snap_counts = {}
+    for _day, _sn in hourly_cache.items():
+        for _k, _v in _sn.items():
+            if not isinstance(_v, list):
+                continue
+            _snap_counts[_k] = _snap_counts.get(_k, 0) + len(_v)
+    _real_names = set(MAIN_SET) | set(_cur_names)
+    for _day, _sn in hourly_cache.items():
+        if _day == today:
+            continue
+        _real_names |= set(_sn.keys())
+    _drop_snap |= junk_drop(_snap_keys, _real_names, _snap_counts)
+    for k in _snap_keys:
+        if _norm(k) not in _cur_norm:
+            _drop_snap.add(k)
+    for k in _drop_snap:
+        del day_snaps[k]
+    for nm in day_snaps:
+        if len(day_snaps[nm]) > 12:
+            day_snaps[nm] = day_snaps[nm][-12:]
+    # ---- 组装看板数据 ----
+    dash_lines = []
+    for n in merged_order:
+        r = merged.get(n)
+        if not r:
+            continue
+        dash_lines.append({
+            "name": r["name"],
+            "time": (r.get("start") or "")[:8],
+            "target": r.get("target") or 0,
+            "plan": r.get("plan") or 0,
+            "actual": r.get("actual") or 0,
+            "cb": r.get("cb") if r.get("cb") is not None else 0,
+            "cum": r.get("actual") or 0,
+            "eff": r.get("eff"),
+            "status": "STALLED" if r.get("stalled") else ("RUNNING" if (r.get("actual") and r["actual"] > 0) else "-OFF"),
+            "stalled": r.get("stalled") or False,
+            "pushed": r.get("pushed") or "",
+        })
+    out = {
+        "mode": "live",
+        "updatedAt": now,
+        "source": "packet capture 10.3.176.20:7001 (passive)",
+        "lines": dash_lines,
+        "hourly": day_snaps,
+    }
+    # ---- ★ 2026-08-25 临时覆盖: F系列(Motor F-Series)产出达成 = 1050台 (仅今天, 明天自动恢复) ----
+    # 用户要求: 只改今天; 在 data.json + Firebase 双写前应用; 覆盖不写入缓存/快照, 数据源不受影响
+    _TODAY_OVERRIDES = [
+        {"date": "2026-08-25", "line": "Motor F-Series", "actual": 1050},
+    ]
+    def _apply_today_overrides(_out):
+        _today = _out.get("updatedAt", "")[:10]
+        for _ov in _TODAY_OVERRIDES:
+            if _ov.get("date") != _today:
+                continue
+            for _l in _out.get("lines", []):
+                if _l.get("name") == _ov.get("line") and "actual" in _ov:
+                    _l["actual"] = _ov["actual"]
+                    _l["cum"] = _ov["actual"]
+                    _plan = _l.get("plan") or 0
+                    _l["cb"] = (_ov["actual"] - _plan) if _plan else 0
+                    _l["eff"] = round(_ov["actual"] / _plan * 100, 1) if _plan else None
+        return _out
+    out = _apply_today_overrides(out)
+    with open(DASH, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, indent=2)
+    try:
+        with open(CACHE, "w", encoding="utf-8") as f:
+            json.dump({"order": merged_order, "lines": merged}, f, ensure_ascii=False)
+    except Exception as e:
+        print("CACHE WARN: %s" % e)
+    try:
+        with open(HOUR_CACHE, "w", encoding="utf-8") as f:
+            json.dump(hourly_cache, f, ensure_ascii=False)
+    except Exception as e:
+        print("HOUR WARN: %s" % e)
+    print("OK %d lines -> %s @ %s" % (len(dash_lines), DASH, now))
+    # 云端推送 (失败不影响本地, 只告警)
+    try:
+        req = urllib.request.Request(FIREBASE_URL,
+            data=json.dumps(out).encode("utf-8"),
+            method="PUT",
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            print("FIREBASE OK (%d)" % r.status)
+    except Exception as e:
+        print("FIREBASE WARN: %s" % e)
+
+if __name__ == "__main__":
+    main()

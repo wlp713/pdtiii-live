@@ -93,52 +93,6 @@
     return dates.filter(function (date) { return !!found[date]; });
   }
 
-  /* ── 产出分析页人数(出勤/加班)按问句日期实时补查 (方案A) ── */
-  var HC_API = "https://dm111-e8a7d-default-rtdb.firebaseio.com/analysis/hc";
-  var HC_WS_ALIAS = { "ws1": "Pro.1", "ws2": "Pro.2", "ws3": "Pro.3", "ws4": "Pro.4", "ws5": "Pro.5", "ws6": "Pro.6" };
-  /* 从问句解析出目标日期(YYYY-MM-DD)，支持今天/昨天/前天；解析不出返回 null */
-  function parseHCDate(query) {
-    var q = String(query || "");
-    var found = [];
-    q.replace(/(20\d{2})\s*(?:年|[-/.])\s*(\d{1,2})\s*(?:月|[-/.])\s*(\d{1,2})\s*日?/g, function (_, y, m, d) { found.push(y + "-" + ("0" + Number(m)).slice(-2) + "-" + ("0" + Number(d)).slice(-2)); return _; });
-    q.replace(/(\d{1,2})\s*月\s*(\d{1,2})\s*(?:日|号)?/g, function (_, m, d) { found.push((new Date().getFullYear()) + "-" + ("0" + Number(m)).slice(-2) + "-" + ("0" + Number(d)).slice(-2)); return _; });
-    q.replace(/(?:^|[^\d])(\d{1,2})\s*[-/]\s*(\d{1,2})(?:日|号)?(?!\d)/g, function (_, m, d) { found.push((new Date().getFullYear()) + "-" + ("0" + Number(m)).slice(-2) + "-" + ("0" + Number(d)).slice(-2)); return _; });
-    var rel = /前天|前日|the\s*day\s*before\s*yesterday/i.test(q) ? 2 : (/昨天|昨日|yesterday/i.test(q) ? 1 : (/今天|今日|today/i.test(q) ? 0 : null));
-    if (rel !== null) { var dt = new Date(); dt.setDate(dt.getDate() - rel); found.push(dt.getFullYear() + "-" + ("0" + (dt.getMonth() + 1)).slice(-2) + "-" + ("0" + dt.getDate()).slice(-2)); }
-    if (!found.length) return null;
-    /* 取第一个(通常唯一) */
-    return found[found.length - 1];
-  }
-  /* fetch 指定日期产出分析页人数，返回按车间格式化文本(无数据返回 "") */
-  function fetchHCAttendance(date) {
-    date = String(date || "");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return Promise.resolve("");
-    return fetch(HC_API + "/" + date + ".json", { signal: typeof AbortSignal !== "undefined" ? AbortSignal.timeout(6000) : undefined })
-      .then(function (r) { return r.json(); })
-      .then(function (j) {
-        if (!j || typeof j !== "object") { return "[E2. 每日人数快照 (日期 " + date + ")] 该日尚无出勤/加班人数数据"; }
-        var lines = [];
-        var any = false;
-        Object.keys(HC_WS_ALIAS).forEach(function (ws) {
-          var h = j[ws];
-          if (!h || typeof h !== "object") { return; }
-          any = true;
-          var d = (h.d === undefined || h.d === null || h.d === "") ? null : Number(h.d);
-          var dO = (h.dO === undefined || h.dO === null || h.dO === "") ? null : Number(h.dO);
-          var n = (h.n === undefined || h.n === null || h.n === "") ? null : Number(h.n);
-          var nO = (h.nO === undefined || h.nO === null || h.nO === "") ? null : Number(h.nO);
-          var normal = ((d === null ? 0 : d) + (n === null ? 0 : n)) || 0;
-          var ot = ((dO === null ? 0 : dO) + (nO === null ? 0 : nO)) || 0;
-          var rate = normal > 0 ? (ot / normal * 100) : null;
-          lines.push("  " + HC_WS_ALIAS[ws] + " 出勤(正常)" + (normal || "未填") + "人 加班" + (ot || 0) + "人 加班占比" + (rate === null ? "-" : rate.toFixed(1) + "%") +
-            (d !== null ? " (白班" + d + "/" + (dO === null ? 0 : dO) + ")" : "") + (n !== null ? " (夜班" + n + "/" + (nO === null ? 0 : nO) + ")" : ""));
-        });
-        if (!any) return "[E2. 每日人数快照 (日期 " + date + ")] 该日尚无出勤/加班人数数据";
-        return "[E2. 每日人数快照 (日期 " + date + "，按问句实时查库)]\n以下是该日期各车间的【出勤/加班人数】，与历史归档的产出数量是两回事——回答‘出勤人数/加班人数/加班占比’时绝对使用本 E2 段的数值，不要用历史归档里的产出件数：\n" + lines.join("\n");
-      })
-      .catch(function () { return ""; });
-  }
-
   function archiveShiftFromQuery(query) {
     var q = String(query || "").toLowerCase();
     var hasNight = /夜班|晚班|night(?:\s*shift)?/.test(q);
@@ -213,7 +167,7 @@
   }
 
   /* ── 数据采集: 从网页已加载的数据(零新增请求)组全量上下文 ── */
-  function collectContext(query, hcExtra) {
+  function collectContext(query) {
     var out = [];
     var now = new Date();
     out.push("当前本地时间: " + now.toLocaleString("zh-CN", { hour12: false }));
@@ -275,79 +229,6 @@
       });
     }
 
-    /* H. 每日制程问题点日志(导入) 字段: 日期 班次 责任部门 影响数 泰语原文 */
-    var DP = (typeof window.__DAILY_PROBLEMS__ !== "undefined") ? window.__DAILY_PROBLEMS__ : null;
-    if (DP && DP.byDate) {
-      var dpDates = Object.keys(DP.byDate).sort();
-      var dpRows = [];
-      dpDates.forEach(function (dd) { dpRows = dpRows.concat(DP.byDate[dd] || []); });
-      /* 过滤: 日期条件(有则按日期) / 班次 / 部门 token */
-      var dpQ = normalizeArchiveToken(query);
-      var dpSelDates = archiveDatesFromQuery(query, dpDates);
-      var dpShift = archiveShiftFromQuery(query);
-      var dpDeptTok = null;
-      var qRaw = String(query || "").toLowerCase();
-      var mDept = qRaw.match(/pro\s*\.?\s*([1-4])/);
-      if (mDept) dpDeptTok = "pro." + mDept[1];
-      else if (/(^|[^a-z])pe([^a-z]|$)/.test(qRaw)) dpDeptTok = "pe";
-      else if (/(^|[^a-z])ip([^a-z]|$)/.test(qRaw)) dpDeptTok = "ip";
-      else if (/(^|[^a-z])qa([^a-z]|$)/.test(qRaw)) dpDeptTok = "qa";
-      else if (/changemodel|modelchang|换型|换模/.test(qRaw)) dpDeptTok = "changemodel";
-      /* 线体识别: X线/Final X / X line / line X  → 一律=PRO.2 装配车间的 final A-D 线 (首字母=线体) */
-      var dpLine = null;
-      var mLine = qRaw.match(/([a-d])\s*线/) || qRaw.match(/final\s*([a-d])\b/) || qRaw.match(/([a-d])\s*line\s/) || qRaw.match(/\bline\s*([a-d])\b/) || qRaw.match(/([a-d])\s*(สาย|ไลน)/);
-      if (mLine) dpLine = mLine[1].toLowerCase();
-      if (dpLine) {
-        /* 线体问题: 置顶一条最高优先级硬指令, 压制其他上下文里的别车间同名线 */
-        out.unshift("⚠️ 最高优先级指令（线体问题）: 本次用户只问 PRO.2 装配车间的 final " + dpLine.toUpperCase() + " 线。本段上下文里实时产出、历史归档、线体明细中出现的一切其他车间同名线（如 C-Shaft Body B、C-Shft Pin B、Welding B 等）都与本问题无关，判定线体问题时一律忽略它们、禁止引用其数据。线体问题只能依据下方 H 节『每日制程问题点日志』中 dept=PRO.2 且班次首字母=" + dpLine.toUpperCase() + " 的条目作答，按影响数(impact)取最大。");
-      }
-      var dpFiltered = dpRows.filter(function (p) {
-        if (dpSelDates.length && dpSelDates.indexOf(String(p.date)) < 0) return false;
-        if (dpShift && dpShift !== "full") { var n = /NIGHT/i.test(p.shift || ""); if ((dpShift === "night") !== n) return false; }
-        if (dpLine) { /* 线体问题: 强制只算 PRO.2 装配, 按班次首字母匹配线体 */
-          if (!p.dept || (p.dept || "").toLowerCase() !== "pro.2") return false;
-          if ((p.shift || "").toLowerCase().charAt(0) !== dpLine) return false;
-        } else if (dpDeptTok && p.dept) { if ((p.dept || "").toLowerCase() !== dpDeptTok) return false; }
-        return true;
-      });
-      var dpDeptLabel = dpDeptTok ? dpDeptTok.toUpperCase() : "";
-      var dpLineLabel = dpLine ? (dpLine.toUpperCase() + "线(PRO.2装配 final " + dpLine.toUpperCase() + "线)") : "";
-      var dpCount = dpFiltered.length;
-      var dpScopeSuffix = dpLine ? ("线体=" + dpLineLabel) : (dpDeptTok ? (" 部门=" + dpDeptLabel) : (dpShift && dpShift !== "full" ? " 班次=" + (dpShift === "day" ? "白班" : "夜班") : ""));
-      if (dpDates.length && dpCount < dpRows.length) {
-        var dpScopeNote = (dpSelDates.length ? "日期=" + dpSelDates.join(",") : "") + ((dpLine ? " 线体=" + dpLineLabel : "") + (dpDeptTok && !dpLine ? (" " + "部门=" + dpDeptLabel) : ""));
-        out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpRows.length + "条, 本问句命中 " + dpCount + " 条 (" + (dpScopeNote || "全部") + ")]");
-      } else {
-        out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpCount + "条" + dpScopeSuffix + "]");
-      }
-      out.push("字段: 日期 | 班次(shift)·责任部门(dept) | 影响数(impact,产出缺口) | 泰语原文描述");
-      /* 按日+部门汇总(影响合计), 便于快速归因 */
-      var dpSum = {};
-      dpFiltered.forEach(function (p) {
-        var k = p.date + "|" + (p.dept || "-");
-        if (!dpSum[k]) dpSum[k] = { date: p.date, dept: p.dept || "-", n: 0, imp: 0 };
-        dpSum[k].n += 1; dpSum[k].imp += (Number(p.impact) || 0);
-      });
-      var dpSumKeys = Object.keys(dpSum).sort();
-      if (dpSumKeys.length) {
-        out.push("按日×部门汇总(条数/影响合计):");
-        var dpCapSum = dpSumKeys.length > 40 ? dpSumKeys.slice(0, 40) : dpSumKeys;
-        dpCapSum.forEach(function (k) { var s = dpSum[k]; out.push("  " + s.date + " " + s.dept + " → " + s.n + "条/" + s.imp); });
-        if (dpSumKeys.length > 40) out.push("  …(" + (dpSumKeys.length - 40) + "个组合省略, 明细见下全量)");
-      }
-      /* 全量明细(带上过滤后上限) */
-      var dpShown = dpFiltered.length > 500 ? dpFiltered.slice(dpFiltered.length - 500) : dpFiltered;
-      if (dpShown.length) {
-        out.push("明细" + (dpShown.length < dpFiltered.length ? "(最近500条, 共" + dpFiltered.length + ")" : ":"));
-        dpShown.forEach(function (p) {
-          out.push("  [" + p.date + " " + (normalizeArchiveToken(p.shift || "").replace("-", " ").toUpperCase() || (p.shiftLabel || "")) + "] " + (p.dept || "-") + " 影响" + (p.impact === null ? "-" : p.impact) + " — " + (p.problem_th || ""));
-        });
-      } else {
-        out.push("本次条件无命中条目。");
-      }
-      out.push("口径: 导入的每日制程问题点。泰语为原始描述; 责任部门=dept(PE/IP/QA/PRO.1-4/CHANGEMODEL换型); 影响数=该问题造成的产出缺口。线体解释: 用户问'A/B/C/D线'时一律指PRO.2装配车间的final A-D四条线(条目的班次首字母=线体), 问题点目前只在PRO.2装配记录, 其他车间没有数据。回答语言跟随提问语言——泰语提问用泰语原文总结, 中文提问把泰语翻译成中文再分析。");
-    }
-
     /* E. 产出分析页数据: 出勤人数/加班效率/车间明细 (由 analysis-page 导出) */
     var A = (typeof window.__ANA_DATA__ !== "undefined") ? window.__ANA_DATA__ : null;
     if (A) {
@@ -365,9 +246,6 @@
           (A.otVsNormalRate!==null?" 加班效率/正常效率="+A.otVsNormalRate+"%":""));
       }
     }
-
-    /* E2. 按问句日期实时查产出分析页人数(方案A: 不依赖页面当前选中日期) */
-    if (hcExtra) out.push("\n" + hcExtra);
 
     /* F. 当前历史分析视图: 让 AI 知道用户正在看什么, 不新增请求 */
     var V = (typeof window.__PDTIII_HISTORY_VIEW__ !== "undefined") ? window.__PDTIII_HISTORY_VIEW__ : null;
@@ -501,53 +379,10 @@
       _anaBtn.style.pointerEvents = "none";
     }
     updateScope();
-    checkProxyHealth();   // ★ 2026-10-06 打开即自检 AI 代理连通性, 避免"无响应"时无从判断原因
     window.requestAnimationFrame(function () {
       if (ui && ui.input) ui.input.focus({ preventScroll: true });
       syncViewportHeight();
     });
-  }
-
-  /* ★ 2026-10-06 AI 代理连通性自检: 用 OPTIONS 预检(不消耗模型额度), 结果直接显示在弹窗头部
-     目的: 网络/公司代理拦截 workers.dev 时, 一眼看出是"连不上"还是"上游没返回", 而不是只看到"无响应" */
-  var _proxyHealthState = "未检测";
-  function proxyHealthDot() {
-    return _panel ? _panel.querySelector(".ai-live-dot") : null;
-  }
-  function setProxyHealth(text, ok, color) {
-    var dot = proxyHealthDot();
-    if (!dot) return;
-    dot.innerHTML = '<i style="background:' + (color || (ok ? "#4ade80" : "#f87171")) + '"></i>' + escapeHtml(text);
-    dot.title = text;
-  }
-  function proxyHostLabel() {
-    try { return String(CFG.proxyUrl || "").replace(/^https?:\/\//, "").split("/")[0] || "代理地址未配置"; }
-    catch (e) { return "代理地址未配置"; }
-  }
-  function checkProxyHealth() {
-    if (!CFG || !CFG.proxyUrl) { _proxyHealthState = "代理地址未配置"; setProxyHealth("AI 代理地址未配置", false); return; }
-    setProxyHealth("正在检测 AI 代理…", true, "#fbbf24");
-    var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var tmr = ctrl ? setTimeout(function () { ctrl.abort(); }, 8000) : null;
-    fetch(CFG.proxyUrl, { method: "OPTIONS", signal: ctrl ? ctrl.signal : undefined })
-      .then(function (r) {
-        if (tmr) clearTimeout(tmr);
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        _proxyHealthState = "AI 代理已连接";
-        setProxyHealth("AI 代理已连接", true);
-      })
-      .catch(function (e) {
-        if (tmr) clearTimeout(tmr);
-        _proxyHealthState = "AI 代理连接失败";
-        setProxyHealth("AI 代理连不上（网络可能拦截 " + proxyHostLabel() + "）", false);
-      });
-  }
-  function proxyHealthHint() {
-    return _proxyHealthState === "AI 代理已连接"
-      ? "代理连通正常（说明是上游模型这次没产出内容）"
-      : (_proxyHealthState === "AI 代理连接失败"
-        ? "代理连不上（当前网络/DNS 拦截了 " + proxyHostLabel() + "，可换网络或用手机热点重试）"
-        : "代理状态未知（可点右上角有新对话重开后自动重检）");
   }
 
   function closeAiPanel() {
@@ -822,55 +657,22 @@
     try { localStorage.removeItem("aiWidget_convId"); } catch(e){}
   }
 
+  /* ── 实际调用代理 (转发到美的 Dify) ── */
   function askAI(query) {
-    var hcDate = parseHCDate(query);
-    var hcExtraPromise = fetchHCAttendance(hcDate);   /* 无目标日期时 Promise.resolve("") */
-    hcExtraPromise.then(function (hcExtra) {
-      doAsk(query, hcExtra);
-    }, function () {
-      doAsk(query, "");   // ★ 2026-10-06 人数预取异常也不能让提问静默失败(否则表现为"点了没反应")
-    });
-  }
-
-  /* 实际调用代理 (转发到美的 Dify) */
-  function doAsk(query, hcExtra, isRetry) {
-    var ctx = "";
-    try { ctx = collectContext(query, hcExtra); }
-    catch (ctxErr) {
-      // ★ 2026-10-06 上下文构建异常时降级提问, 绝不静默; 页面数据异常时仍能拿到 AI 回答
-      ctx = "（页面上下文构建异常, 已按最小上下文提问: " + ((ctxErr && ctxErr.message) || ctxErr) + "）";
-    }
+    var ctx = collectContext(query);
     var payload = {
       query: query,
       context: ctx,
       mode: "pdtiii_operations_diagnosis_v2",
-      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。当用户问及每日制程问题点时（上下文中的‘每日制程问题点日志’节），回答语言必须跟随提问语言：若用户用泰语提问，直接用日志中的泰语原文概括并作答；若用户用中文提问，则先把泰语原文翻译成中文再给出总结与分析。回答问题点倾向/归因时，依据‘按日×部门汇总’的条数和影响合计、结合泰语原文描述判断，优先统计影响数(impact)大和出现频次高的问题，不要臆造。当用户询问某线体的最大/主要问题时（A线/B线/C线/D线、final A-D 线等）：该线体一律指 PRO.2 装配车间(零件装配)的 final A-D 四条线，线体字母=问题点条目的班次首字母；只能依据上下文‘每日制程问题点日志’节中该日期、该线体(PRO.2)的条目来回答，优先按影响数(impact)排序取最大，并翻译其泰语描述；绝不引用实时产出数据或其他车间(PRO.3/PRO.4/PE/IP/QA)里名称相似的同字母线体，因为问题点目前只在 PRO.2 装配记录，其他车间没有问题点数据。",
+      response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。",
       conversation_id: loadConvId()    // 带上历史会话ID, 实现多轮记忆
-      ,stream: false                   // ★ 2026-09-20 默认改非流式: 单次返回完整答案, 绕开慢网络/公司代理下 SSE 流卡在"正在生成回答…"的问题
     };
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 120000) : null;  // ★ 120s (DeepSeek 长响应)
+    var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 35000) : null;
     function clearRequestTimeout() {
       if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
     }
     addMsg("正在生成回答…", "ai");
-    var fullAnswer = "";   // ★ 累积完整回答
-    // ★ 用 DOM 定位最后一条 AI 气泡并复用(不依赖 addMsg 返回值, 杜绝每块新建气泡)
-    function liveBubble() {
-      var ms = ui.msgs;
-      for (var i = ms.children.length - 1; i >= 0; i--) {
-        if (ms.children[i].className.indexOf("user") < 0) return ms.children[i].querySelector(".ai-message-bubble");
-      }
-      addMsg("", "ai");
-      return ui.msgs.lastElementChild.querySelector(".ai-message-bubble");
-    }
-    function liveBubbleEl() {   // 返回可写的包裹层(用于最终替换)
-      var ms = ui.msgs;
-      for (var i = ms.children.length - 1; i >= 0; i--) {
-        if (ms.children[i].className.indexOf("user") < 0) return ms.children[i];
-      }
-      return ms.lastElementChild;
-    }
     setBusy(true);
     fetch(CFG.proxyUrl, {
       method: "POST",
@@ -878,64 +680,15 @@
       body: JSON.stringify(payload),
       signal: controller ? controller.signal : undefined
     })
-      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status);
-        // ★ 流式: 用 ReadableStream reader 逐块读 SSE
-        if (r.body && r.body.getReader && payload.stream) {
-          var reader = r.body.getReader();
-          var decoder = new TextDecoder();
-          var acc = "";
-          var cidSav = "";
-          function flush() {
-            return reader.read().then(function (_r) {
-              if (_r.done) {
-                clearRequestTimeout(); setBusy(false);
-                if (fullAnswer) liveBubbleEl().classList.add("ai-table-message-v2");  // 无实际作用, 保持气泡
-                if (cidSav) saveConvId(cidSav);
-                return;
-              }
-              acc += decoder.decode(_r.value, { stream: true });
-              var lines = acc.split("\n"); acc = lines.pop();
-              for (var i = 0; i < lines.length; i++) {
-                var ln = lines[i].trim();
-                if (!ln.startsWith("data:")) continue;
-                var j = ln.slice(5).trim();
-                if (!j || j === "[DONE]") continue;
-                try {
-                  var o = JSON.parse(j);
-                  if (o.event === "agent_message" && typeof o.answer === "string") {
-                    fullAnswer += o.answer;                     // ★ 累积
-                    liveBubble().innerHTML = formatAiMessage(fullAnswer);
-                  }
-                  if (o.conversation_id) cidSav = o.conversation_id;
-                  if (o.event === "message_end") {
-                    clearRequestTimeout(); setBusy(false);
-                    if (cidSav) saveConvId(cidSav);
-                    reader.cancel().catch(function(){});
-                    return;
-                  }
-                } catch (e) {}
-              }
-              return flush();
-            });
-          }
-          return flush();
-        }
-        return r.json(); })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (data) {
-        // 非流式分支 (未走 reader 时)
-        if (!data) return;
         clearRequestTimeout();
         setBusy(false);
+        // 替换占位消息
         var last = ui.msgs.lastElementChild;
         if (last && last.textContent === "正在生成回答…") last.remove();
         if (data && data.conversation_id) saveConvId(data.conversation_id);
-        var answer = (data && (data.answer || data.reply)) || "";
-        if (!answer) {
-          // ★ 2026-10-06 代理 200 但无内容: 自动重试一次; 仍空则给出可诊断的原因, 不再只显示"无响应"
-          if (!isRetry) { return doAsk(query, hcExtra, true); }
-          addMsg(emptyAnswerReport(data), "ai");
-          return;
-        }
+        var answer = (data && (data.answer || data.reply)) || (data && data.error) || "无响应";
         addMsg(String(answer), "ai");
       })
       .catch(function (e) {
@@ -945,23 +698,10 @@
         if (last && last.textContent === "正在生成回答…") last.remove();
         var timedOut = e && (e.name === "AbortError" || /timeout|timed out/i.test(String(e.message || "")));
         var reason = timedOut
-          ? "AI 代理连接超时（120 秒无响应）：当前网络到 " + proxyHostLabel() + " 可能被限速或拦截，建议换网络/手机热点后重试。"
-          : "AI 代理连不上（" + ((e && e.message) || "网络错误") + "）：多为当前网络/DNS 拦截 " + proxyHostLabel() + "，也可能是代理服务临时不可用。";
-        setProxyHealth("AI 代理连接失败", false);
+          ? "AI 代理连接超时，请检查当前网络/DNS，或稍后重试。"
+          : "AI 代理暂时无法连接，请稍后重试。";
         addMsg(reason + "\n\n先给你页面内快速诊断：\n\n" + localBrief(), "ai");
       });
-  }
-
-  /* ★ 2026-10-06 空答案诊断文案 (代理连通但上游无内容时) */
-  function emptyAnswerReport(data) {
-    var bits = [];
-    if (data && data.error) bits.push("代理返回: " + String(data.error).slice(0, 160));
-    if (data && data.detail) bits.push("上游原文: " + String(data.detail).slice(0, 200));
-    return "AI 这次没有返回内容（已自动重试 1 次，仍为空）。\n\n"
-      + "判断：" + proxyHealthHint() + "。常见原因是上游模型偶发空返回、并发达上限或额度用尽。\n"
-      + (bits.length ? "\n诊断信息：\n- " + bits.join("\n- ") + "\n" : "")
-      + "\n建议：① 直接再问一次（多数情况一次就好）；② 仍为空就把这句话截图给维护人；③ 先看下面的页面内快速诊断：\n\n"
-      + localBrief();
   }
 
   function micIconMarkup(active) {

@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生产实时看板</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d333b;
+    --green: #3fb950;
+    --orange: #d29922;
+    --red: #f85149;
+    --gray: #8b949e;
+    --white: #e6edf3;
+    --blue: #58a6ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: linear-gradient(160deg, #0d1117 0%, #0a0e14 100%);
+    background-attachment: fixed;
+    color: var(--white);
+    font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+    padding: 10px 16px;
+    display: flex; flex-direction: column;
+    height: 100vh; overflow: hidden;
+  }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 6px; margin-bottom: 8px; flex-shrink: 0;
+  }
+  .header .title-wrap { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .header h1 {
+    font-size: 21px; letter-spacing: 2px; font-weight: 700;
+    background: linear-gradient(90deg, #e6edf3, #58a6ff);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .period-label { font-size: 17px; color: #ffffff; font-weight: 700; letter-spacing: 0; margin-left: 12px; white-space: nowrap; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .conn-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray); background: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 3px 10px; }
+  .conn-status .dot { width: 8px; height: 8px; border-radius: 50%; background: #d29922; }
+  .conn-status.ok .dot { background: #3fb950; box-shadow: 0 0 6px rgba(63,185,80,.6); }
+  .conn-status.warn .dot { background: #d29922; }
+  .conn-status.err .dot { background: #f85149; box-shadow: 0 0 6px rgba(248,81,73,.6); }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(63,185,80,.5); }
+    70% { box-shadow: 0 0 0 8px rgba(63,185,80,0); }
+    100% { box-shadow: 0 0 0 0 rgba(63,185,80,0); }
+  }
+  .btn {
+    background: var(--panel2); color: var(--blue); border: 1px solid rgba(88,166,255,.35);
+    border-radius: 14px; padding: 4px 12px; font-size: 12px; cursor: pointer;
+    transition: background .15s; white-space: nowrap;
+  }
+  .btn:hover { background: rgba(88,166,255,.15); }
+  .btn-sm { padding: 2px 8px; font-size: 10.5px; }
+  .head-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 14px; }
+  .head-item { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+  .head-item .hn { flex: 1; color: var(--white); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .head-item input { width: 64px; background: var(--panel2); border: 1px solid var(--border); color: var(--white); border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+  .stall-banner {
+    display: none; align-items: center; gap: 8px;
+    background: rgba(248,81,73,.14); border: 1px solid rgba(248,81,73,.45);
+    border-radius: 8px; padding: 6px 12px; margin-bottom: 8px;
+    font-size: 13px; color: var(--red); font-weight: 600; flex-shrink: 0;
+    animation: blink 1.5s infinite;
+  }
+  .stall-banner .slist { font-weight: 400; color: var(--white); }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  .kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 10px; flex-shrink: 0; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 4px 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    min-width: 0; display: flex; flex-direction: column; justify-content: center;
+  }
+  .kpi-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; min-width: 0; }
+  .kpi .label { font-size: 12.5px; color: var(--gray); font-weight: 700; display: flex; align-items: center; gap: 5px; white-space: nowrap; min-width: 0; }
+  .kpi .value { font-size: 22px; font-weight: 700; line-height: 1.1; letter-spacing: .5px; flex-shrink: 0; }
+  .kpi .sub { font-size: 11px; color: var(--gray); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi .value.green { color: var(--green); }
+  .kpi .value.orange { color: var(--orange); }
+  .kpi .value.red { color: var(--red); }
+  .kpi .value.blue { color: var(--blue); }
+  .main-grid {
+    display: grid; grid-template-columns: 1.25fr 1fr; gap: 10px;
+    flex: 1; min-height: 0;
+  }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 8px 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    display: flex; flex-direction: column; min-height: 0; min-width: 0;
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px; flex-shrink: 0;
+  }
+  .panel h2 { font-size: 12.5px; color: var(--gray); font-weight: 700; letter-spacing: .5px; }
+  .table-scroll { overflow-y: auto; flex: 1; min-height: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  th {
+    text-align: right; padding: 4px 6px; color: var(--gray);
+    font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap;
+    font-size: 11px; position: sticky; top: 0; background: var(--panel); z-index: 1;
+  }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; padding: 12px 6px; border-bottom: 1px solid #21262d; font-variant-numeric: tabular-nums; }
+  tr:hover td { background: var(--panel2); }
+  tr.miss td { background: rgba(248,81,73,.05); }
+  tr.miss:hover td { background: rgba(248,81,73,.1); }
+  tr.stalled-row td { background: rgba(248,81,73,.1); }
+  /* ---- 停滞分级: 黄 <15min / 橙 15-30min / 红 >=30min(闪烁) ---- */
+  tr.stalled-row.lv1 td { background: rgba(210,153,34,.12); }
+  tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
+  tr.stalled-row.lv3 td { background: rgba(248,81,73,.28); animation: stallRowBlink 1.2s infinite; }
+  tr.stalled-row.lv1:hover td { background: rgba(210,153,34,.2); }
+  tr.stalled-row.lv2:hover td { background: rgba(248,81,73,.26); }
+  tr.stalled-row.lv3:hover td { background: rgba(248,81,73,.36); }
+  @keyframes stallRowBlink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
+  .stall-time {
+    display: inline-flex; align-items: center; gap: 4px; margin-left: 6px;
+    font-size: 10px; font-weight: 600; padding: 0 6px; border-radius: 8px;
+    background: rgba(139,148,158,.15); color: var(--gray);
+  }
+  .st.stall .stall-time { margin-left: 4px; }
+  .stall-time.lv1 { background: rgba(210,153,34,.18); color: var(--orange); }
+  .stall-time.lv2 { background: rgba(248,81,73,.2); color: var(--red); }
+  .stall-time.lv3 { background: rgba(248,81,73,.3); color: #ff7b72; animation: blink 1s infinite; }
+  .line-name { font-weight: 600; color: var(--white); white-space: nowrap; }
+  .rank { width: 32px; min-width: 32px; text-align: center; color: #8b949e; font-weight: 700; }
+  .hit-name { color: var(--green); }
+  .miss-name { color: var(--red); }
+  .stall-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--red);
+    display: inline-block; margin-right: 6px; vertical-align: 1px;
+    animation: blink 1s infinite;
+  }
+  /* ---- 横向条形图列（列表×图表融合） ---- */
+  td.bar-cell { padding: 3px 8px; min-width: 130px; }
+  .hbar { position: relative; height: 12px; background: #1a1f27; border-radius: 6px; overflow: hidden; }
+  .hbar .act {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: linear-gradient(90deg, #58a6ff, #79c0ff);
+    border-radius: 6px; min-width: 3px;
+  }
+  .hbar .plan {
+    position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    height: 5px; background: rgba(210,153,34,.9);
+    border-radius: 3px; min-width: 2px;
+  }
+  .hbar .p100 { position: absolute; right: 0; top: -2px; height: 16px; border-right: 1px dashed rgba(139,148,158,.5); }
+  .hbar-leg { font-size: 9.5px; color: var(--gray); margin-top: 1px; display: flex; gap: 10px; }
+  .hbar-leg i { font-style: normal; }
+  .hbar-leg .a::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--blue); margin-right: 3px; vertical-align: -1px; }
+  .hbar-leg .p::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--orange); margin-right: 3px; vertical-align: -1px; }
+  .forecast-cell { white-space: nowrap; min-width: 58px; }
+  .st { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 1px 8px; border-radius: 10px; border: 1px solid transparent; }
+  .st.run { background: rgba(63,185,80,.13); color: var(--green); border-color: rgba(63,185,80,.35); }
+  .st.off { background: rgba(139,148,158,.12); color: var(--gray); border-color: rgba(139,148,158,.3); }
+  .st.err { background: rgba(248,81,73,.13); color: var(--red); border-color: rgba(248,81,73,.35); }
+  .st.stall { background: rgba(248,81,73,.16); color: var(--red); border-color: rgba(248,81,73,.5); animation: blink 1.2s infinite; }
+  .eff-ok { color: var(--green); font-weight: 600; }
+  .eff-bad { color: var(--red); font-weight: 600; }
+  .pos { color: var(--green); }
+  .neg { color: var(--red); }
+  .zero { color: var(--gray); }
+  /* 右侧图表: 上下叠 */
+  .chart-col { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 8px; }
+  .chart-box { flex: 2.2; min-height: 0; display: flex; flex-direction: column; }
+  .chart-box.small { flex: 0.8; }
+  .chart-box canvas { flex: 1; width: 100%; height: 0; min-height: 80px; }
+  .legend { display: flex; gap: 12px; font-size: 10.5px; color: var(--gray); margin-bottom: 4px; flex-wrap: wrap; flex-shrink: 0; }
+  .legend span::before {
+    content: ""; display: inline-block; width: 9px; height: 9px;
+    border-radius: 2px; margin-right: 5px; vertical-align: -1px;
+  }
+  .legend .lg-actual::before { background: var(--blue); }
+  .legend .lg-plan::before { background: var(--orange); }
+  .legend .lg-eff::before { background: var(--green); }
+  .legend .hint { color: #6e7681; font-size: 10px; }
+  .legend .seg-toggle { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #8b949e; cursor: pointer; user-select: none; }
+  .legend .seg-toggle input { width: 12px; height: 12px; accent-color: var(--blue); cursor: pointer; }
+  /* 模态弹窗: 其他线体 */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.65);
+    display: none; align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; width: min(900px, 94vw); max-height: 82vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 11px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .modal-head h3 { font-size: 14px; color: var(--white); font-weight: 700; }
+  .modal-close {
+    background: var(--panel2); color: var(--gray); border: 1px solid var(--border);
+    border-radius: 50%; width: 26px; height: 26px; cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .modal-close:hover { color: var(--white); border-color: #3d444d; }
+  .modal-body { padding: 10px 16px 14px; overflow-y: auto; }
+  .modal-lg { width: min(1100px, 96vw); }
+  .hist-section { margin-bottom: 14px; }
+  .hist-section h4 { font-size: 13px; color: var(--white); font-weight: 700; margin-bottom: 6px; }
+  .hist-scroll { overflow-y: auto; max-height: 30vh; border: 1px solid var(--border); border-radius: 8px; }
+  .hist-table { font-size: 11.5px; }
+  .hist-table th { background: var(--panel2); }
+  .hist-table td, .hist-table th { padding: 6px 8px; }
+  .hist-table tr:hover td { background: var(--panel2); }
+  .hist-table .champ { color: var(--orange); font-weight: 700; }
+  .hist-table .lastp { color: var(--red); font-weight: 700; }
+  .vs-up { color: var(--green); font-weight: 600; }
+  .vs-down { color: var(--red); font-weight: 600; }
+  .vs-flat { color: var(--gray); }
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr; overflow-y: auto; }
+    body { overflow-y: auto; }
+    .kpis { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 700px) { .kpis { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title-wrap">
+    <h1><span data-i18n="boardTitle">生产实时看板</span> <span id="periodLabel" class="period-label"></span></h1>
+  </div>
+  <div class="header-right">
+    <button class="btn" id="langBtn" title="Switch language">EN</button>
+    <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
+    <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
+    <button class="btn" id="histBtn" data-i18n="histBtn">📊 历史统计</button>
+  </div>
+</div>
+
+<div class="stall-banner" id="stallBanner">
+  <span data-i18n="stallBanner">⚠️ 停滞线体: </span><span class="slist" id="stallList"></span>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" data-i18n="kpiEffSub">主要线体加权</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
+</div>
+
+<div class="main-grid">
+  <div class="panel">
+    <div class="panel-head">
+      <h2 data-i18n="panelMainTitle">📋 主要线体 · 产量对比 · 按 UPH 排序</h2>
+      <button class="btn" id="otherBtn" data-i18n="otherLines">其他线体 (0)</button>
+    </div>
+    <div class="table-scroll">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thOutput">产量 (蓝=实际 · 橙=计划)</th>
+            <th>Actual</th><th>Plan</th><th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thForecast">预测收盘</th><th data-i18n="thStatus">状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率 (主要线体)</h2></div>
+    <div class="chart-col">
+      <div class="chart-box">
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label><span class="hint" data-i18n="hintSeg">两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口</span></div>
+        <canvas id="chartBar"></canvas>
+      </div>
+      <div class="chart-box small">
+        <div class="legend"><span class="lg-eff" data-i18n="lgEff">UPPH 达成率 (效率)</span><span class="hint" data-i18n="hintUpph">UPPH = 产量÷人数÷工时</span><button class="btn btn-sm" id="headBtn" style="margin-left:auto" data-i18n="editHead">✏️ 编辑人数</button></div>
+        <canvas id="chartEff"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 其他线体模态 -->
+<div class="modal-overlay" id="otherModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle" data-i18n="otherLines">其他线体</h3>
+      <span class="hint" style="margin-left:10px" data-i18n="sortByUph">按 UPH 从高到低排序</span>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <table id="otherTable">
+        <thead>
+          <tr>
+            <th>#</th><th data-i18n="thLine">线体</th><th data-i18n="thTargetDay">目标/日</th><th>Plan</th><th>Actual</th>
+            <th data-i18n="thDiff">差异</th><th data-i18n="thRate">达成率%</th><th data-i18n="thStatus">状态</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 历史统计模态 -->
+<div class="modal-overlay" id="histModal">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <h3 data-i18n="histTitle">📊 历史统计 · 周/月对比 · 站擂排名</h3>
+      <button class="modal-close" id="histClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hist-section">
+        <h4 data-i18n="histToday">📌 今日实时</h4>
+        <div class="hist-scroll">
+          <table class="hist-table" id="histTodayTbl">
+            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thRate">达成率%</th><th>UPH</th><th data-i18n="thUpphRate">UPPH达成%</th><th data-i18n="thScore">综合分</th><th data-i18n="thRank">今日排名</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="hist-section">
+        <h4 id="histWeekTitle">🗓 本周 vs 上周</h4>
+        <div class="hist-scroll">
+          <table class="hist-table" id="histWeekTbl">
+            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thWeekRate">周均达成%</th><th data-i18n="thWeekUpph">周均UPPH%</th><th data-i18n="thWeekVsPrev">vs 上周</th><th data-i18n="thChamp">🏆 站擂第一</th><th data-i18n="thLast">🔻 末位</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="hist-section">
+        <h4 id="histMonthTitle">📅 本月 vs 上月</h4>
+        <div class="hist-scroll">
+          <table class="hist-table" id="histMonthTbl">
+            <thead><tr><th data-i18n="thLine">线体</th><th data-i18n="thMonthRate">月均达成%</th><th data-i18n="thMonthUpph">月均UPPH%</th><th data-i18n="thMonthVsPrev">vs 上月</th><th data-i18n="thChamp">🏆 站擂第一</th><th data-i18n="thLast">🔻 末位</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑人数模态 -->
+<div class="modal-overlay" id="headModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 data-i18n="editHeadTitle">✏️ 编辑各线出勤人数</h3>
+      <button class="modal-close" id="headClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint" style="margin:0 0 8px" data-i18n="headHint">UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。</p>
+      <div class="head-grid" id="headGrid"></div>
+      <div style="margin-top:12px;text-align:right"><button class="btn" id="headSave" data-i18n="save">💾 保存</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+// ============ i18n 中英切换 ============
+const I18N = {
+  zh: {
+    docTitle: "生产实时看板", boardTitle: "生产实时看板",
+    connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
+    kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体加权",
+    kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
+    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
+    panelMainTitle: "📋 主要线体 · 产量对比 · 按 UPH 排序", otherLines: "其他线体",
+    thLine: "线体", thOutput: "产量 (蓝=实际 · 橙=计划)", thDiff: "差异", thRate: "达成率%", thForecast: "预测收盘", thStatus: "状态",
+    panelChartTitle: "📊 每小时产量 / 效率 (主要线体)",
+    lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
+    segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
+    hintSeg: "两柱完全平行 · 蓝色=实际达成 · 灰色=未达成缺口",
+    lgEff: "UPPH 达成率 (效率)", hintUpph: "UPPH = 产量÷人数÷工时", editHead: "✏️ 编辑人数",
+    sortByUph: "按 UPH 从高到低排序", thTargetDay: "目标/日",
+    editHeadTitle: "✏️ 编辑各线出勤人数",
+    headHint: "UPPH = 产量 ÷ 人数 ÷ 已工作小时；UPPH目标(实时) = 当前小时累计计划 ÷ 已工作小时 ÷ 人数。每天人数可改，保存后自动生效。",
+    save: "💾 保存",
+    stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知",
+    kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", noHit: "暂无达成线体",
+    notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
+    noData: "暂无数据", am: "上午", setPeople: "设人数",
+    headTitleFmt: "{name} — UPPH目标(实时) = 当前小时累计计划({p}) ÷ 工时 ÷ 人数",
+    shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
+    useHttp: "⚠️ 请用 http://localhost:8080 打开",
+    fileErr: "⚠️ file:// 无法加载数据 — 请用 http://localhost:8080 打开看板",
+    connOk: "已连接 · 数据实时", connDelay: "数据延迟 {s}s", connDown: "数据断线 {m}min", connNoData: "无数据",
+    connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})",
+    histBtn: "📊 历史统计", histTitle: "📊 历史统计 · 周/月对比 · 站擂排名",
+    histToday: "📌 今日实时", histWeekTitle: "🗓 本周 vs 上周", histMonthTitle: "📅 本月 vs 上月",
+    thUpphRate: "UPPH达成%", thScore: "综合分", thRank: "今日排名",
+    thWeekRate: "周均达成%", thWeekUpph: "周均UPPH%", thWeekVsPrev: "vs 上周",
+    thMonthRate: "月均达成%", thMonthUpph: "月均UPPH%", thMonthVsPrev: "vs 上月",
+    thChamp: "🏆 站擂第一", thLast: "🔻 末位"
+  },
+  en: {
+    docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
+    connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
+    kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted",
+    kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
+    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
+    panelMainTitle: "📋 Main Lines · Output vs Plan · by UPH", otherLines: "Other Lines",
+    thLine: "Line", thOutput: "Output (Blue=Actual · Orange=Plan)", thDiff: "Diff", thRate: "Rate%", thForecast: "EOD Forecast", thStatus: "Status",
+    panelChartTitle: "📊 Hourly Output / Efficiency (Main)",
+    lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
+    segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
+    hintSeg: "Bars aligned · Blue=met · Gray=gap",
+    lgEff: "UPPH Rate (Efficiency)", hintUpph: "UPPH = Output÷Manpower÷Hours", editHead: "✏️ Edit Manpower",
+    sortByUph: "Sorted by UPH desc", thTargetDay: "Target/Day",
+    editHeadTitle: "✏️ Edit Line Headcount",
+    headHint: "UPPH = Output ÷ Manpower ÷ Worked hrs; UPPH target (live) = cumulative plan ÷ worked hrs ÷ manpower. Editable daily, applied automatically.",
+    save: "💾 Save",
+    stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown",
+    kpiRunSubFmt: "Main {m} · Total {a}", noHit: "None ≥90%",
+    notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
+    noData: "No data", am: "AM", setPeople: "Set HC",
+    headTitleFmt: "{name} — UPPH target (live) = cumulative plan ({p}) ÷ hrs ÷ manpower",
+    shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
+    useHttp: "⚠️ Open via http://localhost:8080",
+    fileErr: "⚠️ file:// cannot load data — open via http://localhost:8080",
+    connOk: "Connected · Live", connDelay: "Data delay {s}s", connDown: "Data offline {m}min", connNoData: "No data",
+    connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})",
+    histBtn: "📊 History", histTitle: "📊 History · Weekly/Monthly · Rankings",
+    histToday: "📌 Today (Live)", histWeekTitle: "🗓 This Week vs Last Week", histMonthTitle: "📅 This Month vs Last Month",
+    thUpphRate: "UPPH Rate%", thScore: "Score", thRank: "Today Rank",
+    thWeekRate: "Week Rate%", thWeekUpph: "Week UPPH%", thWeekVsPrev: "vs Last Wk",
+    thMonthRate: "Month Rate%", thMonthUpph: "Month UPPH%", thMonthVsPrev: "vs Last Mo",
+    thChamp: "🏆 1st", thLast: "🔻 Last"
+  }
+};
+const LANG_KEY = "pdtiii_lang";
+let lang = "zh";
+try { lang = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { lang = "zh"; }
+function t(k) { const d = I18N[lang] || I18N.zh; return d[k] !== undefined ? d[k] : (I18N.zh[k] !== undefined ? I18N.zh[k] : k); }
+function applyStaticI18n() {
+  document.documentElement.lang = lang === "zh" ? "zh-CN" : "en";
+  document.title = t("docTitle");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.getAttribute("data-i18n")); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => { el.setAttribute("title", t(el.getAttribute("data-i18n-title"))); });
+  const lb = document.getElementById("langBtn");
+  if (lb) lb.textContent = lang === "zh" ? "EN" : "中文";
+}
+function toggleLang() {
+  lang = lang === "zh" ? "en" : "zh";
+  try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
+  applyStaticI18n();
+  updatePeriodLabel();
+  renderAll();
+  refresh();
+}
+// script 在 body 底部同步执行，DOM 已就绪，直接绑定
+(function () {
+  const lb = document.getElementById("langBtn");
+  if (lb) lb.addEventListener("click", toggleLang);
+  applyStaticI18n();
+})();
+// 数据源自动切换: 本机/局域网打开 -> 读本地 data.json; 线上(GitHub Pages https)打开 -> 读 Firebase 云端
+const IS_LOCAL = location.protocol === "file:" ||
+  location.hostname === "localhost" || location.hostname === "127.0.0.1";
+const DATA_URL = IS_LOCAL
+  ? "data.json"
+  : "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
+
+// ⚙️ 主要线体配置（按此顺序显示）
+const MAIN_LINES = [
+  "Final A line", "Final B Line", "Final C line", "Final D line",
+  "Motor H-Series", "Motor S-Series", "Motor F-Series", "Motor WL"
+];
+function normName(n) { return String(n || "").toLowerCase().replace(/\s+/g, ""); }
+// ★ Set 内容也过 normName, 否则带空格永远匹配不上
+const FINAL_SET = new Set(["final a line", "final b line", "final c line", "final d line"].map(normName));
+const MOTOR_SET = new Set(["motor h-series", "motor s-series", "motor f-series", "motor wl"].map(normName));
+const MAIN_SET = new Set(MAIN_LINES.map(normName));
+
+const state = { lines: [], updatedAt: null, hourly: {} };
+
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return Number(n).toLocaleString("en-US");
+}
+function fmt1(n) {
+  if (n === null || n === undefined || isNaN(n)) return "-";
+  return Number(n).toFixed(1);
+}
+function shortName(name) {
+  return String(name || "").replace(/ line$/i, "").replace(/-Series$/i, "").trim();
+}
+function hitEff(e) { return e !== null && e !== undefined && !isNaN(e) && e >= 90; }
+function effClass(e) {
+  if (e === null || e === undefined || isNaN(e)) return "";
+  return e >= 90 ? "eff-ok" : "eff-bad";
+}
+function signClass(v) {
+  if (v === null || v === undefined || isNaN(v)) return "zero";
+  if (v > 0) return "pos";
+  if (v < 0) return "neg";
+  return "zero";
+}
+function isStalled(l) { return l.stalled === true || l.status === "STALLED"; }
+function stHtml(l) {
+  let stCls, stTxt;
+  if (isStalled(l)) { stCls = "stall"; stTxt = t("stStall") + stallTimeHtml(l); }
+  else if (l.status === "RUNNING" || l.status === "运行") { stCls = "run"; stTxt = t("stRun"); }
+  else if (l.status === "OFF" || l.status === "-OFF") { stCls = "off"; stTxt = t("stOff"); }
+  else { stCls = "err"; stTxt = l.status || t("stUnknown"); }
+  return `<span class="st ${stCls}">${stTxt}</span>`;
+}
+function splitLines() {
+  const now = new Date();
+  const main = [], other = [];
+  state.lines.forEach(l => (MAIN_SET.has(normName(l.name)) ? main : other).push(l));
+  // ★ 按 UPH 从高到低排名; UPH 无效排最后; 同分按名称
+  const byUph = (a, b) => {
+    const ua = uphOf(a, now), ub = uphOf(b, now);
+    const ea = (ua === null || ua === undefined || isNaN(ua)) ? -Infinity : ua;
+    const eb = (ub === null || ub === undefined || isNaN(ub)) ? -Infinity : ub;
+    if (eb !== ea) return eb - ea;
+    return a.name.localeCompare(b.name);
+  };
+  main.sort(byUph);
+  other.sort(byUph);
+  return { main, other };
+}
+function lineNameCls(l) {
+  if (l.eff === null || l.eff === undefined || isNaN(l.eff)) return "";
+  return hitEff(l.eff) ? "hit-name" : "miss-name";
+}
+
+// ---- 主表: 每行横向条形图 (Actual vs Plan) ----
+function hbarHtml(l, maxV) {
+  const aw = maxV > 0 ? Math.max(0, (Number(l.actual) || 0) / maxV * 100) : 0;
+  const pw = maxV > 0 ? Math.max(0, (Number(l.plan) || 0) / maxV * 100) : 0;
+  const stalledCls = isStalled(l) ? " style=\"border:1px solid rgba(248,81,73,.6)\"" : "";
+  return `<div class="hbar"${stalledCls}><div class="p100"></div>` +
+    `<div class="plan" style="width:${pw}%"></div>` +
+    `<div class="act" style="width:${aw}%"></div></div>`;
+}
+
+function renderTable() {
+  const now = new Date(); // ★ v5.17.2 修复: uphTxt(l, now) 需要 now — 之前未定义导致渲染抛错, 误报"连接失败"
+  const { main, other } = splitLines();
+  // 全表最大产量用于条宽比例
+  const maxV = Math.max(1, ...main.map(l => Math.max(l.actual || 0, l.plan || 0)));
+  const tb = document.querySelector("#mainTable tbody");
+  tb.innerHTML = "";
+  main.forEach((l, idx) => {
+    const tr = document.createElement("tr");
+    const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+    if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
+    else if (miss) tr.className = "miss";
+    const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
+    tr.innerHTML =
+      `<td class="rank">${idx + 1}</td>` +
+      `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+      `<td class="bar-cell">${hbarHtml(l, maxV)}</td>` +
+      `<td>${fmt(l.actual)}</td>` +
+      `<td>${fmt(l.plan)}</td>` +
+      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td class="uph-cell">${uphTxt(l, now)}</td>` +
+      `<td class="forecast-cell">${forecastHtml(l, now)}</td>` +
+      `<td>${stHtml(l)}</td>`;
+    tb.appendChild(tr);
+  });
+  const otb = document.querySelector("#otherTable tbody");
+  otb.innerHTML = "";
+  other.forEach((l, idx) => {
+    const tr = document.createElement("tr");
+    const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+    if (isStalled(l)) tr.className = "stalled-row lv" + stallLevelOf(l);
+    else if (miss) tr.className = "miss";
+    const dot = isStalled(l) ? '<span class="stall-dot"></span>' : "";
+    tr.innerHTML =
+      `<td class="rank">${idx + 1}</td>` +
+      `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+      `<td>${fmt(l.target)}</td>` +
+      `<td>${fmt(l.plan)}</td>` +
+      `<td>${fmt(l.actual)}</td>` +
+      `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
+      `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
+      `<td>${stHtml(l)}</td>`;
+    otb.appendChild(tr);
+  });
+  document.getElementById("otherBtn").textContent = t("otherLinesFmt").replace("{n}", other.length);
+  document.getElementById("modalTitle").textContent = t("otherLinesFmt").replace("{n}", other.length);
+  return { main, other };
+}
+
+function renderKPIs(main) {
+  const running = main.filter(l => l.status === "RUNNING" || l.status === "运行");
+  document.getElementById("kpiRun").textContent = running.length;
+  document.getElementById("kpiRunSub").textContent = t("kpiRunSubFmt").replace("{m}", main.length).replace("{a}", state.lines.length);
+  const withEff = running.filter(l => l.eff !== null && !isNaN(l.eff));
+  const avgEff = withEff.length ? withEff.reduce((s, l) => s + l.eff, 0) / withEff.length : 0;
+  const el = document.getElementById("kpiEff");
+  el.textContent = avgEff ? avgEff.toFixed(1) + "%" : "-";
+  el.className = "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : "");
+  const hit = running.filter(l => hitEff(l.eff));
+  const eh = document.getElementById("kpiHit");
+  eh.textContent = hit.length;
+  eh.className = "value " + (hit.length > 0 ? "green" : "orange");
+  const hitNames = hit.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
+  document.getElementById("kpiHitSub").textContent = hitNames || t("noHit");
+  const totalFinal = main.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  const totalMotor = main.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
+  document.getElementById("kpiFinal").textContent = totalFinal ? fmt(totalFinal) : "-";
+  document.getElementById("kpiMotor").textContent = totalMotor ? fmt(totalMotor) : "-";
+}
+
+// ---- 停滞分级告警 v5.18: 追踪每条主要线 actual 最后变化时刻 → 停滞时长 + 分级 ----
+//   时长依据: 前端记录 actual 每次变化的时间戳(localStorage 持久化, 刷新不丢),
+//   停滞时长 = now - 最后变化时刻。分级: <15min 黄 / 15-30min 橙 / >=30min 红(闪烁)
+const STALL_START_KEY = "pdtiii_stall_start_v1";
+const STALL_LAST_KEY = "pdtiii_stall_last_v1";
+let stallStartMap = {};
+let lastActualMap = {};
+try { stallStartMap = JSON.parse(localStorage.getItem(STALL_START_KEY) || "{}") || {}; } catch (e) { stallStartMap = {}; }
+try { lastActualMap = JSON.parse(localStorage.getItem(STALL_LAST_KEY) || "{}") || {}; } catch (e) { lastActualMap = {}; }
+function stallMinutesOf(l) {
+  const ts = stallStartMap[normName(l.name)];
+  if (!ts) return 0;
+  return Math.max(0, Math.floor((Date.now() - ts) / 60000));
+}
+function stallLevelOf(l) {
+  if (!isStalled(l)) return 0;
+  const m = stallMinutesOf(l);
+  if (m >= 30) return 3;
+  if (m >= 15) return 2;
+  return 1;
+}
+function stallTimeHtml(l) {
+  const lv = stallLevelOf(l);
+  if (!lv) return "";
+  return `<span class="stall-time lv${lv}">${stallMinutesOf(l)}m</span>`;
+}
+// ★ 每次 refresh 数据到位后调用: 更新 actual 最后变化时间戳(localStorage 持久化, 刷新不丢)
+//   actual 变化 >=0.5 → 记为新起点; 未变 → 沿用旧时间戳, 停滞时长持续累积
+function trackStallStart() {
+  const nowTs = Date.now();
+  let changed = false;
+  state.lines.forEach(l => {
+    const k = normName(l.name);
+    if (!MAIN_SET.has(k)) return;  // ★ 只追踪主要线体
+    const a = Number(l.actual) || 0;
+    const prev = lastActualMap[k];
+    if (prev === undefined || Math.abs(a - prev) >= 0.5) {
+      lastActualMap[k] = a;
+      stallStartMap[k] = nowTs;
+      changed = true;
+    }
+  });
+  // 清理已消失的线(只清 lastActual, 时间戳保留避免误判)
+  Object.keys(lastActualMap).forEach(k => {
+    if (!state.lines.some(l => normName(l.name) === k)) delete lastActualMap[k];
+  });
+  if (changed) {
+    try {
+      localStorage.setItem(STALL_START_KEY, JSON.stringify(stallStartMap));
+      localStorage.setItem(STALL_LAST_KEY, JSON.stringify(lastActualMap));
+    } catch (e) { /* ignore */ }
+  }
+}
+
+// ---- 历史统计 v5.18: 每日快照(localStorage) → 周/月对比 + 站擂排名 ----
+//   每天每次 refresh 更新当天记录(覆盖); 跨天后保留 → 自然形成历史
+//   记录字段(每条主要线): rate=达成率% eff, uph, upph=UPPH达成率%
+const HIST_KEY = "pdtiii_hist_v1";
+let histStore = {};
+try { histStore = JSON.parse(localStorage.getItem(HIST_KEY) || "{}") || {}; } catch (e) { histStore = {}; }
+function todayKey() {
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+}
+function dayKeyOf(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function recordToday() {
+  const now = new Date();
+  const k = todayKey();
+  const rec = {};
+  state.lines.forEach(l => {
+    const nk = normName(l.name);
+    if (!MAIN_SET.has(nk)) return;
+    const uph = uphOf(l, now);
+    const upph = upphRateOf(l, now);
+    rec[nk] = {
+      rate: (l.eff !== null && !isNaN(l.eff)) ? l.eff : null,
+      uph: uph == null ? null : Number(uph.toFixed(2)),
+      upph: upph == null ? null : Number(upph.toFixed(1)),
+      ts: Date.now()
+    };
+  });
+  histStore[k] = rec;
+  try { localStorage.setItem(HIST_KEY, JSON.stringify(histStore)); } catch (e) { /* ignore */ }
+}
+// 综合得分: 达成率(0-100)、UPPH达成率(%) 两指标平均; 缺任一用另一个; 全缺 null
+function compScore(rec) {
+  if (!rec) return null;
+  const vals = [rec.rate, rec.upph].filter(v => v != null && !isNaN(v));
+  if (!vals.length) return null;
+  return vals.reduce((s, v) => s + v, 0) / vals.length;
+}
+// 一天内各线排名: 返回 { name: rank(1=第一) }, 按 compScore 降序; 同分按 uph 次排
+function rankOfDay(dayRec) {
+  const entries = Object.entries(dayRec || {}).map(([k, r]) => ({ k, score: compScore(r), r }));
+  entries.sort((a, b) => (b.score || -Infinity) - (a.score || -Infinity) ||
+    ((b.r.uph || -Infinity) - (a.r.uph || -Infinity)));
+  const map = {};
+  entries.forEach((e, i) => { map[e.k] = i + 1; });
+  return map;
+}
+// 汇总 N 天: 平均 rate/upph/uph + 站擂次数(冠军=当天第一, 末位=当天最后且>=3条线有得分)
+function aggregate(days) {
+  const agg = {};
+  days.forEach(dayRec => {
+    if (!dayRec) return;
+    const ranks = rankOfDay(dayRec);
+    const scored = Object.keys(ranks).length;
+    Object.entries(dayRec).forEach(([k, r]) => {
+      const a = agg[k] || (agg[k] = { rate: [], uph: [], upph: [], first: 0, last: 0, days: 0 });
+      if (r.rate != null) a.rate.push(r.rate);
+      if (r.uph != null) a.uph.push(r.uph);
+      if (r.upph != null) a.upph.push(r.upph);
+      a.days++;
+      if (scored >= 3) {
+        if (ranks[k] === 1) a.first++;
+        if (ranks[k] === scored) a.last++;
+      }
+    });
+  });
+  const out = {};
+  Object.entries(agg).forEach(([k, a]) => {
+    const avg = arr => arr.length ? arr.reduce((s, v) => s + v, 0) / arr.length : null;
+    out[k] = { rate: avg(a.rate), uph: avg(a.uph), upph: avg(a.upph), first: a.first, last: a.last, days: a.days };
+  });
+  return out;
+}
+function weekStartOf(d) { const x = new Date(d); const w = (x.getDay() + 6) % 7; x.setDate(x.getDate() - w); x.setHours(0,0,0,0); return x; }
+function monthStartOf(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+// 取某范围的天记录: [{key, rec}]
+function rangeDays(from, to) {
+  const out = [];
+  for (let t = new Date(from); t <= to; t.setDate(t.getDate() + 1)) {
+    const k = dayKeyOf(t);
+    if (histStore[k]) out.push(histStore[k]);
+  }
+  return out;
+}
+function weekAgg(offsetWeeks) {
+  const now = new Date();
+  const ws = weekStartOf(now);
+  ws.setDate(ws.getDate() + offsetWeeks * 7);
+  const we = new Date(ws); we.setDate(we.getDate() + 6); we.setHours(23, 59, 59, 999);
+  return aggregate(rangeDays(ws, we));
+}
+function monthAgg(offsetMonths) {
+  const now = new Date();
+  const ms = new Date(now.getFullYear(), now.getMonth() + offsetMonths, 1);
+  const me = new Date(ms.getFullYear(), ms.getMonth() + 1, 0); me.setHours(23, 59, 59, 999);
+  return aggregate(rangeDays(ms, me));
+}
+// ---- 停滞检测 → 横幅 + 系统通知（★ 只针对主要线体） ----
+function checkStalls() {
+  const stalled = state.lines.filter(l => isStalled(l) && MAIN_SET.has(normName(l.name)));
+  const banner = document.getElementById("stallBanner");
+  if (stalled.length) {
+    banner.style.display = "flex";
+    // ★ 横幅按最严重级别着色 + 每条附停滞时长
+    const maxLv = stalled.reduce((m, l) => Math.max(m, stallLevelOf(l)), 0);
+    banner.style.borderColor = maxLv >= 3 ? "rgba(248,81,73,.8)" : (maxLv === 2 ? "rgba(248,81,73,.5)" : "rgba(210,153,34,.5)");
+    banner.style.background = maxLv >= 2 ? "rgba(248,81,73,.18)" : "rgba(210,153,34,.12)";
+    document.getElementById("stallList").innerHTML = stalled
+      .map(l => `${shortName(l.name)} ${stallTimeHtml(l)}`)
+      .join(lang === "zh" ? "、" : ", ");
+  } else {
+    banner.style.display = "none";
+  }
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const nowTs = Date.now();
+  let notified = {};
+  try { notified = JSON.parse(localStorage.getItem("pdtiii_notified") || "{}"); } catch (e) { notified = {}; }
+  let changed = false;
+  stalled.forEach(l => {
+    const key = normName(l.name);
+    const last = notified[key] || 0;
+    if (nowTs - last > 10 * 60 * 1000) {
+      notified[key] = nowTs;
+      changed = true;
+      try {
+        new Notification(t("notifTitle") + shortName(l.name), {
+          body: t("notifBody") + new Date().toLocaleTimeString(lang === "zh" ? "zh-CN" : "en-GB", { hour12: false })
+        });
+      } catch (e) { /* ignore */ }
+    }
+  });
+  Object.keys(notified).forEach(k => { if (nowTs - notified[k] > 24 * 3600 * 1000) delete notified[k]; });
+  if (changed) { try { localStorage.setItem("pdtiii_notified", JSON.stringify(notified)); } catch (e) { /* ignore */ } }
+}
+function initNotif() {
+  const btn = document.getElementById("notifBtn");
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") return;
+  if (Notification.permission === "default") btn.style.display = "inline-block";
+  btn.addEventListener("click", () => {
+    Notification.requestPermission().then(p => {
+      if (p === "granted") btn.style.display = "none";
+    });
+  });
+}
+
+// ---- 小时产量分段: 实际柱与目标柱共用同一时段骨架(逐段对齐, 直接对比每时段实际 vs 目标差异) ----
+// 编号规则: 工作时间 8-17点, 12-13点午休忽略
+//   8-9=1, 9-10=2, 10-11=3, 11-12=4, (12-13午休), 13-14=5, 14-15=6, 15-16=7, 16-17=8
+function hourNo(lab) {
+  if (lab >= 8 && lab <= 11) return lab - 7;   // 8→1, 9→2, 10→3, 11→4
+  if (lab >= 13 && lab <= 16) return lab - 8;  // 13→5, 14→6, 15→7, 16→8
+  return null; // 12午休 / 其他不统计
+}
+// ★ 统一骨架: 每段同时含 actual(该时段实际产量) 与 plan(该时段目标)
+//   plan/actual 均来自 hourly 快照的定格累计值差分 → 时段一过即定格, 不再随实时数据变化
+//   live 段(当前进行中的小时) = 实时累计 − 上一快照定格 → 继续累计变化
+//   base 段 = 启动前累计(今天上午缺小时数据): 实际柱/目标柱都画灰底, 段内写"上午"+累计值
+//   ★ 目的: 同一时段的实际段与目标段在两根柱子上位置完全一致 → 逐段比高度 = 直接看差异
+function segsOf(name, curActual) {
+  const snaps = (state.hourly || {})[name] || [];
+  const ln = state.lines.find(x => x.name === name) || {};
+  const livePlan = Number(ln.plan) || 0; // 实时累计目标(与表格 Plan 列一致, 仅 live 段用)
+  if (!snaps.length) return [];
+  const nowH = new Date().getHours();
+  const segs = [];
+  if (snaps[0].h > 8) {
+    // ★ 当天中途启动(今天上午缺小时数据):
+    //   base 段 = 启动前累计, 截止到第一个下午快照(h>=13) → 包含上午全部产量+午休段产量
+    //   ⚠️ 必须用第一个下午快照的 actual, 不能用首条快照: 否则 h11→h13 之间(含午休)的产量会丢,
+    //      实际柱累计 ≠ 表格 Actual 列(今天实测: 丢 303 件)
+    //   base 段目标 = 第一个有效快照的定格累计 plan(定格, 不再变)
+    let baseIdx = snaps.length - 1;
+    for (let i = 0; i < snaps.length; i++) {
+      if (snaps[i].h >= 13) { baseIdx = i; break; }
+    }
+    segs.push({
+      h: snaps[baseIdx].h, lab: null, live: false, base: true,
+      actual: snaps[baseIdx].actual || 0,
+      plan: snaps[baseIdx].plan || 0
+    });
+    for (let i = baseIdx + 1; i < snaps.length; i++) {
+      const prev = snaps[i - 1], s = snaps[i];
+      segs.push({
+        h: s.h, lab: prev.h, live: false,
+        actual: Math.max(0, (s.actual || 0) - (prev.actual || 0)),
+        plan: Math.max(0, (s.plan || 0) - (prev.plan || 0))
+      });
+    }
+    // ★ 当前进行中的小时: 最新整点快照作基准 → 当前 actual 差值 = 正在累积的产量
+    const last = snaps[snaps.length - 1];
+    if (curActual != null && last && last.h >= 13 && last.h <= nowH && nowH - last.h < 2) {
+      segs.push({
+        h: nowH, lab: last.h, live: true,
+        actual: Math.max(0, (curActual || 0) - (last.actual || 0)),
+        plan: Math.max(0, livePlan - (last.plan || 0))
+      });
+    }
+    return segs;
+  }
+  // 完整日: 第一条快照作为基准点(不构成独立段), 从第二条起差值算每小时产量/目标
+  // ★ 2026-08-06 修复: 首条快照是 h8(当天第一小时)时, 基准应为 8:00 整的 0,
+  //   而非首条快照值 — 首条快照可能在 08:10 才定格(如抓包空窗), 直接把它的
+  //   actual 当基准会吞掉 8:00-8:10 的产量, 与表格 Actual 列对不上
+  const isFirstHour = snaps[0].h === 8;
+  let prevA = isFirstHour ? 0 : (snaps[0].actual || 0);
+  let prevP = isFirstHour ? 0 : (snaps[0].plan || 0);
+  let prevH = snaps[0].h;
+  for (let i = 1; i < snaps.length; i++) {
+    const s = snaps[i];
+    if (hourNo(prevH) == null) { prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h; continue; } // ★ 午休段跳过
+    segs.push({
+      h: s.h, lab: prevH, live: false,
+      actual: Math.max(0, (s.actual || 0) - prevA),
+      plan: Math.max(0, (s.plan || 0) - prevP)
+    });
+    prevA = s.actual || 0; prevP = s.plan || 0; prevH = s.h;
+  }
+  // ★ 完整日也有当前进行中的小时段
+  if (curActual != null && prevH <= nowH && nowH - prevH < 2 && hourNo(prevH) != null) {
+    segs.push({
+      h: nowH, lab: prevH, live: true,
+      actual: Math.max(0, (curActual || 0) - prevA),
+      plan: Math.max(0, livePlan - prevP)
+    });
+  }
+  return segs;
+}
+// ---- 目标柱分段(回退/关闭分段时用): 每段目标 = plan ÷ 已过时段数(均匀相等), 柱顶累计 = plan ----
+function planSegsOf(name, nowH) {
+  const ln = state.lines.find(x => x.name === name) || {};
+  const plan = ln.plan || 0; // 实时累计目标(与表格 Plan 列一致)
+  let n = 0;
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue;
+    n++;
+  }
+  if (!n) return [];
+  const per = plan / n;
+  const segs = [];
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue;
+    segs.push({ h: h, lab: h, live: (h === nowH), actual: per });
+  }
+  return segs;
+}
+// ---- 固定小时目标(回退用): 日目标 ÷ 8 个工作小时, 每段等高不变 ----
+function planSegs(target, nowH) {
+  const perH = (target || 0) / 8; // 8 个工作小时(8-9,9-10,10-11,11-12,午休,13-14,14-15,15-16,16-17)
+  const segs = [];
+  for (let h = 8; h <= nowH && h <= 16; h++) {
+    if (h === 12) continue; // 午休不计数
+    segs.push({ actual: perH, live: false, lab: h });
+  }
+  return segs;
+}
+// ★ v5.15 统一绘制: 两柱共用同一份 segs, 段骨架按目标值(plan)定位 → 段边界完全平行
+//   实际柱(key='actual'): 每段 = 蓝色(实际达成, 从段底向上) + 灰色(未达成缺口)
+//   目标柱(key='plan'): 每段 = 橙色(目标达成, 画满整段)
+//   ★ 两柱段边界线 y 位置相同(都由 plan 累计决定) → 完全平行, 逐段对比 = 蓝 vs 橙 + 灰缺口
+function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
+  // ★ 柱顶 = plan 累计高度(两柱同 y, 数字统一标在柱顶上方)
+  const planTotalPix = segs.reduce((s, x) => s + (x.plan || 0), 0) / maxV * ch;
+  const topY = padT + ch - planTotalPix;
+  const totalH = Math.max(0, (total || 0) / maxV * ch);
+  if (!segs.length) {
+    // 无分段数据: 纯色累计柱
+    const base = padT + ch - totalH;
+    ctx.fillStyle = color;
+    ctx.fillRect(cx, base, bw, totalH);
+  } else {
+    let yAcc = padT + ch;
+    segs.forEach((s, idx) => {
+      const perH = Math.max(0, ((s.plan || 0) / maxV) * ch); // 段高 = 该时段目标(统一骨架)
+      yAcc -= perH;
+      if (perH < 0.5) return;
+      // ★ 灰色底 = 未达成缺口(目标 - 实际), 整段先铺灰
+      ctx.fillStyle = "#30363d";
+      ctx.fillRect(cx, yAcc, bw, perH);
+      // ★ 实际值(蓝)从段底往上画; 目标值(橙)画满整段
+      const v = key === "plan" ? (s.plan || 0) : Math.min(s.actual || 0, s.plan || 0);
+      const vPix = Math.max(0, (v / maxV) * ch);
+      if (vPix > 0.5) {
+        ctx.fillStyle = color;
+        ctx.fillRect(cx, yAcc + perH - vPix, bw, vPix);
+      }
+      // ★ 分割线: 段边界(plan 定位) → 两柱完全平行; 柱顶也画收尾线
+      ctx.fillStyle = "#0d1117";
+      ctx.fillRect(cx - 1, yAcc, bw + 2, 2);
+      if (idx === segs.length - 1) {
+        ctx.fillRect(cx - 1, yAcc - 2, bw + 2, 2);
+      }
+      // ★ 段内写数据: 实际柱写实际达成数, 目标柱写该时段目标数
+      //   已完成时段: 编号+数值写大一点; 当前小时(live): 数值写小一点(进行中, 未完成)
+      ctx.textAlign = "center";
+      const valTxt = String(Math.round(v));
+      const hNo = hourNo(s.lab);
+      // ★ 字体随段高自适应: 段越矮字越小, 避免第8段后文字放不下
+      const fBig = perH >= 26 ? 10 : perH >= 20 ? 9 : perH >= 15 ? 8 : perH >= 11 ? 7.5 : 7;
+      const fSml = Math.max(6.5, fBig - 1);
+      if (s.base) {
+        // 上午累计段: 灰底 + "上午"标签 + 数值
+        if (perH >= 14) {
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
+          ctx.fillText(t("am"), cx + bw / 2, yAcc + perH / 2 - 3);
+          ctx.fillStyle = "#e6edf3"; ctx.font = "bold " + fBig + "px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+        } else if (perH >= 8) {
+          ctx.fillStyle = "#8b949e"; ctx.font = "bold " + fBig + "px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+        }
+      } else if (s.live) {
+        // ★ 当前小时(进行中): 数值稍微小一点, 编号也小, 不喧宾夺主
+        if (perH >= 14 && hNo != null) {
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
+          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
+          ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+        } else if (perH >= 8) {
+          ctx.fillStyle = "#c9d1d9"; ctx.font = fBig + "px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+        }
+      } else {
+        if (perH >= 16 && hNo != null) {
+          // 段高足够: 两行 — 编号 + 数值
+          ctx.fillStyle = "#8b949e"; ctx.font = fSml + "px sans-serif";
+          ctx.fillText(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1);
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 8);
+        } else if (perH >= 9) {
+          // 段高一般: 只写数值
+          ctx.fillStyle = "#ffffff"; ctx.font = "bold " + fBig + "px sans-serif";
+          ctx.fillText(valTxt, cx + bw / 2, yAcc + perH / 2 + 3);
+        }
+      }
+    });
+  }
+  if (totalH > 0) {
+    // ★ 柱顶数字统一标在 plan 累计高度上方(两柱同 y), 实际柱写实际累计, 目标柱写目标累计
+    ctx.fillStyle = color; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(fmt(total), cx + bw / 2, topY - 14);
+  }
+}
+
+// ★ 小时产出分段开关: 默认关闭(只显示全天累计)。勾选后实际柱/目标柱共用统一骨架逐段对齐对比
+const SEG_KEY = "pdtiii_seg_v1";
+let segShow = false;
+try { segShow = localStorage.getItem(SEG_KEY) === "1"; } catch (e) { segShow = false; }
+function toggleSeg() {
+  segShow = document.getElementById("segToggle").checked;
+  try { localStorage.setItem(SEG_KEY, segShow ? "1" : "0"); } catch (e) { /* ignore */ }
+  drawBar(splitLines().main);
+}
+
+function drawBar(main) {
+  const cv = document.getElementById("chartBar");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 230;
+  if (W < 20) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const lines = main;
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
+  const padL = 46, padB = 34, padT = 26;
+  const cw = W - padL - 12, ch = H - padT - padB;
+  // ★ maxV 基于各线 plan 累计(目标柱骨架)取最大 — 两柱共用同一骨架, 柱顶=plan 累计, 完全平行
+  //   (若某线 actual 超额超过 plan, 段内蓝色画满后不再延伸, 柱顶数字仍显示真实实际值)
+  const nowH = new Date().getHours();
+  const maxV = Math.max(1, ...lines.map(l => Math.max(l.plan || 0, l.actual || 0)));
+  const step = Math.ceil(maxV / 4 / 10) * 10;
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + ch - (ch * i / 4);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
+    ctx.fillText(fmt(step * i), 4, y + 3);
+  }
+  const n = lines.length, slot = cw / n;
+  const bw = Math.min(20, slot * 0.3);
+  lines.forEach((l, i) => {
+    const cx = padL + slot * i + slot / 2;
+    // ★ 小时产出开关: 开启后实际柱/目标柱共用同一份 segs(统一骨架) → 段边界完全一致, 逐段对比差异
+    if (segShow) {
+      const segs = segsOf(l.name, l.actual);
+      // 实际柱(蓝): 每段画实际产量, 段内写该时段实际达成数
+      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxV, ch, padT, "#58a6ff", "actual");
+      // 目标柱(橙): 同一份 segs, 每段画目标产量(均匀), 段内写该时段目标数 → 与实际柱逐段对齐
+      drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxV, ch, padT, "#d29922", "plan");
+    } else {
+      // 关闭分段: 全天累计纯色柱(柱顶=累计值), 不画横线不画编号 → 上午缺数据时显示统一
+      const aH = Math.max(0, (l.actual || 0) / maxV * ch);
+      ctx.fillStyle = "#58a6ff";
+      ctx.fillRect(cx - bw - 1.5, padT + ch - aH, bw, aH);
+      const pCum = l.plan || 0;
+      const pH = Math.max(0, pCum / maxV * ch);
+      ctx.fillStyle = "#d29922";
+      ctx.fillRect(cx + 1.5, padT + ch - pH, bw, pH);
+      ctx.fillStyle = "#58a6ff"; ctx.font = "9px sans-serif"; ctx.textAlign = "center";
+      if (aH > 0) ctx.fillText(fmt(l.actual), cx - bw - 1.5 + bw / 2, padT + ch - aH - 3);
+      ctx.fillStyle = "#d29922";
+      if (pH > 0) ctx.fillText(fmt(pCum), cx + 1.5 + bw / 2, padT + ch - pH - 3);
+    }
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText(shortName(l.name), cx, H - 10);
+  });
+  ctx.textAlign = "left";
+}
+
+// ---- UPPH 人效: 人数编辑(本地保存) + 计算 ----
+// 人数存储 localStorage: { 线体名: 人数 }
+const HEADS_KEY = "pdtiii_heads_v1";
+let headMap = {};
+try { headMap = JSON.parse(localStorage.getItem(HEADS_KEY) || "{}") || {}; } catch (e) { headMap = {}; }
+function headOf(name) {
+  const k = normName(name);
+  if (headMap[k] != null) return Number(headMap[k]) || 0;
+  return 0;
+}
+function setHead(name, v) {
+  headMap[normName(name)] = Number(v) || 0;
+  try { localStorage.setItem(HEADS_KEY, JSON.stringify(headMap)); } catch (e) { /* ignore */ }
+}
+// 已工作小时(净工时): 8:00 上班 → 20:20 下班; 休息: 10:00-10:10(10min) + 12:00-13:00午休(1h) + 15:05-15:15(10min) + 17:00-17:20(20min)
+//   封顶净工时 = (20:20-8:00=12h20m) - 100min休息 = 10h40m = 10.67h; 与 UPPH 目标分母 10.67h 口径一致
+// ★ 班次判断 (按班次开始小时查名; 当前看板数据从 8:00 开始累计 → 早班; 若以后支持多班次数据, 班次开始时间变化会自动跟随)
+const SHIFT_RANGES = [
+  { s: 8, e: 16, key: "shiftDay" },
+  { s: 16, e: 24, key: "shiftSwing" },
+  { s: 0, e: 8, key: "shiftNight" }
+];
+function shiftNameOfHour(h) {
+  for (const sh of SHIFT_RANGES) if (h >= sh.s && h < sh.e) return t(sh.key);
+  return "";
+}
+
+function workedHours(now) {
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const start = 8 * 60, end = 20 * 60 + 20;   // 8:00 上班 → 20:20 下班
+  if (mins <= start) return 0;
+  const mm = Math.min(mins, end);             // 产量实时累计, 封顶 20:20
+  let w = mm - start;
+  // 扣除休息: 上午 10:00-10:10, 午休 12:00-13:00, 下午 15:05-15:15, 17:00-17:20
+  const breaks = [
+    [10 * 60, 10 * 60 + 10],
+    [12 * 60, 13 * 60],
+    [15 * 60 + 5, 15 * 60 + 15],
+    [17 * 60, 17 * 60 + 20]
+  ];
+  for (const [bs, be] of breaks) {
+    const ov = mm - Math.max(start, bs);
+    if (ov > 0) w -= Math.min(be - bs, ov);
+  }
+  return Math.max(0, w) / 60;
+}
+// UPH = 实际产量 ÷ 实际工作小时(净工时, 不含人数)
+function uphOf(l, now) {
+  const w = workedHours(now);
+  if (!w) return null;
+  return (Number(l.actual) || 0) / w;
+}
+function uphTxt(l, now) {
+  const u = uphOf(l, now);
+  return u == null ? "-" : fmt1(u);
+}
+// UPPH = 产量 ÷ 人数 ÷ 已工作小时
+function upphOf(l, now) {
+  const n = headOf(l.name);
+  const w = workedHours(now);
+  if (!n || !w) return null;
+  return (Number(l.actual) || 0) / n / w;
+}
+// ---- 今日收盘预测 v5.18: 按最近快照段的实际速率外推剩余净工时 ----
+//   速率 = (最新快照actual − 上一条快照actual) ÷ (两快照时刻的净工时差) → 自动排除休息时段
+//   预测收盘 = 当前累计actual + 速率 × 剩余净工时(今天总净工时10.67h − 已工作净工时)
+//   预测达成率 = 预测收盘 ÷ 日目标target × 100
+//   ⚠️ 无快照/无target时返回 null(不显示预测), 不猜测
+function forecastOf(l, now) {
+  const target = Number(l.target) || 0;
+  const cur = Number(l.actual) || 0;
+  if (!target) return null;
+  const totalH = 640 / 60;                // 总净工时 10.67h (与 workedHours 封顶口径一致)
+  const wNow = workedHours(now);
+  const remainH = Math.max(0, totalH - wNow);
+  const hourly = state.hourly || {};
+  const arr = hourly[l.name.trim()];
+  let rate = null;
+  // ★ 找最近两个净工时不同的快照差分(跳过午休 12-13 等净工时差为0的无效对)
+  if (Array.isArray(arr) && arr.length >= 2) {
+    for (let i = arr.length - 1; i >= 1; i--) {
+      const s1 = arr[i - 1], s2 = arr[i];
+      const w1 = workedHours(snapTimeOf(s1.h)), w2 = workedHours(snapTimeOf(s2.h));
+      const dw = w2 - w1;
+      const dA = (Number(s2.actual) || 0) - (Number(s1.actual) || 0);
+      if (dw > 0.05 && dA >= 0) { rate = dA / dw; break; }
+    }
+  }
+  if (rate == null) return null;
+  const eod = cur + rate * remainH;
+  const ratePct = target > 0 ? eod / target * 100 : null;
+  return { eod: Math.round(eod), ratePct };
+}
+// 快照整点时刻(如 h=13 → 13:00): workedHours 用分钟窗口, 整点即可
+function snapTimeOf(h) {
+  const d = new Date();
+  d.setHours(h, 0, 0, 0);
+  return d;
+}
+// 预测列 HTML: 主表每行加一列(预测收盘 + 预测达成率%)
+function forecastHtml(l, now) {
+  const f = forecastOf(l, now);
+  if (!f) return `<span class="zero">-</span>`;
+  const cls = f.ratePct == null ? "zero" : (f.ratePct >= 100 ? "pos" : "neg");
+  const pctTxt = f.ratePct == null ? "-" : fmt1(f.ratePct) + "%";
+  return `<span class="${cls}" style="font-weight:600">${fmt(f.eod)}</span><span class="zero" style="display:block;font-size:10px">${pctTxt}</span>`;
+}
+// 当前小时累计计划产量: ★ 优先用实时累计计划(工厂实时推送, 与表格 Plan 列一致)
+//   ⚠️ 2026-08-06 修复: 原逻辑只取 hourly 定格快照的 plan, 但快照在每小时首次出现时定格后不再更新
+//      (如 08:10 定格 plan=42, 实时已 105) → UPPH 目标严重滞后 → 达成率虚高(169% 实为 68%)
+function planNowOf(l, now) {
+  const live = Number(l.plan) || 0;
+  if (live > 0) return live;
+  const hourly = state.hourly || {};
+  const arr = hourly[l.name.trim()];
+  if (!Array.isArray(arr) || !arr.length) return null;
+  const h = now.getHours();
+  let best = null, bestH = -1;
+  for (const s of arr) {
+    const sh = Number(s.h) || 0;
+    if (sh <= h && sh > bestH) { best = s; bestH = sh; }
+  }
+  return best ? (Number(best.plan) || 0) : null;
+}
+// UPPH目标(实时) = 当前小时累计计划 ÷ 实时累计工作小时 ÷ 人数
+//   与实际 UPPH 同一时间口径, 达成率 = 实时累计产出/实时累计目标 (人数、工时约掉)
+//   无 hourly 快照的线 fallback: 日目标按已工作小时线性分摊 (= 日目标 ÷ 人数 ÷ 10.67h)
+function upphTargetOf(l, now) {
+  const n = headOf(l.name);
+  const w = workedHours(now);
+  if (!n || !w) return null;
+  const planNow = planNowOf(l, now);
+  if (planNow) return planNow / w / n;
+  const target = Number(l.target) || 0;
+  if (!target) return null;
+  return target / n / (640 / 60);
+}
+// 达成率% = 当前UPPH / UPPH目标(实时) × 100
+function upphRateOf(l, now) {
+  const u = upphOf(l, now), t = upphTargetOf(l, now);
+  if (u == null || t == null || t <= 0) return null;
+  return u / t * 100;
+}
+function drawEff(main) {
+  const cv = document.getElementById("chartEff");
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth, H = cv.clientHeight || 180;
+  if (W < 20) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+  const lines = main;
+  if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
+  const padL = 40, padB = 34, padT = 22;
+  const cw = W - padL - 12, ch = H - padT - padB;
+  const now = new Date();
+  // ★ UPPH 达成率图表: 上限 = max(120%, 最高达成率向上取整到20), 达成率低时用 120% 不会太空
+  const maxRate = lines.reduce((m, l) => { const r = upphRateOf(l, now); return Math.max(m, r == null ? 0 : r); }, 0);
+  const maxV = Math.max(120, Math.ceil(Math.max(maxRate, 1) / 20) * 20);
+  ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+  // 刻度: 0, 25%, 50%, 75%, 100%(上限); 100% 达成线固定
+  [0, 0.25, 0.5, 0.75, 1].forEach((f, i) => {
+    const v = Math.round(maxV * f);
+    const y = padT + ch - (ch * v / maxV);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 8, y); ctx.stroke();
+    ctx.fillText(v + "%", 4, y + 3);
+  });
+  // 100% 达成线(绿色虚线)
+  const y100 = padT + ch - (ch * 100 / maxV);
+  ctx.strokeStyle = "rgba(63,185,80,.55)"; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(padL, y100); ctx.lineTo(W - 8, y100); ctx.stroke();
+  ctx.setLineDash([]);
+  const n = lines.length, slot = cw / n;
+  const bw = Math.min(28, slot * 0.4);
+  lines.forEach((l, i) => {
+    const cx = padL + slot * i + slot / 2;
+    const rate = upphRateOf(l, now);
+    const hasHead = headOf(l.name) > 0;
+    if (rate == null || !hasHead) {
+      // 未填人数: 灰色矮柱 + "填人数"提示
+      ctx.fillStyle = "#3d444d";
+      ctx.fillRect(cx - bw / 2, padT + ch - 4, bw, 4);
+      ctx.fillStyle = "#8b949e"; ctx.font = "8px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(t("setPeople"), cx, padT + ch - 7);
+    } else {
+      const e = Math.max(0, Math.min(rate, maxV));
+      const h = ch * e / maxV;
+      ctx.fillStyle = rate >= 100 ? "#3fb950" : "#f85149";
+      ctx.fillRect(cx - bw / 2, padT + ch - h, bw, h);
+      ctx.fillStyle = rate >= 100 ? "#3fb950" : "#f85149";
+      ctx.font = "bold 9px sans-serif"; ctx.textAlign = "center";
+      ctx.fillText(fmt1(rate) + "%", cx, padT + ch - h - 3);
+    }
+    ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
+    ctx.fillText(shortName(l.name), cx, H - 10);
+  });
+  ctx.textAlign = "left";
+}
+
+// ---- 编辑人数弹窗 ----
+function openHeadModal() {
+  const grid = document.getElementById("headGrid");
+  grid.innerHTML = "";
+  const names = [];
+  state.lines.forEach(l => { if (!names.includes(l.name)) names.push(l.name); });
+  names.sort();
+  names.forEach(name => {
+    const item = document.createElement("div");
+    item.className = "head-item";
+    const lab = document.createElement("span");
+    lab.className = "hn"; lab.textContent = name;
+    // ★ 修复: 用 name 查找对应 line 对象, 不能再引用未定义的 l
+    const ln = state.lines.find(x => x.name === name) || {};
+    lab.title = t("headTitleFmt").replace("{name}", name).replace("{p}", fmt(planNowOf(ln, new Date()) || 0));
+    const inp = document.createElement("input");
+    inp.type = "number"; inp.min = "0"; inp.step = "1";
+    inp.value = headOf(name) || "";
+    inp.dataset.name = name;
+    item.appendChild(lab); item.appendChild(inp);
+    grid.appendChild(item);
+  });
+  document.getElementById("headModal").classList.add("open");
+}
+function saveHeads() {
+  document.querySelectorAll("#headGrid input").forEach(inp => {
+    setHead(inp.dataset.name, inp.value);
+  });
+  document.getElementById("headModal").classList.remove("open");
+  renderAll();
+}
+
+function renderAll() {
+  const { main } = renderTable();
+  renderKPIs(main);
+  drawBar(main);
+  drawEff(main);
+  checkStalls();
+}
+
+// ★ 标题: 日期 + 班次 + 时段(精确到秒) — 由每秒 timer 刷新, 不依赖 refresh 周期
+function updatePeriodLabel() {
+  const pl = document.getElementById("periodLabel");
+  if (!pl || pl.dataset.frozen === "1") return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  pl.textContent = (now.getMonth() + 1) + "/" + now.getDate() + " " + shiftNameOfHour(8) + " 8:00 - " + hh + ":" + mm + ":" + ss;
+}
+
+async function refresh() {
+  const cs = document.getElementById("connStatus");
+  // ★ file:// 直接打开会无法 fetch 数据(浏览器拦截) — 给出明确指引而非模糊的"连接失败"
+  if (location.protocol === "file:") {
+    const pl = document.getElementById("periodLabel");
+    if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("useHttp"); }
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("fileErr"); }
+    return;
+  }
+  // ★ fetch 加 8s 超时(AbortController): 服务器卡住时不再无限等待
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    if (cs) { cs.className = "conn-status"; cs.innerHTML = "<span class='dot'></span> " + t("connConnecting"); }
+    const r = await fetch(DATA_URL + "?t=" + Date.now(), { signal: ctrl.signal });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const d = await r.json();
+    state.lines = d.lines || [];
+    state.hourly = d.hourly || {};
+    state.updatedAt = d.updatedAt || null;
+    // ★ 连接状态: 按数据新鲜度判断 — updatedAt 距现在 ≤90s=已连接; ≤5min=延迟; >5min/无=断线
+    //   ⚠️ data.json 的 updatedAt 是字符串 "YYYY-MM-DD HH:MM:SS", 必须先转时间戳再相减
+    const st = d.source || "";
+    if (cs) {
+      const ts = (typeof state.updatedAt === "string")
+        ? new Date(state.updatedAt.replace(" ", "T") + "+07:00").getTime()
+        : (state.updatedAt || 0);
+      const age = ts ? (Date.now() - ts) : Infinity;
+      if (age <= 90000) { cs.className = "conn-status ok"; cs.innerHTML = "<span class='dot'></span> " + t("connOk"); }
+      else if (age <= 300000) { cs.className = "conn-status warn"; cs.innerHTML = "<span class='dot'></span> " + t("connDelay").replace("{s}", Math.round(age / 1000)); }
+      else { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + (ts ? t("connDown").replace("{m}", Math.round(age / 60000)) : t("connNoData")); }
+    }
+    // ★ 标题: 日期 + 班次 + 时段(含秒) — 正常状态解冻并更新
+    const pl = document.getElementById("periodLabel");
+    if (pl) { pl.dataset.frozen = "0"; updatePeriodLabel(); }
+    trackStallStart();   // ★ v5.18 停滞时长追踪(需在 renderAll 前: renderTable 要用 stallLevelOf)
+    recordToday();       // ★ v5.18 历史统计: 记录今日快照(覆盖当天, 跨天保留)
+    renderAll();
+  } catch (e) {
+    const pl = document.getElementById("periodLabel");
+    if (pl) { pl.dataset.frozen = "1"; pl.textContent = t("connFailed"); }
+    if (cs) { cs.className = "conn-status err"; cs.innerHTML = "<span class='dot'></span> " + t("connFailedMsg").replace("{m}", (e && e.message ? e.message : String(e))); }
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ---- 历史统计面板渲染 ----
+function vsHtml(cur, prev) {
+  if (cur == null) return `<span class="vs-flat">-</span>`;
+  if (prev == null || prev <= 0) return `<span class="vs-flat">${fmt1(cur)}%</span>`;
+  const d = cur - prev;
+  const cls = Math.abs(d) < 0.5 ? "vs-flat" : (d > 0 ? "vs-up" : "vs-down");
+  const arrow = Math.abs(d) < 0.5 ? "→" : (d > 0 ? "↑" : "↓");
+  return `<span class="${cls}">${arrow} ${fmt1(Math.abs(d))}%</span>`;
+}
+function renderHist() {
+  const now = new Date();
+  // --- 今日 ---
+  const todayRec = histStore[todayKey()] || {};
+  const todayTbody = document.querySelector("#histTodayTbl tbody");
+  todayTbody.innerHTML = "";
+  const ranks = rankOfDay(todayRec);
+  MAIN_LINES.forEach(name => {
+    const nk = normName(name);
+    const r = todayRec[nk];
+    if (!r) {
+      todayTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
+      return;
+    }
+    const score = compScore(r);
+    const rank = ranks[nk] || "-";
+    const rankHtml = rank === 1 ? `<span class="champ">🥇 ${rank}</span>` : (rank === Object.keys(ranks).length ? `<span class="lastp">🔻 ${rank}</span>` : `${rank}`);
+    todayTbody.innerHTML +=
+      `<tr><td class="line-name">${name.trim()}</td>` +
+      `<td class="${effClass(r.rate)}">${r.rate == null ? '-' : fmt1(r.rate)}</td>` +
+      `<td>${r.uph == null ? '-' : fmt1(r.uph)}</td>` +
+      `<td>${r.upph == null ? '-' : fmt1(r.upph)}</td>` +
+      `<td class="${score != null && score >= 90 ? 'pos' : score != null ? '' : 'zero'}">${score == null ? '-' : fmt1(score)}</td>` +
+      `<td>${rankHtml}</td></tr>`;
+  });
+  // --- 本周 vs 上周 ---
+  const wk = weekAgg(0), pw = weekAgg(-1);
+  const wkTbody = document.querySelector("#histWeekTbl tbody");
+  wkTbody.innerHTML = "";
+  document.getElementById("histWeekTitle").textContent =
+    t("histWeekTitle") + ` (${fmt1(wkAvg(wk))}% vs ${fmt1(wkAvg(pw))}%)`;
+  MAIN_LINES.forEach(name => {
+    const nk = normName(name);
+    const a = wk[nk], p = pw[nk];
+    if (!a) {
+      wkTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
+      return;
+    }
+    wkTbody.innerHTML +=
+      `<tr><td class="line-name">${name.trim()}</td>` +
+      `<td class="${effClass(a.rate)}">${a.rate == null ? '-' : fmt1(a.rate)}</td>` +
+      `<td>${a.upph == null ? '-' : fmt1(a.upph)}</td>` +
+      `<td>${vsHtml(a.rate, p ? p.rate : null)}</td>` +
+      `<td class="champ">${a.first ? '🏆 ' + a.first : '-'}</td>` +
+      `<td class="lastp">${a.last ? '🔻 ' + a.last : '-'}</td></tr>`;
+  });
+  // --- 本月 vs 上月 ---
+  const mk = monthAgg(0), pm = monthAgg(-1);
+  const mkTbody = document.querySelector("#histMonthTbl tbody");
+  mkTbody.innerHTML = "";
+  document.getElementById("histMonthTitle").textContent =
+    t("histMonthTitle") + ` (${fmt1(mkAvg(mk))}% vs ${fmt1(mkAvg(pm))}%)`;
+  MAIN_LINES.forEach(name => {
+    const nk = normName(name);
+    const a = mk[nk], p = pm[nk];
+    if (!a) {
+      mkTbody.innerHTML += `<tr><td>${name.trim()}</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td><td class="zero">-</td></tr>`;
+      return;
+    }
+    mkTbody.innerHTML +=
+      `<tr><td class="line-name">${name.trim()}</td>` +
+      `<td class="${effClass(a.rate)}">${a.rate == null ? '-' : fmt1(a.rate)}</td>` +
+      `<td>${a.upph == null ? '-' : fmt1(a.upph)}</td>` +
+      `<td>${vsHtml(a.rate, p ? p.rate : null)}</td>` +
+      `<td class="champ">${a.first ? '🏆 ' + a.first : '-'}</td>` +
+      `<td class="lastp">${a.last ? '🔻 ' + a.last : '-'}</td></tr>`;
+  });
+}
+// 聚合集平均达成率(表头摘要用)
+function wkAvg(agg) {
+  const vals = Object.values(agg).map(a => a.rate).filter(v => v != null);
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+}
+function mkAvg(agg) { return wkAvg(agg); }
+
+// 模态开关
+(function initModal() {
+  const overlay = document.getElementById("otherModal");
+  document.getElementById("otherBtn").addEventListener("click", () => overlay.classList.add("open"));
+  document.getElementById("modalClose").addEventListener("click", () => overlay.classList.remove("open"));
+  overlay.addEventListener("click", e => { if (e.target === overlay) overlay.classList.remove("open"); });
+  // 历史统计弹窗
+  const hmod = document.getElementById("histModal");
+  const hbtn = document.getElementById("histBtn");
+  if (hbtn) hbtn.addEventListener("click", () => { renderHist(); hmod.classList.add("open"); });
+  document.getElementById("histClose").addEventListener("click", () => hmod.classList.remove("open"));
+  hmod.addEventListener("click", e => { if (e.target === hmod) hmod.classList.remove("open"); });
+  // 编辑人数弹窗
+  const hov = document.getElementById("headModal");
+  const hb = document.getElementById("headBtn");
+  if (hb) hb.addEventListener("click", openHeadModal);
+  document.getElementById("headClose").addEventListener("click", () => hov.classList.remove("open"));
+  document.getElementById("headSave").addEventListener("click", saveHeads);
+  hov.addEventListener("click", e => { if (e.target === hov) hov.classList.remove("open"); });
+  // ★ 小时产出分段开关: 初始化 checkbox 状态 + 绑定事件
+  const segT = document.getElementById("segToggle");
+  if (segT) {
+    segT.checked = segShow;
+    segT.addEventListener("change", toggleSeg);
+  }
+})();
+
+initNotif();
+refresh();
+setInterval(refresh, 10000);
+// ★ 标题秒表: 每秒刷新日期/班次/时段(精确到秒)
+setInterval(updatePeriodLabel, 1000);
+</script>
+</body>
+</html>
