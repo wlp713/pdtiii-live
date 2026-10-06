@@ -2564,9 +2564,20 @@ function drawBar(main) {
     //   未达成段: 目标柱满格、实际柱短(灰缺口=未达成) — 与 v6.0 相同。
     //   达成/超额段: 以实际柱顶点为满格基准, 目标柱按 plan/实际降下来, 超额才凸显。
     //   maxV 必须覆盖 actual, 否则超额柱(actual>plan)会溢出画布。
-    const maxVl = Math.max(1, l.plan || 0, l.actual || 0); // 该线自身 plan/actual 较大者 = 满格基准
     if (segShow) {
       const segs = segsOf(l.name, l.actual, l.plan, l.target);
+      // ★ 2026-10-06 修复「夜班下实际柱与目标柱都画满 = 假相等」:
+      //   满格基准必须覆盖【分段骨架总和】, 不能只用 lines 的当前值。
+      //   场景: 夜班时「纯白班线」(如 Final C — 只有白班桶、夜班无产出) 的 segsOf 会回退成白班段
+      //   (段值=白班累计, 总和可达数千), 而 l.plan/l.actual 是夜班 header 值(此时仅几百)。
+      //   旧基准 max(l.plan,l.actual) 太小 → 每段 perH = 段值/基准*ch 远超画布 → 段全堆到画布外,
+      //   只剩第一段可见且两柱都被涂满 → 视觉上"实际=目标", 段边界/灰缺口全消失。
+      //   正常班次下 Σ段值 ≈ header 累计 → 基准不变, 视觉零变化。
+      let _segSum = 0;
+      for (let _si = 0; _si < segs.length; _si++) {
+        _segSum += Math.max(0, Math.max(segs[_si].actual || 0, segs[_si].plan || 0));
+      }
+      const maxVl = Math.max(1, l.plan || 0, l.actual || 0, _segSum); // 该线自身 plan/actual 与分段总和 的较大者 = 满格基准
       drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
       drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
     } else {
