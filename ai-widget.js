@@ -819,26 +819,28 @@
        → 既有逐字观感, 又不会因为网络一块来 200 字而拖到天荒地老 */
   function createTyper(bubble) {
     var q = "", painted = "", done = false, running = false, last = 0, lastPaint = 0;
-    var BASE_CPS = 55, MAX_CPS = 320, PAINT_MS = 33;   // 33ms ≈ 30fps 重排, 长文本不卡顿
+    var BASE_CPS = 55, MAX_CPS = 320, PAINT_MS = 33, MAX_DT = 0.25;   // 33ms ≈ 30fps 重排, 长文本不卡顿
     var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
-    function paint() {
-      lastPaint = Date.now();
+    function clock(ts) { return typeof ts === "number" ? ts : Date.now(); }   // ★ 统一时钟: rAF 时间戳是页面相对值, 绝不能和 Date.now() 混用
+    function paint(now) {
+      lastPaint = now;
       bubble.innerHTML = formatAiMessage(painted);
       scrollMsgsIntoView();
     }
     function tick(ts) {
-      var now = ts || Date.now();
+      var now = clock(ts);
       if (!last) last = now;
-      var dt = Math.max(0, (now - last) / 1000); last = now;
+      // ★ 限幅: 页面切后台时 rAF 会停, 回来那一帧的 dt 可能巨大 → 夹到 0.25s, 避免一次性倾泻一大段
+      var dt = Math.min(MAX_DT, Math.max(0, (now - last) / 1000)); last = now;
       if (q) {
         var cps = Math.min(MAX_CPS, Math.max(BASE_CPS, q.length / 1.2));   // 积压越多吐字越快
         var n = Math.max(1, Math.round(cps * dt));
         painted += q.slice(0, n); q = q.slice(n);
-        if (now - lastPaint >= PAINT_MS) paint();
+        if (now - lastPaint >= PAINT_MS) paint(now);
       }
       if (q || !done) { raf(tick); return; }
       running = false;
-      paint();
+      paint(now);
       if (bubble.querySelector(".ai-answer-table-wrap")) bubble.classList.add("ai-table-message");
     }
     function start() { if (running) return; running = true; last = 0; raf(tick); }
