@@ -275,7 +275,7 @@
       });
     }
 
-    /* H. 每日制程问题点日志(导入) 字段: 日期 班次 责任部门 影响数 泰语原文 + 闭环(责任人/状态/承诺闭环日/实际闭环日/措施) */
+    /* H. 每日制程问题点日志(导入) 字段: 日期 班次 责任部门 影响数 泰语原文 */
     var DP = (typeof window.__DAILY_PROBLEMS__ !== "undefined") ? window.__DAILY_PROBLEMS__ : null;
     if (DP && DP.byDate) {
       var dpDates = Object.keys(DP.byDate).sort();
@@ -321,7 +321,7 @@
       } else {
         out.push("\n[H. 每日制程问题点日志 共" + dpDates.length + "天/" + dpCount + "条" + dpScopeSuffix + "]");
       }
-      out.push("字段: 日期 | 班次(shift)·责任部门(dept) | 影响数(impact,产出缺口) | 泰语原文描述 | 闭环: 责任人(owner)·状态(status:空=未闭环/DOING进行中/CLOSED已闭环)·承诺闭环日(due)·实际闭环日(closedAt)·措施(action)");
+      out.push("字段: 日期 | 班次(shift)·责任部门(dept) | 影响数(impact,产出缺口) | 泰语原文描述");
       out.push("注: dept 为「-」表示该条未标注责任部门(不表示无部门); 线体问题按班次首字母(A/B/C/D = final A-D 线)匹配, 与 dept 是否标注无关。");
       /* 按日+部门汇总(影响合计), 便于快速归因 */
       var dpSum = {};
@@ -337,51 +337,17 @@
         dpCapSum.forEach(function (k) { var s = dpSum[k]; out.push("  " + s.date + " " + s.dept + " → " + s.n + "条/" + s.imp); });
         if (dpSumKeys.length > 40) out.push("  …(" + (dpSumKeys.length - 40) + "个组合省略, 明细见下全量)");
       }
-      /* ★ 2026-10-07 闭环概览: 闭环率/超期/平均闭环天数 + 待闭环 Top (闭环字段在「问题点录入 → 闭环管理」里维护) */
-      var dpToday = (function () { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })();
-      var dpIsClosed = function (p) { return (p.status || "") === "CLOSED"; };
-      var dpIsOver = function (p) { return !dpIsClosed(p) && !!p.due && p.due < dpToday; };
-      var dpTag = function (p) {
-        if (!(p.owner || p.status || p.due || p.closedAt || p.action)) return "";
-        return " 〔责任人:" + (p.owner || "未指派") + " 状态:" + (dpIsClosed(p) ? "已闭环" : (p.status === "DOING" ? "进行中" : "未闭环")) +
-          (p.due ? " 承诺:" + p.due + (dpIsOver(p) ? "(已超期)" : "") : "") + (p.closedAt ? " 实际闭环:" + p.closedAt : "") + (p.action ? " 措施:" + p.action : "") + "〕";
-      };
-      var dpCl = { n: dpFiltered.length, closed: 0, over: 0, noOwner: 0, durSum: 0, durN: 0 };
-      dpFiltered.forEach(function (p) {
-        if (dpIsClosed(p)) {
-          dpCl.closed++;
-          if (p.closedAt && p.date) {
-            var t1 = Date.parse(p.date + "T00:00:00"), t2 = Date.parse(p.closedAt + "T00:00:00");
-            if (!isNaN(t1) && !isNaN(t2) && t2 >= t1) { dpCl.durSum += Math.round((t2 - t1) / 86400000); dpCl.durN++; }
-          }
-        } else { if (dpIsOver(p)) dpCl.over++; if (!p.owner) dpCl.noOwner++; }
-      });
-      var dpRate = dpCl.n ? Math.round(dpCl.closed * 1000 / dpCl.n) / 10 : 0;
-      out.push("闭环概览(截至 " + dpToday + "): 条目 " + dpCl.n + " | 已闭环 " + dpCl.closed + " | 闭环率 " + dpRate + "% | 超期未闭环 " + dpCl.over + " | 未指派责任人 " + dpCl.noOwner + " | 平均闭环 " + (dpCl.durN ? (Math.round(dpCl.durSum / dpCl.durN * 10) / 10) + "天" : "无数据"));
-      out.push("闭环口径: 闭环率=已闭环/本段条目数; 超期=未闭环且已过承诺闭环日; 平均闭环=实际闭环日−发生日; 未填闭环字段一律算「未闭环」(历史条目未填属正常, 不代表已闭环)。");
-      var dpOpen = dpFiltered.filter(function (p) { return !dpIsClosed(p); }).sort(function (a, b) {
-        var ao = dpIsOver(a) ? 0 : 1, bo = dpIsOver(b) ? 0 : 1;
-        if (ao !== bo) return ao - bo;
-        return (Number(b.impact) || 0) - (Number(a.impact) || 0);
-      }).slice(0, 12);
-      if (dpOpen.length) {
-        out.push("待闭环 Top" + dpOpen.length + "(超期优先, 再按影响数降序):");
-        dpOpen.forEach(function (p) {
-          out.push("  [" + p.date + " " + (normalizeArchiveToken(p.shift || "").replace("-", " ").toUpperCase() || (p.shiftLabel || "")) + "] " + (p.dept || "-") + " 影响" + (p.impact === null ? "-" : p.impact) +
-            " 责任人" + (p.owner || "未指派") + (p.due ? " 承诺" + p.due + (dpIsOver(p) ? "(已超期)" : "") : " 无承诺日") + " — " + (p.problem_th || "") + (p.action ? " | 措施:" + p.action : ""));
-        });
-      }
       /* 全量明细(带上过滤后上限) */
       var dpShown = dpFiltered.length > 500 ? dpFiltered.slice(dpFiltered.length - 500) : dpFiltered;
       if (dpShown.length) {
         out.push("明细" + (dpShown.length < dpFiltered.length ? "(最近500条, 共" + dpFiltered.length + ")" : ":"));
         dpShown.forEach(function (p) {
-          out.push("  [" + p.date + " " + (normalizeArchiveToken(p.shift || "").replace("-", " ").toUpperCase() || (p.shiftLabel || "")) + "] " + (p.dept || "-") + " 影响" + (p.impact === null ? "-" : p.impact) + " — " + (p.problem_th || "") + dpTag(p));
+          out.push("  [" + p.date + " " + (normalizeArchiveToken(p.shift || "").replace("-", " ").toUpperCase() || (p.shiftLabel || "")) + "] " + (p.dept || "-") + " 影响" + (p.impact === null ? "-" : p.impact) + " — " + (p.problem_th || ""));
         });
       } else {
         out.push("本次条件无命中条目。");
       }
-      out.push("口径: 导入的每日制程问题点。泰语为原始描述; 责任部门=dept(PE/IP/QA/PRO.1-4/CHANGEMODEL换型); 影响数=该问题造成的产出缺口; 闭环字段由「问题点录入→闭环管理」填写, 也可由带表头的 Excel 直接导入(缺失=未闭环)。问「闭环率/超期/谁负责/多久闭环」时看上方『闭环概览』与『待闭环 Top』。线体解释: 用户问'A/B/C/D线'时一律指PRO.2装配车间的final A-D四条线(条目的班次首字母=线体), 问题点目前只在PRO.2装配记录, 其他车间没有数据。回答语言跟随提问语言——泰语提问用泰语原文总结, 中文提问把泰语翻译成中文再分析。");
+      out.push("口径: 导入的每日制程问题点。泰语为原始描述; 责任部门=dept(PE/IP/QA/PRO.1-4/CHANGEMODEL换型); 影响数=该问题造成的产出缺口。线体解释: 用户问'A/B/C/D线'时一律指PRO.2装配车间的final A-D四条线(条目的班次首字母=线体), 问题点目前只在PRO.2装配记录, 其他车间没有数据。回答语言跟随提问语言——泰语提问用泰语原文总结, 中文提问把泰语翻译成中文再分析。");
     }
 
     /* E. 产出分析页数据: 出勤人数/加班效率/车间明细 (由 analysis-page 导出) */
