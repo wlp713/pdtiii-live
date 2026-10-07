@@ -771,6 +771,7 @@
     <span class="clock" id="clock"></span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
+    <button class="btn" id="sqdipBtn" title="各车间 SQDIP 指标 (安全/品质/交付/人员/效率) — 数据取自各车间 SQDIP Excel" onclick="window.openSQDIP&&openSQDIP()">📊 SQDIP</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
 </div>
@@ -4666,6 +4667,8 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <!-- 2026-09-19: 每日制程问题点录入 (数据种子+模块); 先于 ai-widget 加载, 供其上下文读取 -->
 <script src="daily-problems-data.js?v=20261006"></script>
 <script src="daily-problems.js?v=20261006"></script>
+<script src="sqdip-data.js?v=20261007a"></script>
+<script src="sqdip-panel.js?v=20261007a"></script>
 <!-- 2026-09-04: AI 悬浮窗助手 (ai-widget.js) → 代理接口 AICONFIG.proxyUrl -->
 <script>window.AICONFIG={proxyUrl:"https://midea-ai-proxy.wigifobi28.workers.dev/ai"};</script>
 <script src="ai-widget.js?v=20261007type2"></script>
