@@ -784,6 +784,57 @@
     m.scrollTop = m.scrollHeight;
   }
 
+  /* ★ 2026-10-07 把文本写进最后一条 AI 气泡(没有就新建), 用于错误/兜底文案, 避免多出一条"正在生成回答…" */
+  function writeAiBubble(text) {
+    var b = ui && ui.msgs ? (function () {
+      var ms = ui.msgs;
+      for (var i = ms.children.length - 1; i >= 0; i--) {
+        if (ms.children[i].className.indexOf("user") < 0) return ms.children[i].querySelector(".ai-message-bubble");
+      }
+      return null;
+    })() : null;
+    if (b) {
+      b.innerHTML = formatAiMessage(text);
+      if (b.querySelector(".ai-answer-table-wrap")) b.classList.add("ai-table-message");
+      scrollMsgsIntoView();
+      return b;
+    }
+    addMsg(text, "ai");
+    return null;
+  }
+
+  /* ★ 2026-10-07 流式/渐显时自动跟到最新(用户往回翻则不打扰) */
+  function scrollMsgsIntoView() {
+    try {
+      var m = ui && ui.msgs;
+      if (!m) return;
+      if (m.scrollHeight - m.scrollTop - m.clientHeight < 140) m.scrollTop = m.scrollHeight;
+    } catch (e) {}
+  }
+
+  /* ★ 2026-10-07 逐字渐显: 拿到完整文本后模拟"想到多少显示多少"的观感
+     (代理不透传 SSE 时的兜底; 真流式已能逐块显示, 不走这里) */
+  function typewriterReveal(bubble, text) {
+    if (!bubble) return;
+    var txt = String(text == null ? "" : text);
+    if (!txt) { bubble.innerHTML = formatAiMessage(txt); return; }
+    var shown = 0;
+    var STEP = Math.max(2, Math.ceil(txt.length / 150));   // 约 150 帧出完(≈3-5s), 长回答也不拖沓
+    var lastPaint = 0;
+    var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
+    function step(ts) {
+      var now = ts || Date.now();
+      if (shown > 0 && now - lastPaint < 45) { raf(step); return; }   // 限速重排, 长文本不卡顿
+      lastPaint = now;
+      shown = Math.min(txt.length, shown + STEP);
+      bubble.innerHTML = formatAiMessage(txt.slice(0, shown));
+      scrollMsgsIntoView();
+      if (shown < txt.length) { raf(step); return; }
+      if (bubble.querySelector(".ai-answer-table-wrap")) bubble.classList.add("ai-table-message");
+    }
+    raf(step);
+  }
+
   function sendIconMarkup() {
     return '<svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 14-7-4 14-3-6-7-1Z"/><path d="m12 13 7-8"/></svg>';
   }
@@ -867,7 +918,7 @@
       mode: "pdtiii_operations_diagnosis_v2",
       response_contract: "先给结论；再列证据（日期、范围、指标）；再给不超过3项行动。用户询问任意日期、班次、车间或线体时，优先检索上下文中的‘独立历史归档检索’，不要求用户先切换页面日期或班次；仅当归档索引确实没有该日期/对象时才说明无数据。回答白班或夜班问题时，优先读取‘白班/夜班独立归档’和‘指定日期线体白班/夜班明细’，不要因为页面当前选中了一个班次就说看不到另一个班次。对于数据核查、日期对比、线体明细、异常清单和经营矩阵，优先使用标准 Markdown 表格（表头行 + 分隔行 + 数据行），不要用空格对齐或把每一行拆成独立段落。缺失值明确写‘缺失’或‘未填’，绝不把缺失当作0。没有数据就明确说未知，不要臆测根因。当用户问及每日制程问题点时（上下文中的‘每日制程问题点日志’节），回答语言必须跟随提问语言：若用户用泰语提问，直接用日志中的泰语原文概括并作答；若用户用中文提问，则先把泰语原文翻译成中文再给出总结与分析。回答问题点倾向/归因时，依据‘按日×部门汇总’的条数和影响合计、结合泰语原文描述判断，优先统计影响数(impact)大和出现频次高的问题，不要臆造。当用户询问某线体的最大/主要问题时（A线/B线/C线/D线、final A-D 线等）：该线体一律指 PRO.2 装配车间(零件装配)的 final A-D 四条线，线体字母=问题点条目的班次首字母；只能依据上下文‘每日制程问题点日志’节中该日期、该线体(PRO.2)的条目来回答，优先按影响数(impact)排序取最大，并翻译其泰语描述；绝不引用实时产出数据或其他车间(PRO.3/PRO.4/PE/IP/QA)里名称相似的同字母线体，因为问题点目前只在 PRO.2 装配记录，其他车间没有问题点数据。",
       conversation_id: convId    // 带上历史会话ID, 实现多轮记忆(超轮数上限时会自动置空开新对话)
-      ,stream: false                   // ★ 2026-09-20 默认改非流式: 单次返回完整答案, 绕开慢网络/公司代理下 SSE 流卡在"正在生成回答…"的问题
+      ,stream: true                    // ★ 2026-10-07 恢复「边生成边显示」(首字即出); 代理若没透传 SSE, 前端自动转逐字渐显兜底, 不会再卡在"正在生成回答…"
     };
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 120000) : null;  // ★ 120s (DeepSeek 长响应)
@@ -900,20 +951,26 @@
       signal: controller ? controller.signal : undefined
     })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status);
-        // ★ 流式: 用 ReadableStream reader 逐块读 SSE
-        if (r.body && r.body.getReader && payload.stream) {
+        var ctype = (r.headers && r.headers.get && r.headers.get("content-type")) || "";
+        // ★ 2026-10-07 真流式: 代理透传 Dify SSE → 逐块渲染(想到多少显示多少, 首字即出)
+        if (payload.stream && r.body && r.body.getReader && /text\/event-stream/i.test(ctype)) {
           var reader = r.body.getReader();
           var decoder = new TextDecoder();
           var acc = "";
           var cidSav = "";
+          var upErr = "";
+          var streamDone = false;
+          function endStream() {
+            if (streamDone) return; streamDone = true;
+            clearRequestTimeout(); setBusy(false);
+            if (cidSav) { saveConvId(cidSav); setConvTurns(convTurns() + 1); }
+            if (fullAnswer) { liveBubbleEl().classList.add("ai-table-message-v2"); return; }
+            // ★ 2026-10-07 流式一个字都没出来(网络中断/上游空返回/超上限) → 明确报错, 不再永久停在"正在生成回答…"
+            writeAiBubble(emptyAnswerReport({ error: upErr || "流式响应未产出内容(网络中断或上游空返回)" }));
+          }
           function flush() {
             return reader.read().then(function (_r) {
-              if (_r.done) {
-                clearRequestTimeout(); setBusy(false);
-                if (fullAnswer) liveBubbleEl().classList.add("ai-table-message-v2");  // 无实际作用, 保持气泡
-                if (cidSav) saveConvId(cidSav);
-                return;
-              }
+              if (_r.done) { endStream(); return; }
               acc += decoder.decode(_r.value, { stream: true });
               var lines = acc.split("\n"); acc = lines.pop();
               for (var i = 0; i < lines.length; i++) {
@@ -923,41 +980,64 @@
                 if (!j || j === "[DONE]") continue;
                 try {
                   var o = JSON.parse(j);
-                  if (o.event === "agent_message" && typeof o.answer === "string") {
+                  if ((o.event === "agent_message" || o.event === "message") && typeof o.answer === "string") {
                     fullAnswer += o.answer;                     // ★ 累积
                     liveBubble().innerHTML = formatAiMessage(fullAnswer);
+                    scrollMsgsIntoView();
                   }
+                  if (o.event === "error") upErr = String(o.message || o.code || "上游 error 事件").slice(0, 200);
                   if (o.conversation_id) cidSav = o.conversation_id;
                   if (o.event === "message_end") {
-                    clearRequestTimeout(); setBusy(false);
-                    if (cidSav) saveConvId(cidSav);
+                    endStream();
                     reader.cancel().catch(function(){});
                     return;
                   }
                 } catch (e) {}
               }
               return flush();
-            });
+            }, function () { endStream(); });
           }
           return flush();
         }
-        return r.json(); })
+        // ★ 2026-10-07 兜底: 代理没透传 SSE(返回 JSON, 例如旧代理或中间层缓冲) → 读完整段后逐字渐显,
+        //   即使拿不到真流式也有"边出边显示"的观感, 且绝不会卡在"正在生成回答…"
+        return r.text().then(function (txt) {
+          var d = null;
+          try { d = JSON.parse(txt); } catch (e) {}
+          if (!d) {   // content-type 标错但 body 其实是 SSE → 现场聚合
+            var agg = "", cid2 = "";
+            String(txt).split("\n").forEach(function (line) {
+              var t = line.trim();
+              if (t.indexOf("data:") !== 0) return;
+              try {
+                var o2 = JSON.parse(t.slice(5).trim());
+                if ((o2.event === "agent_message" || o2.event === "message") && typeof o2.answer === "string") agg += o2.answer;
+                if (o2.conversation_id) cid2 = o2.conversation_id;
+              } catch (e2) {}
+            });
+            if (agg) d = { answer: agg, conversation_id: cid2 };
+          }
+          return d;
+        }); })
       .then(function (data) {
         // 非流式分支 (未走 reader 时)
         if (!data) return;
         clearRequestTimeout();
         setBusy(false);
         var last = ui.msgs.lastElementChild;
-        if (last && last.textContent === "正在生成回答…") last.remove();
+        var pendingBubble = (last && last.textContent === "正在生成回答…") ? last.querySelector(".ai-message-bubble") : null;
         if (data && data.conversation_id) { saveConvId(data.conversation_id); setConvTurns(convTurns() + 1); }
         var answer = (data && (data.answer || data.reply)) || "";
         if (!answer) {
           // ★ 2026-10-06 代理 200 但无内容: 先降级(清历史开新对话)重试一次; 仍空则给出可诊断的原因, 不再只显示"无响应"
-          if (!isRetry) { clearConvId(); return doAsk(query, hcExtra, true); }
-          addMsg(emptyAnswerReport(data), "ai");
+          if (!isRetry) { if (pendingBubble && pendingBubble.parentNode) pendingBubble.parentNode.remove(); clearConvId(); return doAsk(query, hcExtra, true); }
+          var rep = formatAiMessage(emptyAnswerReport(data));
+          if (pendingBubble) pendingBubble.innerHTML = rep; else addMsg(emptyAnswerReport(data), "ai");
           return;
         }
-        addMsg(String(newConvNotice || (data && data.note ? "（提示：" + data.note + "）\n\n" : "")) + String(answer), "ai");
+        var finalText = String(newConvNotice || (data && data.note ? "（提示：" + data.note + "）\n\n" : "")) + String(answer);
+        // ★ 2026-10-07 逐字渐显(复用"正在生成回答…"那条气泡), 替代一次性整段弹出
+        typewriterReveal(pendingBubble || liveBubble(), finalText);
       })
       .catch(function (e) {
         clearRequestTimeout();
