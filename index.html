@@ -2069,22 +2069,18 @@ function segsOf(name, curActual, curPlan, curTarget) {
   //   而旁边列表用 lines 实时值(curActual=942) → 有数。于是「图0、列表有数」永远对不上。
   //   修复: 若该线 hourly 桶明显全是白班分钟 → 强制走白班的 DAY_SEGS(显示它当天白班完成产出)。
   //   反之夜班线(桶含≥1230/跨凌晨)保持原样。两班都有的线(罕见)按当前点:
-  const _buckets = hourlyArrOf(name);
-  if (isNight && Array.isArray(_buckets) && _buckets.length) {
-    let hasNightBuck = false;
-    for (let _i = 0; _i < _buckets.length; _i++) {
-      const _m = snapMins(_buckets[_i]);
-      // ★ 2026-09-28 修正: 只有【有实际产出】且属夜班窗口的桶才算夜班覆盖。
-      //   凌晨占位桶(h=30..530, actual=0, 带d)只是数据端残留, 不是真夜班数据 → 不计,
-      //   否则白班线(如 Final C)会被误判成“有夜班桶”而不转白班(图依旧全0)。
-      const _v = Number(_buckets[_i].actual) || 0;
-      if (_v > 0 && (_m >= NIGHT_START || _m < NIGHT_END)) { hasNightBuck = true; break; }
-    }
-    if (!hasNightBuck) isNight = false; // 该线只有白班桶 → 用白班时段画(图不再空白)
-    // ★ 同步把班次判定 sc.shift 改成白班, 否则后续 manualPlanAtLine/hFinalCPlanAt 仍按夜班
-    //   算 plan(收到 shift='night' 去查夜班表) → 白班线目标会错/变0。
-    if (!isNight && sc.shift === "night") sc.shift = "day";
-  }
+  // ★★ 2026-10-07 修复（用户报：21:00 夜班已开始，Final D 等 9 条线的小时图还停在第 11 段/白班定格）
+  //   旧逻辑（2026-09-28 加）：用「该线 hourly 桶里是否存在『有产出且属夜班窗口』的桶」推断该线是否已进夜班，
+  //   没有就把时段表退回白班 DAY_SEGS。三处致命缺陷：
+  //     ① 窗口判定写成 `_m >= NIGHT_START || _m < NIGHT_END`，而 NIGHT_END=480(早上 8:00) →
+  //        凌晨 00:00-08:00 的**历史**桶也算数，等于「该线历史上凌晨出过货吗」→ 与今晚无关，判定极脆弱；
+  //     ② 现存前半夜桶是 2026-09-11 的残留（数据端只写白班 08:00-20:20 桶）→ 判定结果取决于残留数据；
+  //     ③ 夜班开始后列表(lines 实时)早切到夜班值(plan≈140-280)，图却停在白班 11 段且定格 → 图/表长期不一致。
+  //   结果：凌晨出货为 0 的 9 条线（Final D / Motor S/F / Inspection D / C-Shaft Pin C / Cylinder Honing /
+  //   Frame Honing FL / Motor CL / Rotor D）永远卡在白班。
+  //   修复：时段表一律跟随【当前厂班次】（shiftSegAt 已按 20:20/20:30/08:00 边界判定），不再按历史桶逐线回退。
+  //   无夜班数据的线由 live 段(curActual/curPlan)与段值归零逻辑处理，不会再把整张图钉在白班。
+  //   （白班时段本次逻辑不变：白天 sc.shift 本就是 'day'，走同一分支。）
   const table = isNight ? NIGHT_SEGS : DAY_SEGS;
   const endCap = isNight ? NIGHT_END + 24 * 60 : DAY_END;
   // ★ 2026-09-02 v5.30 修复: 凌晨 0:00-8:00 属夜班次日, 夜班时段起点(1230+)全大于当前分钟数(0-480),
