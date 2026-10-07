@@ -812,27 +812,48 @@
     } catch (e) {}
   }
 
-  /* ★ 2026-10-07 逐字渐显: 拿到完整文本后模拟"想到多少显示多少"的观感
-     (代理不透传 SSE 时的兜底; 真流式已能逐块显示, 不走这里) */
-  function typewriterReveal(bubble, text) {
-    if (!bubble) return;
-    var txt = String(text == null ? "" : text);
-    if (!txt) { bubble.innerHTML = formatAiMessage(txt); return; }
-    var shown = 0;
-    var STEP = Math.max(2, Math.ceil(txt.length / 150));   // 约 150 帧出完(≈3-5s), 长回答也不拖沓
-    var lastPaint = 0;
+  /* ★ 2026-10-07 逐字渲染器: 与主流 AI 网页一致的打字机效果
+     - push(text): 文本入队(真流式的每个 delta / 兜底的整段都走它), 自动开始逐字吐字
+     - finish(): 上游已结束, 吐完剩余队列后收尾
+     - 速率自适应: 基准 ~55 字/秒(人眼舒适的打字感), 队列积压时自动加速, 最多落后约 1.2 秒
+       → 既有逐字观感, 又不会因为网络一块来 200 字而拖到天荒地老 */
+  function createTyper(bubble) {
+    var q = "", painted = "", done = false, running = false, last = 0, lastPaint = 0;
+    var BASE_CPS = 55, MAX_CPS = 320, PAINT_MS = 33;   // 33ms ≈ 30fps 重排, 长文本不卡顿
     var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function (f) { return setTimeout(f, 16); };
-    function step(ts) {
-      var now = ts || Date.now();
-      if (shown > 0 && now - lastPaint < 45) { raf(step); return; }   // 限速重排, 长文本不卡顿
-      lastPaint = now;
-      shown = Math.min(txt.length, shown + STEP);
-      bubble.innerHTML = formatAiMessage(txt.slice(0, shown));
+    function paint() {
+      lastPaint = Date.now();
+      bubble.innerHTML = formatAiMessage(painted);
       scrollMsgsIntoView();
-      if (shown < txt.length) { raf(step); return; }
+    }
+    function tick(ts) {
+      var now = ts || Date.now();
+      if (!last) last = now;
+      var dt = Math.max(0, (now - last) / 1000); last = now;
+      if (q) {
+        var cps = Math.min(MAX_CPS, Math.max(BASE_CPS, q.length / 1.2));   // 积压越多吐字越快
+        var n = Math.max(1, Math.round(cps * dt));
+        painted += q.slice(0, n); q = q.slice(n);
+        if (now - lastPaint >= PAINT_MS) paint();
+      }
+      if (q || !done) { raf(tick); return; }
+      running = false;
+      paint();
       if (bubble.querySelector(".ai-answer-table-wrap")) bubble.classList.add("ai-table-message");
     }
-    raf(step);
+    function start() { if (running) return; running = true; last = 0; raf(tick); }
+    return {
+      push: function (txt) { q += String(txt == null ? "" : txt); start(); },
+      finish: function () { done = true; start(); }
+    };
+  }
+
+  /* ★ 2026-10-07 兜底渐显: 代理不透传 SSE 时, 拿到完整文本后仍逐字吐出 */
+  function typewriterReveal(bubble, text) {
+    if (!bubble) return;
+    var t = createTyper(bubble);
+    t.push(text);
+    t.finish();
   }
 
   function sendIconMarkup() {
@@ -960,11 +981,16 @@
           var cidSav = "";
           var upErr = "";
           var streamDone = false;
+          var typer = null;
+          function pushDelta(txt) {          // ★ 2026-10-07 逐字渲染(不再整块替换)
+            if (!typer) typer = createTyper(liveBubble());
+            typer.push(txt);
+          }
           function endStream() {
             if (streamDone) return; streamDone = true;
             clearRequestTimeout(); setBusy(false);
             if (cidSav) { saveConvId(cidSav); setConvTurns(convTurns() + 1); }
-            if (fullAnswer) { liveBubbleEl().classList.add("ai-table-message-v2"); return; }
+            if (fullAnswer) { if (typer) typer.finish(); liveBubbleEl().classList.add("ai-table-message-v2"); return; }
             // ★ 2026-10-07 流式一个字都没出来(网络中断/上游空返回/超上限) → 明确报错, 不再永久停在"正在生成回答…"
             writeAiBubble(emptyAnswerReport({ error: upErr || "流式响应未产出内容(网络中断或上游空返回)" }));
           }
@@ -982,8 +1008,7 @@
                   var o = JSON.parse(j);
                   if ((o.event === "agent_message" || o.event === "message") && typeof o.answer === "string") {
                     fullAnswer += o.answer;                     // ★ 累积
-                    liveBubble().innerHTML = formatAiMessage(fullAnswer);
-                    scrollMsgsIntoView();
+                    pushDelta(o.answer);                        // ★ 2026-10-07 入队逐字输出
                   }
                   if (o.event === "error") upErr = String(o.message || o.code || "上游 error 事件").slice(0, 200);
                   if (o.conversation_id) cidSav = o.conversation_id;
