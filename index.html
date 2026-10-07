@@ -771,7 +771,6 @@
     <span class="clock" id="clock"></span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
-    <button class="btn" id="sqdipBtn" title="SQDIP 生产指标总览" onclick="window.openSQDIP&&window.openSQDIP()">▦ SQDIP</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
 </div>
@@ -4682,5 +4681,4 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('./sw.js?v=20260928stallfix').catch(function () {});
 }
 </script>
-<script src="sqdip-panel.js?v=20261007b"></script>
 </html>
