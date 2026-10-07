@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v11'; // 2026-09-28 停滞功能修复后强制旧壳刷新(v10持旧index, 导致电脑端停滞字样不显示)
+var CACHE = 'pdtiii-shell-v12'; // 2026-10-07 问题点闭环化上线: 强制旧壳刷新(v11 持旧 index/ai-widget, 拿不到闭环上下文)
 var CORE = [
   './',
   './index.html',
