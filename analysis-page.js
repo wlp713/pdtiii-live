@@ -24,7 +24,7 @@
 
   /* ── 车间 → 线体 (True B 剔除, 用户确认) ── */
   var WS_MAP = [
-    { ws: "Pro.1", tag: "", lines: ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
+    { ws: "Pro.1", tag: "", lines: ["Motor FL", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
     { ws: "Pro.2", tag: "", lines: ["Final A line", "Final B line", "Final C line", "Final D line", "Inspection A line", "Inspection B line", "Inspection C line", "Inspection D line", "Water Line", "Rotor A line", "Rotor B line", "Rotor C line", "Rotor D line"] },
     { ws: "Pro.3", tag: "", lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line", "Press C-Shaft"] },
     { ws: "Pro.4", tag: "", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Pin A", "C-Shaft Pin C", "C-Shft Pin B", "Piston Grinding", "Rod Pispin", "Frame Honing FL", "Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5"] },
@@ -48,6 +48,12 @@
   WS_MAP.forEach(function (g) { g.lines.forEach(function (ln) { LINE2WS[ln] = g.ws; }); });
   var NORM2WS = {};
   Object.keys(LINE2WS).forEach(function (ln) { NORM2WS[String(ln).toLowerCase().replace(/[\s.]+/g, "")] = ln; });
+  /* ★ 2026-10-16 线体改名: 数据端/库里仍叫 "Motor AC", 前端统一改为 "Motor FL"(仅展示/匹配, 不动数据库) */
+  function aliasN(n) { return String(n || "").toLowerCase().replace(/[\s.]+/g, "") === "motorac" ? "Motor FL" : n; }
+  function aliasHourly(o) {
+    if (!o || typeof o !== "object") return o;
+    var r = {}; Object.keys(o).forEach(function (k) { r[aliasN(k)] = o[k]; }); return r;
+  }
   /* ★ v5.44 线名对齐: PDTIII 实际名 "Inspection A/B/C/D"(无 line 后缀) 与 "Rotor B/D Line"(大 L) 归一后补齐别名 */
   NORM2WS["inspectiona"] = "Inspection A line";
   NORM2WS["inspectionb"] = "Inspection B line";
@@ -1053,7 +1059,7 @@
         cntEl.textContent = lastGoodDate ? "旧数据" : "无数据";
         return fail("该日无生产数据");
       }
-      state.hourly = d.hourly;
+      state.hourly = aliasHourly(d.hourly);
       state.fmt = d.hourlyFormat || null;   /* ★ Codex §8.1: hourlyFormat 字段优先, aggLine 据此解析桶 */
       state.hc = res[1] || {};
       startHCStream(date);

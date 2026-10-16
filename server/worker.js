@@ -99,7 +99,7 @@ const KNOWLEDGE = [
   },
   {
     keys: ["线体", "产线", "Motor", "Final", "Rotor", "Welding", "C-Shaft", "Frame", "H-Series", "F-Series", "S-Series"],
-    text: "线体-车间归属(依据人力layout表): PRO1=Motor AC line、Motor CL/3Phase、Motor WL、Motor H-Series、Motor F Line、Motor S Line、Roller Vanishing(H)、ACC、MLS、PTC、Delivery、QC、Document、PC、Supervisor、Manager; PRO2·Rotor-Fin=Final A/B/C/D与Rotor A/B/C/D; PRO2·Shipping=Inspection线; PRO3=Welding A-D; PRO4=Frame/Piston/C-Shaft Body/C-Shaft Pin; PRO5=Frame Honing。产品系列主要有S/F/H/WL等。"
+    text: "线体-车间归属(依据人力layout表): PRO1=Motor AC line(看板 2026-10-16 起显示为 Motor FL)、Motor CL/3Phase、Motor WL、Motor H-Series、Motor F Line、Motor S Line、Roller Vanishing(H)、ACC、MLS、PTC、Delivery、QC、Document、PC、Supervisor、Manager; PRO2·Rotor-Fin=Final A/B/C/D与Rotor A/B/C/D; PRO2·Shipping=Inspection线; PRO3=Welding A-D; PRO4=Frame/Piston/C-Shaft Body/C-Shaft Pin; PRO5=Frame Honing。产品系列主要有S/F/H/WL等。"
   },
   {
     keys: ["SQDIP", "安全", "NG", "不良", "5S", "MO", "完工率"],

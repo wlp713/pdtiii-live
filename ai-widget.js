@@ -30,7 +30,7 @@
 
   /* ── 车间分组 (与 index.html 的 WS_GROUPS 一致) ── */
   var WS_GROUPS = [
-    { ws: "PRO1",  label: "PRO1",           lines: ["Motor AC","Motor CL","Motor WL","Motor F-Series","Motor H-Series","Motor S-Series"] },
+    { ws: "PRO1",  label: "PRO1",           lines: ["Motor FL","Motor CL","Motor WL","Motor F-Series","Motor H-Series","Motor S-Series"] },
     { ws: "PRO2R", label: "PRO2·Rotor/Fin", lines: ["Final A line","Final B Line","Final C line","Final D line","Rotor A line","Rotor B Line","Rotor C line","Rotor D Line"] },
     { ws: "PRO2S", label: "PRO2·Shipping",  lines: ["Inspection A","Inspection B","Inspection C","Inspection D"] },
     { ws: "PRO3",  label: "PRO3",           lines: ["Welding A line","Welding B line","Welding C line","Welding D line"] },
