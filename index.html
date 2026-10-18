@@ -2101,6 +2101,11 @@ function valueAt(name, t, usePlan, dayOff) {
     //   兼容: 若某桶无 d(数据端未回填/历史桶) → 回退到下面 isDayQry 分钟范围兜底。
     const curDaily = bkkDateStr(bkkDay0() - (nowMi < 8 * 60 ? 86400000 : 0));
     const pts = [];
+    // ★ 2026-10-18: 开班桶(08:00 / 20:30)按定义累计=0。停产日没人换班清零 → 数据端首条记录
+    //   仍是上一班的终值(如 800 桶 actual=2347/plan=4285)。不归零的话，小时图第一段
+    //   (8:00-9:00)会把上一班的整整一班产量画成一根巨柱(列表归零了图还是有)。
+    const _nMi = bkkMins();
+    const _shiftStart = ((_nMi < NIGHT_END ? _nMi + 1440 : _nMi) >= NIGHT_START) ? NIGHT_START : DAY_START;
     for (const sn of snaps) {
       let m = snapMins(sn);
       if (post && m < NIGHT_END) m += 1440; // 凌晨桶 → 班次日后半夜
@@ -2117,7 +2122,9 @@ function valueAt(name, t, usePlan, dayOff) {
       //   改在 segsOf 层处理(curActual===0 → 晚班段归0), 不再污染 valueAt 数据源。
       if (hasD) { if (!preMidNight && String(sn.d) !== curDaily) continue; } // d 匹配当前班里日
       else if (isDayQry && !(m >= DAY_START && m <= DAY_END)) continue;       // 无 d 回退旧白班分钟过滤
-      pts.push({ m: m, v: usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0) });
+      let _v = usePlan ? (Number(sn.plan) || 0) : (Number(sn.actual) || 0);
+      if (m === _shiftStart) _v = 0;   // 开班一律从 0 累计(不管桶里带的是不是上一班终值)
+      pts.push({ m: m, v: _v });
     }
     pts.sort(function (a, b) { return a.m - b.m; });
     const tAbs = t; // 查询边界一律用班次日分钟 (day 同制: t 本身就是当天0点基准分钟)
