@@ -1984,7 +1984,83 @@ function hourlyArrOf(name) {
   }
   return null;
 }
-// 采样所属班次日 (绝对时间戳): 8:00 前归前一天晚班, 8:00 起归当天白班
+// ═══ 2026-10-18 修复（用户报：周日全厂停产，看板却有一大批线体显示“有产出、达成率还挺高”）═══
+// 根因①（数据端）: 每个班里日的首条记录（08:00 / 20:30）是在换班清零「之前」落库的，带的是上一班的
+//   累计产量。正常生产日这条会被紧随的清零/增长覆盖（历史归档里 800 桶一律 = 0.0）；但停产日没人换班、
+//   没人清零，lines 快照就永远停在「上一班终值」→ 被当成今天的产出（如 Final B 2347/4285 = 54.7%）。
+// 根因②（前端）: 2026-09-29 的「全厂全停滞保险」看到所有线都 STALLED 就当成数据异常、强制显示“运行”，
+//   把唯一能看出问题的线索也藏掉了。
+// 修法: 用 hourly 桶判定「本班次有没有真实增长」——没有就把当日产出归零、状态置停机、达成率留空。
+function shiftOfNow() {
+  const mi = bkkMins();
+  const tail = mi < NIGHT_END;              // 凌晨 0-8 点属于前一晚夜班
+  const nowM = tail ? mi + 1440 : mi;       // 班里日分钟
+  const start = nowM >= NIGHT_START ? NIGHT_START : DAY_START;
+  return { tail: tail, nowM: nowM, start: start,
+           daily: bkkDateStr(bkkDay0() - (tail ? 86400000 : 0)) };
+}
+function dailyShiftPts(name, sc) {
+  const arr = hourlyArrOf(name);
+  if (!arr || !arr.length) return null;
+  const pts = [];
+  for (let i = 0; i < arr.length; i++) {
+    const sn = arr[i];
+    const raw = snapMins(sn);
+    const m = (sc.tail && raw < NIGHT_END) ? raw + 1440 : raw;
+    const hasD = sn.d !== undefined && sn.d !== null && String(sn.d) !== "";
+    if (hasD) { if (String(sn.d) !== sc.daily) continue; }  // 只认当前班里日的桶
+    else if (m < sc.start) continue;                        // 无 d 兜底：丢掉上一班的桶
+    pts.push({ m: m, v: Number(sn.actual) || 0 });
+  }
+  if (!pts.length) return null;
+  pts.sort(function (a, b) { return a.m - b.m; });
+  return pts;
+}
+function guardCarryOverLines() {
+  const sc = shiftOfNow();
+  if (sc.nowM < sc.start + 20) return;                // 换班 20 分钟内数据还没落，不判
+  const noShiftData = sc.nowM >= sc.start + 70;       // 过了首个边界桶仍无本班数据 → 可判无生产
+  (state.lines || []).forEach(function (l) {
+    const pts = dailyShiftPts(l.name, sc);
+    const act = Number(l.actual) || 0;
+    let carry = false;
+    if (pts) {
+      const starts = pts.filter(function (p) { return Math.abs(p.m - sc.start) <= 10; });
+      const startV = starts.length ? starts[starts.length - 1].v : null;
+      const afterMax = pts.reduce(function (mx, p) {
+        return p.m > sc.start ? Math.max(mx, p.v) : mx;
+      }, startV === null ? -Infinity : startV);
+      if (startV !== null && startV > 0 && act <= startV + 0.5 && afterMax <= startV + 0.5) {
+        carry = true;        // 起点桶非 0 + 本班一次没涨 → 上一班累计被当成今天产出
+      } else if (startV === null && noShiftData) {
+        const last = pts[pts.length - 1];
+        if (last.m < sc.start && act <= last.v + 0.5) carry = true; // 本班完全无桶，实时值仍停在上一班终值
+      }
+    } else if (noShiftData && (l.stalled === true || l.status === "STALLED")) {
+      carry = true;          // 无本班 hourly 数据 + 数据端已标停滞 → 当日无生产
+    }
+    if (!carry) return;
+    const plan = Number(l.plan) || 0;
+    l.carryOver = true;      // 标记：本日该班次无产出，仅上班级累计
+    l.actual = 0;
+    l.cum = 0;
+    l.cb = -plan;
+    l.eff = null;            // 达成率留空(不显示 0% 一片红)
+    l.status = "OFF";
+    l.stalled = false;
+  });
+  // 全厂本班次一条都没产出 → 整版统一显示停机, 不要满屏“停滞”红堆(停产日/开工前都适用)
+  const live = (state.lines || []).filter(function (l) { return !isPlannedOff(l); });
+  if (live.length && live.every(function (l) { return (Number(l.actual) || 0) <= 0; })) {
+    live.forEach(function (l) {
+      if (l.status === "RUNNING" || l.status === "\u8fd0\u884c") return;
+      l.status = "OFF";
+      l.stalled = false;
+      if (!(Number(l.plan) > 0)) l.eff = null;
+    });
+  }
+}
+// 采样所属班次日 (绝对时间戳): 8:00 前归前一天晚班, 8:00 起归当天白班: 8:00 前归前一天晚班, 8:00 起归当天白班
 // ★ 2026-08-31 修复: localStorage 采样保留48h, 昨天采样会被 valueAt 当成今天 → 今天所有时段
 //   p0=p1=昨天终值 → plan 差分全0 → 小时图只剩当前 live 段一根柱。按班次日过滤后互不污染。
 function sampDay(ts) {
@@ -3128,6 +3204,8 @@ async function refresh() {
     });
     state.hourly = aliasMapKeys(d.hourly || {});
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
+    // ★ 2026-10-18: 停产日「上一班累计冒充今日产出」守卫（需 state.hourly 就绪后才能跑）
+    guardCarryOverLines();
     state.updatedAt = d.updatedAt || null;
     // ★ 2026-09-03 v6.3: 停用 sampleNow 本地采样 — 段计算已不读它(见 valueAt)。
     //   每个浏览器各自攒采样 → 同一 Firebase 数据不同浏览器差分出不同段值, 正是"小时图依赖浏览器"的根源。
