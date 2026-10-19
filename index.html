@@ -2241,18 +2241,12 @@ function segsOf(name, curActual, curPlan, curTarget) {
     //   开班 = 新班从 0 重新累计, 段1 目标应 = 实时累计目标(即 Plan 列), 实际同理。
     const first = (k === 0);
     const off = postMid ? -1 : 0;
-    // ★ 2026-09-07 手动目标覆盖: H-Series 的 plan 不用实时 plan/valueAt, 改用同一条手工曲线,
-    //   保证小时图段目标、表格 plan、达成率全部一致(其它线走原逻辑不受影响)。
-    // ★ 2026-09-14 推广: Final 线同样启用前端手工目标(数据端偶尔桶 plan 倒挂/突变 → 前端用日目标兜底)。
-    const manualH = isManualHLine(name);
-    const manualTgt = manualLineTarget(name, curTarget, sc.shift);
-    const manual = manualH || isPro1ManualLine(name) || manualTgt > 0;
+    // ★ 2026-10-19 用户要求: 取消一切前端「手动目标」覆盖, 目标/计划一律跟随数据库(数据端)。
+    //   小时图段目标 = 数据端 plan 桶(valueAt), 进行中段 = 实时累计 plan(数据端 lines.plan)。
     const a0 = first ? 0 : valueAt(name, t0, false, off);
     const a1 = (t1 > cmpMins) ? (Number(curActual) || 0) : valueAt(name, t1, false, off);
-    let p0 = first ? 0 : (manual ? manualPlanAtLine(name, sc.shift, t0, manualTgt) : valueAt(name, t0, true, off));
-    let p1 = (t1 > cmpMins)
-      ? (manual ? manualPlanAtLine(name, sc.shift, nowMins, manualTgt) : (Number(curPlan) || 0))
-      : (manual ? manualPlanAtLine(name, sc.shift, t1, manualTgt) : valueAt(name, t1, true, off));
+    let p0 = first ? 0 : valueAt(name, t0, true, off);
+    let p1 = (t1 > cmpMins) ? (Number(curPlan) || 0) : valueAt(name, t1, true, off);
     let actual = a1 - a0, plan = p1 - p0;
     // ★ 2026-09-27 停产线防假数(回退 valueAt 数据源后): valueAt 恢复消费 09-11 前半夜桶+白班桶后,
     //   停产线(curActual===0)晚班实际可能被遗留桶差分出非零假数(用户原报"小时图有数/列表没数")。
@@ -2293,176 +2287,11 @@ function isOtNow(mins) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════
-// ★ 2026-10-14 手动目标重构: PRO1 五条线改为「按班次(白班/夜班)」手动目标, 口径 = 正常工作时段 8H。
-//   用户 2026-10-14 指定(单位 PCS, 8H 正常工时目标):
-//     FL(MES 原名 Motor AC, 2026-10-16 前端改名 Motor FL)  白班 1600 / 无夜班(Night 0)
-//     WL(Motor WL)         白班 1600 / 夜班 1600
-//     H (Motor H-Series)   白班 1800 / 夜班 1800
-//     F (Motor F-Series)   白班 1600 / 夜班 400
-//     S (Motor S-Series)   白班 1600 / 夜班 400
-//   口径: 目标在正常工时点(白班 17:20 / 夜班 05:50)正好推满, 之后按同速率继续推移到班末(加班溢出)。
-//   night=0 → 无夜班: 该线夜班时段计划恒为 0(不排夜班)。
-const PRO1_MANUAL = {
-  "motorfl":       { day: 1600, night: 0    },  // FL 线(整机 FL 机型; 原 MES 名 Motor AC)
-  "motorwl":       { day: 1600, night: 1600 },
-  "motorhseries":  { day: 1800, night: 1800 },
-  "motorh-series": { day: 1800, night: 1800 },
-  "motorfseries":  { day: 1600, night: 400 },
-  "motorf-series": { day: 1600, night: 400 },
-  "motorsseries":  { day: 1600, night: 400 },
-  "motors-series": { day: 1600, night: 400 }
-};
-function isPro1ManualLine(name) { return Object.prototype.hasOwnProperty.call(PRO1_MANUAL, normName(name)); }
-function pro1ManualTarget(name, shift) {
-  const e = PRO1_MANUAL[normName(name)];
-  if (!e) return null;
-  return shift === "night" ? e.night : e.day;   // night=0 → 无夜班
-}
-// 遗留常量(仅作 hManualPlanAt* 的默认兜底参数; PRO1 已统一走 PRO1_MANUAL 表)
-const H_MANUAL_TARGET = 1800;
-const S_MANUAL_TARGET = 1600;
-const F_MANUAL_TARGET = 1600;
-// ★ 2026-09-07 修复: normName 只去空格/点, 不去连字符 → "Motor H-Series"→"motorh-series"(带横杠)。
-//   两种写法都要判: 带横杠(线上实测)与无横杠(记忆/旧口径)都命中。
-function isManualHLine(name) {
-  const m = normName(name);
-  return m === "motorhseries" || m === "motorh-series";
-}
-function isManualSLine(name) {
-  const m = normName(name);
-  return m === "motorsseries" || m === "motors-series";
-}
-function isManualFLine(name) {
-  const m = normName(name);
-  return m === "motorfseries" || m === "motorf-series";
-}
-// ★ 2026-09-24 Final C 专属: 白班到 17:00(第1020分钟)累计目标=3400, 之后按相同速率推移到班末
-const FINAL_C_DAY_ANCHOR = 17 * 60;          // 白班锚点 17:00 (分钟)
-const FC_MANUAL_TARGET = 3400;              // Final C: 17:00 前 8.5H 目标 3400 (后推移)
-function isFinalCLine(name) {
-  return normName(name) === "finalcline";
-}
-// ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原比例拆分, 班末推满)
-function isPro4PinLine(name) {
-  const m = normName(name);
-  return m === "c-shaftpina" || m === "c-shftpinb";
-}
-// ★ 2026-10-14: PRO1 五线按「班次」取手工目标(白班/夜班不同, 见 PRO1_MANUAL);
-//   其它线沿用原逻辑(Final C 专属目标 / PRO4 Pin 拆分 / Final 线取数据端日目标)。
-//   shift 缺省按白班处理。
-function manualLineTarget(name, dataTarget, shift) {
-  if (isPro1ManualLine(name)) return pro1ManualTarget(name, shift || "day") || 0;
-  // ★ 2026-09-24 PRO4·Body/Pin: C-Shaft Pin A + C-Shft Pin B 合计目标 7000(按原目标比例拆分)
-  //   用户要求: 到班次结束两线合计目标=7000(方案A整班均摊, 班末推满); 本覆盖接管这两条线的 plan/target。
-  if (isPro4PinLine(name)) {
-    // 拆分比例来自当前数据端日目标(PinA=2880 / PinB=3030), 取整后合计恰为 7000
-    return normName(name) === "c-shaftpina" ? 3411 : 3589;
-  }
-  // ★ 2026-09-24 Final C: 白班到 17:00 目标累计 3400(专属锚点), 覆盖数据端目标
-  if (isFinalCLine(name)) return FC_MANUAL_TARGET;
-  if (FINAL_SET.has(normName(name))) {
-    const t = Number(dataTarget);
-    return t > 0 ? t : 0;               // 无数据目标 → 不启用(不能用错误基准)
-  }
-  return 0;
-}
-// 该班次整个工作时段累计分钟(休息/交班已剔除) — 白班=DAYS总长=640, 夜班=NIGHT总长=610。
-// ★ 2026-09-23 方案A: 目标是整班(11小时口径)总目标, 均摊到全部分段, 班末正好累计到满目标。
-//   (不再有旧口径的"加班起点17:20就推满+加班溢出" — 那样日累计会超过目标, 违背 1800/11Hr。)
-function hManualTotalMins(shift) {
-  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
-  let m = 0;
-  for (const [t0, t1] of table) m += (t1 - t0);
-  return m || 1;
-}
-// 手动累计目标: 返回该班的分钟基准下 t(当天0点为基准, 夜班跨天>1440)对应的累计目标。
-//   口径(方案A): 目标均匀摊满整个班次工作时段 => pace = TGT / 整班总工作分钟,
-//   沿每段按经过分钟累加, 到班次最后一段末(白班20:20 / 夜班7:50)累计恰好 = TGT。
-//   "每小时目标" ≈ TGT/workHours(实际工时), 由段差分自然呈现, 小时图分段自动正确。
-function hManualPlanAt(shift, t, target) {
-  const TGT = target || H_MANUAL_TARGET;
-  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
-  const nm = hManualTotalMins(shift);
-  const pace = TGT / nm;              // 整班均匀速率(目标/整班工作分钟)
-  let cum = 0;
-  for (const [t0, t1] of table) {
-    if (t0 >= t) break;               // 未开始的后续段
-    const e = Math.min(t, t1);
-    if (e > t0) cum += (e - t0) * pace;
-  }
-  return Math.round(cum);             // 取整: 手工目标不保留小数点
-}
-// ── FINAL 线专用: 原分摊口径(加班起点推满+加班溢出) — 2026-09-23 修复: 不得改动 Final 目标 ──
-//   方案A只作用于 PRO1 的 S/F/H 三条系列; FINAL 必须保持改前的数值(数据端 l.target + 原时段计划)。
-function hManualNormalMinsOld(shift) {
-  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
-  const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
-  let m = 0;
-  for (const [t0, t1] of table) {
-    if (t0 >= otStart) break;
-    m += Math.min(t1, otStart) - t0;
-  }
-  return m;
-}
-function hManualPlanAtOld(shift, t, target) {
-  const TGT = target || H_MANUAL_TARGET;
-  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
-  const otStart = shift === "night" ? OT_NIGHT_START : OT_DAY_START;
-  const nm = hManualNormalMinsOld(shift) || 1;
-  const pace = TGT / nm;
-  let cum = 0;
-  for (const [t0, t1] of table) {
-    if (t0 >= otStart) break;
-    const nEnd = Math.min(t, t1, otStart);
-    if (nEnd > t0) cum += (nEnd - t0) * pace;
-  }
-  let ot = 0;
-  for (const [t0, t1] of table) {
-    if (t1 <= otStart) continue;
-    if (t0 >= t) break;
-    const oEnd = Math.min(t, t1);
-    const oStart = Math.max(t0, otStart);
-    if (oEnd > oStart) ot += (oEnd - oStart) * pace;
-  }
-  return Math.round(cum + ot);
-}
-// ★ 2026-09-24 Final C 专属曲线: 白班到 17:00(第1020分钟)累计目标=3400, 之后按相同速率推移到班末。
-//   速率 = 3400 / (17:00 前的工作分钟数); 17:00 后继续以同速率累加(不再停在 3400, 而是推满班末)。
-//   夜班仍用通用 old 锚点逻辑(加班起点 5:50 推满 + 推移), 目标同为 3400。
-function hFinalCPlanAt(shift, t, target) {
-  const TGT = target || FC_MANUAL_TARGET;
-  const table = shift === "night" ? NIGHT_SEGS : DAY_SEGS;
-  if (shift === "night") {
-    // 夜班: 复用 old 锚点(5:50 加班起点推满 3400 + 之后推移)
-    return hManualPlanAtOld(shift, t, TGT);
-  }
-  const anchor = FINAL_C_DAY_ANCHOR;              // 1700
-  let nm = 0;                                     // 17:00 前的工作分钟
-  for (const [t0, t1] of table) {
-    if (t0 >= anchor) break;
-    nm += Math.min(t1, anchor) - t0;
-  }
-  const pace = TGT / (nm || 1);
-  let cum = 0;
-  for (const [t0, t1] of table) {
-    if (t0 >= t) break;
-    const e = Math.min(t, t1);
-    if (e > t0) cum += (e - t0) * pace;
-  }
-  return Math.round(cum);
-}
-// 按线选择手工目标分摊:
-//   H → 原逻辑(17:20推满=目标1500 + 加班按同速率推移)
-//   S/F → 方案A(整班均摊, 班末满目标) ; FINAL(默认) → 原逻辑(数据端目标, 不可受影响)。
-function manualPlanAtLine(name, shift, t, tgt) {
-  // ★ 2026-10-14: PRO1 五线统一用「8H 正常工时推满 + 加班同速率推移」(old 锚点)。
-  //   目标 0(无夜班, 如 FL) → 该班计划恒 0。
-  if (isPro1ManualLine(name)) return tgt ? hManualPlanAtOld(shift, t, tgt) : 0;
-  if (isPro4PinLine(name)) return hManualPlanAt(shift, t, tgt); // 方案A: 班末推满到目标(合计7000)
-  if (isFinalCLine(name)) return hFinalCPlanAt(shift, t, tgt); // Final C: 白班17:00锚定3400后推移
-  return hManualPlanAtOld(shift, t, tgt);
-}
+// ★ 2026-10-19 用户要求: 已删除全部前端「手动目标」覆盖实现
+//   (PRO1 五线按班次目标 FL1600/无夜班·WL1600/1600·H1800/1800·F1600/400·S1600/400,
+//    Final C 3400 锚点, PRO4 Pin 3411+3589 合计 7000, 以及各分摊曲线全部移除)
+//   现在日目标与实时累计计划一律取数据库(数据端): lines.target / lines.plan / hourly 桶 plan。
+
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
   // ★ 2026-09-03 v6.2 灵活缩放基准: 段高骨架按该段 actual/plan 的较大者定位(而非只按 plan)。
   //   目标: 实际≥目标(达成/超额)时, 以实际柱顶点为满格基准、目标柱按 plan/max(actual,plan) 降下来,
@@ -3190,25 +3019,8 @@ async function refresh() {
     });
     // ★ 2026-10-16 线体改名: 电机 AC 线 → Motor FL (入口统一改键)
     state.lines = [...dedupMap.values()].map(l => { l.name = aliasName(l.name); return l; });
-    // ★ 2026-09-07 手动目标覆盖: 仅 H-Series — 覆盖 plan/target/eff, 让表格达成率、趋势、排名一致
-    //   用同一条手工目标线; 其他线体与原逻辑完全一致不受影响。
-    // ★ 2026-09-14 推广: Final 线数据端偶发桶 plan 倒挂 → 同样用前端手工目标(日目标取数据端 l.target)覆盖。
-    state.lines.forEach(l => {
-      const sc = shiftSegAt(bkkMins());
-      const isNight = sc.shift === "night";
-      const nowM = isNight && bkkMins() < NIGHT_END ? bkkMins() + 1440 : bkkMins();
-      const mTgt = manualLineTarget(l.name, l.target, sc.shift);
-      // ★ 2026-10-14: PRO1 手工线即使目标为 0(FL 无夜班)也要接管 → 用 isPro1ManualLine 判定
-      const isManual = isPro1ManualLine(l.name) || mTgt > 0;
-      if (!isManual) return;
-      const mp = Math.round(manualPlanAtLine(l.name, sc.shift, nowM, mTgt)); // 手工累计计划(取整, 不保留小数点)
-      l.target = mTgt;                                       // 班目标 = 手工目标(FL 无夜班→0)
-      l.plan = mp;                                           // 实时累计目标 = 手工曲线(整数)
-      const a = Number(l.actual) || 0;
-      l.eff = mp > 0 ? Math.round(a / mp * 1000) / 10 : null; // 达成率按手工目标重算(无计划→null)
-      l.cb = a - mp;                                         // 差额同步
-      if (isManualHLine(l.name)) window.__H_DEBUG = { ok: true, name: l.name, plan: mp, target: mTgt, actual: a, at: new Date().toLocaleTimeString() };
-    });
+    // ★ 2026-10-19 用户要求: 取消手动目标覆盖 — target/plan/eff/cb 全部使用数据库(数据端)原始值。
+    //   前端不再改写任何目标; 若目标/计划有问题, 应在数据端修正, 而不是前端遮罩。
     state.hourly = aliasMapKeys(d.hourly || {});
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
     // ★ 2026-10-18: 停产日「上一班累计冒充今日产出」守卫（需 state.hourly 就绪后才能跑）
