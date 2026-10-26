@@ -2025,14 +2025,22 @@ function guardCarryOverLines() {
     const act = Number(l.actual) || 0;
     let carry = false;
     if (pts) {
-      const starts = pts.filter(function (p) { return Math.abs(p.m - sc.start) <= 10; });
+      // ★ 2026-10-26 修复: 旧判定 |p.m − sc.start| ≤ 10 会把「上一班末桶」误当本班起点桶 —
+      //   白班末桶 20:20 (=1220分) 距夜班起点 20:30 (=1230分) 正好 10 分 → startV = 白班累计(如 Final B 4004),
+      //   本班实际(265) ≤ 4004 被判「上一班残留」→ 产出归 0、达成率留空。
+      //   21:10 全厂只剩「20:20 桶=0」的 Final D 一条线有数, 即此原因。
+      //   修: 起点桶必须 ≥ sc.start (本班开始之后)。
+      const starts = pts.filter(function (p) { return p.m >= sc.start && p.m <= sc.start + 10; });
       const startV = starts.length ? starts[starts.length - 1].v : null;
       const afterMax = pts.reduce(function (mx, p) {
         return p.m > sc.start ? Math.max(mx, p.v) : mx;
       }, startV === null ? -Infinity : startV);
       if (startV !== null && startV > 0 && act <= startV + 0.5 && afterMax <= startV + 0.5) {
         carry = true;        // 起点桶非 0 + 本班一次没涨 → 上一班累计被当成今天产出
-      } else if (startV === null && noShiftData) {
+      } else if (startV === null && noShiftData &&
+                 (l.stalled === true || String(l.status || "").toUpperCase() === "STALLED")) {
+        // ★ 2026-10-26 修复: 加「数据端已判停滞」门槛 — 旧逻辑只要求「本班无 hourly 桶」就判残留,
+        //   夜班桶缺失时会把正在生产的线整批误清零。
         const last = pts[pts.length - 1];
         if (last.m < sc.start && act <= last.v + 0.5) carry = true; // 本班完全无桶，实时值仍停在上一班终值
       }
