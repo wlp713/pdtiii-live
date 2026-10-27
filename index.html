@@ -997,7 +997,7 @@ const I18N = {
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", kpiWsRunFmt: "车间 {n} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     pro2Final: "Final", pro2Rotor: "Rotor",
     notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
-    noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", nightBase: "前半夜", setPeople: "设人数",
+    noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", nightBase: "前半夜", shiftCum: "本班累计", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
     shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
     useHttp: "⚠️ 请用 http://localhost:8080 打开",
@@ -1039,7 +1039,7 @@ const I18N = {
     kpiRunSubFmt: "Main {m} · Total {a}", kpiWsRunFmt: "WS {n} · Total {a}", noHit: "None ≥90%",
     pro2Final: "Final", pro2Rotor: "Rotor",
     notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
-    noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", nightBase: "Pre-mid", setPeople: "Set HC",
+    noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", nightBase: "Pre-mid", shiftCum: "Shift cum", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
     shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
     useHttp: "⚠️ Open via http://localhost:8080",
@@ -2123,6 +2123,17 @@ function valueAt(name, t, usePlan, dayOff) {
       //   该窗口天然只属夜班, 跨班污染由 isDayQry 分钟范围兜底挡住; 故夜间查询对此窗口按分钟放行,
       //   后半夜桶(≥1470)仍严格 d 匹配防污染。
       const preMidNight = (!isDayQry) && m >= NIGHT_START && m < 1440; // 非白班查询的前半夜桶
+      // ★★ 2026-10-27 修复(用户报: 夜班第1/2段实际=0, 整晚产量全堆到当前段):
+      //   数据端自 2026-09-11 之后就没再写过前半夜(20:30-23:30)桶, Firebase 里现存那批
+      //   h=2030/2130/2230/2240/2330 全部 d=2026-09-11、actual 还停在 0 或 21(死数据)。
+      //   旧逻辑对 [1230,1440) 窗口「按分钟放行、完全不校验 d」→ 死桶被当本班真实桶,
+      //   valueAt(21:30)/valueAt(22:40) 都返回 0 → seg1/seg2 实际画成 0(红底),
+      //   而进行中的段 = 实时累计 − 0 → 整晚产量全压在最后一根柱子上。
+      //   修: 前半夜桶同样要求日期新鲜(距当前班里日 ≤ 2 天, 兼容数据端「d 戳晚一天」的旧毛病),
+      //   过期一律丢弃。丢弃后 segsOf 走「前半夜无有效桶 → 折叠成一根累计段」分支。
+      const nightQry = post || t >= NIGHT_START;  // 夜班口径(含凌晨)
+      if (nightQry && m < NIGHT_START) continue;  // 夜班查询不吃白班桶(白班终值不能当夜班起点/边界值)
+      if (preMidNight && hasD && _bucketAgeDays(sn.d, curDaily) > 2) continue; // 历史死桶: 丢弃
       // ★ 2026-09-17: 前半夜桶(20:30-23:30)按分钟放行, 是晚班小时图分段的数据来源
       //   (数据端每晚以 MySQL 同步只写白班 08:00-20:20 桶; 现存的前半夜桶即 09-11 那批 + 白班桶外推,
       //   前端靠它们在晚班时段差分出各时段产量)。2026-09-27 曾误加 isNightQry/d新鲜度过滤,
@@ -2212,9 +2223,12 @@ function segsOf(name, curActual, curPlan, curTarget) {
   //   折叠成一根「前半夜」灰底基准段(值=00:30 累计=前半夜整段产量/目标), 其余段(seg5起)正常。
   //   有两半夜桶(正常) → 完全不受影响, 仍输出完整10段。
   let firstIdx = 0;
-  if (postMid) {
+  // ★★ 2026-10-27: 折叠条件从「仅凌晨(postMid)」扩展为「整段夜班」— 20:30-24:00 期间前半夜桶
+  //   若缺失/是历史死数据(valueAt 已丢弃), 同样必须折叠, 否则 seg1/seg2 会画成 0、live 段吞掉全部产量。
+  if (isNight) {
     const preArr = hourlyArrOf(name);
     let hasPreMid = false;
+    const _curD = bkkDateStr(bkkDay0() - (bkkMins() < NIGHT_END ? 86400000 : 0));
     if (Array.isArray(preArr)) {
       // ★ 2026-09-15 修复: 必须按当前班里日(d)过滤 — 旧桶(其它日期)不算有前半夜覆盖,
       //   否则整夜累计会被塞进 seg1(巨柱)+ seg2/3=0。与 valueAt 的 d 过滤口径一致。
@@ -2228,15 +2242,23 @@ function segsOf(name, curActual, curPlan, curTarget) {
       for (const _sn of preArr) {
         const _m = snapMins(_sn);
         if (_m >= NIGHT_START && _m < 1440) {
-          hasPreMid = true; break;  // 前半夜窗口桶即视为有覆盖(不依赖旧 d 戳)
+          // ★ 2026-10-27: 带 d 的桶必须是新鲜的(≤2 天); 2026-09-11 那批死桶不算有覆盖
+          const _hd = (_sn.d !== undefined && _sn.d !== null && String(_sn.d) !== "");
+          if (_hd && _bucketAgeDays(_sn.d, _curD) > 2) continue;
+          hasPreMid = true; break;
         }
       }
     }
     if (!hasPreMid) {
-      const bA = Math.max(0, valueAt(name, 1470, false, -1)); // 00:30 累计实际 = 前半夜整段产量
-      const bP = Math.max(0, valueAt(name, 1470, true, -1));  // 00:30 累计目标
-      segs.push({ h: 1470 / 60, lab: null, live: false, base: true, nightBase: true, pm: false,
-        actual: bA, plan: bP, t0: NIGHT_START, t1: 1470, ot: false });
+      // 前半夜(20:30-00:30)无有效小时桶 → 折叠成一根「本班累计」段:
+      //   20:30-24:00 时 = 实时累计(进行中, 画在高亮框内); 凌晨 = 00:30 桶累计(= 前半夜整段产量)
+      const _foldEnd = Math.min(cmpMins, 1470);
+      const _foldLive = cmpMins < 1470;
+      const _off = postMid ? -1 : 0;
+      const bA = _foldLive ? Math.max(0, Number(curActual) || 0) : Math.max(0, valueAt(name, 1470, false, _off));
+      const bP = _foldLive ? Math.max(0, Number(curPlan) || 0) : Math.max(0, valueAt(name, 1470, true, _off));
+      segs.push({ h: _foldEnd / 60, lab: null, live: _foldLive, base: true, cum: true, pm: false,
+        actual: bA, plan: bP, t0: NIGHT_START, t1: _foldEnd, ot: false });
       firstIdx = 4; // 跳过已折叠的 seg1-4
     }
   }
@@ -2385,7 +2407,7 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       };
       if (s.base || s.pm) {
-        const lbl = s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am"));
+        const lbl = s.cum ? t("shiftCum") : (s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am")));
         if (perH >= 14) {
           L(lbl, cx + bw / 2, yAcc + perH / 2 - 3, fSml + "px sans-serif", "#bfd0e4");
           L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
@@ -2623,6 +2645,15 @@ function bkkMins(ts) { var u = bkkClock(ts); return u.getUTCHours() * 60 + u.get
 function bkkParts(ts) { var u = bkkClock(ts); return { M: u.getUTCMonth() + 1, D: u.getUTCDate(), hh: String(u.getUTCHours()).padStart(2, "0"), mm: String(u.getUTCMinutes()).padStart(2, "0"), ss: String(u.getUTCSeconds()).padStart(2, "0"), mins: u.getUTCHours() * 60 + u.getUTCMinutes() }; }
 function bkkDay0(ts) { var u = bkkClock(ts); return Date.UTC(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate()) - BKK_OFFSET; } // 泰国当天0点(真实时间戳)
 function bkkDateStr(ts) { var u = bkkClock(ts); return u.getUTCFullYear() + "-" + String(u.getUTCMonth() + 1).padStart(2, "0") + "-" + String(u.getUTCDate()).padStart(2, "0"); }
+// ★ 2026-10-27 新增: 桶的 d 戳距「当前班里日」多少天(用于剔除历史死数据, 如 2026-09-11 那批夜班桶)
+//   解析失败/无 d → 返回 9999(视为不可信)
+function _bucketAgeDays(dStr, curDaily) {
+  var a = String(dStr == null ? "" : dStr).split("-"), b = String(curDaily == null ? "" : curDaily).split("-");
+  if (a.length !== 3 || b.length !== 3) return 9999;
+  var ta = Date.UTC(+a[0], +a[1] - 1, +a[2]), tb = Date.UTC(+b[0], +b[1] - 1, +b[2]);
+  if (isNaN(ta) || isNaN(tb)) return 9999;
+  return Math.abs(tb - ta) / 86400000;
+}
 const DAY_START = 8 * 60;         // 白班 8:00 开始
 const DAY_END = 20 * 60 + 20;     // 白班 20:20 结束
 const NIGHT_START = 20 * 60 + 30; // 晚班 20:30 开始
