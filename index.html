@@ -548,6 +548,15 @@
   body:not(.battle-mode) #mainTable tr:last-child td { border-bottom: none; }
   #mainTable td.bar-cell { padding: 2px 6px; min-width: 0; }
   #mainTable td.line-name { padding: 2px 6px; }
+  /* ★ 2026-10-29 「全部线体」视图(39条): 紧凑行高, 保证一屏铺满不滚动、字号仍可读 */
+  #mainTable.all-lines td { padding: 0 6px; font-size: 11px; }
+  #mainTable.all-lines td.line-name { font-size: 12px; padding: 0 6px; }
+  #mainTable.all-lines td:nth-child(4), #mainTable.all-lines td:nth-child(5),
+  #mainTable.all-lines td:nth-child(6), #mainTable.all-lines td:nth-child(7),
+  #mainTable.all-lines td:nth-child(8) { font-size: 12.5px; }
+  #mainTable.all-lines td.bar-cell { padding: 0 6px; }
+  #mainTable.all-lines .hbar { height: 8px; }
+  #mainTable.all-lines .hbar .bd-label { font-size: 8px; }
   tr:hover td { background: var(--panel2); }
   tr.miss td { background: rgba(248,81,73,.05); }
   tr.miss:hover td { background: rgba(248,81,73,.1); }
@@ -1131,13 +1140,17 @@ const MAIN_SET = new Set(MAIN_LINES.map(normName));
 const WS_GROUPS = [
   { ws: "PRO1",   label: "PRO1",            lines: ["Motor FL", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
   { ws: "PRO2R",  label: "PRO2·Rotor/Fin",  lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
-  { ws: "PRO2S",  label: "PRO2·Shipping",   lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D"] },
+  { ws: "PRO2S",  label: "PRO2·Shipping",   lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D", "Water Line"] },
   { ws: "PRO3",   label: "PRO3",            lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line"] },
   { ws: "PRO4H",  label: "PRO4·Hon/Pist",   lines: ["Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5", "Piston Grinding", "Rod Pispin", "Press C-Shaft"] },
   { ws: "PRO4B",  label: "PRO4·Body/Pin",   lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Body C", "C-Shaft Pin A", "C-Shft Pin B", "C-Shaft Pin C"] },
-  { ws: "PRO5",   label: "PRO5",            lines: ["Frame Honing FL", "Piston honing FL", "Cylinder Honing"] }
+  { ws: "PRO5",   label: "PRO5",            lines: ["Frame Honing FL", "Piston honing FL", "Cylinder Honing"] },
+  // ★ 2026-10-29 兜底分组: 数据端将来新增任何未配置车间映射的线体都会自动落到这里,
+  //   绝不再出现「小时产出图有、列表里找不到」的情况 (当前 Water Line 已补进 PRO2·Shipping, 本组为 0 时按钮禁用)
+  { ws: "OTHER",  label: "其他·未分组",      lines: [] }
 ];
 let WS_LABEL = {}; WS_GROUPS.forEach(g => { WS_LABEL[g.ws] = g.label; });
+WS_LABEL.ALL = "全部线体";   // ★ 2026-10-29 伪车间: 列出全部线体, 保证列表与小图线体永远一致可查
 // 线体名(norm) → 车间; 供快速反查 (重复名以先出现车间为准, 不会重复定义)
 const LINE2WS = {};
 WS_GROUPS.forEach(g => g.lines.forEach(ln => { LINE2WS[normName(ln)] = g.ws; }));
@@ -1145,10 +1158,15 @@ WS_GROUPS.forEach(g => g.lines.forEach(ln => { LINE2WS[normName(ln)] = g.ws; }))
 let wsSel = null;
 try {
   const _wsp0 = new URLSearchParams(location.search).get("ws");
-  if (_wsp0 && WS_GROUPS.some(g => g.ws === _wsp0)) wsSel = _wsp0;
+  if (_wsp0 && (WS_GROUPS.some(g => g.ws === _wsp0) || _wsp0 === "ALL")) wsSel = _wsp0;
 } catch (e) {}
 function wsGroupOf(l) { return LINE2WS[normName(l && l.name)] || null; }
-function wsLinesOf(ws) { return state.lines.filter(l => wsGroupOf(l) === ws); }
+function wsLinesOf(ws) {
+  // ★ 2026-10-29: ALL=全部线体; OTHER=未归任何车间的线体(兜底, 永不丢线)
+  if (ws === "ALL") return state.lines.slice();
+  if (ws === "OTHER") return state.lines.filter(l => !LINE2WS[normName(l && l.name)]);
+  return state.lines.filter(l => wsGroupOf(l) === ws);
+}
 // 车间视图总览: 主要 8 条 + 其余归到各车间; wsSel 为空 → 保持原"主要线体"面板
 function tableLinesOf() {
   if (!wsSel) { const { main } = splitLines(); return main; }
@@ -1159,7 +1177,9 @@ function buildWsBtns() {
   const box = document.getElementById("wsBtns");
   if (!box || box.dataset.built) return;
   box.dataset.built = "1";
-  WS_GROUPS.forEach(g => {
+  // ★ 2026-10-29: 首位加「全部」按钮 — 一键看到小时产出图里的所有线体
+  const btnDefs = [{ ws: "ALL", label: WS_LABEL.ALL }].concat(WS_GROUPS.map(g => ({ ws: g.ws, label: g.label })));
+  btnDefs.forEach(g => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "ws-btn";
@@ -1182,9 +1202,10 @@ function updateWsBtns() {
   // 计数 = 当前云端实际存在的该车间线体数 (wsSel 空时主视图只显示 8 条主线, 但车间仍可切换)
   const alive = {};
   state.lines.forEach(l => {
-    const ws = wsGroupOf(l);
-    if (ws) alive[ws] = (alive[ws] || 0) + 1;
+    const ws = wsGroupOf(l) || "OTHER";   // ★ 2026-10-29: 未映射线体计入「其他」, 不再被静默隐藏
+    alive[ws] = (alive[ws] || 0) + 1;
   });
+  alive.ALL = state.lines.length;
   box.querySelectorAll(".ws-btn").forEach(b => {
     const ws = b.dataset.ws;
     const n = alive[ws] || 0;
@@ -1408,6 +1429,8 @@ function renderTable() {
   const { main, other } = splitLines();
   const viewSrc = wsSel ? wsLinesOf(wsSel) : main;
   let view = sortLines(viewSrc);
+  // ★ 2026-10-29 全部线体视图 → 紧凑行样式(39条一屏铺满)
+  try { const _mt = document.getElementById("mainTable"); if (_mt) _mt.classList.toggle("all-lines", wsSel === "ALL"); } catch (e) {}
   const tb = document.querySelector("#mainTable tbody");
   if (!tb) return { main, other, view };
   // ★ 2026-09-10 改动A: PRO2R 双分区渲染 — Final(成品)上 / Rotor(前道)下, 各带子标题行
@@ -1575,7 +1598,8 @@ function fitMainTable() {
   const available = Math.floor(wrap.clientHeight - headHeight);
   if (available < 30) return;
   const count = rows.length;
-  const minHeight = 26;
+  // ★ 2026-10-29: 「全部线体」视图(39条)行数多 → 动态收紧最小行高, 让整表仍能一屏铺满不滚动
+  const minHeight = count > 30 ? 20 : (count > 20 ? 23 : 26);
   const canFill = available >= count * minHeight;
   const baseHeight = canFill ? Math.floor(available / count) : minHeight;
   // 除不尽时的剩余像素: 前 remainder 行各多 1px, 避免底部细缝
@@ -1616,7 +1640,7 @@ function updateChartWsLabel(sel, view) {
   const el = document.getElementById("chartWsLabel");
   if (!el) return;
   if (sel) {
-    el.textContent = " " + (WS_LABEL[sel] || sel);
+    el.textContent = " " + (WS_LABEL[sel] || sel) + (sel === "ALL" ? " · " + (view ? view.length : 0) : "");
     el.classList.add("sel");
     el.style.display = "";
   } else {
@@ -3721,7 +3745,7 @@ function renderTrend() {
   const last = hist[hist.length - 1] || {};
   const lineNamesAll = Object.keys(trendValsOf(last));
   let avail = [];
-  if (wsSel && (typeof WS_GROUPS !== "undefined")) {
+  if (wsSel && wsSel !== "ALL" && wsSel !== "OTHER" && (typeof WS_GROUPS !== "undefined")) {
     const g = WS_GROUPS.find(x => x.ws === wsSel);
     const gLines = g ? g.lines : [];
     gLines.forEach(gl => {
