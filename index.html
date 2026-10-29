@@ -2059,7 +2059,12 @@ function guardCarryOverLines() {
       const afterMax = pts.reduce(function (mx, p) {
         return p.m > sc.start ? Math.max(mx, p.v) : mx;
       }, startV === null ? -Infinity : startV);
-      if (startV !== null && startV > 0 && act <= startV + 0.5 && afterMax <= startV + 0.5) {
+      // ★ 2026-10-29 修「在产线被误清零」: 数据端有时不在换班时清零 — 本班起点桶直接沿用上一班末桶值
+      //   (实测 Inspection C: 800桶=3075=上一班750桶终值; Welding C 同理),
+      //   导致 startV=上一班累计 → 本班实际 <= startV → 被误判「上一班残留」清零。
+      //   判据: 起点之后有桶掉到 startV 以下 = 数据端确实重新累计(线在产) → 不能判残留。
+      const resetSeen = startV !== null && pts.some(function (p) { return p.m > sc.start && p.v < startV - 0.5; });
+      if (startV !== null && startV > 0 && !resetSeen && act <= startV + 0.5 && afterMax <= startV + 0.5) {
         carry = true;        // 起点桶非 0 + 本班一次没涨 → 上一班累计被当成今天产出
       } else if (startV === null && noShiftData &&
                  (l.stalled === true || String(l.status || "").toUpperCase() === "STALLED")) {
