@@ -275,7 +275,7 @@
   #mod-trend-base .ex-body { min-height: 0; }
   #mod-trend-base #chartTrendBase { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; padding: 0 2px; }
 
-  #pages-wrap #chartBar { filter: none; }
+  #pages-wrap #chartBar { filter: drop-shadow(0 3px 5px rgba(0,0,0,.16)); }
   .ex-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
   .ex-card-head h2 { font-size: 13px; color: var(--white); font-weight: 700; letter-spacing: .5px; }
   .ex-src { font-size: 10px; color: var(--gray); background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 1px 8px; }
@@ -761,361 +761,6 @@
 
   /* ⑤ 选中文字配色通配到主题色 (默认是白/黑, 太刺) */
   ::selection { background: var(--blue); color: #0d1117; }
-
-  /* ═══════════════════════════════════════════════════════════════════
-     2026-11-01 UI v9 · Control Room / Andon
-     工厂大屏目视化: 高对比、大数字、单柱、去装饰。
-     只覆盖视觉层, 不动数据/交互逻辑。
-     ═══════════════════════════════════════════════════════════════════ */
-  :root {
-    --bg: #06080c;
-    --panel: #0d1219;
-    --panel2: #111823;
-    --border: #1d2634;
-    --border-strong: #2b3748;
-    --border-soft: #151d28;
-    --white: #e9eff7;
-    --gray: #9aa8ba;
-    --muted: #7f8ea3;
-    --blue: #2f81f7;
-    --green: #2ea043;
-    --orange: #d29922;
-    --red: #e5484d;
-    --edge-hi: transparent;
-    --edge-lo: transparent;
-    --glow-blue: transparent;
-    --glow-cyan: transparent;
-  }
-  html, body { background: var(--bg); }
-  body {
-    background: var(--bg) !important;
-    padding: 14px 18px 12px;
-    font-family: "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
-    color: var(--white);
-  }
-  #bg-aurora, #bg-flow { display: none !important; }
-
-  /* 顶栏 */
-  .header {
-    margin-bottom: 10px; padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    align-items: center;
-  }
-  .header h1 {
-    font-size: 26px; letter-spacing: .4px; font-weight: 700;
-    background: none; -webkit-text-fill-color: currentColor; color: var(--white);
-  }
-  .period-label {
-    font-size: 17px; color: var(--gray); font-weight: 600;
-    margin-left: 14px; letter-spacing: .2px;
-  }
-  .header-right { gap: 10px; }
-  .clock { font-size: 14px; color: var(--gray); letter-spacing: .4px; }
-  .conn-status {
-    font-size: 12.5px; padding: 4px 11px; border-radius: 6px;
-    background: var(--panel); border: 1px solid var(--border); color: var(--gray);
-  }
-  .conn-status.ok .dot { box-shadow: 0 0 0 3px rgba(46,160,67,.16); }
-  .btn {
-    background: var(--panel); color: var(--white);
-    border: 1px solid var(--border-strong); border-radius: 6px;
-    padding: 6px 14px; font-size: 13px; font-weight: 600;
-  }
-  .btn:hover { background: var(--panel2); border-color: var(--blue); color: #fff; }
-  .stall-banner { border-radius: 6px; font-size: 14px; padding: 8px 14px; }
-
-  /* KPI: 一条计分板, 不是 5 张卡 */
-  .kpis {
-    grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 12px;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 8px; overflow: hidden;
-  }
-  .kpi {
-    background: transparent; border: 0; border-radius: 0;
-    box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
-    padding: 14px 20px 13px; min-height: 98px; justify-content: center;
-  }
-  .kpi + .kpi { border-left: 1px solid var(--border); }
-  .kpi:hover { background: transparent; border-color: transparent; box-shadow: none; }
-  .kpi-top { align-items: flex-end; }
-  .kpi .label { font-size: 13px; color: var(--gray); font-weight: 600; letter-spacing: .2px; }
-  .kpi .value {
-    font-size: 40px; line-height: 1; letter-spacing: -.5px; font-weight: 700;
-    font-family: "Bahnschrift", "DIN Alternate", "Segoe UI", sans-serif;
-    text-shadow: none; color: var(--white);
-  }
-  .kpi .value.green { color: var(--green); }
-  .kpi .value.orange { color: var(--orange); }
-  .kpi .value.red { color: var(--red); }
-  .kpi .value.blue { color: #6cb0ff; }
-  .kpi .sub { font-size: 12px; color: var(--muted); margin-top: 7px; }
-
-  /* 面板: 平直工业面, 去玻璃/去光晕 */
-  .main-grid { grid-template-columns: 1.08fr 1fr; gap: 12px; }
-  .panel {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 8px;
-    padding: 12px 14px 10px;
-    box-shadow: none;
-    backdrop-filter: none; -webkit-backdrop-filter: none;
-  }
-  .panel:hover { background: var(--panel); border-color: var(--border); }
-  .panel-head { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-  .panel h2 { font-size: 15px; color: var(--white); font-weight: 700; letter-spacing: .2px; white-space: nowrap; flex-shrink: 0; }
-  .ws-btns { gap: 6px; flex: 1; justify-content: flex-end; }
-  .ws-btn {
-    background: transparent; color: var(--gray); border: 1px solid var(--border);
-    border-radius: 5px; padding: 4px 10px; font-size: 12px; font-weight: 600; line-height: 1.4;
-  }
-  .ws-btn:hover { background: var(--panel2); color: var(--white); border-color: var(--border-strong); }
-  .ws-btn.on { background: rgba(47,129,247,.14); color: #8ec5ff; border-color: rgba(47,129,247,.65); }
-  .ws-btn .wc { font-size: 10px; opacity: .55; }
-  .ws-sel-label { font-size: 12px; color: #8ec5ff; }
-  .chart-ws-label { font-size: 12px; color: var(--gray); }
-  .chart-ws-label.sel { background: rgba(47,129,247,.14); border-color: rgba(47,129,247,.5); color: #8ec5ff; }
-
-  /* 主表: 大数字, 细分割, 一屏读完 */
-  .table-scroll { overflow: hidden; }
-  table { font-size: 13px; }
-  th {
-    background: var(--panel); color: var(--muted); font-size: 11.5px;
-    font-weight: 600; letter-spacing: .4px; text-transform: uppercase;
-    padding: 6px 8px; border-bottom: 1px solid var(--border-strong);
-  }
-  th.col-act-h { color: #6cb0ff; }
-  th.col-plan-h { color: var(--gray); }
-  td { padding: 8px; border-bottom: 1px solid var(--border-soft); }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(4),
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(5),
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(6),
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(7) {
-    font-size: 24px; font-weight: 700; letter-spacing: -.3px;
-    font-family: "Bahnschrift", "DIN Alternate", "Segoe UI", sans-serif;
-  }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(5) {
-    font-size: 20px; font-weight: 600; color: #8fa3bb;
-  }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(6) { font-size: 22px; }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(8) {
-    font-size: 18px; font-weight: 600; color: var(--gray);
-  }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td.line-name {
-    font-size: 19px; font-weight: 700; letter-spacing: .1px;
-  }
-  .ln-main { font-size: 19px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ln-sub { font-size: 11px; font-weight: 500; color: var(--muted) !important; margin-top: 4px; white-space: nowrap; }
-  @media (max-width: 1600px) { .ln-main { font-size: 16px; } }
-  @media (max-width: 1400px) { .ln-main { font-size: 15px; } }
-  #mainTable.all-lines .ln-main { font-size: 12px; }
-  #mainTable.all-lines .ln-sub { display: none; }
-  body.battle-mode .ln-main { font-size: 13.5px; }
-  body.battle-mode .ln-sub { font-size: 9px; margin-top: 2px; }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td.rank {
-    font-size: 14px; font-weight: 600; color: var(--muted);
-  }
-  body:not(.battle-mode) #mainTable td { border-bottom: 1px solid var(--border-soft); }
-  #mainTable tbody tr:hover td { background: rgba(47,129,247,.06); }
-  tr.miss td { background: transparent; }
-  tr.stalled-row.lv1 td { background: rgba(210,153,34,.10); }
-  tr.stalled-row.lv2 td { background: rgba(229,72,77,.13); }
-  tr.stalled-row.lv3 td { background: rgba(229,72,77,.19); }
-  tr.stalled-row.lv3 td:first-child { box-shadow: inset 3px 0 0 0 var(--red); }
-  tr.breakdown-row td { background: rgba(229,72,77,.22); }
-  tr.breakdown-row td:first-child { box-shadow: inset 3px 0 0 0 var(--red); }
-  tr.planned-off td { background: #10151c !important; color: var(--muted); }
-  .stall-dot { width: 9px; height: 9px; margin-right: 7px; }
-  .rank { width: 34px; min-width: 34px; }
-
-  /* 主表进度条: 平涂, 红缺口压暗, 不做发光/渐变 */
-  .hbar { height: 26px; border-radius: 4px; background: #1a2330; }
-  .hbar .act {
-    background: var(--blue); border-radius: 4px; min-width: 2px;
-    box-shadow: none;
-  }
-  .hbar .gap {
-    background: rgba(190,45,52,.42); border-radius: 0 4px 4px 0;
-    box-shadow: none;
-  }
-  .hbar .p100 { border-right: 1px solid rgba(233,239,247,.4); }
-  .hbar .over-glow { background: linear-gradient(90deg, transparent, rgba(46,160,67,.65)); }
-  .hbar .bd-label { font-size: 14px; }
-  .hbar.bd { border-color: rgba(229,72,77,.9); box-shadow: none; }
-  #mainTable.all-lines .hbar { height: 10px; }
-
-  /* 图例: 计划改为虚线, 不再有橙色计划柱 */
-  .legend { font-size: 12px; color: var(--gray); gap: 16px; margin-bottom: 6px; }
-  .legend span::before { width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
-  .legend .lg-plan::before {
-    background: #c9972e; border: 0; height: 10px; width: 10px; vertical-align: -1px;
-  }
-  .legend .lg-gap::before { background: #a3282e; }
-  .legend .lg-over::before { background: rgba(46,160,67,.85); }
-  .legend .seg-toggle { font-size: 12px; color: var(--gray); }
-  .legend .seg-toggle input { accent-color: var(--blue); }
-
-  /* 趋势/扩展模块: 同一套平面语言 */
-  #mod-trend-base { flex: 0 0 38%; }
-  .ex-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; }
-  .ex-card-head h2 { font-size: 13px; color: var(--white); }
-  .ex-btn { background: var(--panel2); border-color: var(--border-strong); color: var(--gray); border-radius: 5px; }
-  .ex-btn:hover { background: #182231; color: var(--white); }
-  .ex-src, .ex-hint { color: var(--muted); }
-
-  /* 趋势 sparkline: 放大标签, 收敛配色 */
-  .spark-card { background: #0a0f16; border: 1px solid var(--border-soft); border-radius: 5px; padding: 6px 8px; }
-  .spark-name { font-size: 12px; }
-  .spark-full { display: none; }
-  .spark-val { font-size: 12px; margin-left: auto; }
-  .spark-arrow { font-size: 9px; }
-  .spark-label { font-size: 9px; }
-  .spark-target { stroke: rgba(46,160,67,.45); }
-
-  /* 滚动条/选区/焦点: 与工业面一致 */
-  ::selection { background: rgba(47,129,247,.45); color: #fff; }
-  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
-
-  /* ═══════════════════════════════════════════════════════════════════
-     2026-11-01 UI v9.1 · 全宽单屏: KPI 压扁 / 主表全宽 / 小时图全宽
-     ═══════════════════════════════════════════════════════════════════ */
-  body { padding: 10px 14px; }
-  #stallBanner { display: none !important; }   /* 2026-11-01 用户要求: 删除顶部停滞提示栏 */
-  #pages-wrap { gap: 8px; }
-  .header { margin-bottom: 0; padding-bottom: 6px; }
-  .header h1 { font-size: clamp(18px, 1.9vh, 22px); letter-spacing: .2px; }
-  .period-label { font-size: clamp(12px, 1.3vh, 15px); margin-left: 8px; }
-  .header-right { gap: 6px; }
-  .clock { font-size: 11px; }
-  .conn-status { font-size: 11px; padding: 2px 8px; }
-  .btn { padding: 3px 9px; font-size: 11px; border-radius: 5px; }
-
-  .kpis { margin-bottom: 0; }
-  .kpi { min-height: 60px; padding: 6px 14px; }
-  .kpi .label { font-size: 11px; }
-  .kpi .value { font-size: clamp(22px, 2.3vh, 27px); letter-spacing: -.3px; }
-  .kpi .sub { font-size: 10px; margin-top: 2px; }
-
-  /* 主表全宽, 占约 42% 高度; 小时图全宽吃掉剩余 */
-  .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1 1 auto; min-height: 0; }
-  .main-grid > .panel { height: 100%; }
-  body:not(.battle-mode) #mainTable th:nth-child(1) { width: 3%; }
-  body:not(.battle-mode) #mainTable th:nth-child(2) { width: 22%; }
-  body:not(.battle-mode) #mainTable th:nth-child(3) { width: 28%; }
-  body:not(.battle-mode) #mainTable th:nth-child(4) { width: 10%; }
-  body:not(.battle-mode) #mainTable th:nth-child(5) { width: 10%; }
-  body:not(.battle-mode) #mainTable th:nth-child(6) { width: 10%; }
-  body:not(.battle-mode) #mainTable th:nth-child(7) { width: 10%; }
-  body:not(.battle-mode) #mainTable th:nth-child(8) { width: 7%; }
-  .panel { padding: 8px 10px 6px; }
-  .panel-head { margin-bottom: 4px; padding-bottom: 4px; }
-  .panel h2 { font-size: clamp(12px, 1.25vh, 14px); }
-  .ws-btns { gap: 3px; flex-wrap: nowrap; }
-  .ws-btn { font-size: clamp(9px, .95vh, 11px); padding: 2px 6px; border-radius: 4px; }
-  .ws-btn .wc { font-size: 8px; margin-left: 2px; }
-  .ws-sel-label, .chart-ws-label { font-size: 11px; }
-
-  table { font-size: 12px; }
-  th { padding: 4px 8px; font-size: 11px; }
-  td { padding: 4px 8px; }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(4),
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(5),
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(6),
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(7) { font-size: clamp(22px, 2.6vh, 30px); }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(5) { font-size: clamp(19px, 2.2vh, 27px); }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(6) { font-size: clamp(20px, 2.4vh, 29px); }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(8) {
-    font-size: clamp(19px, 2.3vh, 28px); font-weight: 700; color: var(--white);
-    font-family: "Bahnschrift", "DIN Alternate", "Segoe UI", sans-serif;
-  }
-  body:not(.battle-mode) #mainTable th:nth-child(8) { color: var(--white); }
-  body:not(.battle-mode) #mainTable:not(.all-lines) td.line-name { font-size: clamp(17px, 1.9vh, 22px); }
-  .hbar { height: clamp(22px, 3.0vh, 36px); }
-  .ln-main { font-size: clamp(17px, 1.9vh, 22px); }
-  .ln-sub { display: none; }
-
-  .chart-panel { flex: 1 1 auto; min-height: 0; }
-  .chart-panel .chart-col { flex: 1; min-height: 0; gap: 6px; }
-  .chart-panel .chart-box { flex: 1; min-height: 0; }
-  #mod-trend-base { flex: 0 0 104px; }
-  #chartTrendBase { grid-template-columns: repeat(6, 1fr); gap: 4px; }
-  .legend { font-size: 11px; gap: 12px; margin-bottom: 3px; }
-
-  @media (max-height: 950px) {
-    .kpi { min-height: 64px; }
-    .kpi .value { font-size: 25px; }
-  }
-  @media (max-height: 820px) {
-    .kpi { min-height: 60px; padding: 6px 14px; }
-    .kpi .value { font-size: 24px; }
-    .kpi .label { font-size: 11px; }
-    .header h1 { font-size: 20px; }
-    .header { padding-bottom: 4px; }
-  }
-  /* ═══════════════════════════════════════════════════════════════════
-     2026-11-03 UI v9.3 · visual polish
-     目标: 更像一套成熟的工厂运营系统 — 收敛饱和度、统一间距/字号、
-     用细线和留白建立层次, 不靠阴影/高光。
-     ═══════════════════════════════════════════════════════════════════ */
-  :root {
-    --panel: #10161f;
-    --panel2: #141c26;
-    --border: rgba(255,255,255,.07);
-    --border-strong: rgba(255,255,255,.14);
-    --border-soft: rgba(255,255,255,.045);
-    --white: #e8eef6;
-    --gray: #93a1b3;
-    --muted: #7d8b9e;
-    --blue: #3b82f6;
-    --green: #34a853;
-    --orange: #c9972e;
-    --red: #e5534b;
-  }
-  body { background: #070a0f !important; }
-  .panel {
-    background: var(--panel); border-color: var(--border);
-    border-radius: 6px; padding: 10px 12px 8px;
-  }
-  .kpis { background: var(--panel); border-color: var(--border); border-radius: 6px; }
-  .kpi { min-height: 64px; padding: 8px 16px; }
-  .kpi + .kpi { border-left-color: var(--border); }
-  .kpi .label { font-size: 10.5px; letter-spacing: .04em; color: var(--muted); }
-  .kpi .value { font-size: clamp(22px, 2.3vh, 28px); }
-  .kpi .sub { font-size: 10px; color: var(--muted); }
-  .header h1 { font-size: 22px; }
-  .period-label { font-size: 14px; color: var(--gray); }
-  .panel h2 { font-size: 13.5px; letter-spacing: .02em; }
-  th {
-    background: #0b1017; color: var(--muted);
-    font-size: 10.5px; letter-spacing: .08em;
-  }
-  td { border-bottom-color: var(--border-soft); }
-  .hbar { background: #161e2a; border-radius: 3px; }
-  .hbar .act { background: var(--blue); border-radius: 3px; }
-  .hbar .gap { background: #4a171c; border-radius: 0 3px 3px 0; }
-  .ws-btn { border-color: var(--border); color: var(--muted); }
-  .ws-btn.on { background: rgba(59,130,246,.14); border-color: rgba(59,130,246,.55); color: #9cc4ff; }
-  .legend { color: var(--muted); }
-  .legend .lg-plan::before { background: #c9972e; }
-  /* 2026-11-03: 左侧进度条 — 克制的金属渐变 (右图保持扁平圆角) */
-  .hbar {
-    height: clamp(22px, 3vh, 34px);
-    border-radius: 7px;
-    background: #151d28;
-  }
-  .hbar .act {
-    border-radius: 7px;
-    background: linear-gradient(90deg, #2563eb 0%, #3b82f6 55%, #60a5fa 100%);
-  }
-  .hbar .gap {
-    border-radius: 0 7px 7px 0;
-    background: linear-gradient(90deg, #4a171c 0%, #351014 100%);
-  }
-  .hbar .p100 { border-right-color: rgba(232,238,246,.35); }
-  /* 2026-11-03: 零阴影 / 零体积 — 全局去 box-shadow、text-shadow、毛玻璃 */
-  * { box-shadow: none !important; text-shadow: none !important; }
-  * { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
-  #chartBar { filter: none !important; }
-  .hbar, .hbar .act, .hbar .gap { border-radius: 3px; }
-  .hbar .gap { border-radius: 0 3px 3px 0; }
-  .hbar .over-glow { background: rgba(46,160,67,.55); }
 </style>
 </head>
 <body>
@@ -1133,9 +778,9 @@
     <button class="btn" id="langBtn" title="Switch language">EN</button>
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <span class="clock" id="clock"></span>
-    <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">开启停滞通知</button>
-    <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">产出分析</button>
-    <button class="btn" id="modeBtn" data-i18n-title="modeTitle">详情</button>
+    <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
+    <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
+    <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
 </div>
 
@@ -1144,24 +789,24 @@
 </div>
 
 <div class="kpis">
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2><span data-i18n="panelMainTitle">主线体 · 产出 vs 计划</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
+      <h2><span data-i18n="panelMainTitle">📋 Main Lines · Output vs Plan</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
       <div class="ws-btns" id="wsBtns"></div>
     </div>
     <div class="table-scroll">
       <table id="mainTable">
         <thead>
           <tr>
-            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">产出进度</th>
+            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">Output</th>
             <th class="col-act-h" data-sort="actual">Actual</th><th class="col-plan-h" data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th>
           </tr>
         </thead>
@@ -1169,16 +814,30 @@
       </table>
     </div>
   </div>
-  <div class="panel chart-panel">
-    <div class="panel-head"><h2 data-i18n="panelChartTitle">每小时产量 · 实际 vs 计划</h2><span id="chartWsLabel" class="chart-ws-label"></span><button class="ex-btn" onclick="openDetail('trend')" title="查看达成率趋势" style="margin-left:auto;font-size:11px;padding:2px 9px">趋势</button></div>
+  <div class="panel">
+    <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率</h2><span id="chartWsLabel" class="chart-ws-label"></span></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual" data-i18n="lgActual">实际</span><span class="lg-plan" data-i18n="lgPlan">计划</span><span class="lg-gap" data-i18n="lgGap">缺口</span><span class="lg-over" data-i18n="lgOver">超额</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后按班次时段拆分；单柱内蓝=实际，红=缺口"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label></div>
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><span class="lg-gap" data-i18n="lgGap">Shortfall 欠产缺口</span><span class="lg-over" data-i18n="lgOver">Overtarget 超额</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label></div>
         <canvas id="chartBar"></canvas>
       </div>
+      <!-- ★ 2026-09-30 基础(daily)页专属: 📈 Rate Trend -- 位于小时产出图下方(右栏), 宽度与小时图对齐; 仅基础模式显示; 详情/作战页仍用底部 extra 的 mod-trend, 两者互不影响. 头部+模式按钮单行紧凑, 图表吃满剩余高度 -->
+      <section id="mod-trend-base" class="ex-card trend-wide">
+        <div class="ex-card-head" style="gap:6px;margin:0;flex-wrap:wrap">
+          <h2 style="font-size:11px;line-height:1.1;margin:0;white-space:nowrap"><span id="trendTitleTextBase">📈 达成率趋势</span></h2>
+          <button class="ex-btn trend-mode-btn" id="trendModeRateBtnBase" onclick="setTrendMode('rate')" style="font-size:9px;padding:0 6px;height:16px">📊 达成率</button>
+          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtnBase" onclick="setTrendMode('first')" style="font-size:9px;padding:0 6px;height:16px">⏰ 首小时</button>
+          <span id="trendModeHintBase" style="font-size:8px;color:var(--gray);white-space:nowrap"></span>
+          <button class="ex-collapse" onclick="toggleModuleBase()" title="收起" style="margin-left:auto;width:16px;height:16px;font-size:10px;padding:0">—</button>
+        </div>
+        <button class="ex-expand" onclick="openDetail('trend')" title="⛶ 查看详细趋势图" data-i18n-title="expandTrend">⛶</button>
+        <div class="ex-body">
+          <div id="chartTrendBase"></div>
+        </div>
+      </section>
     </div>
   </div>
-</div><!-- /main-grid -->
+</div>
 
   </div><!-- /pages-wrap -->
 
@@ -1214,7 +873,7 @@
     <!-- ── 最右: 产出达成率趋势分析 (折线图, 多线体可切换选择, 历史数据=每日17:00快照) ── -->
     <section id="mod-trend" class="ex-card trend-wide">
       <div class="ex-card-head">
-        <h2><span id="trendTitleText">达成率趋势分析</span></h2>
+        <h2><span id="trendTitleText">📈 达成率趋势分析</span></h2>
         <div class="ex-src" id="trend-src" data-i18n="srcSnapshot">SRC: 每日17:00快照</div>
         <button class="ex-collapse" onclick="toggleModule('mod-trend')" data-i18n-title="collapseTitle">—</button>
       </div>
@@ -1222,8 +881,8 @@
       <div class="ex-body">
         <!-- 2026-08-25: 趋势数据源切换 [达成率 | 首小时达成率(8-9点)] -->
         <div id="trendModeBar" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
-          <button class="ex-btn trend-mode-btn" id="trendModeRateBtn" onclick="setTrendMode('rate')" style="font-size:10px;padding:1px 8px">达成率</button>
-          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">首小时</button>
+          <button class="ex-btn trend-mode-btn" id="trendModeRateBtn" onclick="setTrendMode('rate')" style="font-size:10px;padding:1px 8px">📊 达成率</button>
+          <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时</button>
           <span id="fhShiftBar" style="display:none;gap:6px;align-items:center">
             <button class="ex-btn trend-mode-btn" id="fhTrendDayBtn" onclick="setFhShift('day')" style="font-size:10px;padding:1px 8px">🌞 白班</button>
             <button class="ex-btn trend-mode-btn" id="fhTrendNightBtn" onclick="setFhShift('night')" style="font-size:10px;padding:1px 8px">🌙 夜班</button>
@@ -1324,29 +983,29 @@
 const I18N = {
   zh: {
     docTitle: "生产实时看板", boardTitle: "生产实时看板",
-    connConnecting: "连接中…", notifOn: "开启停滞通知", stallBanner: "停滞线体: ",
-    kpiRun: "运行线体", kpiRunSub: "主要 8 条", kpiEff: "平均效率", kpiEffSub: "主要线体·计划量加权",
-    kpiHit: "达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "Final 产量", kpiFinalSub: "Final A-D 合计",
-    kpiMotor: "Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
-    kpiWsOutLbl: "车间累计产出", kpiWsOutSub: "全部线体 · 今日累计", kpiWsPlanLbl: "车间计划量", kpiWsPlanSub: "全部线体 · 今日计划",
+    connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
+    kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体·计划量加权",
+    kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
+    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
+    kpiWsOutLbl: "🔵 车间累计产出", kpiWsOutSub: "全部线体 · 今日累计", kpiWsPlanLbl: "🟠 车间计划量", kpiWsPlanSub: "全部线体 · 今日计划",
     kpiWsEffSub: "车间线体·计划量加权",
-    panelMainTitle: "主线体 · 产出 vs 计划", otherLines: "其他线体",
-    thLine: "线体", thOutput: "产出进度", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
-    panelChartTitle: "每小时产量 · 实际 vs 计划",
-    lgActual: "实际", lgPlan: "计划", hourlyOut: "小时产出",
-    lgGap: "缺口", lgOver: "超额",
-    segToggleTitle: "勾选后按班次时段拆分；单柱内蓝=实际，红=缺口",
-    hintSeg: "单柱：蓝=实际，红=缺口；虚线=计划 100%",
+    panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "其他线体",
+    thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
+    panelChartTitle: "📊 每小时产量 / 效率",
+    lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
+    lgGap: "Shortfall 欠产缺口", lgOver: "Overtarget 超额",
+    segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
+    hintSeg: "蓝橙两柱逐段对比 · 红=欠产缺口(实际<目标) · 绿=超额(实际>目标)",
     otSegHint: "加班时段",
-    lgEff: "UPPH 达成率 (实际÷目标)", hintUpph: "UPPH = 产量÷工时÷人数", editHead: "编辑人数",
+    lgEff: "UPPH 达成率 (实际÷目标)", hintUpph: "UPPH = 产量÷工时÷人数", editHead: "✏️ 编辑人数",
     sortByUph: "点击列头排序", thTargetDay: "目标/日",
-    editHeadTitle: "编辑各线出勤人数",
+    editHeadTitle: "✏️ 编辑各线出勤人数",
     headHint: "UPPH达成率 = 实际UPPH÷目标UPPH；实际UPPH = 累计产出÷累计工时÷人数；目标UPPH = 累计目标(实时计划)÷累计工时÷人数。每天人数可改，保存后自动生效。",
-    save: "保存",
+    save: "💾 保存",
     stStall: "停滞", stRun: "运行", stOff: "停机", stUnknown: "未知", stPlannedOff: "计划停产",
     kpiRunSubFmt: "主要 {m} 条 · 全部 {a} 条", kpiWsRunFmt: "车间 {n} 条 · 全部 {a} 条", noHit: "暂无达成线体",
     pro2Final: "Final", pro2Rotor: "Rotor",
-    notifTitle: "线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
+    notifTitle: "⚠️ 线体停滞: ", notifBody: "产量约5分钟无变化，请检查产线 · ",
     noData: "暂无数据", wsEmpty: "暂无配置线体", am: "上午", pm: "下午", nightBase: "前半夜", shiftCum: "本班累计", setPeople: "设人数",
     headTitleFmt: "{name} — UPPH达成率 = 实际UPPH÷目标UPPH({p}%)",
     shiftDay: "白班（Day shift）", shiftSwing: "中班", shiftNight: "夜班",
@@ -1358,37 +1017,37 @@ const I18N = {
     modeDaily: "基础", modeDetail: "详情", modeTitle: "切换 基础/详情 模式",
     collapseTitle: "隐藏此模块", probExHint: "每小时自动更新",
     cancel: "取消",
-    attTitle: "出勤", probTitle: "未达成原因 · 主要问题点", trendTitle: "达成率趋势分析",
+    attTitle: "👥 出勤", probTitle: "🚨 未达成原因 · 主要问题点", trendTitle: "📈 达成率趋势分析",
     probLineTh: "线体", probNoData: "暂无问题点 — 每小时自动从桌面Excel同步", srcSnapshot: "SRC: 每日17:00快照",
-    probSrcFmt: "SRC: 共{n}条 / {m}线体", attModalTitle: "录入当日出勤", attExHint: "当日出勤 · 填写", fDate: "日期",
+    probSrcFmt: "SRC: 共{n}条 / {m}线体", attModalTitle: "👥 录入当日出勤", attExHint: "当日出勤 · 填写", fDate: "日期",
     expandAtt: "查看完整出勤表", expandProb: "查看全部问题点", expandTrend: "查看详细趋势图",
     detailClose: "关闭", trendModeAll: "全部线体", trendModeSel: "仅选中", trendModeOver: "仅≥100%",
   },
   en: {
     docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
-    connConnecting: "Connecting…", notifOn: "Enable stall alerts", stallBanner: "Breakdown lines: ",
-    kpiRun: "Running Lines", kpiRunSub: "Main 8", kpiEff: "Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
-    kpiHit: "Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "Final Output", kpiFinalSub: "Final A-D total",
-    kpiMotor: "Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
-    kpiWsOutLbl: "WS Output", kpiWsOutSub: "All lines · cum.", kpiWsPlanLbl: "WS Plan", kpiWsPlanSub: "All lines · plan",
+    connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
+    kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
+    kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
+    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
+    kpiWsOutLbl: "🔵 WS Output", kpiWsOutSub: "All lines · cum.", kpiWsPlanLbl: "🟠 WS Plan", kpiWsPlanSub: "All lines · plan",
     kpiWsEffSub: "WS lines weighted",
-    panelMainTitle: "Main Lines · Output vs Plan", otherLines: "Other Lines",
-    thLine: "Line", thOutput: "Progress", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
-    panelChartTitle: "Hourly Output · Actual vs Plan",
-    lgActual: "Actual", lgPlan: "Plan", hourlyOut: "Hourly",
-    lgGap: "Gap", lgOver: "Over",
-    segToggleTitle: "Split by shift segment; blue=actual, red=gap",
-    hintSeg: "One bar: blue=actual, red=gap; dashed=plan 100%",
+    panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "Other Lines",
+    thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
+    panelChartTitle: "📊 Hourly Output / Efficiency",
+    lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
+    lgGap: "Shortfall", lgOver: "Overtarget",
+    segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
+    hintSeg: "Blue/Orange bars per segment · Red=shortfall (actual<plan) · Green=overtarget (actual>plan)",
     otSegHint: "OT period",
-    lgEff: "UPPH Rate (Actual÷Target)", hintUpph: "UPPH = Output÷Hours÷Manpower", editHead: "Edit Manpower",
+    lgEff: "UPPH Rate (Actual÷Target)", hintUpph: "UPPH = Output÷Hours÷Manpower", editHead: "✏️ Edit Manpower",
     sortByUph: "Click header to sort", thTargetDay: "Target/Day",
-    editHeadTitle: "Edit Line Headcount",
+    editHeadTitle: "✏️ Edit Line Headcount",
     headHint: "UPPH rate = Actual UPPH ÷ Target UPPH; Actual UPPH = Output ÷ Worked hrs ÷ Manpower; Target UPPH = Plan output ÷ Worked hrs ÷ Manpower. Manpower editable daily, applied automatically.",
-    save: "Save",
+    save: "💾 Save",
     stStall: "Breakdown", stRun: "Running", stOff: "Off", stUnknown: "Unknown", stPlannedOff: "Planned Off",
     kpiRunSubFmt: "Main {m} · Total {a}", kpiWsRunFmt: "WS {n} · Total {a}", noHit: "None ≥90%",
     pro2Final: "Final", pro2Rotor: "Rotor",
-    notifTitle: "Line breakdown: ", notifBody: "No output change ~5min, check line · ",
+    notifTitle: "⚠️ Line breakdown: ", notifBody: "No output change ~5min, check line · ",
     noData: "No data", wsEmpty: "no lines configured", am: "AM", pm: "PM", nightBase: "Pre-mid", shiftCum: "Shift cum", setPeople: "Set HC",
     headTitleFmt: "{name} — UPPH rate = Actual UPPH ÷ Target UPPH ({p}%)",
     shiftDay: "Day", shiftSwing: "Swing", shiftNight: "Night",
@@ -1400,9 +1059,9 @@ const I18N = {
     modeDaily: "Basic", modeDetail: "Detail", modeTitle: "Toggle Basic/Detail mode",
     collapseTitle: "Hide module", probExHint: "Auto-updates hourly",
     cancel: "Cancel",
-    attTitle: "Attendance", probTitle: "Reasons · Key Issues", trendTitle: "Rate Trend",
+    attTitle: "👥 Attendance", probTitle: "🚨 Reasons · Key Issues", trendTitle: "📈 Rate Trend",
     probLineTh: "Line", probNoData: "No problems — auto-sync from Excel hourly", srcSnapshot: "SRC: Daily 17:00 snapshot",
-    probSrcFmt: "SRC: {n} items / {m} lines", attModalTitle: "Enter Attendance", attExHint: "Today · Manual entry", fDate: "Date",
+    probSrcFmt: "SRC: {n} items / {m} lines", attModalTitle: "👥 Enter Attendance", attExHint: "Today · Manual entry", fDate: "Date",
     expandAtt: "Full attendance table", expandProb: "All problem details", expandTrend: "Detailed trend chart",
     detailClose: "Close", trendModeAll: "All lines", trendModeSel: "Selected", trendModeOver: "Over 100%",
   }
@@ -1519,14 +1178,12 @@ function buildWsBtns() {
   if (!box || box.dataset.built) return;
   box.dataset.built = "1";
   // ★ 2026-10-29: 首位加「全部」按钮 — 一键看到小时产出图里的所有线体
-  const btnDefs = [{ ws: "ALL", label: "全部", full: WS_LABEL.ALL }]
-    .concat(WS_GROUPS.map(g => ({ ws: g.ws, label: g.ws === "OTHER" ? "其他" : g.ws, full: g.label })));
+  const btnDefs = [{ ws: "ALL", label: WS_LABEL.ALL }].concat(WS_GROUPS.map(g => ({ ws: g.ws, label: g.label })));
   btnDefs.forEach(g => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "ws-btn";
     b.dataset.ws = g.ws;
-    b.title = g.full;
     b.innerHTML = g.label + ' <span class="wc">0</span>';
     b.addEventListener("click", function () {
       // 再点当前车间 → 取消回到默认(主要线体)
@@ -1740,21 +1397,6 @@ function lineNameCls(l) {
   if (l.eff === null || l.eff === undefined || isNaN(l.eff)) return "";
   return hitEff(l.eff) ? "hit-name" : "miss-name";
 }
-function lineStatusText(l) {
-  if (isPlannedOff(l)) return t("stPlannedOff");
-  if (isBreakdown(l) || isStalled(l)) return t("stStall");
-  const s = String(l.status || "").toUpperCase();
-  if (s === "RUNNING") return t("stRun");
-  if (s === "OFF") return t("stOff");
-  return t("stUnknown");
-}
-// 2026-11-01 UI v9: 线体名两行 — 主名 + 目标/状态, 填满大屏行高, 少一次查找
-function lineNameHtml(l) {
-  const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
-  const target = Number(l.target) || 0;
-  const sub = (target > 0 ? (lang === "zh" ? "目标 " : "Target ") + fmt(target) + " · " : "") + lineStatusText(l);
-  return '<div class="ln-main">' + dot + l.name.trim() + '</div><div class="ln-sub">' + sub + '</div>';
-}
 
 // ---- 主表: 每行横向条形图 (Actual vs Plan) ----
 // ★ 2026-09-03 v6.0 去统一刻度: 进度条以「各线体自身目标(plan)为 100% 满格基准」。
@@ -1804,7 +1446,7 @@ function renderTable() {
       else if (miss) cls = "miss";
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       return `<tr class="${cls}"><td class="rank">${idx + 1}</td>` +
-        `<td class="line-name ${lineNameCls(l)}">${lineNameHtml(l)}</td>` +
+        `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
         `<td class="bar-cell">${hbarHtml(l)}</td>` +
         `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
         `<td class="col-plan">${fmt(l.plan)}</td>` +
@@ -1861,7 +1503,7 @@ function renderTable() {
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       const htmls = [
         String(idx + 1),
-        lineNameHtml(l),
+        dot + l.name.trim(),
         hbarHtml(l),
         fmt(l.actual),
         fmt(l.plan),
@@ -1904,7 +1546,7 @@ function renderTable() {
         const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
           `<td class="rank">${idx + 1}</td>` +
-          `<td class="line-name ${lineNameCls(l)}">${lineNameHtml(l)}</td>` +
+          `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
           `<td class="bar-cell">${hbarHtml(l)}</td>` +
           `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
           `<td class="col-plan">${fmt(l.plan)}</td>` +
@@ -1946,19 +1588,14 @@ function fitMainTable() {
   // ★ 修复根因(2026-09-04): table.tbody 不是标准属性(永远是 undefined)
   //   导致 rows=[] 提前 return, 循环从未执行 → 改用 table.tBodies[0]
   const tbody = table ? table.tBodies[0] : null;
-  const allRows = tbody ? Array.from(tbody.rows) : [];
-  // ★ 2026-11-01: PRO2R 的 Final/Rotor 子标题行不参与均分, 否则会被撑成和数据行一样高
-  const subRows = allRows.filter(function (r) { return r.classList.contains("pro2-subhead"); });
-  subRows.forEach(function (r) { r.style.height = ""; Array.from(r.cells).forEach(function (c) { c.style.height = ""; }); });
-  const rows = allRows.filter(function (r) { return !r.classList.contains("pro2-subhead"); });
+  const rows = tbody ? Array.from(tbody.rows) : [];
   if (!wrap || !table || !rows.length) return;
   // ★ 2026-09-04 10:40: 取消 battle-mode 跳过——detail 模式行数与日常相同(4~8条),
   //   同样需要均分填满容器; 之前的紧凑分支导致 detail 模式大片空白。
   // 表头高度(用 getBoundingClientRect 比 clientHeight 稳)
   const headEl = table.tHead;
   const headHeight = headEl ? headEl.getBoundingClientRect().height : 0;
-  const subHeight = subRows.reduce(function (a, r) { return a + r.getBoundingClientRect().height; }, 0);
-  const available = Math.floor(wrap.clientHeight - headHeight - subHeight);
+  const available = Math.floor(wrap.clientHeight - headHeight);
   if (available < 30) return;
   const count = rows.length;
   // ★ 2026-10-29: 「全部线体」视图(39条)行数多 → 动态收紧最小行高, 让整表仍能一屏铺满不滚动
@@ -2714,175 +2351,136 @@ function isOtNow(mins) {
 //    Final C 3400 锚点, PRO4 Pin 3411+3589 合计 7000, 以及各分摊曲线全部移除)
 //   现在日目标与实时累计计划一律取数据库(数据端): lines.target / lines.plan / hourly 桶 plan。
 
-// ★ 2026-11-01 UI v9: 单柱目视化 — 计划=整柱高度, 实际=蓝色填充, 缺口=红色顶段
-//   一根柱子同时表达 actual / plan / gap, 去掉独立橙色计划柱 → 柱宽翻倍, 远距离可读。
-// 2026-11-03 UI v9.4: 圆角分段柱 — 每小时一个独立圆角块, 段间 2px 留白
-function roundRectPath(ctx, x, y, w, h, r) {
-  if (w <= 0 || h <= 0) return;
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-function fillRoundRect(ctx, x, y, w, h, r) {
-  if (w <= 0 || h <= 0) return;
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.fill();
-}
-function strokeRoundRect(ctx, x, y, w, h, r) {
-  if (w <= 0 || h <= 0) return;
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.stroke();
-}
-// 2026-11-01 UI v9.2: 恢复「计划柱 + 实际柱」双柱格式, 改为平面工业风
 function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
-  if (!segs || !segs.length) return;
-  const isPlan = key === "plan";
-  const baseY = padT + ch;
+  // ★ 2026-09-03 v6.2 灵活缩放基准: 段高骨架按该段 actual/plan 的较大者定位(而非只按 plan)。
+  //   目标: 实际≥目标(达成/超额)时, 以实际柱顶点为满格基准、目标柱按 plan/max(actual,plan) 降下来,
+  //   让「实际超额」凸显出来(实际柱满格、目标柱低一截 + 上方灰缺口); 实际<目标(未达成)时维持原状
+  //   (目标柱满格、实际柱短 + 灰缺口 = 未达成)。因两柱共用同一 segs/骨架公式, 段边界仍完全平行。
+  //   注: maxV 必须覆盖 actual(见 drawBar maxVl=max(1,plan,actual)), 否则超额柱会溢出画布。
+  // ★ 柱顶 = 骨架累计高度(两柱同 y, 数字统一标在柱顶上方)
   let skelPix = 0;
-  segs.forEach(function (s) {
-    skelPix += Math.max(0, Math.max(Number(s.actual) || 0, Number(s.plan) || 0) / maxV * ch);
-  });
-  const topY = baseY - skelPix;
-  const totalH = Math.max(0, (Number(total) || 0) / maxV * ch);
-  const drawable = segs.some(function (s) {
-    return (Math.max(Number(s.actual) || 0, Number(s.plan) || 0) / maxV) * ch >= 0.5;
-  });
-
-  // 纯色平涂, 不用渐变/高光/阴影, 避免任何体积感
-  const actColor = "#2f81f7";
-  const planColor = "#c9972e";
-  const otColor = "#f0b93a";
-  const gapColor = "#4a171c";
-
-  if (!drawable) {
-    const y = baseY - totalH;
-    ctx.fillStyle = isPlan ? planColor : actColor;
-    ctx.fillRect(cx, y, bw, totalH);
+  segs.forEach(x => { skelPix += Math.max(0, Math.max(x.plan || 0, x.actual || 0) / maxV * ch); });
+  const topY = padT + ch - skelPix;
+  const totalH = Math.max(0, (total || 0) / maxV * ch);
+  // ★ v5.30 兜底: 有段但全部低于可画高度(如凌晨数据缺失/差分≈0) → 退回纯色累计柱, 避免柱子"消失"
+  //   v6.2: drawable 判定改用 actual/plan 较大者, 否则纯超额段(actual≫plan)会因 plan/maxV 过小误判不可画
+  const drawable = segs.some(function (s) { return (Math.max(s.plan || 0, s.actual || 0) / maxV) * ch >= 0.5; });
+  if (!segs.length || !drawable) {
+    // 无分段数据: 纯色累计柱 (2026-09-27 UI: 圆角渐变)
+    const base = padT + ch - totalH;
+    drawRoundedBar(ctx, cx, base, bw, totalH, key === "plan" ? "#e8b94e" : "#7cc4ff", key === "plan" ? "#c47f15" : "#2f78d6");
   } else {
-    let y = baseY;
-    segs.forEach(function (s) {
-      const act = Math.max(0, Number(s.actual) || 0);
-      const plan = Math.max(0, Number(s.plan) || 0);
-      const perH = Math.max(0, Math.max(act, plan) / maxV * ch);
-      y -= perH;
+    let yAcc = padT + ch;
+    segs.forEach((s, idx) => {
+      // ★ v6.2: 段高 = 该时段的「较大者」骨架(actual/plan 取大) → 超额段有足够空间画实际柱顶点
+      const perH = Math.max(0, (Math.max(s.actual || 0, s.plan || 0) / maxV) * ch);
+      yAcc -= perH;
       if (perH < 0.5) return;
-      const v = isPlan ? plan : act;
+      // ★ 2026-09-04 超产/欠产等级色: 底色按该段 actual vs plan 染语义色, 短柱上方露出的底色 = 差异区
+      //   欠产(actual<plan): 红底 → 实际柱(蓝)短, 蓝上方露红 = 欠产缺口 (与主表达成条缺口红同语言)
+      //   超产(actual>plan): 绿底 → 目标柱(橙)短, 橙上方露绿 = 超额产出 (与达成率≥100%绿同语言)
+      //   相等: 两柱都满格盖满, 底色不外露; v6.0: 加班段保持暖金底(加班=金色独立语义, 不与红绿混用)
+      ctx.fillStyle = s.ot ? "#4a3a15"
+        : (s.actual || 0) < (s.plan || 0) ? "rgba(248,81,73,.55)"
+        : (s.actual || 0) > (s.plan || 0) ? "rgba(63,185,80,.5)"
+        : "#30363d";
+      ctx.fillRect(cx, yAcc, bw, perH);
+      // ★ 值柱: 实际柱画实际达成值(可按超额画到超过目标), 目标柱画该时段目标值
+      //   v6.2: 实际柱不再被 min(actual, plan) 夹住下限 — 超额直接画满整段, 凸显比目标高
+      const v = key === "plan" ? (s.plan || 0) : (s.actual || 0);
       const vPix = Math.max(0, Math.min((v / maxV) * ch, perH));
-
-      if (!isPlan) {
-        ctx.fillStyle = s.ot ? "#3a2a10" : (act < plan ? gapColor : (act > plan ? "#12351f" : "#1a2330"));
-      } else {
-        ctx.fillStyle = "#1a2330";
-      }
-      ctx.fillRect(cx, y, bw, perH);
-
       if (vPix > 0.5) {
-        ctx.fillStyle = isPlan ? planColor : (s.ot ? otColor : actColor);
-        ctx.fillRect(cx, y + perH - vPix, bw, vPix);
-      } else if (!isPlan && !s.live && plan > 0) {
-        ctx.fillStyle = actColor;
-        ctx.fillRect(cx, y + perH - 2, bw, 2);
-      }
-
-      ctx.fillStyle = "rgba(0,0,0,.35)";
-      ctx.fillRect(cx, y, bw, 1);
-
-      if (s.live) {
-        ctx.strokeStyle = isPlan ? "rgba(245,196,81,.9)" : "rgba(142,197,255,.9)";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(cx + 0.5, y + 0.5, bw - 1, perH - 1);
-      }
-    });
-
-    // 第二遍: 标签
-    y = baseY;
-    segs.forEach(function (s) {
-      const act = Math.max(0, Number(s.actual) || 0);
-      const plan = Math.max(0, Number(s.plan) || 0);
-      const perH = Math.max(0, Math.max(act, plan) / maxV * ch);
-      y -= perH;
-      if (perH < 0.5) return;
-      const v = isPlan ? plan : act;
-      const fBig = perH >= 34 ? 13 : perH >= 26 ? 12 : perH >= 18 ? 10.5 : perH >= 12 ? 9 : 8;
-      const valTxt = fmt(v);
-      ctx.textAlign = "center";
-      if (s.base || s.pm) {
-        if (s.cum && !isPlan) {
-          if (perH >= 9) {
-            ctx.font = "700 " + fBig + "px 'Bahnschrift','Segoe UI',sans-serif";
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(valTxt, cx + bw / 2, y + perH - 6);
-          }
+        // v6.0: 加班段实际(蓝)也用金色系强调
+        // ★ 2026-09-27 UI: 值柱改用垂直渐变+顶部圆角(浅顶深底) — 更精致的光泽质感, 语义色不变
+        if (s.ot) {
+          ctx.fillStyle = key === "plan" ? "#f0b93a" : "#2d7dff";
+          drawRoundedBar(ctx, cx, yAcc + perH - vPix, bw, vPix, key === "plan" ? "#f6c95f" : "#55a3ff", key === "plan" ? "#d8961f" : "#2257b5");
+        } else if (key === "plan") {
+          drawRoundedBar(ctx, cx, yAcc + perH - vPix, bw, vPix, "#e8b94e", "#c47f15");
         } else {
-          const lbl = s.cum ? t("shiftCum") : (s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am")));
-          if (perH >= 18) {
-            ctx.font = "500 " + (fBig - 1) + "px 'Segoe UI','Microsoft YaHei',sans-serif";
-            ctx.fillStyle = "rgba(233,239,247,.62)";
-            ctx.fillText(lbl, cx + bw / 2, y + perH / 2 - 2);
-            ctx.font = "700 " + fBig + "px 'Bahnschrift','Segoe UI',sans-serif";
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(valTxt, cx + bw / 2, y + perH / 2 + 10);
-          } else if (perH >= 9) {
-            ctx.font = "700 " + fBig + "px 'Bahnschrift','Segoe UI',sans-serif";
-            ctx.fillStyle = "#ffffff";
-            ctx.fillText(valTxt, cx + bw / 2, y + perH / 2 + 3);
-          }
+          drawRoundedBar(ctx, cx, yAcc + perH - vPix, bw, vPix, "#7cc4ff", "#2f78d6");
+        }
+      } else if (s.ot) {
+        // 加班段且该段无达成量: 铺一层金色浅底以示仍在加班窗口
+        ctx.fillStyle = "rgba(240,169,58,.30)";
+        ctx.fillRect(cx, yAcc, bw, perH);
+      } else if (!s.live && key === "actual" && v === 0 && s.plan > 0) {
+        // ★ 2026-09-09: 已过时段实际=0 且目标>0 → 画 2px 蓝色底线标记"该时段实际为0"
+        //   避免完全不可见/像柱子消失 (Motor WL/Inspection/C-Shaft 等未报实际的线)
+        ctx.fillStyle = "#3d8fe4";
+        ctx.fillRect(cx, yAcc + perH - 2, bw, 2);
+      }
+      // ★ 分割线: 段边界 (v5.40: 用户要求加粗, 1px→2px)
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(cx - 1.5, yAcc - 1, bw + 3, 2);
+      // ★ 2026-09-15 当前小时描边: live(进行中的段)加高亮框, 一眼看出"现在进行到哪一小时"
+      //   双子运动(实际柱+目标柱共用同一 segs) → 两柱的当前段都被包围, 数字不套框不重叠
+      if (s.live) {
+        ctx.strokeStyle = "rgba(88,166,255,.95)"; ctx.lineWidth = 1.2;
+        ctx.strokeRect(cx - 0.5, yAcc - 0.5, bw + 1, perH + 1);
+        ctx.strokeStyle = "rgba(88,166,255,.20)"; ctx.lineWidth = 3;
+        ctx.strokeRect(cx - 0.5, yAcc - 0.5, bw + 1, perH + 1);
+      }
+      // ★ 2026-09-28 柱内数据标签: 去黑色描边, 改「白+极淡影」加粗黑体数字 —
+      //   远看清晰不廉价, 浅色柱上也保有基础对比; 加粗黑体权重保证大屏可读
+      ctx.textAlign = "center";
+      const valTxt = String(Math.round(v));
+      const hNo = s.lab;
+      const fBig = perH >= 26 ? 11 : perH >= 20 ? 10 : perH >= 15 ? 9 : perH >= 11 ? 8.5 : 7.5;
+      const fSml = Math.max(6.5, fBig - 1);
+      // 纯 fillText(无描边), 白加粗 + 极淡投影提对比; 色阶白作为基准, 语义不靠柱内色
+      const L = function (txt, x, y, f, c) {
+        ctx.font = f; ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+        ctx.fillStyle = c; ctx.fillText(txt, x, y);
+        ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+      };
+      if (s.base || s.pm) {
+        const lbl = s.cum ? t("shiftCum") : (s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am")));
+        if (perH >= 14) {
+          L(lbl, cx + bw / 2, yAcc + perH / 2 - 3, fSml + "px sans-serif", "#bfd0e4");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
+        } else if (perH >= 8) {
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
+        }
+      } else if (s.live) {
+        if (perH >= 14 && hNo != null) {
+          L(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1, fSml + "px sans-serif", "#dfe7f2");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
+        } else if (perH >= 8) {
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
         }
       } else {
-        if (!isPlan && s.lab != null && perH >= 20) {
-          ctx.textAlign = "left";
-          ctx.font = "9px 'Segoe UI',sans-serif";
-          ctx.fillStyle = "rgba(233,239,247,.45)";
-          ctx.fillText(String(s.lab), cx + 3, y + 10);
-          ctx.textAlign = "center";
-        }
-        if (perH >= 12) {
-          let fs = fBig;
-          ctx.font = "700 " + fs + "px 'Bahnschrift','Segoe UI',sans-serif";
-          while (fs > 8 && ctx.measureText(valTxt).width > bw * 0.95) {
-            fs -= 0.5;
-            ctx.font = "700 " + fs + "px 'Bahnschrift','Segoe UI',sans-serif";
-          }
-          ctx.fillStyle = isPlan ? "#1b1303" : "#ffffff";
-          ctx.fillText(valTxt, cx + bw / 2, y + perH / 2 + fs * .35);
-        } else if (!isPlan && act === 0 && perH >= 8) {
-          ctx.font = "700 9px 'Bahnschrift','Segoe UI',sans-serif";
-          ctx.fillStyle = "rgba(142,197,255,.6)";
-          ctx.fillText("0", cx + bw / 2, y + perH - 4);
+        if (perH >= 16 && hNo != null) {
+          L(String(hNo), cx + bw / 2, yAcc + perH / 2 - 1, fSml + "px sans-serif", "#bfd0e4");
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
+        } else if (perH >= 9) {
+          L(valTxt, cx + bw / 2, yAcc + perH / 2 + 3, "bold " + fBig + "px sans-serif", "#ffffff");
         }
       }
     });
+  if (totalH > 0) {
+    // ⭐ 2026-09-28 顶部总和标签 V2: 绑到柱子「真实可视化顶部」topY(=padT+ch-skelPix,
+    //   柱体骨架累计同源), 永远画在柱顶正上方固定间距, 跟随柱子动态成长
+    //   (数据更新→柱顶变化→标签同步上移/下移)。不再用 old 的 pairTopY(sum of 实际/计划 pix)
+    //   那种与柱体顶不一致的基准 — 那会把标签算进柱体内造成重叠。
+    //   柱顶之上若超出绘图区上缘(padT), 则落在 padT 上方的空白留白区(画布顶 legend 之下),
+    //   仍不触柱体; 唯一硬钳制是文字不越过画布顶端(留 3px)。
+    // ⭐ 2026-09-28 顶部总和标签 V3: 锚定真实柱顶 + 4位数自适应缩字号(防相邻柱标签碰撞)
+    ctx.textAlign = "center";
+    const labelTxt = fmt(total);
+    // 可用宽度 = 柱宽(bw) 的 90%; 4位数/宽标签时从 11px 逐级降到 7px, 避免与相邻柱/线体标签碰撞
+    const capW = Math.max(14, bw * 0.9);
+    let lfs = 11;
+    ctx.font = "bold " + lfs + "px sans-serif";
+    while (lfs > 7 && ctx.measureText(labelTxt).width > capW) { lfs -= 0.5; ctx.font = "bold " + lfs + "px sans-serif"; }
+    let lblY = topY - 9;                       // 柱顶正上方 9px
+    if (lblY - 11 < 3) lblY = 3 + 11;          // 大多数超出柱顶时仍保证文字头部在画布内
+    if (lblY > padT + ch - 4) lblY = padT + ch - 4; // 兜底: 不越过绘图区下缘
+    ctx.shadowColor = "rgba(0,0,0,.7)"; ctx.shadowBlur = 3; ctx.shadowOffsetY = 1;
+    ctx.fillStyle = color; ctx.fillText(labelTxt, cx + bw / 2, lblY);
+    ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+  }
   }
 }
 
@@ -2925,12 +2523,14 @@ function drawRoundedBar(ctx, x, y, width, height, topColor, bottomColor) {
   ctx.fillRect(x + radius, y, Math.max(0, width - radius * 2), Math.min(1.5, height));
 }
 
-// 2026-11-01: 数据端没有该线小时计划桶时, 不画一根假巨柱; 用虚线占位说明数据缺口
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
   if (!cv) return;
   const dpr = window.devicePixelRatio || 1;
   const W = cv.clientWidth, H = cv.clientHeight || 230;
+  // ★ 2026-08-21 14:20 修复: 刚打开页面时 canvas 尚未完成首轮布局(clientWidth=0),
+  //   旧逻辑直接 return 导致图表空白, 只能等 10s 后定时刷新才恢复。改为 rAF 延迟重试,
+  //   最多重试 20 帧(约 330ms), 期间不放弃绘制。
   if (W < 20) {
     if ((drawBar._retry = (drawBar._retry || 0) + 1) <= 20) {
       requestAnimationFrame(() => drawBar(main));
@@ -2940,6 +2540,8 @@ function drawBar(main) {
     return;
   }
   drawBar._retry = 0;
+  // ★ 2026-08-21 14:35 修复: 尺寸未变化时禁止重置 canvas — canvas width/height 赋值会强制清空画布并重建 GPU 缓冲,
+  //   即使尺寸相同也会闪烁。仅在真实尺寸变化时才重置, 否则直接复用现有缓冲重绘。
   const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
   if (cv.width !== pw || cv.height !== ph) { cv.width = pw; cv.height = ph; }
   const ctx = cv.getContext("2d");
@@ -2947,6 +2549,12 @@ function drawBar(main) {
   ctx.clearRect(0, 0, W, H);
   const lines = main;
   if (!lines.length) { ctx.fillStyle = "#8b949e"; ctx.font = "13px sans-serif"; ctx.fillText(t("noData"), W/2-24, H/2); return; }
+  // ★ 2026-09-03 P0-1 首帧竞态修复: 分段小时图依赖 state.hourly(10分钟桶定格累计值差分)。
+  //   脚本加载时(882行)会先 renderAll() 一次, 此时 fetch 尚未完成, state.hourly 是空对象 → valueAt 退回
+  //   lines 整日 plan/actual 满值 → 段差分只有段1有值、段2..11 全0 → drawStacked 把矮段(perH<0.5px)跳过,
+  //   画成"一根高柱+柱顶总数"(新开端口/浏览器首屏见到的分段合并/消失+柱矮+总数堆顶)。数据到位后 refresh
+  //   会再 renderAll 恢复正常, 所以一直开着/刷新后就正常。修复: seg 模式 hourly 未就绪时本帧不画小时图,
+  //   等 refresh 数据到位再画分段, 避免错误兜底单柱。非 seg(全天累计)模式不受影响。
   if (segShow) {
     const anyBucket = Object.keys(state.hourly || {}).length > 0 &&
       Object.values(state.hourly || {}).some(arr => (arr || []).length > 0);
@@ -2956,55 +2564,78 @@ function drawBar(main) {
       return;
     }
   }
-  const padL = 10, padR = 10, padB = 40, padT = 30;
-  const cw = W - padL - padR, ch = H - padT - padB;
-  if (ch < 40) return;
+  const padL = 8, padB = 34, padT = 26; // v6.0: 去掉 y 轴刻度/网格 → 左侧空间收回给柱子
+  const cw = W - padL - 12, ch = H - padT - padB;
+  // ★ v6.0 去统一刻度: 不再用全表 maxV(高产量线会把低产线压扁)。改为每条线体以「自身 plan 为目标满格基准」
+  //   各自独立缩放 → 所有线体柱顶在同一水平线(自身目标100%), 柱高表达「达成进度」, 真实数量以段/柱顶数据标签为准。
   const n = lines.length, slot = cw / n;
-  const bw = Math.min(26, Math.max(8, slot * 0.22));
-
-  ctx.fillStyle = "rgba(233,239,247,.10)";
-  ctx.fillRect(padL, padT + ch, cw, 1);
-
+  const bw = Math.min(20, slot * 0.3);
   lines.forEach((l, i) => {
     const cx = padL + slot * i + slot / 2;
-    let segs;
+    // ★ v6.2 灵活基准: 满格基准覆盖 plan 与 actual 的较大者。
+    //   未达成段: 目标柱满格、实际柱短(灰缺口=未达成) — 与 v6.0 相同。
+    //   达成/超额段: 以实际柱顶点为满格基准, 目标柱按 plan/实际降下来, 超额才凸显。
+    //   maxV 必须覆盖 actual, 否则超额柱(actual>plan)会溢出画布。
     if (segShow) {
-      segs = segsOf(l.name, l.actual, l.plan, l.target);
-      const dataSegs = segs.filter(function (s) { return (Number(s.actual) || 0) > 0 || (Number(s.plan) || 0) > 0; });
-      const pastData = dataSegs.filter(function (s) { return !s.live; });
-      const noHourly = segs.length >= 4 && pastData.length === 0 &&
-        (Number(l.plan) || 0) > 0 && (Number(l.actual) || 0) <= 0;
-      if (noHourly) {
-        segs = [{ actual: Number(l.actual) || 0, plan: Number(l.plan) || 0, live: false, lab: null, base: true, cum: true }];
+      const segs = segsOf(l.name, l.actual, l.plan, l.target);
+      // ★ 2026-10-06 修复「夜班下实际柱与目标柱都画满 = 假相等」:
+      //   满格基准必须覆盖【分段骨架总和】, 不能只用 lines 的当前值。
+      //   场景: 夜班时「纯白班线」(如 Final C — 只有白班桶、夜班无产出) 的 segsOf 会回退成白班段
+      //   (段值=白班累计, 总和可达数千), 而 l.plan/l.actual 是夜班 header 值(此时仅几百)。
+      //   旧基准 max(l.plan,l.actual) 太小 → 每段 perH = 段值/基准*ch 远超画布 → 段全堆到画布外,
+      //   只剩第一段可见且两柱都被涂满 → 视觉上"实际=目标", 段边界/灰缺口全消失。
+      //   正常班次下 Σ段值 ≈ header 累计 → 基准不变, 视觉零变化。
+      let _segSum = 0;
+      for (let _si = 0; _si < segs.length; _si++) {
+        _segSum += Math.max(0, Math.max(segs[_si].actual || 0, segs[_si].plan || 0));
       }
+      const maxVl = Math.max(1, l.plan || 0, l.actual || 0, _segSum); // 该线自身 plan/actual 与分段总和 的较大者 = 满格基准
+      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
+      drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
     } else {
-      segs = [{ actual: Number(l.actual) || 0, plan: Number(l.plan) || 0, live: false, lab: null }];
+      const mL = Math.max(1, l.plan || 0, l.actual || 0); // 非分段: 以自身 plan/actual 较大者为满格
+      const aH = Math.max(0, (l.actual || 0) / mL * ch);
+      drawRoundedBar(ctx, cx - bw - 1.5, padT + ch - aH, bw, aH, "#79bcff", "#3d8fe4");
+      const pCum = l.plan || 0;
+      const pH = Math.max(0, Math.min(mL, pCum) / mL * ch);
+      drawRoundedBar(ctx, cx + 1.5, padT + ch - pH, bw, pH, "#e4b44b", "#b87912");
+      ctx.fillStyle = "#58a6ff"; ctx.textAlign = "center";
+      const pairTop = padT + ch - Math.max(aH, pH);   // 两短柱共同最高顶(真实柱顶)
+      // ⭐ 2026-09-28 顶部总和标签 V3 (非分段): 绑真实柱顶 + 4位数自适应缩字号, 不钻柱体不碰撞
+      let tLy = pairTop - 8;
+      if (tLy - 10 < 3) tLy = 3 + 10;
+      if (tLy > padT + ch - 4) tLy = padT + ch - 4;
+      // 实际柱标签字号: 按柱宽 bw 自适应(相接右侧还有计划柱, 超宽会碰撞)
+      const aTxt = fmt(l.actual);
+      let afs = 9; ctx.font = "bold " + afs + "px sans-serif";
+      while (afs > 6.5 && ctx.measureText(aTxt).width > bw * 0.9) { afs -= 0.5; ctx.font = "bold " + afs + "px sans-serif"; }
+      ctx.shadowColor = "rgba(0,0,0,.6)"; ctx.shadowBlur = 2; ctx.shadowOffsetY = 1;
+      if (aH > 0) ctx.fillText(aTxt, cx - bw - 1.5 + bw / 2, tLy);
+      ctx.fillStyle = "#d29922";
+      const pTxt = fmt(pCum);
+      let pfs = 9; ctx.font = "bold " + pfs + "px sans-serif";
+      while (pfs > 6.5 && ctx.measureText(pTxt).width > bw * 0.9) { pfs -= 0.5; ctx.font = "bold " + pfs + "px sans-serif"; }
+      if (pH > 0) ctx.fillText(pTxt, cx + 1.5 + bw / 2, tLy);
+      ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
     }
-    let _segSum = 0;
-    for (let _si = 0; _si < segs.length; _si++) {
-      _segSum += Math.max(0, Math.max(segs[_si].actual || 0, segs[_si].plan || 0));
+    // ★ 2026-09-04: 线体名加粗提亮 (与主表加粗风格一致)
+    // ★ 2026-09-04 12:31: 名称自适应 — PRO4 多线体时槽宽窄, 固定 11px 会重叠/挤出。
+    //   按槽宽逐级降字号 (11→7px), 仍超宽则测宽截断加省略号。
+    ctx.fillStyle = "#c9d1d9"; ctx.textAlign = "center";
+    const labelMaxW = Math.max(14, slot - 5);
+    let lfs = 11;
+    let label = shortName(l.name);
+    ctx.font = "bold " + lfs + "px sans-serif";
+    while (lfs > 7 && ctx.measureText(label).width > labelMaxW) {
+      lfs -= 1;
+      ctx.font = "bold " + lfs + "px sans-serif";
     }
-    const maxVl = Math.max(1, Number(l.plan) || 0, Number(l.actual) || 0, _segSum);
-    drawStacked(ctx, cx - bw - 1.5, bw, segs, Number(l.actual) || 0, maxVl, ch, padT, "#8ec5ff", "actual");
-    drawStacked(ctx, cx + 1.5, bw, segs, Number(l.plan) || 0, maxVl, ch, padT, "#e3b341", "plan");
-
-    if (slot >= 24) {
-      ctx.fillStyle = "#c9d6e6"; ctx.textAlign = "center";
-      const labelMaxW = Math.max(16, slot - 6);
-      let lfs = H < 320 ? 12 : 16;
-      let label = shortName(l.name);
-      ctx.font = "700 " + lfs + "px 'Segoe UI','Microsoft YaHei',sans-serif";
-      while (lfs > 9 && ctx.measureText(label).width > labelMaxW) {
-        lfs -= 1;
-        ctx.font = "700 " + lfs + "px 'Segoe UI','Microsoft YaHei',sans-serif";
-      }
-      if (ctx.measureText(label).width > labelMaxW) {
-        let cut = label;
-        while (cut.length > 1 && ctx.measureText(cut + "…").width > labelMaxW) cut = cut.slice(0, -1);
-        label = cut + "…";
-      }
-      ctx.fillText(label, cx, H - 14);
+    if (ctx.measureText(label).width > labelMaxW) {
+      let cut = label;
+      while (cut.length > 1 && ctx.measureText(cut + "…").width > labelMaxW) cut = cut.slice(0, -1);
+      label = cut + "…";
     }
+    ctx.fillText(label, cx, H - 10);
   });
   ctx.textAlign = "left";
 }
@@ -3954,7 +3585,7 @@ function setTrendMode(m) {
 let trendSel = {}; // {线体名: true/false}
 try { trendSel = JSON.parse(localStorage.getItem(TREND_SEL_KEY) || "{}") || {}; } catch (e) { trendSel = {}; }
 // 线体颜色表
-const TREND_COLORS = ["#2f81f7", "#2ea043", "#d29922", "#e5484d", "#8ec5ff", "#7ee2a8", "#f5c451", "#ff8a8f"];
+const TREND_COLORS = ["#58a6ff", "#f78166", "#3fb950", "#d29922", "#bc8cff", "#f778ba", "#39c5cf", "#8b949e"];
 // 周末判断: 系统运作时间 = 周一至周五, 趋势/历史一律不含周末 (2026-08-24 用户要求)
 function isWeekendDate(dateStr) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
@@ -4208,8 +3839,16 @@ function drawTrend(cid) {
     }).filter(Boolean);
     const poly = pts.join(" ");
     const y100 = H - pad - ((100 - yMin) / (yMax - yMin)) * (H - pad * 2);
-    // ★ 2026-11-01 UI v9: 卡片头已显示最新值/箭头, 去掉逐点标签 — 小卡片不再文字互压
-    const labels = "";
+    // ★ 2026-08-21 11:53 用户要求: 图表加数据标签 — 用HTML覆盖层(百分比定位) + text-shadow halo, 避免SVG拉伸变形/压线
+    const labels = vals.map((v, ix) => {
+      if (v == null) return "";
+      const x = pad + (ix / Math.max(days.length - 1, 1)) * (W - pad * 2);
+      const y = H - pad - ((Math.min(Math.max(v, yMin), yMax) - yMin) / (yMax - yMin)) * (H - pad * 2);
+      const pctX = ((x / W) * 100).toFixed(1);
+      const pctY = ((y / H) * 100).toFixed(1);
+      const below = y < 9; // 点靠近顶部时标签放下方, 避免溢出
+      return "<span class='spark-label' style='left:" + pctX + "%;top:" + pctY + "%;transform:translate(-50%," + (below ? "40%" : "-130%") + ");color:" + color + "'>" + v.toFixed(0) + "%</span>";
+    }).join("");
     const lastCls = lastV >= 100 ? "sp-ok" : (lastV >= 90 ? "sp-warn" : "sp-bad");
     return "<div class='spark-card' title='" + n + "' onclick='toggleTrendLine(this)' data-line='" + n.replace(/'/g, "") + "' style='cursor:pointer'>" +
       "<div class='spark-head'><span class='spark-name' style='color:" + color + "'>" + tinyName(n) + "</span><span class='spark-full' title='" + n + "'>" + n + "</span>" +
@@ -5049,7 +4688,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261103no3d').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20260928stallfix').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->

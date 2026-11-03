@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v22'; // 2026-11-03 零阴影零体积：纯色方柱 + 平面渐变条，强制刷新旧壳
+var CACHE = 'pdtiii-shell-v14'; // 2026-10-19 取消前端手动目标(全部跟随数据库目标)，强制刷新旧壳
 var CORE = [
   './',
   './index.html',
