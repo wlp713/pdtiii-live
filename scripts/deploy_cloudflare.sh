@@ -48,3 +48,5 @@ deploy_one() {
 deploy_one "$PC"  gat-production-dashboard         "$PC/.cf_last_deploy"
 deploy_one "$MOB" gat-production-dashboard-mobile  "$MOB/.cf_last_deploy"
 exit 0
+
+# 2026-11-04: 本脚本已停用（本机 cron 部署分支已 #DISABLED），部署改由 GitHub Actions 承担
