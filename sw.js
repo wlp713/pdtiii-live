@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v16'; // 2026-11-04 PRO1 补 Motor FL CL(MES 改名后合并线) + 起点桶清洗
+var CACHE = 'pdtiii-shell-v17'; // 2026-11-04 补线体旁路源 pdtiii_extra.json (Motor FL CL)
 var CORE = [
   './',
   './index.html',

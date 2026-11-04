@@ -1104,6 +1104,47 @@ function toggleLang() {
 const IS_LOCAL = location.protocol === "file:" ||
   location.hostname === "localhost" || location.hostname === "127.0.0.1";
 const DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json";
+// ★ 2026-11-04 补线体旁路源: MES 改名后数据端白名单没补的线体,
+//   由本机 scripts/sync_extra_lines.py 每分钟推到这个节点。主源有同名线时以主源为准(不会重复)。
+const EXTRA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii_extra.json";
+function _normKey(n) { return String(n || "").toLowerCase().replace(/[^a-z0-9]/g, ""); }
+// 合并补充线体: 主源已有的线一律不动, 只补缺。失败完全无影响(最多 6s 超时后跳过)。
+async function mergeExtraLines() {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const r = await fetch(EXTRA_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl.signal });
+    if (!r.ok) return;
+    const ex = await r.json();
+    if (!ex || typeof ex !== "object") return;
+    state.lines = state.lines || [];
+    state.hourly = state.hourly || {};
+    const haveLine = new Set(state.lines.map(l => _normKey(l && l.name)));
+    (ex.lines || []).forEach(function (l) {
+      if (!l || !l.name) return;
+      const nm = aliasName(l.name);
+      const k = _normKey(nm);
+      if (haveLine.has(k)) return;          // 主源已有 → 以主源为准
+      haveLine.add(k);
+      l.name = nm;
+      state.lines.push(l);
+    });
+    const haveH = new Set(Object.keys(state.hourly).map(_normKey));
+    const hx = (ex.hourly && typeof ex.hourly === "object") ? ex.hourly : {};
+    Object.keys(hx).forEach(function (k) {
+      const nm = aliasName(k);
+      if (haveH.has(_normKey(nm))) return;
+      if (!Array.isArray(hx[k]) || !hx[k].length) return;
+      state.hourly[nm] = hx[k];
+      haveH.add(_normKey(nm));
+    });
+    state.extraUpdatedAt = ex.updatedAt || null;
+  } catch (e) {
+    /* 旁路源不可用不影响主流程 */
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 // ⚙️ 主要线体配置（按此顺序显示）
 const MAIN_LINES = [
@@ -3177,6 +3218,8 @@ async function refresh() {
     // ★ 2026-10-19 用户要求: 取消手动目标覆盖 — target/plan/eff/cb 全部使用数据库(数据端)原始值。
     //   前端不再改写任何目标; 若目标/计划有问题, 应在数据端修正, 而不是前端遮罩。
     state.hourly = aliasMapKeys(d.hourly || {});
+    // ★ 2026-11-04: 合并补充线体(主源没有但确实在产的线, 如 Motor FL CL)
+    try { await mergeExtraLines(); } catch (e) { console.warn("[extra] merge", e); }
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
     // ★ 2026-11-04: 先清洗换班起点桶的「上一班累计」, 再跑停产守卫
     try { sanitizeShiftStartBuckets(); } catch (e) { console.warn("[hourly] sanitizeShiftStartBuckets", e); }
