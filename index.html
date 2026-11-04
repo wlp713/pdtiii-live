@@ -2040,6 +2040,54 @@ function dailyShiftPts(name, sc) {
   pts.sort(function (a, b) { return a.m - b.m; });
   return pts;
 }
+// ═══ 2026-11-04 新增: 换班起点桶「上一班累计」清洗 ═══
+//   根因(数据端 sync_db.py): hourly 每个 10 分钟桶取窗口内【最早】的那条记录,
+//   而 MES 在 08:00:00 会先出一条「SH_IX 已切到新班、ACTUAL 还是上一班累计」的过渡记录
+//   (实测 Final B 2026-11-04 08:00:00 actual=4062, 08:01 起才 6/9/18…)。
+//   于是 800 桶=上一班累计, 前端所有「按桶差分」的东西(小时图 / 首小时 / 趋势)都会被污染。
+//   清洗规则(只动有确凿证据的桶, 绝不改真实数据):
+//     换班起点桶(08:00 / 20:30)值 > 0, 且不低于上一桶(说明没清零),
+//     但本班后续桶出现了明显回落(比起点桶小) → 说明起点桶是上一班残留,
+//     就把它的 actual/plan 归 0(数据端清零后从 0 重新累计) —— 后续差分全部对齐。
+//   若本班后续桶一次都没回落(数据端确实连续累计, 如 2026-10-29 Welding C) → 原样保留, 不猜。
+function sanitizeShiftStartBuckets() {
+  const h = state.hourly || {};
+  const SHIFT_DUR = { "480": 740, "1230": 690 };   // 起点分钟 → 本班总时长(分钟)
+  Object.keys(h).forEach(function (key) {
+    const arr = h[key];
+    if (!Array.isArray(arr) || arr.length < 2) return;
+    const pts = [];
+    arr.forEach(function (sn) {
+      if (!sn || sn.d === undefined || sn.d === null || String(sn.d) === "") return;
+      const m = snapMins(sn);
+      const t0 = Date.parse(String(sn.d) + "T00:00:00Z");
+      if (isNaN(t0)) return;
+      pts.push({ abs: t0 / 60000 + m, m: m, v: Number(sn.actual) || 0, sn: sn });
+    });
+    if (pts.length < 2) return;
+    pts.sort(function (a, b) { return a.abs - b.abs; });
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      const dur = SHIFT_DUR[String(p.m)];
+      if (!dur || !(p.v > 0)) continue;
+      const prev = i > 0 ? pts[i - 1] : null;
+      const tol = Math.max(5, p.v * 0.005);
+      if (prev && p.v < prev.v - tol) continue;      // 起点桶本来就清零了 → 正常, 不动
+      let minLater = null;
+      for (let j = i + 1; j < pts.length; j++) {
+        if (pts[j].abs - p.abs > dur) break;         // 只看本班
+        if (minLater === null || pts[j].v < minLater) minLater = pts[j].v;
+      }
+      if (minLater === null || minLater >= p.v - tol) continue; // 本班没回落 → 可能真是连续累计, 不猜
+      // 起点桶是上一班残留 → 本班起点的正确值就是 0(数据端清零后从 0 重新累计)
+      //   actual 与 plan 都要归 0: 残留桶里的 plan 也是上一班的累计目标(4062/4349 同源)
+      p.sn.actual = 0;
+      p.sn.plan = 0;
+      p.sn.__sanitized = true;
+    }
+  });
+}
+
 function guardCarryOverLines() {
   const sc = shiftOfNow();
   if (sc.nowM < sc.start + 20) return;                // 换班 20 分钟内数据还没落，不判
@@ -2063,19 +2111,24 @@ function guardCarryOverLines() {
       //   (实测 Inspection C: 800桶=3075=上一班750桶终值; Welding C 同理),
       //   导致 startV=上一班累计 → 本班实际 <= startV → 被误判「上一班残留」清零。
       //   判据: 起点之后有桶掉到 startV 以下 = 数据端确实重新累计(线在产) → 不能判残留。
-      // ★ 2026-11-04 修「在产线被误清零」第二例(用户报 Final B 归零, 实际有产量):
-      //   数据端 08:00 桶直接沿用上一班末桶累计 (Final B 800桶=4062 = 上一班750桶4060),
-      //   而本班实时值(292)是真实产量。旧逻辑只认「起点之后的 hourly 桶」作重算证据,
-      //   08:00~09:00 之间还没有后续桶 → resetSeen=false → 在产线被判「上一班残留」清零、达成率留空。
-      //   补强: 实时值明显低于起点桶(超过 2% 或 5 件容差) = 计数器确实已重置(线在产) → 不能判残留。
-      //   真正的残留场景里 live 值就是那个累计值(act≈startV), 不会被这条放行。
-      const resetTol = startV === null ? 0 : Math.max(5, startV * 0.02);
-      const resetSeen = startV !== null && (
-        pts.some(function (p) { return p.m > sc.start && p.v < startV - 0.5; }) ||
-        act < startV - resetTol
-      );
-      if (startV !== null && startV > 0 && !resetSeen && act <= startV + 0.5 && afterMax <= startV + 0.5) {
-        carry = true;        // 起点桶非 0 + 本班一次没涨 → 上一班累计被当成今天产出
+      // ★ 2026-11-04 「在产线被误清零」彻底重写判据 (用户报 Final B 归零, 实际有产量):
+      //   08:00 桶沿用了上一班末桶累计 (Final B 800桶=4062 = 上一班750桶4060),
+      //   而实时值(292)是真实产量。旧逻辑 `act <= startV` 就归零,
+      //   08:00~09:00 连后续桶都没有, resetSeen 永远拿不到证据 → 早班必中招。
+      //   新判据: 只有「残留确凿证据」才清零 —— 残留的本质是 live 值被钉死在起点桶那个值上:
+      //     ① live 值 ≈ 起点桶值(±0.5%) + 本班桶一次没涨 → 真残留, 清零;
+      //     ② live 值 = 0 且本班桶一次没涨 → 本班确实没产出, 只做停机/达成率留空标记(数值本来就是 0);
+      //     ③ 其余一律不判残留 —— 包括 live < 起点桶(计数器已重置但起点桶陈旧)、live > 起点桶(本班有产出)。
+      //   历史同类隐患(已扫归档): 2026-09-21 Piston Grinding 10013 / 09-25 C-Shft Pin B 3563 /
+      //   09-29 Press C-Shaft 5560 / 10-02 Frame No3 2003 / 10-29 Inspection C 3075 / 10-29 Welding C 2604 / 10-30 Frame No2 2424 / 11-04 Final B 4062 —— 都是起点桶未清零。
+      const eqTol = startV === null ? 0 : Math.max(0.5, startV * 0.005);
+      const flat = startV !== null && startV > 0 && afterMax <= startV + 0.5;   // 本班桶从未超过起点桶 = 一次都没涨
+      const resetSeen = startV !== null &&
+        pts.some(function (p) { return p.m > sc.start && p.v < startV - 0.5; }); // 后续桶掉到起点之下 = 确实重新累计
+      if (flat && !resetSeen && Math.abs(act - startV) <= eqTol) {
+        carry = true;        // ① live 值钉死在上一班累计上, 本班零产出
+      } else if (flat && act <= 0.5) {
+        carry = true;        // ② 本班实时值就是 0: 仅停机/留空标记, 不会扣掉任何真实数据
       } else if (startV === null && noShiftData &&
                  (l.stalled === true || String(l.status || "").toUpperCase() === "STALLED")) {
         // ★ 2026-10-26 修复: 加「数据端已判停滞」门槛 — 旧逻辑只要求「本班无 hourly 桶」就判残留,
@@ -3101,6 +3154,8 @@ async function refresh() {
     //   前端不再改写任何目标; 若目标/计划有问题, 应在数据端修正, 而不是前端遮罩。
     state.hourly = aliasMapKeys(d.hourly || {});
     state.hourlyFmt = detectHourlyFmt(state.hourly, d.hourlyFormat); // ★ P0-1: 数据集级格式判定(优先显式字段)
+    // ★ 2026-11-04: 先清洗换班起点桶的「上一班累计」, 再跑停产守卫
+    try { sanitizeShiftStartBuckets(); } catch (e) { console.warn("[hourly] sanitizeShiftStartBuckets", e); }
     // ★ 2026-10-18: 停产日「上一班累计冒充今日产出」守卫（需 state.hourly 就绪后才能跑）
     guardCarryOverLines();
     state.updatedAt = d.updatedAt || null;

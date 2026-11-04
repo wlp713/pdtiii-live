@@ -71,6 +71,74 @@ def normalize_hourly(hourly):
     return output
 
 
+SHIFT_START_DURATION = {800: 740, 2030: 690}  # HHMM 起点桶 -> 本班时长(分钟)
+
+
+def sanitize_shift_start_buckets(hourly, hourly_format):
+    """清掉「换班起点桶 = 上一班累计」的残留值（2026-11-04 新增）。
+
+    数据端每个 10 分钟桶取窗口内最早的一条记录，而 MES 在换班瞬间(08:00:00 /
+    20:30:00)会先出一条「SH_IX 已切到新班、ACTUAL 仍是上一班累计」的过渡记录
+    （实测 Final B 2026-11-04 08:00:00 actual=4062，08:01 起才 6/9/18…）。
+    于是起点桶被写成上一班累计，后续所有按桶差分的统计（归档、趋势、小时图）都被污染。
+
+    判定：起点桶 > 0 且不低于上一桶（= 没清零），但本班后续桶出现明显回落
+    （小于起点桶）→ 起点桶是残留，把 actual/plan 归 0（数据端清零后从 0 重新累计）。
+    本班后续桶一次都没回落（数据端确实连续累计，如 2026-10-29 Welding C）→ 保持原样，不猜。
+    """
+    if hourly_format != "HHMM":
+        return hourly
+    for points in (hourly or {}).values():
+        if not isinstance(points, list) or len(points) < 2:
+            continue
+        pts = []
+        for point in points:
+            if not isinstance(point, dict):
+                continue
+            day = str(point.get("d") or "")[:10]
+            try:
+                bucket = int(point.get("h"))
+                abs_min = datetime.strptime(day, "%Y-%m-%d").toordinal() * 1440 + (bucket // 100) * 60 + bucket % 100
+            except (TypeError, ValueError):
+                continue
+            pts.append((abs_min, bucket, point))
+        if len(pts) < 2:
+            continue
+        pts.sort(key=lambda item: item[0])
+        for index, (abs_min, bucket, point) in enumerate(pts):
+            duration = SHIFT_START_DURATION.get(bucket)
+            if not duration:
+                continue
+            try:
+                value = float(point.get("actual") or 0)
+            except (TypeError, ValueError):
+                continue
+            if value <= 0:
+                continue
+            tolerance = max(5.0, value * 0.005)
+            if index:
+                try:
+                    previous = float(pts[index - 1][2].get("actual") or 0)
+                except (TypeError, ValueError):
+                    previous = 0.0
+                if value < previous - tolerance:
+                    continue  # 起点桶本来就清零了，正常
+            later = []
+            for later_abs, _, later_point in pts[index + 1:]:
+                if later_abs - abs_min > duration:
+                    break
+                try:
+                    later.append(float(later_point.get("actual") or 0))
+                except (TypeError, ValueError):
+                    continue
+            if not later or min(later) >= value - tolerance:
+                continue  # 本班没回落 -> 可能是真·连续累计，不改
+            point["actual"] = 0
+            point["plan"] = 0
+            point["sanitized"] = "shiftStartCarryover"
+    return hourly
+
+
 def infer_hourly_format(hourly) -> str:
     values = []
     for points in (hourly or {}).values():
@@ -117,6 +185,8 @@ def source_is_at_boundary(document: dict, shift: str) -> bool:
 
 def make_shift_document(source: dict, shift: str, now: datetime) -> dict:
     hourly = normalize_hourly(source.get("hourly"))
+    hourly_format = source.get("hourlyFormat") or infer_hourly_format(hourly)
+    hourly = sanitize_shift_start_buckets(hourly, hourly_format)
     production_date = now.date().isoformat() if shift == "day" else (now.date() - timedelta(days=1)).isoformat()
     document = {
         "schemaVersion": 2,
@@ -126,7 +196,7 @@ def make_shift_document(source: dict, shift: str, now: datetime) -> dict:
         "sourceUpdatedAt": source.get("updatedAt"),
         "sourceDate": source_date(source),
         "source": "Firebase boundary archive v2",
-        "hourlyFormat": source.get("hourlyFormat") or infer_hourly_format(hourly),
+        "hourlyFormat": hourly_format,
         "hourly": hourly,
     }
     # summarize_snapshot uses the source calendar date only to assess source
