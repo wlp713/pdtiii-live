@@ -34,6 +34,9 @@ from history_analytics import (
 )
 
 DATA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii.json"
+# 旁路补线体源（2026-11-04）：MES 改名后数据端白名单没补的线，由本机 cron 推到这里的节点。
+# 归档时若旁路新鲜（<=10 分钟）且主源没有同名线，就把它并进归档，保证历史不断档。
+EXTRA_URL = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii_extra.json"
 BKK = timezone(timedelta(hours=7), name="Asia/Bangkok")
 
 
@@ -181,6 +184,36 @@ def source_is_at_boundary(document: dict, shift: str) -> bool:
     if shift == "night":
         return 7 * 60 + 50 <= minutes < 8 * 60
     return False
+
+
+def merge_extra_source(source: dict) -> dict:
+    """把旁路补线体并进主源（仅补缺，不改已有线；旁路过期则忽略）。"""
+    try:
+        extra = fetch(EXTRA_URL, tries=1)
+    except Exception:
+        return source
+    if not isinstance(extra, dict) or not extra.get("lines"):
+        return source
+    try:
+        extra_at = datetime.strptime(str(extra.get("updatedAt"))[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=BKK)
+    except ValueError:
+        return source
+    if (datetime.now(BKK) - extra_at).total_seconds() > 600:
+        return source                       # 旁路超过 10 分钟没更新 -> 视为失效
+    hourly = source.get("hourly") or {}
+    existing = {str(name).lower().replace(" ", "") for name in hourly}
+    added = []
+    for name, points in (extra.get("hourly") or {}).items():
+        key = str(name).lower().replace(" ", "")
+        if key in existing or not isinstance(points, list) or not points:
+            continue
+        hourly[name] = points
+        added.append(name)
+    if added:
+        source = dict(source)
+        source["hourly"] = hourly
+        print("EXTRA merged lines: " + ", ".join(added))
+    return source
 
 
 def make_shift_document(source: dict, shift: str, now: datetime) -> dict:
@@ -351,6 +384,7 @@ def main() -> int:
         print(f"FETCH FAILED: {error}", file=sys.stderr)
         return 1
 
+    source = merge_extra_source(source)
     captures = current_shift_documents(source, now, requested=args.shift)
     if not captures:
         print(f"NO COMPLETE SHIFT now={now.isoformat()} updatedAt={source.get('updatedAt')}")

@@ -1111,12 +1111,20 @@ function _normKey(n) { return String(n || "").toLowerCase().replace(/[^a-z0-9]/g
 // 合并补充线体: 主源已有的线一律不动, 只补缺。失败完全无影响(最多 6s 超时后跳过)。
 async function mergeExtraLines() {
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 6000);
+  const timer = setTimeout(() => ctrl.abort(), 4000);
   try {
     const r = await fetch(EXTRA_URL + "?t=" + Date.now(), { cache: "no-store", signal: ctrl.signal });
     if (!r.ok) return;
     const ex = await r.json();
     if (!ex || typeof ex !== "object") return;
+    // ★ 2026-11-04 新鲜度守卫: 旁路源靠本机 cron 推送, 机器关机/cron 停了就不会更新。
+    //   超过 10 分钟没更新就当作失效, 宁可显示「无数据」也不拿陈旧值冒充实时。
+    const exTs = ex.updatedAt ? new Date(String(ex.updatedAt).replace(" ", "T") + "+07:00").getTime() : 0;
+    if (!exTs || (Date.now() - exTs) > 10 * 60 * 1000) {
+      state.extraStale = true;
+      return;
+    }
+    state.extraStale = false;
     state.lines = state.lines || [];
     state.hourly = state.hourly || {};
     const haveLine = new Set(state.lines.map(l => _normKey(l && l.name)));
