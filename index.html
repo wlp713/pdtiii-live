@@ -761,6 +761,11 @@
 
   /* ⑤ 选中文字配色通配到主题色 (默认是白/黑, 太刺) */
   ::selection { background: var(--blue); color: #0d1117; }
+  /* 2026-11-04: 车间配置内有、但数据端当天没有快照的线体 → 灰色"无数据"占位行 */
+  tr.no-data td { color: var(--muted); background: transparent; }
+  tr.no-data td.line-name { color: var(--gray); }
+  tr.no-data .hbar { opacity: .5; }
+  tr.no-data .hbar .act, tr.no-data .hbar .gap { background: transparent; }
 </style>
 </head>
 <body>
@@ -1161,11 +1166,28 @@ try {
   if (_wsp0 && (WS_GROUPS.some(g => g.ws === _wsp0) || _wsp0 === "ALL")) wsSel = _wsp0;
 } catch (e) {}
 function wsGroupOf(l) { return LINE2WS[normName(l && l.name)] || null; }
+// 2026-11-04: 数据端会跳过当天没有快照的线体 (lines[] 里直接没有),
+//   导致车间配置里有、列表里消失。这里给配置内缺失的线补一条"无数据"占位,
+//   只在车间视图生效, 不改 state.lines / 全局 KPI。
+function makeMissingLine(name) {
+  return {
+    name: name, actual: 0, plan: 0, target: 0, cum: 0, cb: 0, eff: null,
+    status: "OFF", stalled: false, pushed: "", time: "", noData: true
+  };
+}
 function wsLinesOf(ws) {
   // ★ 2026-10-29: ALL=全部线体; OTHER=未归任何车间的线体(兜底, 永不丢线)
   if (ws === "ALL") return state.lines.slice();
   if (ws === "OTHER") return state.lines.filter(l => !LINE2WS[normName(l && l.name)]);
-  return state.lines.filter(l => wsGroupOf(l) === ws);
+  const out = state.lines.filter(l => wsGroupOf(l) === ws);
+  const g = WS_GROUPS.find(x => x.ws === ws);
+  if (g) {
+    const have = new Set(out.map(l => normName(l.name)));
+    g.lines.forEach(function (name) {
+      if (!have.has(normName(name))) out.push(makeMissingLine(name));
+    });
+  }
+  return out;
 }
 // 车间视图总览: 主要 8 条 + 其余归到各车间; wsSel 为空 → 保持原"主要线体"面板
 function tableLinesOf() {
@@ -1199,12 +1221,9 @@ function buildWsBtns() {
 function updateWsBtns() {
   const box = document.getElementById("wsBtns");
   if (!box) return;
-  // 计数 = 当前云端实际存在的该车间线体数 (wsSel 空时主视图只显示 8 条主线, 但车间仍可切换)
+  // 计数 = 车间配置内线体数 (含"无数据"占位, 与表格/小时图同源)
   const alive = {};
-  state.lines.forEach(l => {
-    const ws = wsGroupOf(l) || "OTHER";   // ★ 2026-10-29: 未映射线体计入「其他」, 不再被静默隐藏
-    alive[ws] = (alive[ws] || 0) + 1;
-  });
+  WS_GROUPS.forEach(g => { alive[g.ws] = wsLinesOf(g.ws).length; });
   alive.ALL = state.lines.length;
   box.querySelectorAll(".ws-btn").forEach(b => {
     const ws = b.dataset.ws;
@@ -1443,6 +1462,7 @@ function renderTable() {
       if (isPlannedOff(l)) cls = "planned-off";
       else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
+      else if (l.noData) cls = "no-data";
       else if (miss) cls = "miss";
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       return `<tr class="${cls}"><td class="rank">${idx + 1}</td>` +
@@ -1498,6 +1518,7 @@ function renderTable() {
       if (isPlannedOff(l)) cls = "planned-off";
       else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
+      else if (l.noData) cls = "no-data";
       else if (miss) cls = "miss";
       if (tr.className !== cls) tr.className = cls;
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
@@ -1541,7 +1562,8 @@ function renderTable() {
         if (isPlannedOff(l)) cls = "planned-off";
         else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
-        else if (miss) cls = "miss";
+        else if (l.noData) cls = "no-data";
+      else if (miss) cls = "miss";
         if (tr.className !== cls) tr.className = cls;
         const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
@@ -4753,7 +4775,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20260928stallfix').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261104pro1').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
