@@ -1145,7 +1145,7 @@ const MAIN_SET = new Set(MAIN_LINES.map(normName));
 const WS_GROUPS = [
   // ★ 2026-11-04: MES 将 Motor AC 线改名为「Motor FL CL」(合并了原 Motor CL) —— 11-01 17:23 起数据库里已没有 Motor AC/CL 这两个名字。
   //   两个旧名保留作兼容(MES 回退或历史查看时仍能显示), 但实际渲染只看 state.lines 里有没有这条线。
-  { ws: "PRO1",   label: "PRO1",            lines: ["Motor FL CL", "Motor FL", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
+  { ws: "PRO1",   label: "PRO1",            lines: ["Motor FL CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
   { ws: "PRO2R",  label: "PRO2·Rotor/Fin",  lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
   { ws: "PRO2S",  label: "PRO2·Shipping",   lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D", "Water Line"] },
   { ws: "PRO3",   label: "PRO3",            lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line"] },
