@@ -2063,7 +2063,17 @@ function guardCarryOverLines() {
       //   (实测 Inspection C: 800桶=3075=上一班750桶终值; Welding C 同理),
       //   导致 startV=上一班累计 → 本班实际 <= startV → 被误判「上一班残留」清零。
       //   判据: 起点之后有桶掉到 startV 以下 = 数据端确实重新累计(线在产) → 不能判残留。
-      const resetSeen = startV !== null && pts.some(function (p) { return p.m > sc.start && p.v < startV - 0.5; });
+      // ★ 2026-11-04 修「在产线被误清零」第二例(用户报 Final B 归零, 实际有产量):
+      //   数据端 08:00 桶直接沿用上一班末桶累计 (Final B 800桶=4062 = 上一班750桶4060),
+      //   而本班实时值(292)是真实产量。旧逻辑只认「起点之后的 hourly 桶」作重算证据,
+      //   08:00~09:00 之间还没有后续桶 → resetSeen=false → 在产线被判「上一班残留」清零、达成率留空。
+      //   补强: 实时值明显低于起点桶(超过 2% 或 5 件容差) = 计数器确实已重置(线在产) → 不能判残留。
+      //   真正的残留场景里 live 值就是那个累计值(act≈startV), 不会被这条放行。
+      const resetTol = startV === null ? 0 : Math.max(5, startV * 0.02);
+      const resetSeen = startV !== null && (
+        pts.some(function (p) { return p.m > sc.start && p.v < startV - 0.5; }) ||
+        act < startV - resetTol
+      );
       if (startV !== null && startV > 0 && !resetSeen && act <= startV + 0.5 && afterMax <= startV + 0.5) {
         carry = true;        // 起点桶非 0 + 本班一次没涨 → 上一班累计被当成今天产出
       } else if (startV === null && noShiftData &&
