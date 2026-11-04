@@ -1114,7 +1114,7 @@ function normName(n) { return String(n || "").toLowerCase().replace(/[\s.]+/g, "
 // ★ 2026-10-16 线体改名: 电机的 AC 线 → "Motor FL"
 //   数据库/数据端仍叫 "Motor AC"(不改数据库、不改 sync_db), 前端在数据入口统一改键,
 //   下游(表格/小时图/趋势/首小时/AI)全部显示与匹配为 "Motor FL"。
-const NAME_ALIAS = { "motorac": "Motor FL" };
+const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL CL" };
 function aliasName(n) { return NAME_ALIAS[normName(n)] || n; }
 function aliasMapKeys(o) {
   if (!o || typeof o !== "object") return o;
@@ -1143,7 +1143,9 @@ const MAIN_SET = new Set(MAIN_LINES.map(normName));
 //   Pro1=Motor6 / Pro2行1=Rotor+Final8 / Pro2行2=Shipping(=Inspection)4 / Pro3=Welding4
 //   Pro4行1=Frogh No.1-5(=Honning1-5)+Piston+Rod+Press C-Shaft ... Pro4行2=Body+Pin / Pro5=Frame/Piston/Cylinder Honing
 const WS_GROUPS = [
-  { ws: "PRO1",   label: "PRO1",            lines: ["Motor FL", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
+  // ★ 2026-11-04: MES 将 Motor AC 线改名为「Motor FL CL」(合并了原 Motor CL) —— 11-01 17:23 起数据库里已没有 Motor AC/CL 这两个名字。
+  //   两个旧名保留作兼容(MES 回退或历史查看时仍能显示), 但实际渲染只看 state.lines 里有没有这条线。
+  { ws: "PRO1",   label: "PRO1",            lines: ["Motor FL CL", "Motor FL", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
   { ws: "PRO2R",  label: "PRO2·Rotor/Fin",  lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
   { ws: "PRO2S",  label: "PRO2·Shipping",   lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D", "Water Line"] },
   { ws: "PRO3",   label: "PRO3",            lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line"] },
