@@ -157,6 +157,25 @@ class ArchiveHardeningTests(unittest.TestCase):
         self.assertIn("2026-09-11", dropped)
         self.assertEqual(sanitized, 0)
 
+    def test_legacy_complete_with_zero_coverage_is_regraded(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            history = Path(temporary)
+            (history / "shifts").mkdir()
+            date = "2026-10-11"
+            night = make_shift_document_v2(night_source(date), "night", date,
+                                           "test", "2026-10-12 07:55:00")
+            night["quality"]["status"] = "complete"
+            night["quality"]["coveredLines"] = 0
+            (history / "shifts" / f"{date}-night.json").write_text(
+                json.dumps(night, ensure_ascii=False), encoding="utf-8")
+            payload = build_analytics(history, generated_at="test")
+            health = {item["date"]: item for item in payload["health"]["days"]}
+            self.assertEqual(health[date]["night"]["status"], "partial")
+            self.assertIn("legacyQualityUnverified",
+                          [item["code"] for item in health[date]["night"]["issues"]])
+            day = next(item for item in payload["days"] if item["date"] == date)
+            self.assertEqual(day["archiveStatus"]["night"], "partial")
+
     def test_analytics_health_marks_missing_and_invalid(self):
         with tempfile.TemporaryDirectory() as temporary:
             history = Path(temporary)
