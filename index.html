@@ -766,6 +766,9 @@
   tr.no-data td.line-name { color: var(--gray); }
   tr.no-data .hbar { opacity: .5; }
   tr.no-data .hbar .act, tr.no-data .hbar .gap { background: transparent; }
+  /* 2026-11-07: 两级车间导航保持单行, 不增高面板头, 不挤占右侧图表 */
+  #wsBtns { flex-wrap: nowrap; }
+  .ws-btn.ws-back { min-width: 22px; padding: 3px 6px; color: var(--gray); }
 </style>
 </head>
 <body>
@@ -1163,7 +1166,9 @@ function normName(n) { return String(n || "").toLowerCase().replace(/[\s.]+/g, "
 // ★ 2026-10-16 线体改名: 电机的 AC 线 → "Motor FL"
 //   数据库/数据端仍叫 "Motor AC"(不改数据库、不改 sync_db), 前端在数据入口统一改键,
 //   下游(表格/小时图/趋势/首小时/AI)全部显示与匹配为 "Motor FL"。
-const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL CL" };
+// 2026-11-07: MES 合并后的 Motor FL CL 统一按旧名 Motor FL 展示;
+//   Motor CL 作为独立配置行保留(无独立数据时显示无数据占位).
+const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL" };
 function aliasName(n) { return NAME_ALIAS[normName(n)] || n; }
 function aliasMapKeys(o) {
   if (!o || typeof o !== "object") return o;
@@ -1191,30 +1196,58 @@ const MAIN_SET = new Set(MAIN_LINES.map(normName));
 // ★ 2026-09-04 按表格七类重新分组 (名称用线上/生产库实测名, 全部对应当天有数据的线)
 //   Pro1=Motor6 / Pro2行1=Rotor+Final8 / Pro2行2=Shipping(=Inspection)4 / Pro3=Welding4
 //   Pro4行1=Frogh No.1-5(=Honning1-5)+Piston+Rod+Press C-Shaft ... Pro4行2=Body+Pin / Pro5=Frame/Piston/Cylinder Honing
-const WS_GROUPS = [
-  // ★ 2026-11-04: MES 将 Motor AC 线改名为「Motor FL CL」(合并了原 Motor CL) —— 11-01 17:23 起数据库里已没有 Motor AC/CL 这两个名字。
-  //   两个旧名保留作兼容(MES 回退或历史查看时仍能显示), 但实际渲染只看 state.lines 里有没有这条线。
-  { ws: "PRO1",   label: "PRO1",            lines: ["Motor FL CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"] },
-  { ws: "PRO2R",  label: "PRO2·Rotor/Fin",  lines: ["Final A line", "Final B Line", "Final C line", "Final D line", "Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
-  { ws: "PRO2S",  label: "PRO2·Shipping",   lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D", "Water Line"] },
-  { ws: "PRO3",   label: "PRO3",            lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line"] },
-  { ws: "PRO4H",  label: "PRO4·Hon/Pist",   lines: ["Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5", "Piston Grinding", "Rod Pispin", "Press C-Shaft"] },
-  { ws: "PRO4B",  label: "PRO4·Body/Pin",   lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Body C", "C-Shaft Pin A", "C-Shft Pin B", "C-Shaft Pin C"] },
-  { ws: "PRO5",   label: "PRO5",            lines: ["Frame Honing FL", "Piston honing FL", "Cylinder Honing"] },
-  // ★ 2026-10-29 兜底分组: 数据端将来新增任何未配置车间映射的线体都会自动落到这里,
-  //   绝不再出现「小时产出图有、列表里找不到」的情况 (当前 Water Line 已补进 PRO2·Shipping, 本组为 0 时按钮禁用)
-  { ws: "OTHER",  label: "其他·未分组",      lines: [] }
+// 2026-11-07: 两级车间分类 — PRO 是大类, 下面是同线型小类
+//   表格/小时图始终只显示当前小类; 顶部按钮一行, 不额外占高度。
+const PRO_GROUPS = [
+  { pro: "PRO1", label: "PRO1", subs: [
+    { ws: "PRO1", label: "Motor", lines: ["Motor FL", "Motor CL", "Motor WL", "Motor H-Series", "Motor F-Series", "Motor S-Series"] }
+  ] },
+  { pro: "PRO2", label: "PRO2", subs: [
+    { ws: "PRO2F", label: "Final", lines: ["Final A line", "Final B Line", "Final C line", "Final D line"] },
+    { ws: "PRO2R", label: "Rotor", lines: ["Rotor A line", "Rotor B Line", "Rotor C line", "Rotor D Line"] },
+    { ws: "PRO2I", label: "Inspection", lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D"] },
+    { ws: "PRO2W", label: "Water", lines: ["Water Line"] }
+  ] },
+  { pro: "PRO3", label: "PRO3", subs: [
+    { ws: "PRO3", label: "Welding", lines: ["Welding A line", "Welding B line", "Welding C line", "Welding D line"] }
+  ] },
+  { pro: "PRO4", label: "PRO4", subs: [
+    { ws: "PRO4B", label: "C-Shaft", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Body C", "C-Shaft Pin A", "C-Shft Pin B", "C-Shaft Pin C"] },
+    { ws: "PRO4F", label: "Frame", lines: ["Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5"] },
+    { ws: "PRO4M", label: "Machining", lines: ["Press C-Shaft", "Piston Grinding", "Piston balljon", "Rod balljon", "Rod Pispin"] }
+  ] },
+  { pro: "PRO5", label: "PRO5", subs: [
+    { ws: "PRO5", label: "Honing", lines: ["Frame Honing FL", "Piston honing FL", "Cylinder Honing"] }
+  ] }
 ];
-let WS_LABEL = {}; WS_GROUPS.forEach(g => { WS_LABEL[g.ws] = g.label; });
-WS_LABEL.ALL = "全部线体";   // ★ 2026-10-29 伪车间: 列出全部线体, 保证列表与小图线体永远一致可查
-// 线体名(norm) → 车间; 供快速反查 (重复名以先出现车间为准, 不会重复定义)
+const WS_GROUPS = [];
+PRO_GROUPS.forEach(function (p) {
+  p.subs.forEach(function (sub) {
+    sub.pro = p.pro;
+    sub.proLabel = p.label;
+    WS_GROUPS.push(sub);
+  });
+});
+const OTHER_GROUP = { ws: "OTHER", label: "其他·未分组", lines: [], pro: null, proLabel: "其他" };
+WS_GROUPS.push(OTHER_GROUP);
+let WS_LABEL = {};
+WS_GROUPS.forEach(g => { WS_LABEL[g.ws] = g.proLabel + " · " + g.label; });
+WS_LABEL.OTHER = "其他·未分组";
+WS_LABEL.ALL = "全部线体";
 const LINE2WS = {};
 WS_GROUPS.forEach(g => g.lines.forEach(ln => { LINE2WS[normName(ln)] = g.ws; }));
 // 当前选中车间; null = 默认(主要线体视图) — 支持 ?ws=PRO2R 直接进入指定车间(投屏/分享/测试)
 let wsSel = null;
 try {
-  const _wsp0 = new URLSearchParams(location.search).get("ws");
-  if (_wsp0 && (WS_GROUPS.some(g => g.ws === _wsp0) || _wsp0 === "ALL")) wsSel = _wsp0;
+  let _wsp0 = new URLSearchParams(location.search).get("ws");
+  const LEGACY_WS = { PRO2S: "PRO2I", PRO4H: "PRO4M" };
+  if (_wsp0 && LEGACY_WS[_wsp0]) _wsp0 = LEGACY_WS[_wsp0];
+  if (_wsp0 === "ALL" || _wsp0 === "OTHER" || WS_GROUPS.some(g => g.ws === _wsp0)) {
+    wsSel = _wsp0;
+  } else {
+    const _p = PRO_GROUPS.find(p => p.pro === _wsp0);
+    if (_p) wsSel = _p.subs[0].ws;
+  }
 } catch (e) {}
 function wsGroupOf(l) { return LINE2WS[normName(l && l.name)] || null; }
 // 2026-11-04: 数据端会跳过当天没有快照的线体 (lines[] 里直接没有),
@@ -1246,53 +1279,112 @@ function tableLinesOf() {
   return wsLinesOf(wsSel);
 }
 // ---- 车间按钮: 一次性构建(避免周期性重建闪烁), 每次数据刷新只更新计数/高亮 ----
+function wsActivePro() {
+  if (!wsSel || wsSel === "ALL" || wsSel === "OTHER") return null;
+  const g = WS_GROUPS.find(x => x.ws === wsSel);
+  return g ? g.pro : null;
+}
+function wsModeKey() {
+  const p = wsActivePro();
+  if (!p) return "pro";
+  const g = PRO_GROUPS.find(x => x.pro === p);
+  if (g && g.subs.length === 1) return "pro";   // 单小类 PRO 不显示二级行
+  return "sub:" + p;
+}
+// 一行式两级导航: 默认 PRO 大类; 选中后同一行换成 小类 + 返回.
+// 不新增第二行, 不改变面板头高度, 右侧图表空间不受影响.
 function buildWsBtns() {
   const box = document.getElementById("wsBtns");
-  if (!box || box.dataset.built) return;
-  box.dataset.built = "1";
-  // ★ 2026-10-29: 首位加「全部」按钮 — 一键看到小时产出图里的所有线体
-  const btnDefs = [{ ws: "ALL", label: WS_LABEL.ALL }].concat(WS_GROUPS.map(g => ({ ws: g.ws, label: g.label })));
-  btnDefs.forEach(g => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "ws-btn";
-    b.dataset.ws = g.ws;
-    b.innerHTML = g.label + ' <span class="wc">0</span>';
-    b.addEventListener("click", function () {
-      // 再点当前车间 → 取消回到默认(主要线体)
-      wsSel = (wsSel === g.ws) ? null : g.ws;
+  if (!box) return;
+  const mode = wsModeKey();
+  if (box.dataset.mode === mode) return;
+  box.dataset.mode = mode;
+  box.innerHTML = "";
+  if (mode.indexOf("sub:") === 0) {
+    const pro = mode.slice(4);
+    const p = PRO_GROUPS.find(x => x.pro === pro);
+    if (!p) return;
+    const back = document.createElement("button");
+    back.type = "button";
+    back.className = "ws-btn ws-back";
+    back.textContent = "←";
+    back.title = lang === "zh" ? "返回车间列表" : "Back";
+    back.addEventListener("click", function () {
+      wsSel = null;
+      buildWsBtns();
       renderAll();
-      // ★ 2026-09-05: 车间切换时重建趋势线体选择(仅该车间), 趋势图跟随
-      try { if (typeof renderTrend === "function") renderTrend(); } catch (e) {}
     });
-    box.appendChild(b);
-  });
+    box.appendChild(back);
+    p.subs.forEach(function (sub) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ws-btn";
+      b.dataset.ws = sub.ws;
+      b.title = p.label + " · " + sub.label;
+      b.innerHTML = sub.label + ' <span class="wc">0</span>';
+      b.addEventListener("click", function () {
+        wsSel = sub.ws;
+        buildWsBtns();
+        renderAll();
+      });
+      box.appendChild(b);
+    });
+  } else {
+    const defs = [{ key: "ALL", label: lang === "zh" ? "全部" : "ALL" }]
+      .concat(PRO_GROUPS.map(function (p) { return { key: p.pro, label: p.label }; }))
+      .concat([{ key: "OTHER", label: lang === "zh" ? "其他" : "Other" }]);
+    defs.forEach(function (d) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "ws-btn";
+      b.dataset.key = d.key;
+      b.title = d.key === "ALL" ? WS_LABEL.ALL : (d.key === "OTHER" ? WS_LABEL.OTHER : d.key);
+      b.innerHTML = d.label + ' <span class="wc">0</span>';
+      b.addEventListener("click", function () {
+        if (d.key === "ALL" || d.key === "OTHER") {
+          wsSel = d.key;
+        } else {
+          const p = PRO_GROUPS.find(function (x) { return x.pro === d.key; });
+          if (!p) return;
+          wsSel = p.subs[0].ws;
+        }
+        buildWsBtns();
+        renderAll();
+      });
+      box.appendChild(b);
+    });
+  }
   updateWsBtns();
 }
 function updateWsBtns() {
   const box = document.getElementById("wsBtns");
   if (!box) return;
-  // 计数 = 车间配置内线体数 (含"无数据"占位, 与表格/小时图同源)
-  const alive = {};
-  WS_GROUPS.forEach(g => { alive[g.ws] = wsLinesOf(g.ws).length; });
-  alive.ALL = state.lines.length;
-  box.querySelectorAll(".ws-btn").forEach(b => {
-    const ws = b.dataset.ws;
-    const n = alive[ws] || 0;
-    b.querySelector(".wc").textContent = n;
-    b.classList.toggle("on", wsSel === ws);
-    b.disabled = n === 0;   // PRO6 等无线体车间禁用
+  const activePro = wsActivePro();
+  const countOf = {};
+  WS_GROUPS.forEach(function (g) { countOf[g.ws] = g.lines.length; });
+  countOf.ALL = state.lines.length;
+  countOf.OTHER = state.lines.filter(function (l) { return !LINE2WS[normName(l && l.name)]; }).length;
+  PRO_GROUPS.forEach(function (p) {
+    countOf[p.pro] = p.subs.reduce(function (a, sub) { return a + sub.lines.length; }, 0);
   });
-  // 标题标签: 选中车间时补充显示
-  const lab = document.getElementById("wsSelLabel");
-  if (lab) {
-    if (wsSel) {
-      const n = alive[wsSel] || 0;
-      lab.textContent = " · " + (WS_LABEL[wsSel] || wsSel) + " (" + n + ")";
+  box.querySelectorAll(".ws-btn").forEach(function (b) {
+    if (b.classList.contains("ws-back")) return;
+    let key = b.dataset.key;
+    if (key) {
+      const n = countOf[key] || 0;
+      b.querySelector(".wc").textContent = n;
+      b.classList.toggle("on", (key === "ALL" || key === "OTHER") ? wsSel === key : activePro === key);
+      b.disabled = n === 0;
     } else {
-      lab.textContent = "";
+      key = b.dataset.ws;
+      const n = countOf[key] || 0;
+      b.querySelector(".wc").textContent = n;
+      b.classList.toggle("on", wsSel === key);
+      b.disabled = n === 0;
     }
-  }
+  });
+  const lab = document.getElementById("wsSelLabel");
+  if (lab) lab.textContent = wsSel ? " · " + (WS_LABEL[wsSel] || wsSel) : "";
 }
 
 const state = { lines: [], updatedAt: null, hourly: {}, hourlyFmt: "HHMM" };
@@ -1308,6 +1400,9 @@ function fmt1(n) {
 function shortName(name) {
   return String(name || "").replace(/ line$/i, "").replace(/-Series$/i, "").trim();
 }
+// 数据端历史名 → 现场叫法 (只影响显示, 不影响 hourly/lines 匹配)
+const DISPLAY_NAME = { "c-shftpinb": "C-Shaft Pin B" };
+function displayName(name) { return DISPLAY_NAME[normName(name)] || name; }
 function hitEff(e) { return e !== null && e !== undefined && !isNaN(e) && e >= 90; }
 function effClass(e) {
   if (e === null || e === undefined || isNaN(e)) return "";
@@ -1503,41 +1598,6 @@ function renderTable() {
   try { const _mt = document.getElementById("mainTable"); if (_mt) _mt.classList.toggle("all-lines", wsSel === "ALL"); } catch (e) {}
   const tb = document.querySelector("#mainTable tbody");
   if (!tb) return { main, other, view };
-  // ★ 2026-09-10 改动A: PRO2R 双分区渲染 — Final(成品)上 / Rotor(前道)下, 各带子标题行
-  if (wsSel === "PRO2R") {
-    const fin = view.filter(l => FINAL_SET.has(normName(l.name)));
-    const rot = view.filter(l => !FINAL_SET.has(normName(l.name)));
-    const rowHtml = function (l, idx) {
-      const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
-      let cls = "";
-      if (isPlannedOff(l)) cls = "planned-off";
-      else if (isBreakdown(l)) cls = "breakdown-row";
-      else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
-      else if (l.noData) cls = "no-data";
-      else if (miss) cls = "miss";
-      const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
-      return `<tr class="${cls}"><td class="rank">${idx + 1}</td>` +
-        `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
-        `<td class="bar-cell">${hbarHtml(l)}</td>` +
-        `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
-        `<td class="col-plan">${fmt(l.plan)}</td>` +
-        `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
-        `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
-        `<td class="uph-cell">${uphTxt(l, now)}</td></tr>`;
-    };
-    const subLbl = function (key) {
-      return key === "Final" ? t("pro2Final") : t("pro2Rotor");
-    };
-    let hh = '<tr class="pro2-subhead"><td colspan="8">' + subLbl("Final") + "</td></tr>";
-    fin.forEach((l, i) => { hh += rowHtml(l, i); });
-    hh += '<tr class="pro2-subhead"><td colspan="8">' + subLbl("Rotor") + "</td></tr>";
-    rot.forEach((l, i) => { hh += rowHtml(l, fin.length + i); });
-    tb.innerHTML = hh;
-    if (typeof updateWsBtns === "function") { try { updateWsBtns(); } catch (e) {} }
-    try { updateChartWsLabel(wsSel, view); } catch (e) {}
-    try { scheduleFitMainTable(); } catch (e) {}
-    return { main, other, view };
-  }
   // ★ 2026-09-04 闪烁优化: 行复用 diff — 不再每次 tb.innerHTML="" 全清重建。
   //   整表销毁重建会丢 td 内联行高(fitMainTable 设的) → 每 10s 行高塌回 21px 再 rAF 弹回 = 闪烁。
   //   改为按线体名 normName 为 key 复用现有 tr: 顺序变化只移动节点(appendChild), 内容没变的格不写 DOM。
@@ -1575,7 +1635,7 @@ function renderTable() {
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       const htmls = [
         String(idx + 1),
-        dot + l.name.trim(),
+        dot + displayName(l.name).trim(),
         hbarHtml(l),
         fmt(l.actual),
         fmt(l.plan),
@@ -1619,7 +1679,7 @@ function renderTable() {
         const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
           `<td class="rank">${idx + 1}</td>` +
-          `<td class="line-name ${lineNameCls(l)}">${dot}${l.name.trim()}</td>` +
+          `<td class="line-name ${lineNameCls(l)}">${dot}${displayName(l.name).trim()}</td>` +
           `<td class="bar-cell">${hbarHtml(l)}</td>` +
           `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
           `<td class="col-plan">${fmt(l.plan)}</td>` +
@@ -1751,8 +1811,8 @@ function renderKPIs(view) {
   const wsMode = !!wsSel;                      // ★ 2026-09-04: 车间模式(选中车间按钮)
   const setTxt = (el, v) => { if (el && el.textContent !== String(v)) el.textContent = String(v); };
   const setCls = (el, c) => { if (el && el.className !== c) el.className = c; };
-  // ★ 改动B: PRO2 只算 Final 成品线(Rotor 前道线整组排除) — 其它车间全部线体照旧
-  const bLines = raw.filter(l => !(wsSel === "PRO2R" && !FINAL_SET.has(normName(l.name))));
+  // 2026-11-07: Final/Rotor 已拆成独立小类, 不再在 PRO2R 里剔除 Rotor
+  const bLines = raw;
   const eligLines = bLines.filter(l => (Number(l.actual)||0) > 0); // ★ 改动C(2026-09-10): actual=0=没生产 → 剔除综合达成率+WS Plan(简单粗暴, 按用户要求不再用 isStoppedRun)
   const running = bLines.filter(l => l.status === "RUNNING" || l.status === "运行");
   // ★ 2026-09-15 语义对齐: 大数字只数「运行且有产出」的线(与达成线体分母一致, 避免 8 vs 6 打架)
@@ -2760,7 +2820,7 @@ function drawBar(main) {
     ctx.fillStyle = "#c9d1d9"; ctx.textAlign = "center";
     const labelMaxW = Math.max(14, slot - 5);
     let lfs = 11;
-    let label = shortName(l.name);
+    let label = shortName(displayName(l.name));
     ctx.font = "bold " + lfs + "px sans-serif";
     while (lfs > 7 && ctx.measureText(label).width > labelMaxW) {
       lfs -= 1;
@@ -4828,7 +4888,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261104pro1').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261107class').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
