@@ -13,7 +13,8 @@
     shiftEndNotReached: "未到班次末桶", lineCoverage: "线体不足", allActualZero: "实际全为 0",
     actualRegression: "累计回落", noPlanOrOutput: "无计划/无产出", bucketDateMismatch: "桶日期不符",
     startCarryover: "起点桶残留", idleLines: "停线", earlyStoppedLines: "提前停线",
-    sourceWindowExpired: "缓冲已过期", productionDateMismatch: "日期串档", noArchiveFile: "无归档文件"
+    sourceWindowExpired: "缓冲已过期", productionDateMismatch: "日期串档", noArchiveFile: "无归档文件",
+    legacyQualityUnverified: "旧快照完整度存疑"
   };
 
   function esc(value) {
