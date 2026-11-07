@@ -1166,9 +1166,9 @@ function normName(n) { return String(n || "").toLowerCase().replace(/[\s.]+/g, "
 // ★ 2026-10-16 线体改名: 电机的 AC 线 → "Motor FL"
 //   数据库/数据端仍叫 "Motor AC"(不改数据库、不改 sync_db), 前端在数据入口统一改键,
 //   下游(表格/小时图/趋势/首小时/AI)全部显示与匹配为 "Motor FL"。
-// 2026-11-07: MES 合并后的 Motor FL CL 统一按旧名 Motor FL 展示;
-//   Motor CL 作为独立配置行保留(无独立数据时显示无数据占位).
-const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL" };
+// 2026-11-07: MES 已把 Motor FL / Motor CL 合并为「Motor FL CL」一条线;
+//   前端按合并后的名字展示, 不再拆成两个会显示 0 的空行.
+const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL CL" };
 function aliasName(n) { return NAME_ALIAS[normName(n)] || n; }
 function aliasMapKeys(o) {
   if (!o || typeof o !== "object") return o;
@@ -1200,7 +1200,7 @@ const MAIN_SET = new Set(MAIN_LINES.map(normName));
 //   表格/小时图始终只显示当前小类; 顶部按钮一行, 不额外占高度。
 const PRO_GROUPS = [
   { pro: "PRO1", label: "PRO1", subs: [
-    { ws: "PRO1", label: "Motor", lines: ["Motor FL", "Motor CL", "Motor WL", "Motor H-Series", "Motor F-Series", "Motor S-Series"] }
+    { ws: "PRO1", label: "Motor", lines: ["Motor FL CL", "Motor WL", "Motor H-Series", "Motor F-Series", "Motor S-Series"] }
   ] },
   { pro: "PRO2", label: "PRO2", subs: [
     { ws: "PRO2F", label: "Final", lines: ["Final A line", "Final B Line", "Final C line", "Final D line"] },
@@ -4888,7 +4888,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261107class').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261107cl').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->

@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v18'; // 2026-11-07 PRO 两级车间分类（PRO > Final/Rotor/...），强制刷新旧壳
+var CACHE = 'pdtiii-shell-v19'; // 2026-11-07 PRO1 合并线 Motor FL CL 数据恢复，强制刷新旧壳
 var CORE = [
   './',
   './index.html',
