@@ -769,7 +769,111 @@
   /* 2026-11-07: 两级车间导航保持单行, 不增高面板头, 不挤占右侧图表 */
   #wsBtns { flex-wrap: nowrap; }
   .ws-btn.ws-back { min-width: 22px; padding: 3px 6px; color: var(--gray); }
+
+  /* ═══ v2 细节精修层(只改质感, 不改配色语义/结构): 圆角·层次·背景·异常行强化 ═══ */
+  /* 背景: 深海蓝夜色层次 + 极淡网格(工业屏质感), 仍近黑, 不抢数据 */
+  body {
+    background-color: #02050a;
+    background-image:
+      radial-gradient(70% 55% at 12% 0%, rgba(34,84,170,.26), transparent 62%),
+      radial-gradient(55% 50% at 96% 8%, rgba(20,110,170,.20), transparent 60%),
+      radial-gradient(60% 55% at 78% 100%, rgba(26,70,150,.20), transparent 62%),
+      linear-gradient(rgba(120,170,255,.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(120,170,255,.028) 1px, transparent 1px),
+      linear-gradient(180deg, #02050a 0%, #01030a 100%);
+    background-size: auto, auto, auto, 32px 32px, 32px 32px, auto;
+  }
+  /* 面板 / KPI: 更大圆角、顶部高光、更深的柔和投影, 层次更立体 */
+  .panel, .kpi {
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(20,32,56,.66) 0%, rgba(10,18,34,.86) 52%, rgba(7,12,24,.94) 100%);
+    border: 1px solid rgba(110,170,255,.18);
+    box-shadow: 0 10px 28px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.05) inset, 0 0 0 1px rgba(0,0,0,.4);
+  }
+  /* 标题前缀: 小圆角色块, 一眼分模块 */
+  .panel h2::before {
+    content: ""; display: inline-block; width: 4px; height: 13px; border-radius: 3px;
+    background: linear-gradient(180deg, #66a9ff, #2f6be0); margin-right: 8px; vertical-align: -2px;
+    box-shadow: 0 0 8px rgba(59,130,246,.55);
+  }
+  /* 车间切换按钮: 胶囊圆角 */
+  .ws-btn { border-radius: 9px; }
+  /* 进度胶囊条: 略加粗, 缺口红提亮 —— 欠产一眼可见 */
+  .hbar { height: 20px; border-radius: 10px; background: rgba(120,140,170,.20); box-shadow: inset 0 1px 3px rgba(0,0,0,.55); }
+  .hbar .act, .hbar .gap { border-radius: 10px; }
+  .hbar .gap { background: rgba(239,68,68,.46); }
+  /* 修复: 蓝条末端圆头与缺口(红)起点之间会露出一块反向的黑色半圆 →
+     缺口铺满整条垫在蓝条下面, 蓝条圆头下面就是红色, 不再露出底轨的黑 */
+  .hbar .gap { left: 0 !important; width: 100% !important; }
+  /* 异常行强化: 欠产行整行淡红底 + 左侧色条(红<80% / 橙80-89%), 达标行不加底 */
+  #mainTable tr.miss:has(td.eff-bad) td { background: rgba(239,68,68,.10); }
+  #mainTable tr.miss:has(td.eff-bad) td:first-child { box-shadow: inset 4px 0 0 0 rgba(239,68,68,.95); }
+  #mainTable tr.miss:has(td.eff-warn) td { background: rgba(245,158,11,.07); }
+  #mainTable tr.miss:has(td.eff-warn) td:first-child { box-shadow: inset 4px 0 0 0 rgba(245,158,11,.9); }
+  #mainTable tr.miss:has(td.eff-zero) td { background: rgba(139,22,22,.16); }
+  #mainTable tr.miss:has(td.eff-zero) td:first-child { box-shadow: inset 4px 0 0 0 rgba(180,30,30,.95); }
+  /* 达成率 / 差额单元格: 语义底色块, 扫一眼就知道好坏 */
+  #mainTable td.eff-ok   { box-shadow: inset 0 0 0 999px rgba(16,185,129,.12); }
+  #mainTable td.eff-warn { box-shadow: inset 0 0 0 999px rgba(245,158,11,.14); }
+  #mainTable td.eff-bad  { box-shadow: inset 0 0 0 999px rgba(239,68,68,.16); }
+  #mainTable td.eff-zero { box-shadow: inset 0 0 0 999px rgba(139,22,22,.22); }
+  #mainTable td.eff-ok, #mainTable td.eff-warn, #mainTable td.eff-bad, #mainTable td.eff-zero { text-shadow: 0 0 10px currentColor; }
+  /* 行分隔线略柔 */
+  body:not(.battle-mode) #mainTable td { border-bottom: 1px solid rgba(163,173,187,.22); }
+
+  /* ═══ v2.1 ① 进度条流光: 仅"正在生产"的线体(非停滞/停线/计划停产/无数据)才流动 ═══ */
+  /* 流光改为画布粒子(见文末 #flowFx 脚本), 不再用 CSS 斜纹 */
+  /* 低性能模式下: 面板阴影换成"静态轻量版"(画一次, 不影响性能), 保住层次感 */
+  body.low-perf .panel, body.low-perf .kpi { box-shadow: 0 1px 0 rgba(255,255,255,.07) inset, 0 6px 14px rgba(0,0,0,.45) !important; }
+
+  /* ═══ v2.1 ③ 整体收紧: 标题/KPI 缩小, 下方两个小模块压低, 把高度让给小时图和主表 ═══ */
+  body { padding-top: 6px; padding-bottom: 8px; }
+  .header { margin-bottom: 5px; }
+  .header h1 { font-size: 17px; letter-spacing: 1.5px; }
+  .period-label { font-size: 15px; margin-left: 10px; }
+  .kpis { margin-bottom: 6px; }
+  .kpi { padding: 2px 12px; }
+  .kpi .label { font-size: 12px; }
+  .kpi .value { font-size: 20px; }
+  .kpi .sub { font-size: 10.5px; margin-top: 0; }
+  .main-grid { gap: 8px; }
+  body:not(.battle-mode) #mod-trend-base { flex: 0 0 29%; }
+  body.battle-mode #pages-wrap { flex: 0 0 70%; }
+  body.battle-mode #extra-modules { flex: 0 0 30%; }
 </style>
+<script>
+/* v2 自适应: 以 1920×950(1080p 最大化窗口可用区)为基准, 整页按视口等比缩放。
+   字号/行高/图表标签同比变化, 版面比例不变, 任何屏幕比例都完整显示不裁切。 */
+(function () {
+  var W0 = 1920, H0 = 950;
+  function fit() {
+    var s = Math.min(innerWidth / W0, innerHeight / H0);
+    s = Math.max(1, Math.min(1.8, s)); // 只放大不缩小: 字号永远不小于原版
+    window.__ZOOM = s;
+    // transform 方案: 把 body 的"逻辑尺寸"设成 视口/s, 再整体缩放 s, 恰好铺满视口
+    var apply = function () {
+      var b = document.body; if (!b) return;
+      b.style.transformOrigin = "0 0";
+      b.style.transform = "scale(" + s + ")";
+      b.style.width = (innerWidth / s) + "px";
+      b.style.height = (innerHeight / s) + "px";
+    };
+    if (document.body) apply(); else document.addEventListener("DOMContentLoaded", apply);
+  }
+  fit();
+  addEventListener("resize", function () {
+    fit();
+    // 窗口改大小后: 清掉主表旧的内联行高, 让它按新高度重新均分(原版会卡在旧行高)
+    var t = document.getElementById("mainTable");
+    if (t && t.tBodies[0]) {
+      Array.prototype.forEach.call(t.tBodies[0].rows, function (r) {
+        r.style.height = ""; Array.prototype.forEach.call(r.cells, function (c) { c.style.height = ""; });
+      });
+      try { fitMainTable._sig = ""; scheduleFitMainTable(); } catch (e) {}
+    }
+  });
+})();
+</script>
 </head>
 <body>
 <!-- ★ 2026-09-27 极光光效背景层: 置于最底, 数据层之上有 z-index:1 -->
@@ -2633,7 +2737,10 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
       };
       if (s.base || s.pm) {
         const lbl = s.cum ? t("shiftCum") : (s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am")));
-        if (perH >= 14) {
+        // v2.1: 标签比柱子宽时会与相邻柱的文字叠成一团 → 放不下就只画数字
+        ctx.font = fSml + "px sans-serif";
+        const lblFits = ctx.measureText(lbl).width <= bw * 1.05;
+        if (perH >= 14 && lblFits) {
           L(lbl, cx + bw / 2, yAcc + perH / 2 - 3, fSml + "px sans-serif", "#bfd0e4");
           L(valTxt, cx + bw / 2, yAcc + perH / 2 + 8, "bold " + fBig + "px sans-serif", "#ffffff");
         } else if (perH >= 8) {
@@ -2722,7 +2829,7 @@ function drawRoundedBar(ctx, x, y, width, height, topColor, bottomColor) {
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
   if (!cv) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
   const W = cv.clientWidth, H = cv.clientHeight || 230;
   // ★ 2026-08-21 14:20 修复: 刚打开页面时 canvas 尚未完成首轮布局(clientWidth=0),
   //   旧逻辑直接 return 导致图表空白, 只能等 10s 后定时刷新才恢复。改为 rAF 延迟重试,
@@ -3062,7 +3169,7 @@ function upphRateOf(l, now) {
 function drawEff(main) {
   const cv = document.getElementById("chartEff");
   if (!cv) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
   const W = cv.clientWidth, H = cv.clientHeight || 180;
   // ★ 2026-08-21 14:20 修复: 与 drawBar 相同, 首帧布局未完成时 rAF 重试 (最多20帧)
   if (W < 20) {
@@ -3193,7 +3300,7 @@ function drawBarSafe(main) {
   try {
     const cv = document.getElementById("chartBar");
     if (!cv) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
     const W = cv.clientWidth, H = cv.clientHeight || 230;
     if (W < 20 || !H) return;
     const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
@@ -3210,7 +3317,7 @@ function drawEffSafe(main) {
   try {
     const cv = document.getElementById("chartEff");
     if (!cv) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
     const W = cv.clientWidth, H = cv.clientHeight || 180;
     if (W < 20 || !H) return;
     const pw = Math.round(W * dpr), ph = Math.round(H * dpr);
@@ -4302,7 +4409,7 @@ function drawTrendDetailLine() {
   const cv = document.getElementById("chartTrendDetail");
   const hist = getTrendHist().slice(-7); // ★ 2026-08-28: 最多7天
   if (!cv || !hist.length || !detailLineName) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
   const W = cv.clientWidth, H = cv.clientHeight || 300;
   if (W < 60 || H < 60) return;
   cv.width = W * dpr; cv.height = H * dpr;
@@ -4408,7 +4515,7 @@ function drawTrendDetail() {
   const cv = document.getElementById("chartTrendDetail");
   const hist = getTrendHist().slice(-7); // ★ 2026-08-28: 最多7天
   if (!cv || !hist.length) return;
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
   const W = cv.clientWidth, H = cv.clientHeight || 300;
   if (W < 60 || H < 60) return;
   cv.width = W * dpr; cv.height = H * dpr;
@@ -4732,7 +4839,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
   // ★ 2026-09-28 性能档位: 依据屏幕尺寸/DPR/硬件并发线程自适应, 低档自动减光斑/降DPR/降fps/去叠加
   //   高档: 6斑 DPR1.5 24fps | 中: 4斑 DPR1 15fps | 低: 3斑 DPR1 10fps 无lighter | 极低: 静态一帧
   var HW = (navigator.hardwareConcurrency || 8);
-  var DPRn = (window.devicePixelRatio || 1);
+  var DPRn = ((window.devicePixelRatio || 1) * (window.__ZOOM || 1));
   var BIG_SCREEN = (window.screen && window.screen.width >= 1900);
   var tier; var cfg;
   function pickTier() {
@@ -4756,7 +4863,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     var W, H, DPR, bands = [];
     var HUES = [210, 220, 232];
     function resize() {
-      DPR = Math.min(cfg.dpr, window.devicePixelRatio || 1);
+      DPR = Math.min(cfg.dpr, (window.devicePixelRatio || 1) * (window.__ZOOM || 1));
       W = window.innerWidth; H = window.innerHeight;
       cv.width = W * DPR; cv.height = H * DPR;
       cv.style.width = W + 'px'; cv.style.height = H + 'px';
@@ -4864,9 +4971,103 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     if (localStorage.getItem('pdt_lowperf') === '1') { applyLow(true); return; }
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { applyLow(true); return; }
     var HW = navigator.hardwareConcurrency || 4;
-    var DPR = window.devicePixelRatio || 1;
+    var DPR = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
     if (HW <= 4 || DPR < 1.5) { applyLow(true); }
   } catch (e) {}
+})();
+</script>
+<script>
+/* ★ v2.2 进度条光粒子流: 一张全屏透明画布叠在主表进度条上, 只在"正在生产"的线体已完成段内绘制。
+   做法借鉴 warp-speed 类效果: 粒子越往右越快、带渐隐拖尾 + 一道缓动软光带 + 条头呼吸光。
+   零依赖; 减少动态效果偏好下不启动; 页面隐藏时 rAF 自动暂停。 */
+(function () {
+  if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var cv = document.createElement("canvas");
+  cv.id = "flowFx";
+  cv.style.cssText = "position:fixed;left:0;top:0;width:100vw;height:100vh;pointer-events:none;z-index:50";
+  document.documentElement.appendChild(cv);
+  var ctx = cv.getContext("2d"), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  function size() { cv.width = Math.round(innerWidth * dpr); cv.height = Math.round(innerHeight * dpr); }
+  size(); addEventListener("resize", size);
+
+  var bars = [], pool = {}, last = 0;
+  function scan() {
+    var out = [];
+    var rows = document.querySelectorAll("#mainTable tbody tr");
+    var wrap = document.querySelector("#mainTable") && document.querySelector("#mainTable").closest(".table-scroll");
+    var wr = wrap ? wrap.getBoundingClientRect() : null;
+    for (var i = 0; i < rows.length; i++) {
+      var tr = rows[i];
+      if (/stalled-row|breakdown-row|planned-off|no-data/.test(tr.className)) continue;
+      var hb = tr.querySelector(".hbar"), a = hb && hb.querySelector(".act");
+      if (!a) continue;
+      var r = hb.getBoundingClientRect(), ar = a.getBoundingClientRect();
+      if (ar.width < 10 || r.height < 6 || r.bottom < 0 || r.top > innerHeight) continue;
+      if (wr && (r.bottom > wr.bottom + 1 || r.top < wr.top - 1)) continue; // 被面板裁掉的行不画, 避免光粒子画到面板外
+      out.push({ k: tr.getAttribute("data-line") || String(i), x: ar.left, y: r.top, w: ar.width, h: r.height });
+    }
+    bars = out;
+  }
+  setInterval(scan, 300); scan();
+
+  function spawn(p, w, first) {
+    p.x = first ? Math.random() * w : -4;
+    p.y = 0.12 + Math.random() * 0.76;
+    p.v = 5 + Math.random() * 11;          // 慢速漂移(px/s)
+    p.r = 0.34 + Math.random() * Math.random() * 0.75; // 光点/沙粒大小(半径px), 最大约 1.1px
+    p.a = 0.45 + Math.random() * 0.55;     // 亮度提高一档(柔和不刺眼)
+    p.ph = Math.random() * 6.283;          // 闪烁/摆动相位
+    p.w = 0.4 + Math.random() * 0.9;       // 摆动速度
+    return p;
+  }
+  function clipRR(x, y, w, h) {
+    var r = h / 2; ctx.beginPath();
+    ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arc(x + w - r, y + r, r, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(x + r, y + h); ctx.arc(x + r, y + r, r, Math.PI / 2, Math.PI * 1.5); ctx.closePath(); ctx.clip();
+  }
+  function frame(t) {
+    requestAnimationFrame(frame);
+    var dt = Math.min(0.05, (t - last) / 1000 || 0.016); last = t;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    for (var i = 0; i < bars.length; i++) {
+      var b = bars[i], sc = b.h / 20;
+      var ps = pool[b.k] || (pool[b.k] = []);
+      var n = Math.max(48, Math.min(180, Math.round(b.w / 3.2)));
+      while (ps.length < n) ps.push(spawn({}, b.w, true));
+      if (ps.length > n) ps.length = n;
+      ctx.save();
+      clipRR(b.x, b.y, b.w, b.h);
+      ctx.globalCompositeOperation = "lighter";
+      // ① 磨砂光晕: 三团很淡的大光斑, 极慢地向右漂, 带一点"磨砂玻璃"的朦胧(亮度刻意压低)
+      var span = b.w + b.h * 6, gr = b.h * 1.7;
+      for (var k = 0; k < 3; k++) {
+        var gx = b.x - b.h * 3 + ((t / 1000 * 12 * sc + k * span / 3) % span);
+        var gy = b.y + b.h * (0.5 + 0.18 * Math.sin(t / 2600 + k * 2.1));
+        var g = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+        g.addColorStop(0, "rgba(180,218,255,.32)"); g.addColorStop(0.55, "rgba(150,195,250,.13)"); g.addColorStop(1, "rgba(120,180,250,0)");
+        ctx.fillStyle = g; ctx.fillRect(gx - gr, b.y, gr * 2, b.h);
+      }
+      // ② 细沙粒子: 小圆点, 慢慢漂移, 轻微上下摆动 + 缓慢明暗闪烁
+      ctx.fillStyle = "rgb(205,228,255)";
+      for (var j = 0; j < ps.length; j++) {
+        var p = ps[j];
+        p.x += p.v * sc * dt;
+        if (p.x > b.w + 4) { spawn(p, b.w, false); continue; }
+        var yy = b.y + (p.y + 0.05 * Math.sin(t / 1000 * p.w + p.ph)) * b.h;
+        var tw = 0.6 + 0.4 * Math.sin(t / 1000 * p.w * 1.7 + p.ph);
+        ctx.globalAlpha = p.a * tw;
+        ctx.beginPath(); ctx.arc(b.x + p.x, yy, p.r * sc, 0, 6.2832); ctx.fill();
+        if (p.a > 0.8) { // 最亮的一小部分带一圈很淡的光晕, 像微光颗粒
+          ctx.globalAlpha = 0.16 * tw;
+          ctx.beginPath(); ctx.arc(b.x + p.x, yy, p.r * sc * 3.2, 0, 6.2832); ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+  }
+  requestAnimationFrame(frame);
 })();
 </script>
 </body>
@@ -4888,7 +5089,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261107cl').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261108ui').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
