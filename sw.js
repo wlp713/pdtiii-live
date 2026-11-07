@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v20'; // 2026-11-08 UI 精修: 进度条光粒子流 + 小窗口行高自适应 + 末端黑色半圆修复
+var CACHE = 'pdtiii-shell-v22'; // 2026-11-08 产出分析: 深色 + 每日结算/归档健康/车间趋势
 var CORE = [
   './',
   './index.html',

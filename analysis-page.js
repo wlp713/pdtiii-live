@@ -819,8 +819,101 @@
   "@media (max-width:480px){#anaRoot .hist-head{padding:16px}#anaRoot .hist-controls{padding:12px}#anaRoot .hist-period>div{width:100%}#anaRoot .hist-period button{flex:1;min-width:0}#anaRoot .hist-kpis{grid-template-columns:1fr}#anaRoot .hist-kpi{min-height:96px;border-right:0;border-bottom:1px solid var(--ana-line)}#anaRoot .hist-kpi:last-child{border-bottom:0}#anaRoot .hist-insights{padding:10px 12px}#anaRoot .hist-legend{justify-content:flex-start}#anaRoot .hist-card-head{align-items:flex-start;flex-direction:column}#anaRoot .hist-empty{inset:82px 0 0}}",
   "@media (max-width:1100px){#anaRoot .ana-lower-grid{grid-template-columns:1fr}#anaRoot #vsBand{grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr)}}",
   "@media (max-width:820px){#anaRoot{padding:0 14px 28px}#anaRoot .ana-top{margin:0 -14px 12px;padding:12px 14px;flex-wrap:wrap}#anaRoot .ana-heading{flex:1}#anaRoot .ana-rt{width:100%;justify-content:flex-start}#anaRoot #anaStatus{flex:1;min-width:180px}#anaRoot .subrow{align-items:flex-start;flex-wrap:wrap}#anaRoot .sub-hint{width:100%;margin-left:0;padding-left:13px}#anaRoot .ana-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#anaRoot #vsBand{grid-template-columns:1fr}#anaRoot #vsBand::before{display:none}#anaRoot #vsBand .vs-side{padding:16px 18px}#anaRoot #vsBand .vs-side:first-child{border-right:0;border-bottom:1px solid var(--ana-line)}#anaRoot #vsBand .vs-side.ot{border-left:0;border-top:1px solid var(--ana-line)}#anaRoot #vsBand .vs-mid{padding:10px 14px;flex-direction:row}#anaRoot .section-head{align-items:flex-start;flex-wrap:wrap}#anaRoot .section-head .hint-r{width:100%;margin-left:17px}#anaRoot .dgrid.dh{top:126px}}",
-  "@media (max-width:480px){#anaRoot{padding:0 10px 24px}#anaRoot .ana-top{margin:0 -10px;padding:10px}#anaRoot .ana-top h1{font-size:19px}#anaRoot .ana-top .ic{width:38px;height:38px}#anaRoot .ana-rt{gap:7px}#anaRoot #anaStatus{order:3;width:100%}#anaRoot input[type=date]{flex:1}#anaRoot .btn-hc{padding:0 12px}#anaRoot .scope-label{width:100%}#anaRoot .ana-kpis{grid-template-columns:1fr 1fr;gap:8px}#anaRoot .ana-kpi{min-height:106px;padding:14px 12px 12px 15px}#anaRoot .ana-kpi .k-value{font-size:23px}#anaRoot #vsBand .vs-side .num{font-size:31px}#anaRoot .section-head .hint-r{display:none}#anaRoot .chips-sm{transform:none}#anaRoot #winChips{margin-left:auto}#anaRoot #winChips button{min-width:48px;padding:6px 8px}#anaRoot .hc-modal .table-scroll{padding:12px}}",
+  "@media (max-width:480px){#anaRoot{padding:0 10px 24px}#anaRoot .ana-top{margin:0 -10px;padding:10px}#anaRoot .ana-top h1{font-size:21px}#anaRoot .ana-top .ic{width:38px;height:38px}#anaRoot .ana-rt{gap:7px}#anaRoot #anaStatus{order:3;width:100%}#anaRoot input[type=date]{flex:1}#anaRoot .btn-hc{padding:0 12px}#anaRoot .scope-label{width:100%}#anaRoot .ana-kpis{grid-template-columns:1fr 1fr;gap:8px}#anaRoot .ana-kpi{min-height:106px;padding:14px 12px 12px 15px}#anaRoot .ana-kpi .k-value{font-size:23px}#anaRoot #vsBand .vs-side .num{font-size:31px}#anaRoot .section-head .hint-r{display:none}#anaRoot .chips-sm{transform:none}#anaRoot #winChips{margin-left:auto}#anaRoot #winChips button{min-width:48px;padding:6px 8px}#anaRoot .hc-modal .table-scroll{padding:12px}}",
   "@media (prefers-reduced-motion:reduce){#anaRoot *,#anaRoot *::before,#anaRoot *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}",
+  /* ═══ 2026-11-08 深色主题覆盖: 与主看板同一视觉语言 ═══ */
+  "#anaRoot{--ana-canvas:#050608;--ana-panel:#101014;--ana-panel-soft:#15151b;--ana-ink:#f4f4f5;--ana-muted:#a1a1aa;--ana-dim:#71717a;--ana-line:rgba(255,255,255,.08);--ana-line-strong:rgba(255,255,255,.15);--ana-primary:#3b82f6;--ana-primary-soft:rgba(59,130,246,.14);--ana-normal:#3b82f6;--ana-ot:#eab308;--ana-success:#10b981;--ana-danger:#ef4444;--ana-navy:#0b0f16;--ana-text:#f4f4f5;--ana-text-muted:#a1a1aa;--ana-text-dim:#71717a;--ana-blue:#3b82f6;--ana-green:#10b981;--ana-orange:#f59e0b;--ana-red:#ef4444;background:radial-gradient(900px 380px at 50% -8%,rgba(59,130,246,.10),transparent 70%),radial-gradient(700px 300px at 90% 0%,rgba(234,179,8,.05),transparent 70%),#050608;color:var(--ana-ink);font-size:13px;padding:0 clamp(14px,1.6vw,28px) 24px}",
+  "#anaRoot::before{display:none}",
+  "#anaRoot .ana-in{max-width:2240px}",
+  "#anaRoot .ana-top{margin:0 calc(-1*clamp(14px,1.6vw,28px)) 10px;padding:12px clamp(14px,1.6vw,28px);min-height:58px;background:rgba(5,6,8,.9);border-bottom:1px solid var(--ana-line);box-shadow:none;backdrop-filter:blur(10px);-webkit-mask-image:none;mask-image:none}",
+  "#anaRoot .ana-top h1{color:#f4f4f5;font-size:21px;text-shadow:none}",
+  "#anaRoot .ana-heading .eyebrow{color:#71717a}",
+  "#anaRoot .ana-top h1 .cnt{background:rgba(255,255,255,.05);border-color:var(--ana-line);color:#a1a1aa}",
+  "#anaRoot .ana-top .ic{background:#101014;border-color:var(--ana-line);color:#a1a1aa}",
+  "#anaRoot .ana-top .ic:hover{background:#15151b;border-color:#3b82f6;color:#93c5fd}",
+  "#anaRoot #anaStatus{background:#101014;border-color:var(--ana-line);color:#a1a1aa}",
+  "#anaRoot #anaStatus .dot{background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.7)}",
+  "#anaRoot input[type=date]{background:#101014;border-color:var(--ana-line-strong);color:#f4f4f5;color-scheme:dark}",
+  "#anaRoot .btn-hc{background:#155eef;border-color:#3975f6;color:#fff}",
+  "#anaRoot .subrow{min-height:0;margin:0 0 6px;padding:0 2px 5px;background:transparent;border:0;box-shadow:none}",
+  "#anaRoot .chips{padding:2px;background:#101014;border:1px solid var(--ana-line)}",
+  "#anaRoot .chips button{min-height:30px;color:#a1a1aa;background:transparent}",
+  "#anaRoot .chips button.on{background:rgba(59,130,246,.14);color:#93c5fd;box-shadow:inset 0 0 0 1px rgba(59,130,246,.55)}",
+  "#anaRoot .chips button:hover:not(.on){background:rgba(255,255,255,.05);color:#f4f4f5}",
+  "#anaRoot .sub-hint{color:#71717a}",
+  "#anaRoot .ana-topic-head{display:none}",
+  "#anaRoot .ana-kpis{gap:8px;margin-bottom:8px}",
+  "#anaRoot .ana-kpi{min-height:0;padding:7px 11px 6px;background:#15151b;border:1px solid var(--ana-line);border-radius:11px;box-shadow:none}",
+  "#anaRoot .ana-kpi::before{top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0}",
+  "#anaRoot .ana-kpi::after{color:#52525b;font-size:9px;top:7px;right:10px}",
+  "#anaRoot .ana-kpi .k-label{color:#a1a1aa;font-size:10.5px}",
+  "#anaRoot .ana-kpi .k-value{margin-top:3px;color:#f4f4f5;font-size:26px}",
+  "#anaRoot .ana-kpi .k-value small{color:#71717a;font-size:10.5px}",
+  "#anaRoot .ana-kpi .k-meta{margin-top:2px;color:#71717a;font-size:10.5px}",
+  "#anaRoot .ana-kpi.k-n .k-value{color:#93c5fd}#anaRoot .ana-kpi.k-o .k-value{color:#fbbf24}#anaRoot .ana-kpi.k-rate .k-value{color:#34d399}#anaRoot .ana-kpi.k-head .k-value{color:#f4f4f5}",
+  "#anaRoot #vsBand{display:grid;grid-template-columns:minmax(0,1fr) 150px minmax(0,1fr);gap:0;margin-bottom:8px;background:#101014;border:1px solid var(--ana-line);border-radius:12px;box-shadow:none}",
+  "#anaRoot #vsBand::before{display:none}",
+  "#anaRoot #vsBand .vs-side,#anaRoot #vsBand .vs-side:first-child,#anaRoot #vsBand .vs-side.ot{background:#101014;padding:7px 12px}",
+  "#anaRoot #vsBand .vs-side:first-child{border-right:1px solid var(--ana-line)}",
+  "#anaRoot #vsBand .vs-side.ot{border-left:1px solid var(--ana-line)}",
+  "#anaRoot #vsBand .vs-side .lb{color:#a1a1aa;font-size:11px}",
+  "#anaRoot #vsBand .vs-side .lb .tag{background:rgba(59,130,246,.14);color:#93c5fd;border-color:rgba(59,130,246,.3);font-size:9.5px}",
+  "#anaRoot #vsBand .vs-side.ot .lb .tag{background:rgba(234,179,8,.12);color:#fbbf24;border-color:rgba(234,179,8,.3)}",
+  "#anaRoot #vsBand .vs-side .num{margin-top:1px;color:#f4f4f5;font-size:30px}",
+  "#anaRoot #vsBand .vs-side .num small{color:#71717a;font-size:11px}",
+  "#anaRoot #vsBand .vs-side .sb{margin-top:1px;color:#71717a;font-size:10.5px}",
+  "#anaRoot #vsBand .vs-mid{background:#101014;padding:6px 10px}",
+  "#anaRoot #vsBand .vs-mid .vsw{color:#71717a;font-size:9px}",
+  "#anaRoot #diffChip{min-width:0;padding:4px 10px;border-radius:20px;font-size:13px;box-shadow:none}",
+  "#anaRoot #diffChip.good{background:rgba(16,185,129,.14);color:#34d399;border-color:rgba(16,185,129,.45)}",
+  "#anaRoot #diffChip.warn{background:rgba(245,158,11,.13);color:#fbbf24;border-color:rgba(245,158,11,.45)}",
+  "#anaRoot #diffChip.bad{background:rgba(239,68,68,.12);color:#f87171;border-color:rgba(239,68,68,.45)}",
+  "#anaRoot #diffChip.flat{background:rgba(255,255,255,.04);color:#a1a1aa;border-color:var(--ana-line-strong)}",
+  "#anaRoot #vsVerdict{margin:0 0 8px;padding:6px 12px;background:#15151b;border:1px solid var(--ana-line);border-left:3px solid #3b82f6;border-radius:9px;color:#a1a1aa;font-size:11.5px;line-height:1.6}",
+  "#anaRoot #vsVerdict b{color:#f4f4f5}#anaRoot #vsVerdict .k{color:#fbbf24}#anaRoot #vsVerdict .ok{color:#34d399}#anaRoot #vsVerdict .bad{color:#f87171}",
+  "#anaRoot .card{background:#101014;border:1px solid var(--ana-line);border-radius:14px;box-shadow:none}",
+  "#anaRoot .section-head{min-height:44px;padding:10px 14px;border-bottom:1px solid var(--ana-line);background:#101014}",
+  "#anaRoot .section-head h2{color:#f4f4f5;font-size:13px}",
+  "#anaRoot .section-head .hint-r{color:#71717a}",
+  "#anaRoot #wsDetail{border-top:0;margin-bottom:10px}",
+  "#anaRoot .dgrid.dh{background:#15151b;color:#71717a;border-bottom-color:var(--ana-line)}",
+  "#anaRoot .wsrow{background:#101014;border-bottom-color:rgba(255,255,255,.05)}",
+  "#anaRoot .wsrow:hover,#anaRoot .wsrow.open{background:#15151b}",
+  "#anaRoot .wsrow .nm{color:#f4f4f5}",
+  "#anaRoot .wsrow .cnt{background:rgba(59,130,246,.14);color:#93c5fd}",
+  "#anaRoot .lbox{background:#0b0b0e;border-bottom-color:var(--ana-line)}",
+  "#anaRoot .lrow{border-bottom-color:rgba(255,255,255,.04);color:#a1a1aa}",
+  "#anaRoot .lrow:hover{background:#15151b}",
+  "#anaRoot .trow{background:rgba(59,130,246,.12);border-top-color:rgba(59,130,246,.3);color:#f4f4f5}",
+  "#anaRoot .vl{color:#a1a1aa}#anaRoot .v-n{color:#60a5fa}#anaRoot .v-o{color:#fbbf24}#anaRoot .v-0{color:#52525b}",
+  "#anaRoot .rate-chip.g{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.35)}#anaRoot .rate-chip.b{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.35)}#anaRoot .rate-chip.y{background:rgba(245,158,11,.12);color:#fbbf24;border-color:rgba(245,158,11,.35)}#anaRoot .rate-chip.x{background:rgba(255,255,255,.04);color:#71717a;border-color:var(--ana-line)}",
+  "#anaRoot .st-ot{background:rgba(234,179,8,.12);color:#fbbf24;border-color:rgba(234,179,8,.35)}#anaRoot .st-now{background:rgba(59,130,246,.12);color:#93c5fd;border-color:rgba(59,130,246,.35)}#anaRoot .st-no{background:rgba(255,255,255,.04);color:#a1a1aa;border-color:var(--ana-line)}#anaRoot .st-none{color:#71717a;border-color:var(--ana-line)}#anaRoot .st-mid{background:rgba(167,139,250,.12);color:#c4b5fd;border-color:rgba(167,139,250,.35)}",
+  "#anaRoot .diff-u.good{color:#34d399}#anaRoot .diff-u.bad{color:#f87171}#anaRoot .diff-u.flat{color:#71717a}",
+  "#anaRoot .footnote{background:#101014;border-color:var(--ana-line)}#anaRoot .footnote summary{color:#a1a1aa}#anaRoot .footnote .fn-body{background:#0b0b0e;border-top-color:var(--ana-line);color:#71717a}#anaRoot .footnote b{color:#a1a1aa}",
+  "#anaRoot .ana-lower-grid{display:none}",
+  "#anaRoot .hc-mask{background:rgba(0,0,0,.72)}",
+  "#anaRoot .hc-modal{background:#101014;border-color:var(--ana-line);box-shadow:0 28px 80px rgba(0,0,0,.6)}",
+  "#anaRoot .hc-modal .hc-head{background:#15151b;border-bottom:1px solid var(--ana-line);color:#f4f4f5}",
+  "#anaRoot .hc-modal .hc-head h3{color:#f4f4f5}",
+  "#anaRoot #anaTable th{background:#15151b;color:#71717a;border-bottom-color:var(--ana-line)}",
+  "#anaRoot #anaTable td{color:#a1a1aa;border-bottom-color:rgba(255,255,255,.05)}",
+  "#anaRoot #anaTable tbody tr:nth-child(even) td{background:#131318}",
+  "#anaRoot #anaTable tbody tr:hover td{background:#15151b}",
+  "#anaRoot #anaTable .nmw{color:#f4f4f5}#anaRoot #anaTable .nmw small{color:#71717a}#anaRoot #anaTable .g{color:#93c5fd}#anaRoot #anaTable .o{color:#fbbf24}#anaRoot #anaTable .ng{color:#71717a}#anaRoot #anaTable .tot-r{color:#f4f4f5}#anaRoot #anaTable td.pc2{color:#52525b}",
+  "#anaRoot #anaTable tr.s-row td{background:#15151b;border-top:2px solid #3b82f6;color:#f4f4f5}",
+  "#anaRoot #hcModal .table-scroll{background:#0b0b0e;border-color:var(--ana-line)}",
+  "#anaRoot #hcModal #anaTable th{background:#15151b;color:#71717a}",
+  "#anaRoot #hcModal #anaTable td{background:transparent;color:#a1a1aa;border-bottom-color:rgba(255,255,255,.05)}",
+  "#anaRoot #hcModal #anaTable tbody tr:nth-child(even) td{background:#131318}",
+  "#anaRoot #hcModal #anaTable tbody tr:hover td{background:#15151b}",
+  "#anaRoot #hcModal #anaTable tr.s-row td{background:#15151b;border-top:2px solid #3b82f6;color:#f4f4f5}",
+  "#anaRoot input.hc{background:#0b0b0e;border-color:var(--ana-line-strong);color:#f4f4f5}",
+  "#anaRoot .empty-tip{color:#71717a}",
+  "#anaRoot .ana-state{color:#a1a1aa}",
+  "#anaRoot .spinner{border-color:var(--ana-line);border-top-color:#3b82f6}",
+  "@media (max-width:760px){#anaRoot #vsBand{grid-template-columns:1fr}#anaRoot #vsBand .vs-side:first-child{border-right:0;border-bottom:1px solid var(--ana-line)}#anaRoot #vsBand .vs-side.ot{border-left:0;border-top:1px solid var(--ana-line)}}",
+  "@media (max-height:700px){#anaRoot{padding-bottom:14px}#anaRoot .ana-top{min-height:0;padding:7px clamp(14px,1.6vw,28px);margin-bottom:6px}#anaRoot .ana-heading .eyebrow{display:none}#anaRoot .ana-top h1{font-size:21px}#anaRoot .ana-top .ic{width:32px;height:32px}#anaRoot .subrow{padding-bottom:3px;margin-bottom:4px}#anaRoot .chips{padding:1px}#anaRoot .chips button{min-height:26px;padding:3px 11px;font-size:12px}#anaRoot .sub-hint{font-size:10.5px}#anaRoot .ana-kpis{gap:6px;margin-bottom:6px}#anaRoot .ana-kpi{padding:5px 9px;border-radius:9px}#anaRoot .ana-kpi .k-value{font-size:26px;margin-top:2px}#anaRoot .ana-kpi .k-meta{font-size:10.5px;margin-top:1px}#anaRoot .ana-kpi .k-label{font-size:10.5px}#anaRoot .ana-kpi::after{display:none}#anaRoot #vsBand{margin-bottom:6px}#anaRoot #vsBand .vs-side{padding:4px 10px}#anaRoot #vsBand .vs-side .num{font-size:30px}#anaRoot #vsBand .vs-side .lb{font-size:12px}#anaRoot #vsBand .vs-side .sb{font-size:10.5px}#anaRoot #vsBand .vs-mid{padding:4px 7px}#anaRoot #vsVerdict{display:none!important}#anaRoot .section-head{min-height:36px;padding:8px 12px}#anaRoot .section-head h2{font-size:13px}#anaRoot .wsrow{min-height:38px;padding:6px 12px}#anaRoot .lrow{min-height:32px;padding:5px 12px 5px 40px}#anaRoot .footnote summary{min-height:36px;padding:8px 12px;font-size:12px}}",
+  "@media (min-height:1100px){#anaRoot .ana-top{min-height:56px;padding:10px clamp(14px,1.6vw,28px)}#anaRoot .ana-top h1{font-size:22px}#anaRoot .subrow{padding-bottom:7px;margin-bottom:7px}#anaRoot .chips button{min-height:32px;font-size:12.5px;padding:6px 16px}#anaRoot .sub-hint{font-size:11px}#anaRoot .ana-kpis{gap:10px;margin-bottom:10px}#anaRoot .ana-kpi{padding:10px 13px 9px;border-radius:12px}#anaRoot .ana-kpi .k-value{font-size:29px;margin-top:4px}#anaRoot .ana-kpi .k-label{font-size:11px}#anaRoot .ana-kpi .k-meta{font-size:11px;margin-top:3px}#anaRoot #vsBand{margin-bottom:10px}#anaRoot #vsBand .vs-side{padding:9px 14px}#anaRoot #vsBand .vs-side .num{font-size:34px}#anaRoot #vsBand .vs-side .lb{font-size:12px}#anaRoot #vsBand .vs-side .sb{font-size:11px}#anaRoot #vsBand .vs-mid{padding:8px 12px}#anaRoot #vsVerdict{padding:8px 12px;margin-bottom:10px;font-size:12px}#anaRoot .section-head{min-height:46px;padding:10px 14px}#anaRoot .section-head h2{font-size:13px}#anaRoot .wsrow{min-height:44px;padding:8px 14px}#anaRoot .lrow{min-height:36px;padding:6px 14px 6px 42px}}",
   ].join("\n");
 
   var st = document.createElement("style");
@@ -840,9 +933,8 @@
     '<button class="btn-hc" id="anaHcBtn" type="button" title="填报各车间人数"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>人数填报</span></button>' +
     "</div></div>" +
     '<div class="subrow"><span class="scope-label">班次视图</span><div class="chips" id="shiftChips" role="group" aria-label="选择班次"><button type="button" data-sh="day" class="on" aria-pressed="true">白班</button><button type="button" data-sh="night" aria-pressed="false">夜班</button><button type="button" data-sh="full" aria-pressed="false">全天</button></div>' +
-    '<span class="sub-hint" id="subHint">白班 8:00-20:20 · 正常 ≤17:20 · 加班 17:20-20:20</span></div>' +
-    '<div id="historyOpsMount"></div>' +
-    '<div class="ana-topic-head"><div><span>SHIFT EFFICIENCY</span><h2>班次效率专题</h2></div><p>当前班次出勤、正常效率与加班效率对比</p></div>' +
+    '<span class="sub-hint" id="subHint" title="白班 8:00-20:20 · 正常 ≤17:20 · 加班 17:20-20:20">白班 · 正常 8h</span></div>' +
+    /* v16: 章节标题由 KPI 标签承担，去掉重复的 SHIFT EFFICIENCY 小标题 */
     '<div class="ana-kpis" id="anaKpis">' +
     '<div class="ana-kpi k-n" data-code="NORMAL"><div class="k-label">正常人均小时效率</div><div class="k-value" id="kpiNormEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiNormMeta">正常产出 ÷ 正常人数 ÷ 8h</div></div>' +
     '<div class="ana-kpi k-o" data-code="OVERTIME"><div class="k-label">加班人均小时效率</div><div class="k-value" id="kpiOtEff">-<small>件/人·时</small></div><div class="k-meta" id="kpiOtMeta">加班产出 ÷ 加班人数 ÷ 工时</div></div>' +
@@ -857,6 +949,8 @@
     "</div>" +
     /* 独立结论行 (Codex UI §5.4: 不再嵌入对比横条) */
     '<div id="vsVerdict"></div>' +
+    /* ── v16: 每日结算 / 归档健康 / 车间每日趋势 (深色) ── */
+    '<div id="historyOpsMount"></div>' +
     /* ── v7 主卡: 车间 · 线体产出明细 (手风琴) ── */
     '<section class="card" id="wsDetail" aria-labelledby="wsDetailTitle"><div class="section-head"><h2 id="wsDetailTitle"><span class="pl" style="background:#155eef"></span>车间 · 线体产出明细</h2><span class="hint-r">车间效率按填报人数计算 · 点击车间行展开线体产出</span></div>' +
     '<div id="detailHead" class="dgrid dh"></div><div id="detailList"></div></section>' +
@@ -967,7 +1061,7 @@
     toggleWorkshopRow(r);
   });
 
-  var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: "day", win: 7, trend: null, fmt: null };
+  var state = { hourly: {}, hc: {}, wsAgg: null, date: null, today: null, sh: currentShiftDefault(), win: 7, trend: null, fmt: null };
   var hcStream = null, hcStreamDate = null, hcPollBusy = false;
 
   function renderHCDependent() {
@@ -1034,6 +1128,24 @@
     });
   }
 
+  function currentShiftDefault() {
+    var d = new Date(Date.now() + 7 * 3600 * 1000);
+    var m = d.getUTCHours() * 60 + d.getUTCMinutes();
+    return (m >= 20 * 60 + 30 || m < 8 * 60) ? "night" : "day";
+  }
+  function updateShiftHint() {
+    if (!subHint) return;
+    if (state.sh === "night") {
+      subHint.textContent = "夜班 · 正常 8h";
+      subHint.title = "夜班 20:30-07:50 · 正常 20:30-05:50 · 加班 05:50-07:50（净 2h）";
+    } else if (state.sh === "full") {
+      subHint.textContent = "全天 · 正常+加班";
+      subHint.title = "白班 + 夜班合计";
+    } else {
+      subHint.textContent = "白班 · 正常 8h";
+      subHint.title = "白班 8:00-20:20 · 正常 08:00-17:20 · 加班 17:20-20:20（净 3h）";
+    }
+  }
   function todayStr() {
     return typeof bkkDateStr === "function" ? bkkDateStr() : (function () { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); })(); // ★ v5.42 泰国日期
   }
@@ -1818,6 +1930,9 @@
       x.classList.toggle("on", on);
       x.setAttribute("aria-pressed", on ? "true" : "false");
     });
+    if (subHint) {
+      updateShiftHint();
+    }
     if (window.PDTIIIHistoryModule) window.PDTIIIHistoryModule.setShift(state.sh);
     drawTrend();
     if (state.wsAgg) { drawVs(); drawOt(); drawTable(); renderDetail(); }
@@ -1842,11 +1957,22 @@
     state.today = todayStr();
     dateInput.max = state.today;
     if (!dateInput.value) dateInput.value = state.today;
+    state.sh = currentShiftDefault();
+    root.querySelectorAll("#shiftChips button").forEach(function (x) {
+      var on = x.getAttribute("data-sh") === state.sh;
+      x.classList.toggle("on", on);
+      x.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    if (subHint) {
+      updateShiftHint();
+    }
     document.body.appendChild(root);
     load(dateInput.value || state.today);
     loadTrend();
     if (window.PDTIIIHistoryModule) {
-      window.PDTIIIHistoryModule.mount(root.querySelector("#historyOpsMount"), { url: "history/analytics.json" });
+      window.PDTIIIHistoryModule.mount(root.querySelector("#historyOpsMount"), {
+        url: "history/analytics.json"
+      });
       window.PDTIIIHistoryModule.setShift(state.sh);
     }
     /* AI 助手: 挂载到本页顶栏 (仅产出分析页显示) */

@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>产出分析 · 设计稿 v1</title>
+<style>
+:root{
+  --bg:#050608;--panel:#101014;--panel2:#15151b;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.14);
+  --text:#f4f4f5;--muted:#a1a1aa;--dim:#71717a;--blue:#3b82f6;--orange:#f59e0b;--green:#10b981;--red:#ef4444;--gold:#eab308;--purple:#a78bfa;
+  --r:14px;--gap:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;font-size:13px}
+body{min-height:100vh;background:
+  radial-gradient(900px 380px at 50% -8%,rgba(59,130,246,.10),transparent 70%),
+  radial-gradient(700px 300px at 90% 0%,rgba(234,179,8,.05),transparent 70%),
+  linear-gradient(180deg,#050608 0%,#08080b 100%)}
+.page{max-width:2240px;margin:0 auto;padding:12px clamp(12px,1.5vw,28px) 18px}
+.top{display:flex;align-items:center;gap:12px;height:46px;margin-bottom:10px}
+.back{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.back:hover{color:var(--text);border-color:var(--line2)}
+.eyebrow{font-size:10.5px;letter-spacing:2.2px;color:var(--dim);font-weight:700}
+h1{font-size:21px;letter-spacing:.4px;font-weight:800;line-height:1.05}
+h1 .cnt{font-size:10.5px;color:var(--muted);border:1px solid var(--line2);border-radius:20px;padding:2px 9px;margin-left:8px;vertical-align:2px;font-weight:700}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:5px 10px;white-space:nowrap}
+.status .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(16,185,129,.7)}
+.right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.date{padding:5px 9px;height:30px;border-radius:8px;border:1px solid var(--line2);background:var(--panel);color:var(--text);font:inherit;font-size:12px;color-scheme:dark}
+.btn{height:32px;padding:0 12px;border-radius:9px;border:1px solid var(--line2);background:var(--panel);color:var(--text);font:inherit;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.btn.primary{background:rgba(59,130,246,.14);border-color:rgba(59,130,246,.55);color:#93c5fd}
+.btn:hover{border-color:var(--blue)}
+.panel{background:linear-gradient(180deg,rgba(22,22,27,.92),rgba(14,14,18,.96));border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:var(--gap);box-shadow:0 12px 36px rgba(0,0,0,.28);position:relative;overflow:hidden}
+.panel::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent)}
+.panel-head{display:flex;align-items:center;gap:10px;margin-bottom:9px;min-height:24px}
+.panel-head h2{font-size:14px;letter-spacing:.3px;font-weight:800;display:flex;align-items:center;gap:8px}
+.panel-head h2 .pl{width:7px;height:7px;border-radius:2px;background:var(--blue)}
+.panel-head .sub{font-size:11px;color:var(--dim)}
+.panel-head .right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:9px 11px 8px;min-width:0;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue)}
+.kpi.k2::before{background:var(--gold)} .kpi.k3::before{background:var(--green)} .kpi.k4::before{background:var(--purple)}
+.kpi .lb{font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v{font-size:27px;font-weight:800;letter-spacing:.3px;font-variant-numeric:tabular-nums;line-height:1.12;margin-top:3px}
+.kpi .v small{font-size:11px;color:var(--dim);font-weight:600;margin-left:4px}
+.kpi .m{font-size:10.5px;color:var(--dim);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v.blue{color:#93c5fd}.kpi .v.gold{color:#fbbf24}.kpi .v.green{color:#34d399}.kpi .v.red{color:#f87171}
+.vs{display:grid;grid-template-columns:1fr 168px 1fr;gap:8px;margin-top:9px}
+.vs .side{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:9px 13px;min-width:0}
+.vs .side.ot{border-color:rgba(234,179,8,.25)}
+.vs .side .lb{font-size:11.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:7px}
+.tag{font-size:9.5px;padding:2px 7px;border-radius:20px;background:rgba(59,130,246,.14);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+.side.ot .tag{background:rgba(234,179,8,.12);color:#fbbf24;border-color:rgba(234,179,8,.3)}
+.vs .num{font-size:33px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;margin:3px 0 1px}
+.vs .num small{font-size:11px;color:var(--dim);font-weight:600;margin-left:5px}
+.vs .sb{font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+.vs .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.vs .mid .cap{font-size:9.5px;letter-spacing:1.6px;color:var(--dim);font-weight:800;text-transform:uppercase}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:6px 13px;font-size:17px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.good{background:rgba(16,185,129,.14);color:#34d399;border:1px solid rgba(16,185,129,.45)}
+.chip.warn{background:rgba(245,158,11,.13);color:#fbbf24;border:1px solid rgba(245,158,11,.45)}
+.chip.bad{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.45)}
+.chip.flat{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--line2);font-size:13px;padding:6px 12px}
+.settle-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:10px;align-items:start}
+.shift-cards{display:grid;grid-template-rows:auto auto;gap:8px}
+.scard{border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:var(--panel2);position:relative;overflow:hidden;min-width:0}
+.scard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--blue)}
+.scard.night::before{background:var(--gold)}
+.scard.partial::before{background:var(--orange)} .scard.missing::before{background:var(--red)}
+.scard.missing{background:repeating-linear-gradient(135deg,rgba(255,255,255,.02),rgba(255,255,255,.02) 7px,transparent 7px,transparent 14px);border-style:dashed}
+.scard .row1{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.scard .nm{font-size:12px;font-weight:800}
+.scard .q{margin-left:auto;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:20px;border:1px solid}
+.q.complete{color:#34d399;border-color:rgba(16,185,129,.45);background:rgba(16,185,129,.1)}
+.q.partial{color:#fbbf24;border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.1)}
+.q.missing{color:#f87171;border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.1)}
+.scard .big{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+.scard .big small{font-size:10.5px;color:var(--dim);font-weight:600;margin-left:4px}
+.scard .meta{display:flex;gap:10px;font-size:10.5px;color:var(--dim);margin-top:3px;flex-wrap:wrap}
+.scard .meta b{color:var(--muted);font-weight:700}
+.attain{display:flex;align-items:center;gap:7px;margin-top:4px}
+.attain .track{flex:1;height:5px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}
+.attain .fill{height:100%;border-radius:6px;background:var(--red)}
+.attain .pc{font-size:11px;font-weight:800;color:#f87171;font-variant-numeric:tabular-nums}
+.attain .pc.good{color:#34d399}.attain .pc.warn{color:#fbbf24}
+.wslist{display:flex;flex-direction:column;gap:5px;min-width:0}
+.wsrow{display:grid;grid-template-columns:44px 1fr 1fr;gap:8px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:5px 8px;min-width:0}
+.wsrow .nm{font-size:11.5px;font-weight:800;color:var(--muted)}
+.wsbar{min-width:0}
+.wsbar .barhead{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);margin-bottom:2px}
+.wsbar .track{height:8px;border-radius:5px;background:rgba(255,255,255,.06);position:relative;overflow:hidden}
+.wsbar .fill{height:100%;display:flex}
+.wsbar .normal{background:var(--blue)} .wsbar .ot{background:var(--gold)}
+.wsbar .plan{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--orange);box-shadow:0 0 5px rgba(245,158,11,.6)}
+.wsbar .cap{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums}
+.wsbar .cap b{color:var(--muted)}
+.wsbar.missing .track{background:repeating-linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.04) 4px,transparent 4px,transparent 8px);border:1px dashed rgba(255,255,255,.14)}
+.wsbar.missing .cap{color:#71717a}
+.health{display:grid;grid-template-columns:repeat(30,minmax(0,1fr));gap:3px;margin-top:9px}
+.hcell{height:16px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);position:relative;cursor:default}
+.hcell.complete{background:rgba(16,185,129,.55);border-color:rgba(16,185,129,.75)}
+.hcell.partial{background:linear-gradient(90deg,rgba(245,158,11,.7) 50%,rgba(245,158,11,.2) 50%);border-color:rgba(245,158,11,.65)}
+.hcell.missing{background:repeating-linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.06) 3px,transparent 3px,transparent 6px);border:1px dashed rgba(255,255,255,.22)}
+.hcell.invalid{background:rgba(167,139,250,.55);border-color:rgba(167,139,250,.8)}
+.hcell:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.trend-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.tcard{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:8px 9px 6px;min-width:0}
+.tcard .th{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.tcard .tn{font-size:12px;font-weight:800;color:var(--text)}
+.tcard .tchip{margin-left:auto;font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:20px;border:1px solid}
+.tcard canvas{width:100%;height:100px;display:block}
+.tcard .tf{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:2px}
+.legend{display:inline-flex;align-items:center;gap:10px;font-size:10px;color:var(--dim)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.legend .n{background:var(--blue)} .legend .o{background:var(--gold)} .legend .p{background:var(--orange)}
+.foot{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:10.5px;margin-top:2px}
+.foot .sp{flex:1}
+@media (max-width:1500px){
+  .settle-grid{grid-template-columns:330px minmax(0,1fr)}
+  .vs{grid-template-columns:1fr 145px 1fr}
+}
+@media (max-width:1180px){
+  .trend-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .settle-grid{grid-template-columns:1fr}
+  .shift-cards{grid-template-rows:auto;grid-template-columns:1fr 1fr}
+  .health{grid-template-columns:repeat(30,1fr)}
+}
+@media (max-height:780px){
+  .page{padding-top:8px;padding-bottom:10px}
+  .top{height:40px;margin-bottom:7px}
+  h1{font-size:19px}
+  .panel{padding:9px 12px;margin-bottom:8px}
+  .panel-head{margin-bottom:6px}
+  .kpi{padding:7px 10px 6px}.kpi .v{font-size:23px}.kpi .m{display:none}
+  .vs{margin-top:6px}.vs .side{padding:7px 11px}.vs .num{font-size:28px}
+  .scard{padding:8px 10px}.scard .big{font-size:21px}
+  .tcard canvas{height:104px}
+  .trend-grid{gap:7px}
+  .health{margin-top:6px}.hcell{height:13px}
+  .wsrow{padding:4px 7px}.wslist{gap:3px}
+}
+@media (max-height:700px){
+  .top{height:36px;margin-bottom:5px}
+  .panel{padding:6px 10px;margin-bottom:6px}
+  .panel-head{margin-bottom:4px;min-height:18px}
+  .panel-head h2{font-size:12.5px}
+  .panel-head .sub{font-size:10px}
+  .kpi{padding:6px 9px 5px}.kpi .v{font-size:20px}.kpi .m{display:none}
+  .vs{margin-top:5px}.vs .side{padding:5px 9px}.vs .num{font-size:23px}.vs .mid .cap{display:none}
+  .scard{padding:6px 9px}.scard .big{font-size:18px}.scard .meta{font-size:9.5px;gap:7px}.scard .attain{margin-top:3px}
+  .settle-grid{grid-template-columns:290px minmax(0,1fr);gap:7px}
+  .wslist{gap:2px}.wsrow{padding:3px 7px}.wsbar .cap{display:none}.wsbar .barhead{margin-bottom:1px}
+  .health{margin-top:5px}.hcell{height:10px}
+  .tcard{padding:5px 7px 4px}.tcard canvas{height:82px}.tcard .tf{display:none}
+  .tcard .tn{font-size:11px}
+  .trend-grid{gap:6px}
+  .chip.flat{font-size:10px;padding:3px 7px}
+}
+@media (max-width:1180px) and (max-height:780px){.trend-grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <button class="back" aria-label="返回主看板">‹</button>
+    <div><div class="eyebrow">PDTIII · OPERATIONS</div><h1>产出分析<span class="cnt">40 线</span></h1></div>
+    <span class="status"><span class="dot"></span>实时 · 11-04 19:42</span>
+    <div class="right">
+      <input class="date" type="date" value="2026-11-04" aria-label="选择日期">
+      <button class="btn primary">人数填报</button>
+      <button class="btn">AI 助手</button>
+      <button class="btn">问题点 0</button>
+    </div>
+  </div>
+
+  <section class="panel" aria-labelledby="effTitle">
+    <div class="panel-head"><h2 id="effTitle"><span class="pl"></span>班次效率</h2><span class="sub">11-04 白班 · 正常段 8h / 加班段 3h</span><div class="right legend"><span><i class="n"></i>实际</span><span><i class="p"></i>计划</span><span><i class="o"></i>加班</span></div></div>
+    <div class="kpis">
+      <div class="kpi"><div class="lb">正常人均小时效率</div><div class="v blue" id="k1">14.5<small>件/人·时</small></div><div class="m" id="k1m">44,819 件 ÷ 386 人 ÷ 8h</div></div>
+      <div class="kpi k2"><div class="lb">加班人均小时效率</div><div class="v gold" id="k2">6.4<small>件/人·时</small></div><div class="m" id="k2m">4,078 件 ÷ 212 人 ÷ 3h</div></div>
+      <div class="kpi k3"><div class="lb">加班效率达成</div><div class="v red" id="k3">44.1<small>%</small></div><div class="m" id="k3m">加班效率 ÷ 正常效率</div></div>
+      <div class="kpi k4"><div class="lb">本班投入人数</div><div class="v" id="k4">598<small>人</small></div><div class="m" id="k4m">正常 386 / 加班 212</div></div>
+    </div>
+    <div class="vs">
+      <div class="side"><div class="lb">正常时段 <span class="tag">≤ 17:20</span></div><div class="num" id="vsN">44,819<small>件</small></div><div class="sb" id="vsNs">计划 66,357 · 达成 67.5%</div></div>
+      <div class="mid"><span class="cap">效率对比</span><span class="chip bad" id="diff">−56%</span></div>
+      <div class="side ot"><div class="lb">加班时段 <span class="tag">17:20–20:20</span></div><div class="num" id="vsO">4,078<small>件</small></div><div class="sb" id="vsOs">计划 0 · 用时 3.0h</div></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="setTitle">
+    <div class="panel-head"><h2 id="setTitle"><span class="pl" style="background:var(--gold)"></span>每日结算</h2><span class="sub" id="setDate">2026-11-04 · 白班 + 前夜</span><div class="right"><span class="q partial">白班 部分</span><span class="q complete">夜班 完好</span><button class="btn" style="height:27px;font-size:11px">前一天</button><button class="btn" style="height:27px;font-size:11px">后一天</button></div></div>
+    <div class="settle-grid">
+      <div class="shift-cards">
+        <div class="scard partial"><div class="row1"><span class="nm">白班</span><span class="q partial">部分 · 38/39 线</span></div><div class="big" id="dayTotal">48,897<small>件</small></div><div class="meta"><span>正常 <b id="dayNormal">44,819</b></span><span>加班 <b id="dayOt">4,078</b></span><span>计划 <b id="dayPlan">66,357</b></span></div><div class="attain"><div class="track"><div class="fill" id="dayFill" style="width:67.5%"></div></div><span class="pc bad" id="dayPc">67.5%</span></div></div>
+        <div class="scard night"><div class="row1"><span class="nm">夜班</span><span class="q complete">完好 · 39/39 线</span></div><div class="big" id="nightTotal">44,428<small>件</small></div><div class="meta"><span>正常 <b id="nightNormal">42,668</b></span><span>加班 <b id="nightOt">1,760</b></span><span>计划 <b id="nightPlan">69,449</b></span></div><div class="attain"><div class="track"><div class="fill" id="nightFill" style="width:61.4%"></div></div><span class="pc warn" id="nightPc">61.4%</span></div></div>
+      </div>
+      <div class="wslist" id="wsList"></div>
+    </div>
+    <div class="health" id="health" role="list" aria-label="最近 30 个生产日归档健康度"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="trendTitle">
+    <div class="panel-head"><h2 id="trendTitle"><span class="pl" style="background:var(--green)"></span>车间每日趋势</h2><span class="sub">近 14 个生产日 · 产出与达成</span><div class="right"><span class="chip flat" style="font-size:11px;padding:4px 9px">14 天</span><span class="chip flat" style="font-size:11px;padding:4px 9px">30 天</span></div></div>
+    <div class="trend-grid" id="trendGrid"></div>
+  </section>
+</div>
+<script>
+const DATA = {"selected":"2026-11-04","live":{"date":"2026-11-04","shift":"day","normal":{"normal":44819.0,"overtime":4078.0,"total":48897.0,"plan":66357.0,"attainment":67.5},"night":{"normal":42668.0,"overtime":1760.0,"total":44428.0,"plan":69449.0,"attainment":61.4},"headcount":{"normal":386,"ot":212}},"settlement":{"date":"2026-11-04","day":{"status":"partial","metric":{"normal":44819.0,"overtime":4078.0,"total":48897.0,"plan":66357.0,"attainment":67.5},"workshops":{"Pro.1":{"normal":1399.0,"overtime":0.0,"total":1399.0,"plan":5898.0,"attainment":23.7},"Pro.2":{"normal":7825.0,"overtime":1016.0,"total":8841.0,"plan":8297.0,"attainment":94.3},"Pro.3":{"normal":7604.0,"overtime":2239.0,"total":9843.0,"plan":10845.0,"attainment":70.1},"Pro.4":{"normal":24678.0,"overtime":560.0,"total":25238.0,"plan":37721.0,"attainment":65.4},"Pro.5":{"normal":3313.0,"overtime":263.0,"total":3576.0,"plan":3596.0,"attainment":92.1}}},"night":{"status":"complete","metric":{"normal":42668.0,"overtime":1760.0,"total":44428.0,"plan":69449.0,"attainment":61.4},"workshops":{"Pro.1":{"normal":3104.0,"overtime":0.0,"total":3104.0,"plan":5894.0,"attainment":52.7},"Pro.2":{"normal":6993.0,"overtime":0.0,"total":6993.0,"plan":11394.0,"attainment":61.4},"Pro.3":{"normal":7856.0,"overtime":668.0,"total":8524.0,"plan":10849.0,"attainment":72.4},"Pro.4":{"normal":24713.0,"overtime":1092.0,"total":25805.0,"plan":37715.0,"attainment":65.5},"Pro.5":{"normal":2.0,"overtime":0.0,"total":2.0,"plan":3597.0,"attainment":0.1}}}},"trend":[{"date":"2026-10-23","status":"partial","workshops":{"Pro.1":{"normal":3587.0,"overtime":889.0,"total":4476.0,"plan":7287.0,"attainment":49.2},"Pro.2":{"normal":6287.0,"overtime":2312.0,"total":8599.0,"plan":8208.0,"attainment":76.6},"Pro.3":{"normal":6962.0,"overtime":1919.0,"total":8881.0,"plan":9902.0,"attainment":70.3},"Pro.4":{"normal":19504.0,"overtime":4906.0,"total":24410.0,"plan":33126.0,"attainment":58.9},"Pro.5":{"normal":2065.0,"overtime":426.0,"total":2491.0,"plan":3595.0,"attainment":57.4}},"totals":{"normal":38405.0,"overtime":10452.0,"total":48857.0,"plan":62118.0,"attainment":61.8}},{"date":"2026-10-24","status":"partial","workshops":{"Pro.1":{"normal":3030.0,"overtime":642.0,"total":3672.0,"plan":7290.0,"attainment":41.6},"Pro.2":{"normal":5791.0,"overtime":368.0,"total":6159.0,"plan":8208.0,"attainment":70.6},"Pro.3":{"normal":7543.0,"overtime":1565.0,"total":9108.0,"plan":9906.0,"attainment":76.1},"Pro.4":{"normal":22829.0,"overtime":1510.0,"total":24339.0,"plan":33124.0,"attainment":68.9},"Pro.5":{"normal":2343.0,"overtime":538.0,"total":2881.0,"plan":3598.0,"attainment":65.1}},"totals":{"normal":41536.0,"overtime":4623.0,"total":46159.0,"plan":62126.0,"attainment":66.9}},{"date":"2026-10-25","status":"partial","workshops":{"Pro.1":{"normal":3022.0,"overtime":737.0,"total":3759.0,"plan":7278.0,"attainment":41.5},"Pro.2":{"normal":2651.0,"overtime":653.0,"total":3304.0,"plan":8196.0,"attainment":32.3},"Pro.3":{"normal":5496.0,"overtime":1631.0,"total":7127.0,"plan":9899.0,"attainment":55.5},"Pro.4":{"normal":7298.0,"overtime":853.0,"total":8151.0,"plan":33117.0,"attainment":22.0},"Pro.5":{"normal":815.0,"overtime":312.0,"total":1127.0,"plan":3597.0,"attainment":22.7}},"totals":{"normal":19282.0,"overtime":4186.0,"total":23468.0,"plan":62087.0,"attainment":31.1}},{"date":"2026-10-27","status":"missing","workshops":{"Pro.1":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.2":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.3":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.4":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.5":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},"totals":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},{"date":"2026-10-28","status":"missing","workshops":{"Pro.1":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.2":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.3":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.4":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.5":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},"totals":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},{"date":"2026-10-29","status":"partial","workshops":{"Pro.1":{"normal":3069.0,"overtime":574.0,"total":3643.0,"plan":7291.0,"attainment":42.1},"Pro.2":{"normal":7065.0,"overtime":1154.0,"total":8219.0,"plan":9709.0,"attainment":72.8},"Pro.3":{"normal":7919.0,"overtime":2032.0,"total":9951.0,"plan":10850.0,"attainment":73.0},"Pro.4":{"normal":26297.0,"overtime":2210.0,"total":28507.0,"plan":33698.0,"attainment":78.0},"Pro.5":{"normal":2593.0,"overtime":554.0,"total":3147.0,"plan":3598.0,"attainment":72.1}},"totals":{"normal":46943.0,"overtime":6524.0,"total":53467.0,"plan":65146.0,"attainment":72.1}},{"date":"2026-10-30","status":"partial","workshops":{"Pro.1":{"normal":3947.0,"overtime":5.0,"total":3952.0,"plan":7303.0,"attainment":54.0},"Pro.2":{"normal":8181.0,"overtime":1314.0,"total":9495.0,"plan":9709.0,"attainment":84.3},"Pro.3":{"normal":7951.0,"overtime":1464.0,"total":9415.0,"plan":10851.0,"attainment":73.3},"Pro.4":{"normal":26997.0,"overtime":2303.0,"total":29300.0,"plan":34119.0,"attainment":79.1},"Pro.5":{"normal":2593.0,"overtime":0.0,"total":2593.0,"plan":3598.0,"attainment":72.1}},"totals":{"normal":49669.0,"overtime":5086.0,"total":54755.0,"plan":65580.0,"attainment":75.7}},{"date":"2026-10-31","status":"partial","workshops":{"Pro.1":{"normal":3488.0,"overtime":765.0,"total":4253.0,"plan":7289.0,"attainment":47.9},"Pro.2":{"normal":7566.0,"overtime":358.0,"total":7924.0,"plan":9709.0,"attainment":77.9},"Pro.3":{"normal":7000.0,"overtime":1095.0,"total":8095.0,"plan":10849.0,"attainment":64.5},"Pro.4":{"normal":24994.0,"overtime":1649.0,"total":26643.0,"plan":35426.0,"attainment":70.6},"Pro.5":{"normal":1171.0,"overtime":534.0,"total":1705.0,"plan":3591.0,"attainment":32.6}},"totals":{"normal":44219.0,"overtime":4401.0,"total":48620.0,"plan":66864.0,"attainment":66.1}},{"date":"2026-11-01","status":"partial","workshops":{"Pro.1":{"normal":0.0,"overtime":0.0,"total":0.0,"plan":7266.0,"attainment":0.0},"Pro.2":{"normal":1.0,"overtime":0.0,"total":1.0,"plan":9698.0,"attainment":0.0},"Pro.3":{"normal":2634.0,"overtime":155.0,"total":2789.0,"plan":10843.0,"attainment":24.3},"Pro.4":{"normal":0.0,"overtime":369.0,"total":369.0,"plan":35402.0,"attainment":0.0},"Pro.5":{"normal":0.0,"overtime":0.0,"total":0.0,"plan":3593.0,"attainment":0.0}},"totals":{"normal":2635.0,"overtime":524.0,"total":3159.0,"plan":66802.0,"attainment":3.9}},{"date":"2026-11-02","status":"missing","workshops":{"Pro.1":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.2":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.3":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.4":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.5":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},"totals":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},{"date":"2026-11-03","status":"missing","workshops":{"Pro.1":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.2":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.3":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.4":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.5":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},"totals":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},{"date":"2026-11-04","status":"partial","workshops":{"Pro.1":{"normal":1399.0,"overtime":0.0,"total":1399.0,"plan":5898.0,"attainment":23.7},"Pro.2":{"normal":7825.0,"overtime":1016.0,"total":8841.0,"plan":8297.0,"attainment":94.3},"Pro.3":{"normal":7604.0,"overtime":2239.0,"total":9843.0,"plan":10845.0,"attainment":70.1},"Pro.4":{"normal":24678.0,"overtime":560.0,"total":25238.0,"plan":37721.0,"attainment":65.4},"Pro.5":{"normal":3313.0,"overtime":263.0,"total":3576.0,"plan":3596.0,"attainment":92.1}},"totals":{"normal":44819.0,"overtime":4078.0,"total":48897.0,"plan":66357.0,"attainment":67.5}},{"date":"2026-11-05","status":"missing","workshops":{"Pro.1":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.2":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.3":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.4":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.5":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},"totals":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},{"date":"2026-11-06","status":"missing","workshops":{"Pro.1":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.2":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.3":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.4":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null},"Pro.5":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}},"totals":{"normal":0,"overtime":0,"total":0,"plan":0,"attainment":null}}],"health":[{"date":"2026-10-07","day":{"status":"missing","issues":[{"code":"noArchiveFile","severity":"blocking","detail":"没有该班次的归档文件"}]},"night":{"status":"complete","capturedAt":"2026-10-08 20:55:34","sourceUpdatedAt":"2026-10-08 20:54:44","issues":[]}},{"date":"2026-10-08","day":{"status":"missing","issues":[{"code":"noArchiveFile","severity":"blocking","detail":"没有该班次的归档文件"}]},"night":{"status":"complete","capturedAt":"2026-10-09 21:10:08","sourceUpdatedAt":"2026-10-09 21:09:45","issues":[]}},{"date":"2026-10-09","day":{"status":"partial","capturedAt":"2026-10-09 21:09:45","sourceUpdatedAt":"2026-10-09 21:09:45","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"actualRegression","severity":"blocking","detail":"累计实际回落: Piston Grinding"}]},"night":{"status":"complete","capturedAt":"2026-10-10 23:10:53","sourceUpdatedAt":"2026-10-10 23:09:59","issues":[]}},{"date":"2026-10-10","day":{"status":"partial","capturedAt":"2026-10-10 23:09:59","sourceUpdatedAt":"2026-10-10 23:09:59","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"actualRegression","severity":"blocking","detail":"累计实际回落: Piston Grinding"}]},"night":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]}},{"date":"2026-10-11","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-12 22:53:47","sourceUpdatedAt":"2026-10-12 22:53:11","issues":[]}},{"date":"2026-10-12","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"invalid","issues":[{"code":"productionDateMismatch","severity":"blocking","detail":"文件日期 2026-10-12 与快照 productionDate 2026-10-13 不一致"}],"capturedAt":"2026-10-14 05:35:23","sourceUpdatedAt":"2026-10-13 21:01:52"}},{"date":"2026-10-13","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-14 19:58:46","sourceUpdatedAt":"2026-10-14 19:58:09","issues":[]}},{"date":"2026-10-14","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-15 22:14:04","sourceUpdatedAt":"2026-10-15 22:13:55","issues":[]}},{"date":"2026-10-15","day":{"status":"partial","capturedAt":"2026-10-15 22:13:55","sourceUpdatedAt":"2026-10-15 22:13:55","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"actualRegression","severity":"blocking","detail":"累计实际回落: Piston Grinding"}]},"night":{"status":"complete","capturedAt":"2026-10-16 23:12:29","sourceUpdatedAt":"2026-10-16 23:11:41","issues":[]}},{"date":"2026-10-16","day":{"status":"partial","capturedAt":"2026-10-16 23:11:41","sourceUpdatedAt":"2026-10-16 23:11:41","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"actualRegression","severity":"blocking","detail":"累计实际回落: Piston Grinding"}]},"night":{"status":"complete","capturedAt":"2026-10-17 23:52:14","sourceUpdatedAt":"2026-10-17 23:51:46","issues":[]}},{"date":"2026-10-17","day":{"status":"partial","capturedAt":"2026-10-17 23:51:46","sourceUpdatedAt":"2026-10-17 23:51:46","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"}]},"night":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]}},{"date":"2026-10-18","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-19 23:49:29","sourceUpdatedAt":"2026-10-19 23:48:27","issues":[]}},{"date":"2026-10-19","day":{"status":"partial","capturedAt":"2026-10-19 23:48:27","sourceUpdatedAt":"2026-10-19 23:48:27","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"}]},"night":{"status":"complete","capturedAt":"2026-10-20 22:44:56","sourceUpdatedAt":"2026-10-20 22:44:34","issues":[]}},{"date":"2026-10-20","day":{"status":"partial","capturedAt":"2026-10-20 22:44:34","sourceUpdatedAt":"2026-10-20 22:44:34","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"actualRegression","severity":"blocking","detail":"累计实际回落: Piston Grinding"}]},"night":{"status":"complete","capturedAt":"2026-10-21 19:12:11","sourceUpdatedAt":"2026-10-21 19:11:48","issues":[]}},{"date":"2026-10-21","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-22 22:30:40","sourceUpdatedAt":"2026-10-22 22:30:26","issues":[]}},{"date":"2026-10-22","day":{"status":"partial","capturedAt":"2026-10-22 22:30:26","sourceUpdatedAt":"2026-10-22 22:30:26","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"}]},"night":{"status":"complete","capturedAt":"2026-10-23 23:46:04","sourceUpdatedAt":"2026-10-23 23:45:09","issues":[]}},{"date":"2026-10-23","day":{"status":"partial","capturedAt":"2026-10-23 23:45:09","sourceUpdatedAt":"2026-10-23 23:45:09","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"}]},"night":{"status":"complete","capturedAt":"2026-10-24 22:30:20","sourceUpdatedAt":"2026-10-24 22:29:39","issues":[]}},{"date":"2026-10-24","day":{"status":"partial","capturedAt":"2026-10-24 22:29:39","sourceUpdatedAt":"2026-10-24 22:29:39","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"}]},"night":{"status":"complete","capturedAt":"2026-10-25 20:40:05","sourceUpdatedAt":"2026-10-25 20:39:25","issues":[]}},{"date":"2026-10-25","day":{"status":"partial","capturedAt":"2026-10-25 20:39:25","sourceUpdatedAt":"2026-10-25 20:39:25","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"idleLines","severity":"warning","detail":"1 条线本班无产出（停线/未排产）"}]},"night":{"status":"complete","capturedAt":"2026-10-26 19:23:30","sourceUpdatedAt":"2026-10-26 19:22:56","issues":[]}},{"date":"2026-10-27","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-28 17:44:36","sourceUpdatedAt":"2026-10-28 17:43:50","issues":[]}},{"date":"2026-10-28","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-10-29 22:25:47","sourceUpdatedAt":"2026-10-29 22:25:38","issues":[]}},{"date":"2026-10-29","day":{"status":"partial","capturedAt":"2026-10-29 22:25:38","sourceUpdatedAt":"2026-10-29 22:25:38","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"startCarryover","severity":"warning","detail":"2 条线起点桶已清零"},{"code":"earlyStoppedLines","severity":"warning","detail":"1 条线未到班次末桶但已有产出"}]},"night":{"status":"complete","capturedAt":"2026-10-30 20:20:44","sourceUpdatedAt":"2026-10-30 20:20:13","issues":[]}},{"date":"2026-10-30","day":{"status":"partial","capturedAt":"2026-10-30 20:20:13","sourceUpdatedAt":"2026-10-30 20:20:13","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"startCarryover","severity":"warning","detail":"1 条线起点桶已清零"}]},"night":{"status":"complete","capturedAt":"2026-10-31 22:07:05","sourceUpdatedAt":"2026-10-31 22:06:07","issues":[]}},{"date":"2026-10-31","day":{"status":"partial","capturedAt":"2026-10-31 22:06:07","sourceUpdatedAt":"2026-10-31 22:06:07","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"}]},"night":{"status":"complete","capturedAt":"2026-11-01 22:49:53","sourceUpdatedAt":"2026-11-01 22:49:05","issues":[]}},{"date":"2026-11-01","day":{"status":"partial","capturedAt":"2026-11-01 22:49:05","sourceUpdatedAt":"2026-11-01 22:49:05","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 38/39"},{"code":"idleLines","severity":"warning","detail":"2 条线本班无产出（停线/未排产）"}]},"night":{"status":"complete","capturedAt":"2026-11-02 20:11:00","sourceUpdatedAt":"2026-11-02 20:10:31","issues":[]}},{"date":"2026-11-02","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-11-03 18:40:11","sourceUpdatedAt":"2026-11-03 18:39:50","issues":[]}},{"date":"2026-11-03","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-11-04 22:10:31","sourceUpdatedAt":"2026-11-04 22:10:11","issues":[]}},{"date":"2026-11-04","day":{"status":"partial","capturedAt":"2026-11-04 22:10:11","sourceUpdatedAt":"2026-11-04 22:10:11","issues":[{"code":"lineCoverage","severity":"blocking","detail":"线体 37/39"}]},"night":{"status":"complete","capturedAt":"2026-11-05 16:03:26","sourceUpdatedAt":"2026-11-05 16:02:53","issues":[]}},{"date":"2026-11-05","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-11-06 18:52:05","sourceUpdatedAt":"2026-11-06 18:51:06","issues":[]}},{"date":"2026-11-06","day":{"status":"missing","capturedAt":"2026-11-08 00:45:15","sourceUpdatedAt":null,"issues":[{"code":"sourceWindowExpired","severity":"blocking","detail":"Firebase 滚动缓冲已过期，未能重建该班次"}]},"night":{"status":"complete","capturedAt":"2026-11-07 18:36:08","sourceUpdatedAt":"2026-11-07 18:35:45","issues":[]}}]};
+const WS = ["Pro.1","Pro.2","Pro.3","Pro.4","Pro.5"];
+function fmt(n){return (Math.round(Number(n)||0)).toLocaleString("en-US")}
+function pct(n){return n==null?"—":Number(n).toFixed(1)+"%"}
+function tone(n){if(n==null)return "missing";return n>=90?"good":n>=80?"warn":"bad"}
+function toneClass(n){if(n==null)return "missing";return n>=90?"complete":n>=80?"partial":"missing"}
+function renderKpis(){
+  const d=DATA.live; const n=d.normal, o=d.night, h=d.headcount;
+  const normalEff=h.normal>0?n.normal/h.normal/8:null;
+  const otHours=3, otEff=h.ot>0?o.overtime/h.ot/otHours:null;
+  const rate=normalEff&&otEff?otEff/normalEff*100:null;
+  document.getElementById("k1").innerHTML=(normalEff==null?"—":normalEff.toFixed(1))+"<small>件/人·时</small>";
+  document.getElementById("k2").innerHTML=(otEff==null?"—":otEff.toFixed(1))+"<small>件/人·时</small>";
+  document.getElementById("k3").innerHTML=(rate==null?"—":rate.toFixed(1))+"<small>%</small>";
+  document.getElementById("k4").innerHTML=(h.normal+h.ot).toLocaleString()+"<small>人</small>";
+  document.getElementById("k1m").textContent=fmt(n.normal)+" 件 ÷ "+h.normal+" 人 ÷ 8h";
+  document.getElementById("k2m").textContent=fmt(o.overtime)+" 件 ÷ "+h.ot+" 人 ÷ "+otHours+"h";
+  document.getElementById("k3m").textContent="加班效率 ÷ 正常效率";
+  document.getElementById("k4m").textContent="正常 "+h.normal+" / 加班 "+h.ot;
+  const diff=rate==null?null:rate-100;
+  const chip=document.getElementById("diff"); chip.className="chip "+(diff==null?"flat":diff>=0?"good":diff>=-15?"warn":"bad");
+  chip.textContent=diff==null?"—":(diff>0?"+":"")+diff.toFixed(0)+"%";
+  document.getElementById("vsN").innerHTML=fmt(n.normal)+"<small>件</small>";
+  document.getElementById("vsO").innerHTML=fmt(o.overtime)+"<small>件</small>";
+  document.getElementById("vsNs").textContent="计划 "+fmt(n.plan)+" · 达成 "+pct(n.attainment);
+  document.getElementById("vsOs").textContent="计划 "+fmt(o.plan)+" · 用时 3.0h";
+}
+function renderSettlement(){
+  const s=DATA.settlement;
+  const set=(id,v)=>document.getElementById(id).textContent=v;
+  set("dayTotal",fmt(s.day.metric.total)); set("dayNormal",fmt(s.day.metric.normal)); set("dayOt",fmt(s.day.metric.overtime)); set("dayPlan",fmt(s.day.metric.plan));
+  set("nightTotal",fmt(s.night.metric.total)); set("nightNormal",fmt(s.night.metric.normal)); set("nightOt",fmt(s.night.metric.overtime)); set("nightPlan",fmt(s.night.metric.plan));
+  const dw=s.day.metric.attainment||0, nw=s.night.metric.attainment||0;
+  document.getElementById("dayFill").style.width=Math.min(100,dw)+"%";
+  document.getElementById("nightFill").style.width=Math.min(100,nw)+"%";
+  document.getElementById("dayFill").style.background=dw>=90?"var(--green)":dw>=80?"var(--orange)":"var(--red)";
+  document.getElementById("nightFill").style.background=nw>=90?"var(--green)":nw>=80?"var(--orange)":"var(--red)";
+  const dp=document.getElementById("dayPc"), np=document.getElementById("nightPc");
+  dp.textContent=pct(dw); np.textContent=pct(nw);
+  dp.className="pc "+(dw>=90?"good":dw>=80?"warn":"bad"); np.className="pc "+(nw>=90?"good":nw>=80?"warn":"bad");
+  const list=document.getElementById("wsList");
+  list.innerHTML=WS.map(ws=>{
+    const d=s.day.workshops[ws]||{}, n=s.night.workshops[ws]||{};
+    const missing=s.day.status==="missing";
+    const bar=(m,cls,isMissing)=>{
+      if(isMissing)return '<div class="wsbar missing"><div class="barhead"><span>'+cls+'</span><span>缺档</span></div><div class="track"></div><div class="cap"><span>—</span><span>—</span></div></div>';
+      const max=Math.max(m.plan||0,m.total||0,1);
+      const w=(Number(m.total)||0)/max*100, p=Math.min(100,(Number(m.plan)||0)/max*100);
+      const normalW=Math.max(0,Math.min(w,(Number(m.normal)||0)/max*100));
+      const otW=Math.max(0,w-normalW);
+      return '<div class="wsbar"><div class="barhead"><span>'+cls+'</span><span>'+pct(m.attainment)+'</span></div><div class="track"><div class="fill" style="width:'+w+'%"><div class="normal" style="width:'+(w?normalW/w*100:0)+'%"></div><div class="ot" style="width:'+(w?otW/w*100:0)+'%"></div></div>'+(p?'<div class="plan" style="left:'+p+'%"></div>':'')+'</div><div class="cap"><span>'+fmt(m.total)+'</span><span>计划 '+fmt(m.plan)+'</span></div></div>';
+    };
+    return '<div class="wsrow"><span class="nm">'+ws+'</span>'+bar(d,"白班",s.day.status==="missing")+bar(n,"夜班",s.night.status==="missing")+'</div>';
+  }).join("");
+}
+function renderHealth(){
+  const el=document.getElementById("health");
+  el.innerHTML=DATA.health.map(h=>{
+    const d=h.day.status,n=h.night.status;
+    const st=d==="missing"||n==="missing"?(d==="invalid"||n==="invalid"?"invalid":"missing"):(d==="partial"||n==="partial"?"partial":"complete");
+    const issues=[].concat(h.day.issues||[],h.night.issues||[]).map(i=>i.code).join(",");
+    return '<span class="hcell '+st+'" tabindex="0" role="listitem" title="'+h.date+' · 白班 '+d+' · 夜班 '+n+(issues?' · '+issues:'')+'" aria-label="'+h.date+' 白班 '+d+' 夜班 '+n+(issues?' '+issues:'')+'"></span>';
+  }).join("");
+}
+function drawTrend(card,ws){
+  const series=DATA.trend.map(day=>({date:day.date,status:day.status,m:day.workshops[ws]||{}}));
+  const canvas=card.querySelector("canvas"), dpr=window.devicePixelRatio||1;
+  const w=canvas.clientWidth||280,h=canvas.clientHeight||132;
+  canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+  const ctx=canvas.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  const padL=30,padR=6,padT=14,padB=18;
+  const innerW=w-padL-padR, innerH=h-padT-padB;
+  const max=Math.max(1,...series.map(x=>Math.max(x.status==="missing"?0:(x.m.total||0),x.status==="missing"?0:(x.m.plan||0))));
+  const slot=innerW/series.length, barW=Math.max(7,Math.min(18,slot*0.58));
+  const y=v=>padT+innerH-(v/max)*innerH;
+  ctx.font="10px 'Segoe UI',sans-serif"; ctx.fillStyle="#71717a"; ctx.textAlign="right";
+  [0,max/2,max].forEach(v=>{const yy=y(v);ctx.strokeStyle="rgba(255,255,255,.05)";ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(w-padR,yy);ctx.stroke();ctx.fillText(v>=1000?(v/1000).toFixed(0)+"k":Math.round(v),padL-4,yy+3)});
+  series.forEach((x,i)=>{
+    const cx=padL+i*slot+slot/2;
+    if(x.status==="missing"){
+      ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle="rgba(255,255,255,.22)";ctx.beginPath();ctx.moveTo(cx,padT);ctx.lineTo(cx,padT+innerH);ctx.stroke();ctx.restore();
+      ctx.fillStyle="#71717a";ctx.textAlign="center";ctx.fillText("×",cx,padT+innerH-3);
+      return;
+    }
+    const m=x.m, total=Number(m.total)||0, plan=Number(m.plan)||0, normal=Number(m.normal)||0, ot=Number(m.overtime)||0;
+    const bw=barW, bx=cx-bw/2, top=y(total), bottom=y(0);
+    const nh=Math.max(0,(normal/max)*innerH), oh=Math.max(0,(ot/max)*innerH);
+    if(nh>0){ctx.fillStyle="#3b82f6";ctx.fillRect(bx,bottom-nh,bw,nh)}
+    if(oh>0){ctx.fillStyle="#eab308";ctx.fillRect(bx,bottom-nh-oh,bw,oh)}
+    if(plan>0){const py=y(plan);ctx.strokeStyle="#f59e0b";ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(bx-3,py);ctx.lineTo(bx+bw+3,py);ctx.stroke();ctx.setLineDash([])}
+    const a=m.attainment, color=a==null?"#52525b":a>=90?"#10b981":a>=80?"#f59e0b":"#ef4444";
+    ctx.fillStyle=color;ctx.fillRect(bx,bottom+2,bw,3);
+    if(i%3===0){ctx.fillStyle="#71717a";ctx.font="9.5px 'Segoe UI',sans-serif";ctx.textAlign="center";ctx.fillText(x.date.slice(5),cx,h-4)}
+  });
+  const last=series.filter(x=>x.status!=="missing").slice(-1)[0];
+  const chip=card.querySelector(".tchip");
+  const a=last?last.m.attainment:null;
+  chip.textContent=pct(a); chip.className="tchip "+tone(a);
+  chip.style.color=a==null?"#a1a1aa":a>=90?"#34d399":a>=80?"#fbbf24":"#f87171";
+  chip.style.borderColor=a==null?"rgba(255,255,255,.12)":a>=90?"rgba(16,185,129,.45)":a>=80?"rgba(245,158,11,.45)":"rgba(239,68,68,.45)";
+  chip.style.background=a==null?"rgba(255,255,255,.04)":a>=90?"rgba(16,185,129,.1)":a>=80?"rgba(245,158,11,.1)":"rgba(239,68,68,.1)";
+  canvas.setAttribute("aria-label",ws+" 近14日产出趋势，最近有数据日 "+last.date+" 达成 "+pct(a));
+}
+function renderTrends(){
+  const grid=document.getElementById("trendGrid");
+  grid.innerHTML=WS.map(ws=>'<div class="tcard"><div class="th"><span class="tn">'+ws+'</span><span class="tchip">—</span></div><canvas role="img" tabindex="0"></canvas><div class="tf"><span>正常+加班</span><span>虚线=计划</span></div></div>').join("");
+  grid.querySelectorAll(".tcard").forEach((card,i)=>drawTrend(card,WS[i]));
+}
+renderKpis();renderSettlement();renderHealth();renderTrends();
+window.addEventListener("resize",()=>renderTrends());
+</script>
+</body>
+</html>
