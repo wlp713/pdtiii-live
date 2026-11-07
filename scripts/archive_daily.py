@@ -24,6 +24,7 @@ from pathlib import Path
 
 from history_analytics import (
     EXPECTED_LINES,
+    canonical_line,
     detect_old_format,
     hour_to_minute,
     production_date_for_shift,
@@ -304,6 +305,8 @@ def rebuild_daily_artifact(history_dir: Path, production_date: str) -> bool:
     night_document = read_json(night_path)
     if not day_document or not night_document:
         return False
+    if _document_status(day_document) == "missing" or _document_status(night_document) == "missing":
+        return False
     summary = summarize_shift_archives(day_document, night_document, production_date)
     artifact = {
         "schemaVersion": 2,
@@ -370,12 +373,511 @@ def current_shift_documents(source: dict, now: datetime, requested: str = "auto"
     return out
 
 
+# ---------------------------------------------------------------------------
+# 2026-11-08 archive hardening
+#
+# The data-driven rewrite in September removed the fragile capture window but
+# still had three holes:
+#   * ``main`` only wrote snapshots whose status was exactly ``complete``; a
+#     single idle line therefore made every day shift ``comparable`` and the
+#     whole day was skipped forever;
+#   * the rolling source only keeps a production day's buckets until midnight,
+#     so a day shift missed before 00:00 can only be reconstructed from an
+#     already archived snapshot that was captured after 20:20;
+#   * a late run could stamp a previous day's buckets with ``now.date()``.
+#
+# The functions below replace that path. They are deliberately independent of
+# the legacy helpers above, which are kept for backward compatibility and the
+# existing unit tests.
+# ---------------------------------------------------------------------------
+
+HEAL_WINDOW_DAYS = 30
+COMPARABLE_MIN = 34
+ALERT_WINDOW_HOURS = 6
+
+SHIFT_START = {"day": 8 * 60, "night": 20 * 60 + 30}
+SHIFT_END = {"day": 20 * 60 + 20, "night": 7 * 60 + 50}
+SHIFT_END_CLOCK = {"day": (20, 20), "night": (7, 50)}
+SHIFT_DURATION = {"day": 740, "night": 690}
+
+# MES 合并/改名后的旧线体：旧名缺失时不再阻塞归档完整性。
+RETIRED_LINES = {
+    "Motor CL": ("Motor FL CL", "Motor FL"),
+    "Motor AC": ("Motor FL",),
+}
+
+
+def _number(value):
+    try:
+        number = float(value)
+        return number if number == number else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _point_list(value):
+    if isinstance(value, list):
+        return [point for point in value if isinstance(point, dict)]
+    if isinstance(value, dict):
+        try:
+            return [point for _, point in sorted(value.items(), key=lambda pair: int(pair[0])) if isinstance(point, dict)]
+        except (TypeError, ValueError):
+            return [point for point in value.values() if isinstance(point, dict)]
+    return []
+
+
+def _point_minute(point, old_format):
+    return hour_to_minute(point.get("h"), old_format)
+
+
+def _in_shift_minute(minute, shift):
+    if shift == "day":
+        return SHIFT_START["day"] <= minute <= SHIFT_END["day"]
+    return minute >= SHIFT_START["night"] or minute <= SHIFT_END["night"]
+
+
+def _sanitize_filtered_start(points, shift):
+    """Clear a start bucket that still carries the previous shift's total."""
+    start = SHIFT_START[shift]
+    duration = SHIFT_DURATION[shift]
+    timed = []
+    for point in points:
+        minute = _point_minute(point, False)
+        if minute is not None:
+            timed.append((minute, point))
+    timed.sort(key=lambda item: item[0])
+    for index, (minute, point) in enumerate(timed):
+        if minute != start:
+            continue
+        value = _number(point.get("actual"))
+        if value <= 0:
+            continue
+        later = []
+        for later_minute, later_point in timed[index + 1:]:
+            if later_minute - start > duration:
+                break
+            later.append(_number(later_point.get("actual")))
+        if later and min(later) < value - max(5.0, value * 0.005):
+            point["actual"] = 0
+            point["plan"] = 0
+            point["sanitized"] = "shiftStartCarryover"
+            return True
+    return False
+
+
+def select_shift_hourly(hourly, shift, production_date, declared_format=None):
+    """Keep only the buckets that belong to one shift of one production date.
+
+    Buckets are filtered by both time-of-day and their ``d`` field. This is
+    what prevents night first-half buckets frozen at ``2026-09-11`` from
+    leaking into a current archive, and what prevents a late run from mixing
+    yesterday's day shift into today's file.
+    """
+    selected = {}
+    dropped_dates = set()
+    sanitized = 0
+    for raw_name, value in (hourly or {}).items():
+        points = _point_list(value)
+        old_format = detect_old_format(points, declared_format)
+        keep = []
+        for point in points:
+            minute = _point_minute(point, old_format)
+            if minute is None or not _in_shift_minute(minute, shift):
+                continue
+            bucket_date = str(point.get("d") or "")[:10]
+            if bucket_date and bucket_date != production_date:
+                dropped_dates.add(bucket_date)
+                continue
+            keep.append(point)
+        keep.sort(key=lambda point: _point_minute(point, False) or 0)
+        if keep:
+            if _sanitize_filtered_start(keep, shift):
+                sanitized += 1
+            selected[raw_name] = keep
+    return selected, sorted(dropped_dates), sanitized
+
+
+def _effective_expected_lines(lines):
+    expected = EXPECTED_LINES
+    for line, aliases in RETIRED_LINES.items():
+        if line not in lines and any(alias in lines for alias in aliases):
+            expected -= 1
+    return expected
+
+
+def assess_shift_hourly(hourly, shift, production_date, source_updated_at,
+                        dropped_dates=None, sanitized=0):
+    """Grade one already-filtered shift snapshot.
+
+    ``complete`` means every configured line is present and the source reached
+    the shift boundary. ``partial`` means the snapshot is still usable but has
+    a blocking data-quality issue. ``missing`` means no usable data at all.
+    ``eligible`` tells the caller whether the data is reliable enough to write.
+    """
+    summary = summarize_snapshot({
+        "date": production_date,
+        "updatedAt": source_updated_at,
+        "hourlyFormat": "HHMM",
+        "hourly": hourly,
+    })
+    lines = summary.get("lines") or {}
+    mapped = len(lines)
+    last_key = "lastDayMinute" if shift == "day" else "lastNightMinute"
+    metric_key = shift
+    end = SHIFT_END[shift]
+    start = SHIFT_START[shift]
+    end_lines = 0
+    idle_lines = 0
+    early_lines = 0
+    total_actual = 0.0
+    total_plan = 0.0
+    for name, item in lines.items():
+        metric = item.get(metric_key) or {}
+        total_actual += _number(metric.get("total"))
+        total_plan += _number(metric.get("plan"))
+        last = item.get(last_key)
+        if last is not None and last >= end - 10:
+            end_lines += 1
+        elif last is not None:
+            if _number(metric.get("total")) <= 0:
+                idle_lines += 1
+            else:
+                early_lines += 1
+
+    canonical_points = {}
+    for raw_name, points in (hourly or {}).items():
+        canonical = canonical_line(raw_name)
+        if not canonical:
+            continue
+        if canonical not in canonical_points or len(points) > len(canonical_points[canonical]):
+            canonical_points[canonical] = points
+    regressed = []
+    for name, points in canonical_points.items():
+        previous = None
+        for point in sorted(points, key=lambda item: _point_minute(item, False) or 0):
+            value = _number(point.get("actual"))
+            if previous is not None and value < previous - max(5.0, previous * 0.005):
+                regressed.append(name)
+                break
+            previous = value
+
+    expected = _effective_expected_lines(lines)
+    threshold = min(COMPARABLE_MIN, max(3, mapped - 2)) if mapped else 1
+    boundary_reached = end_lines >= threshold
+    covered = mapped if boundary_reached else end_lines
+    issues = []
+    blocking = False
+
+    if not mapped:
+        status = "missing"
+    else:
+        if not boundary_reached:
+            issues.append({"code": "shiftEndNotReached", "severity": "blocking",
+                           "detail": f"只有 {end_lines}/{mapped} 条线到达班次末桶"})
+            blocking = True
+        if mapped < expected:
+            issues.append({"code": "lineCoverage", "severity": "blocking",
+                           "detail": f"线体 {mapped}/{expected}"})
+            blocking = True
+        if total_plan <= 0 and total_actual <= 0:
+            issues.append({"code": "noPlanOrOutput", "severity": "blocking",
+                           "detail": "班次计划与实际均为 0，无法区分停产与缺数据"})
+            blocking = True
+        elif total_actual <= 0:
+            issues.append({"code": "allActualZero", "severity": "blocking",
+                           "detail": "全部线体实际产出为 0，可能是停线或数据被清零"})
+            blocking = True
+        if regressed:
+            issues.append({"code": "actualRegression", "severity": "blocking",
+                           "detail": "累计实际回落: " + ", ".join(sorted(regressed)[:5])})
+            blocking = True
+        if dropped_dates:
+            issues.append({"code": "bucketDateMismatch", "severity": "warning",
+                           "detail": "已排除非本班次日桶: " + ", ".join(dropped_dates)})
+        if sanitized:
+            issues.append({"code": "startCarryover", "severity": "warning",
+                           "detail": f"{sanitized} 条线起点桶已清零"})
+        if idle_lines:
+            issues.append({"code": "idleLines", "severity": "warning",
+                           "detail": f"{idle_lines} 条线本班无产出（停线/未排产）"})
+        if early_lines:
+            issues.append({"code": "earlyStoppedLines", "severity": "warning",
+                           "detail": f"{early_lines} 条线未到班次末桶但已有产出"})
+        status = "partial" if blocking else "complete"
+
+    return {
+        "mappedLines": mapped,
+        "expectedLines": EXPECTED_LINES,
+        "effectiveExpectedLines": expected,
+        "coveredLines": covered,
+        "shiftEndLines": end_lines,
+        "idleLines": idle_lines,
+        "earlyStoppedLines": early_lines,
+        "status": status,
+        "issues": issues,
+        "droppedBucketDates": dropped_dates or [],
+        "sanitizedBuckets": sanitized,
+        "eligible": bool(boundary_reached and mapped >= COMPARABLE_MIN and total_plan > 0),
+    }
+
+
+def make_shift_document_v2(source, shift, production_date, source_label,
+                           captured_at, source_updated_at=None):
+    """Build a filtered, graded shift document from one source snapshot."""
+    hourly = normalize_hourly(source.get("hourly"))
+    declared = source.get("hourlyFormat") or infer_hourly_format(hourly)
+    selected, dropped, sanitized = select_shift_hourly(hourly, shift, production_date, declared)
+    updated_at = source_updated_at or source.get("updatedAt")
+    quality = assess_shift_hourly(selected, shift, production_date, updated_at, dropped, sanitized)
+    return {
+        "schemaVersion": 2,
+        "productionDate": production_date,
+        "shift": shift,
+        "capturedAt": captured_at,
+        "sourceUpdatedAt": updated_at,
+        "sourceDate": source_date(source) if source.get("updatedAt") else (str(updated_at)[:10] if updated_at else None),
+        "source": source_label,
+        "hourlyFormat": "HHMM",
+        "hourly": selected,
+        "quality": quality,
+    }
+
+
+def discover_source_shifts(source, now=None, max_age_minutes=None):
+    """Return every completed shift that one source snapshot can prove.
+
+    A snapshot captured after 20:20 contains the day shift of its source date;
+    a snapshot captured after 07:50 contains the night shift that started on
+    the previous production date. No ``now.date()`` is used for attribution.
+    """
+    source_dt = source_datetime(source) if source.get("updatedAt") else None
+    if source_dt is None:
+        updated = str(source.get("updatedAt") or "")
+        try:
+            source_dt = datetime.strptime(updated[:19], "%Y-%m-%d %H:%M:%S").replace(tzinfo=BKK)
+        except ValueError:
+            return []
+    if max_age_minutes is not None and now is not None:
+        if (now - source_dt).total_seconds() > max_age_minutes * 60:
+            return []
+    source_day = source_dt.date().isoformat()
+    minutes = source_dt.hour * 60 + source_dt.minute
+    out = []
+    if minutes >= SHIFT_END["day"]:
+        document = make_shift_document_v2(
+            source, "day", source_day, "Firebase rolling buffer"
+            if source.get("updatedAt") else "archive snapshot",
+            captured_at=source_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        )
+        if document["quality"]["mappedLines"]:
+            out.append(document)
+    if minutes >= SHIFT_END["night"]:
+        night_date = (source_dt.date() - timedelta(days=1)).isoformat()
+        document = make_shift_document_v2(
+            source, "night", night_date, "Firebase rolling buffer"
+            if source.get("updatedAt") else "archive snapshot",
+            captured_at=source_dt.strftime("%Y-%m-%d %H:%M:%S"),
+        )
+        if document["quality"]["mappedLines"]:
+            out.append(document)
+    return out
+
+
+def _document_status(document):
+    if not document:
+        return "missing"
+    quality = document.get("quality") or {}
+    return str(document.get("status") or quality.get("status") or "partial")
+
+
+def _rank(document):
+    return {"complete": 3, "partial": 2, "missing": 1}.get(_document_status(document), 0)
+
+
+def load_shift_documents(history_dir):
+    documents = {}
+    shifts_dir = Path(history_dir) / "shifts"
+    if not shifts_dir.exists():
+        return documents
+    for path in sorted(shifts_dir.glob("????-??-??-*.json")):
+        document = read_json(path)
+        if not isinstance(document, dict):
+            continue
+        file_date = path.name[:10]
+        shift = path.name[11:-5]
+        if shift not in ("day", "night"):
+            continue
+        document["_filenameDate"] = file_date
+        documents[(file_date, shift)] = document
+    return documents
+
+
+def _filename_mismatch(document):
+    return bool(document and document.get("productionDate")
+                and str(document.get("productionDate")) != str(document.get("_filenameDate")))
+
+
+def missing_shift_document(production_date, shift, detected_at, reason):
+    return {
+        "schemaVersion": 2,
+        "productionDate": production_date,
+        "shift": shift,
+        "capturedAt": detected_at,
+        "detectedAt": detected_at,
+        "source": "archive self-heal",
+        "status": "missing",
+        "hourlyFormat": "HHMM",
+        "hourly": {},
+        "quality": {
+            "mappedLines": 0,
+            "expectedLines": EXPECTED_LINES,
+            "effectiveExpectedLines": EXPECTED_LINES,
+            "coveredLines": 0,
+            "shiftEndLines": 0,
+            "status": "missing",
+            "issues": [{"code": "sourceWindowExpired", "severity": "blocking", "detail": reason}],
+            "droppedBucketDates": [],
+            "sanitizedBuckets": 0,
+        },
+    }
+
+
+def _write_shift(history_dir, document, dry_run=False):
+    production_date = document["productionDate"]
+    shift = document["shift"]
+    path = Path(history_dir) / "shifts" / f"{production_date}-{shift}.json"
+    if path.exists():
+        current = read_json(path)
+        if current and _document_status(current) != "missing":
+            return "immutable"
+    if not dry_run:
+        atomic_write(path, document)
+        rebuild_daily_artifact(Path(history_dir), production_date)
+    return "written"
+
+
+def heal_history(history_dir, source, now, requested="auto", window_days=HEAL_WINDOW_DAYS, dry_run=False):
+    """Capture the live payable shifts, recover recent gaps, mark the rest.
+
+    Existing complete/partial snapshots are immutable. A ``missing`` placeholder
+    may be replaced later if a recoverable source appears. A placeholder is
+    only created when the other shift of the same production date already
+    exists, so a holiday with no production at all does not manufacture a gap.
+    """
+    history_dir = Path(history_dir)
+    existing = load_shift_documents(history_dir)
+    captured_at = now.strftime("%Y-%m-%d %H:%M:%S")
+    candidates = {}
+
+    def add(document, recovered_from=None):
+        if recovered_from:
+            document = dict(document)
+            document["recoveredFrom"] = recovered_from
+            document["source"] = "archive snapshot recovery"
+        key = (document["productionDate"], document["shift"])
+        candidates.setdefault(key, []).append(document)
+
+    for document in discover_source_shifts(source, now=now, max_age_minutes=180):
+        add(document)
+
+    for (file_date, shift), document in existing.items():
+        if _document_status(document) == "missing" or _filename_mismatch(document):
+            continue
+        pseudo = {
+            "updatedAt": document.get("sourceUpdatedAt") or document.get("capturedAt"),
+            "hourlyFormat": document.get("hourlyFormat"),
+            "hourly": document.get("hourly"),
+        }
+        for recovered in discover_source_shifts(pseudo):
+            add(recovered, f"shifts/{file_date}-{shift}.json")
+
+    cutoff = (now.date() - timedelta(days=window_days)).isoformat()
+    target_dates = sorted({
+        production_date for production_date, _ in existing
+        if production_date >= cutoff
+    } | {
+        production_date for production_date, _ in candidates
+        if production_date >= cutoff
+    })
+
+    report = {"written": [], "immutable": [], "missing": [], "skipped": []}
+    for production_date in target_dates:
+        for shift in ("day", "night"):
+            if requested not in ("auto", shift):
+                continue
+            key = (production_date, shift)
+            current = existing.get(key)
+            if current and _document_status(current) != "missing" and not _filename_mismatch(current):
+                report["immutable"].append(f"{production_date}-{shift}")
+                continue
+            best = sorted(candidates.get(key) or [], key=lambda doc: (_rank(doc), doc["quality"].get("mappedLines", 0)))[-1:] or [None]
+            best = best[0]
+            if best and best["quality"].get("eligible") and best["quality"].get("status") != "missing":
+                result = _write_shift(history_dir, best, dry_run=dry_run)
+                if result == "written":
+                    existing[key] = best
+                report["written" if result == "written" else "immutable"].append(f"{production_date}-{shift}")
+                continue
+            other = "night" if shift == "day" else "day"
+            counterpart = existing.get((production_date, other))
+            if counterpart and (_document_status(counterpart) != "missing" or _filename_mismatch(counterpart)):
+                reason = "Firebase 滚动缓冲已过期，未能重建该班次"
+                if current and _filename_mismatch(current):
+                    reason = "现有快照的 productionDate 与文件名不一致，已隔离"
+                elif best:
+                    codes = [item.get("code") for item in best["quality"].get("issues") or []]
+                    reason = "可重建数据质量不足: " + ", ".join(codes)
+                if current is not None:
+                    # Missing placeholders and invalid files are immutable too:
+                    # repeated runs must not churn their timestamps.
+                    report["missing" if _document_status(current) == "missing" else "skipped"].append(
+                        f"{production_date}-{shift}")
+                    continue
+                if not dry_run:
+                    atomic_write(history_dir / "shifts" / f"{production_date}-{shift}.json",
+                                 missing_shift_document(production_date, shift, captured_at, reason))
+                report["missing"].append(f"{production_date}-{shift}")
+            else:
+                report["skipped"].append(f"{production_date}-{shift}")
+    return report
+
+
+def unresolved_current_shift(history_dir, now, window_hours=ALERT_WINDOW_HOURS):
+    """Return the just-ended shifts that have no valid archive file.
+
+    Only the most recent day/night boundary is checked and only while it is
+    still fresh, so an unrepairable historical gap does not keep the workflow
+    red forever. This is the signal the workflow should fail on.
+    """
+    documents = load_shift_documents(history_dir)
+    checks = []
+    day_end = now.replace(hour=SHIFT_END_CLOCK["day"][0], minute=SHIFT_END_CLOCK["day"][1], second=0, microsecond=0)
+    if day_end > now:
+        day_end -= timedelta(days=1)
+    checks.append(("day", day_end.date().isoformat(), day_end))
+    night_end = now.replace(hour=SHIFT_END_CLOCK["night"][0], minute=SHIFT_END_CLOCK["night"][1], second=0, microsecond=0)
+    if night_end > now:
+        night_end -= timedelta(days=1)
+    checks.append(("night", (night_end.date() - timedelta(days=1)).isoformat(), night_end))
+    unresolved = []
+    for shift, production_date, ended_at in checks:
+        if (now - ended_at).total_seconds() > window_hours * 3600:
+            continue
+        document = documents.get((production_date, shift))
+        if _document_status(document) == "missing" or (_filename_mismatch(document)):
+            unresolved.append(f"{production_date}-{shift}")
+    return unresolved
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Capture PDTIII production-shift archives (data-driven)")
+    parser = argparse.ArgumentParser(description="Capture and self-heal PDTIII production-shift archives")
     parser.add_argument("--shift", choices=("auto", "day", "night"), default="auto")
+    parser.add_argument("--window-days", type=int, default=HEAL_WINDOW_DAYS)
+    parser.add_argument("--history-dir", default=None)
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent.parent
-    history_dir = root / "history"
+    history_dir = Path(args.history_dir).resolve() if args.history_dir else root / "history"
     now = datetime.now(BKK)
 
     try:
@@ -385,32 +887,38 @@ def main() -> int:
         return 1
 
     source = merge_extra_source(source)
-    captures = current_shift_documents(source, now, requested=args.shift)
-    if not captures:
-        print(f"NO COMPLETE SHIFT now={now.isoformat()} updatedAt={source.get('updatedAt')}")
-        return 0
-
-    for production_date, shift, document in captures:
-        if document["quality"]["status"] != "complete":
-            print(
-                f"SKIP {shift} {production_date} status={document['quality']['status']}",
-                file=sys.stderr,
-            )
-            continue
-        shift_path = history_dir / "shifts" / f"{production_date}-{shift}.json"
-        atomic_write(shift_path, document)
-        rebuild_daily_artifact(history_dir, production_date)
-        print(f"CAPTURED shift={shift} productionDate={production_date} file={shift_path.as_posix()}")
-
-    analytics = write_analytics(history_dir)
-    rebuild_index(history_dir, analytics)
-    print(
-        f"DONE days={analytics['quality']['archivedDays']} "
-        f"usableDay={analytics['quality']['usableDayDays']} "
-        f"usableNight={analytics['quality']['usableNightDays']}"
+    report = heal_history(
+        history_dir, source, now,
+        requested=args.shift,
+        window_days=max(1, args.window_days),
+        dry_run=args.dry_run,
     )
+    print(
+        "HEAL "
+        f"written={len(report['written'])} missing={len(report['missing'])} "
+        f"immutable={len(report['immutable'])} skipped={len(report['skipped'])}"
+    )
+    if report["written"]:
+        print("WRITTEN " + " ".join(report["written"]))
+    if report["missing"]:
+        print("MISSING " + " ".join(report["missing"]))
+
+    if not args.dry_run:
+        analytics = write_analytics(history_dir)
+        rebuild_index(history_dir, analytics)
+        print(
+            f"DONE days={analytics['quality']['archivedDays']} "
+            f"usableDay={analytics['quality']['usableDayDays']} "
+            f"usableNight={analytics['quality']['usableNightDays']}"
+        )
+
+    unresolved = unresolved_current_shift(history_dir, now)
+    if unresolved:
+        print("ALERT shift ended but archive is missing: " + ", ".join(unresolved), file=sys.stderr)
+        return 2
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

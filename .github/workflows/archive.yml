@@ -1,20 +1,17 @@
 name: daily-archive
 
 # 纯云端班次边界归档: 不依赖任何开发机/数据端开机
-# 白班在泰国 20:20–20:29 归档，夜班在次日 07:50–07:59 归档。
-# 两个不可变班次记录齐全后，才物化对应生产日，避免跨日和延迟任务串档。
+# 数据驱动：脚本从滚动 hourly 缓冲判断班次是否完成，不再依赖 10 分钟窗口。
+# 2026-11-08 加固：自愈补档、缺档占位、质量分级、推送重试、缺档告警。
 on:
-  # 数据驱动归档：脚本按当前源数据的完整性决定归档哪班，不再依赖窄窗口。
-  # GitHub Actions 的 schedule 调度在实际时钟上不可靠（实测曾偏离数小时），
-  # 因此改为每 30 分钟触发一次，确保白班(20:20后)和夜班(次日07:50后)完成时
-  # 有一次运行能落在其后，自愈补档。频繁只读 Firebase + 仅在新完整班次出现时
-  # 才写文件，成本可忽略。
   schedule:
-    - cron: "*/30 * * * *"
+    # 错开整点高峰。GitHub Actions 的 cron 仍可能被延迟数小时，脚本按数据
+    # 完整性判断班次，不依赖运行时刻；这里只降低整点被丢弃的概率。
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       shift:
-        description: "归档班次；auto 自动归档当前已完成的班次，day/night 强制指定"
+        description: "归档班次；auto 自动扫描，day/night 只处理指定班次"
         required: true
         default: auto
         type: choice
@@ -33,7 +30,7 @@ concurrency:
 jobs:
   archive:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,21 +38,39 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Run shift-boundary archive
+      - name: Capture and self-heal shift archives
+        id: archive
+        continue-on-error: true
         run: python3 scripts/archive_daily.py --shift "${{ inputs.shift || 'auto' }}"
       - name: Validate history analytics
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Rebuild analytics index
         run: python3 scripts/history_analytics.py
-      - name: Commit & push
+      - name: Commit & push with retry
+        if: success() || steps.archive.outcome == 'failure'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add history/
           if git diff --cached --quiet; then
             echo "no change, skip push"
-          else
-            git commit -m "archive: 班次边界快照 $(TZ=Asia/Bangkok date +%F)"
-            git pull --rebase origin main
-            git push origin main
+            exit 0
           fi
+          git commit -m "archive: 班次边界快照/缺档占位 $(TZ=Asia/Bangkok date +%F)"
+          for attempt in 1 2 3; do
+            git fetch origin main || true
+            git pull --rebase --autostash origin main || true
+            if git push origin main; then
+              echo "pushed on attempt ${attempt}"
+              exit 0
+            fi
+            echo "push failed on attempt ${attempt}; retrying"
+            sleep $((attempt * 5))
+          done
+          echo "push failed after 3 attempts" >&2
+          exit 1
+      - name: Fail when a shift ended without a usable archive
+        if: steps.archive.outcome == 'failure'
+        run: |
+          echo "archive self-heal reported a missing just-ended shift; see the archive step log" >&2
+          exit 1

@@ -108,6 +108,14 @@ def _number(value: object) -> float:
         return 0.0
 
 
+def document_status(document: dict | None) -> str:
+    """Return the archive status stored on a v2 shift snapshot."""
+    if not document:
+        return "missing"
+    quality = document.get("quality") or {}
+    return str(document.get("status") or quality.get("status") or "partial")
+
+
 def aggregate_line(points: list[dict], declared_format: str | None = None) -> dict:
     old_format = detect_old_format(points, declared_format)
     normalized = []
@@ -439,34 +447,100 @@ def summarize_snapshot(document: dict) -> dict:
     }
 
 
+def build_health(shift_archives: dict, invalid_documents: dict, generated_at: str, window: int = 30) -> dict:
+    """Summarize the last N production dates for the archive health strip."""
+    dates = sorted(
+        set(shift_archives)
+        | {date for date, _ in invalid_documents}
+    )[-window:]
+    entries = []
+    summary = {"complete": 0, "partial": 0, "missing": 0, "invalid": 0}
+    for date in dates:
+        record = {}
+        for shift in ("day", "night"):
+            invalid = invalid_documents.get((date, shift))
+            document = (shift_archives.get(date) or {}).get(shift)
+            if invalid:
+                status = "invalid"
+                issues = [{
+                    "code": "productionDateMismatch",
+                    "severity": "blocking",
+                    "detail": f"文件日期 {date} 与快照 productionDate {invalid.get('productionDate')} 不一致",
+                }]
+                item = {"status": status, "issues": issues,
+                        "capturedAt": invalid.get("capturedAt"),
+                        "sourceUpdatedAt": invalid.get("sourceUpdatedAt")}
+            elif document:
+                status = document_status(document)
+                quality = document.get("quality") or {}
+                item = {
+                    "status": status,
+                    "capturedAt": document.get("capturedAt"),
+                    "sourceUpdatedAt": document.get("sourceUpdatedAt"),
+                    "issues": quality.get("issues") or [],
+                }
+            else:
+                status = "missing"
+                item = {"status": status, "issues": [{
+                    "code": "noArchiveFile",
+                    "severity": "blocking",
+                    "detail": "没有该班次的归档文件",
+                }]}
+            summary[status] = summary.get(status, 0) + 1
+            record[shift] = item
+        entries.append({"date": date, "day": record["day"], "night": record["night"]})
+    return {
+        "generatedAt": generated_at,
+        "windowDays": window,
+        "days": entries,
+        "summary": summary,
+    }
+
+
 def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
+    generated_at = generated_at or datetime.now(BKK).strftime("%Y-%m-%d %H:%M:%S")
     days = []
     shift_archives = {}
+    invalid_documents = {}
     shifts_dir = history_dir / "shifts"
     if shifts_dir.exists():
-        for path in sorted(shifts_dir.glob("????-??-??-day.json")):
-            try:
-                with path.open("r", encoding="utf-8") as handle:
-                    document = json.load(handle)
-                production_date = str(document.get("productionDate") or path.name[:10])
-                shift_archives.setdefault(production_date, {})["day"] = document
-            except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
-                print(f"ANALYTICS SKIP {path.name}: {error}")
-        for path in sorted(shifts_dir.glob("????-??-??-night.json")):
-            try:
-                with path.open("r", encoding="utf-8") as handle:
-                    document = json.load(handle)
-                production_date = str(document.get("productionDate") or path.name[:10])
-                shift_archives.setdefault(production_date, {})["night"] = document
-            except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
-                print(f"ANALYTICS SKIP {path.name}: {error}")
+        for shift in ("day", "night"):
+            for path in sorted(shifts_dir.glob(f"????-??-??-{shift}.json")):
+                try:
+                    with path.open("r", encoding="utf-8") as handle:
+                        document = json.load(handle)
+                except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
+                    print(f"ANALYTICS SKIP {path.name}: {error}")
+                    continue
+                file_date = path.name[:10]
+                document_date = str(document.get("productionDate") or file_date)
+                if document_date != file_date:
+                    # A late run in October wrote a next-day productionDate into
+                    # a previous-day filename. Treat it as invalid instead of
+                    # silently moving the output to the wrong day.
+                    invalid_documents[(file_date, shift)] = document
+                    print(f"ANALYTICS INVALID {path.name}: productionDate={document_date}")
+                    continue
+                shift_archives.setdefault(file_date, {})[shift] = document
 
     # Boundary archives are authoritative. A legacy same-day JSON is ignored
     # once either shift has a v2 record, preventing a 17:10 snapshot from
     # silently replacing a boundary snapshot.
-    authoritative_dates = set(shift_archives)
+    authoritative_dates = set(shift_archives) | {date for date, _ in invalid_documents}
     for production_date, records in sorted(shift_archives.items()):
-        days.append(summarize_shift_archives(records.get("day"), records.get("night"), production_date))
+        day_document = records.get("day")
+        night_document = records.get("night")
+        day_status = document_status(day_document)
+        night_status = document_status(night_document)
+        if day_status == "missing" and night_status == "missing":
+            continue
+        summary = summarize_shift_archives(
+            None if day_status == "missing" else day_document,
+            None if night_status == "missing" else night_document,
+            production_date,
+        )
+        summary["archiveStatus"] = {"day": day_status, "night": night_status}
+        days.append(summary)
 
     for path in sorted(history_dir.glob("????-??-??.json")):
         try:
@@ -479,9 +553,10 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
         except (OSError, json.JSONDecodeError, TypeError, ValueError) as error:
             print(f"ANALYTICS SKIP {path.name}: {error}")
     days.sort(key=lambda item: item["date"])
+    health = build_health(shift_archives, invalid_documents, generated_at)
     return {
         "schemaVersion": 2,
-        "generatedAt": generated_at or datetime.now(BKK).strftime("%Y-%m-%d %H:%M:%S"),
+        "generatedAt": generated_at,
         "source": "GitHub Pages static daily snapshots",
         "metricContract": {
             "total": "normal + overtime output",
@@ -493,14 +568,18 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
         "workshops": WORKSHOPS,
         "finishedProductLines": FINISHED_PRODUCT_LINES,
         "days": days,
+        "health": health,
         "quality": {
             "archivedDays": len(days),
-            "completeDayDays": sum(1 for day in days if day["quality"]["dayStatus"] == "complete"),
-            "completeNightDays": sum(1 for day in days if day["quality"]["nightStatus"] == "complete"),
+            "completeDayDays": sum(1 for day in days if (day.get("archiveStatus") or {}).get("day") == "complete"),
+            "completeNightDays": sum(1 for day in days if (day.get("archiveStatus") or {}).get("night") == "complete"),
             "comparableDayDays": sum(1 for day in days if day["quality"]["dayStatus"] == "comparable"),
             "comparableNightDays": sum(1 for day in days if day["quality"]["nightStatus"] == "comparable"),
-            "usableDayDays": sum(1 for day in days if day["quality"]["dayStatus"] != "partial"),
-            "usableNightDays": sum(1 for day in days if day["quality"]["nightStatus"] != "partial"),
+            "usableDayDays": sum(1 for day in days if (day.get("archiveStatus") or {}).get("day", "missing") != "missing"),
+            "usableNightDays": sum(1 for day in days if (day.get("archiveStatus") or {}).get("night", "missing") != "missing"),
+            "missingDayArchives": sum(1 for item in health["days"] if item["day"]["status"] == "missing"),
+            "missingNightArchives": sum(1 for item in health["days"] if item["night"]["status"] == "missing"),
+            "invalidArchives": sum(1 for item in health["days"] if "invalid" in (item["day"]["status"], item["night"]["status"])),
             "staleDays": sum(1 for day in days if day["quality"]["freshnessStatus"] == "stale"),
         },
     }
