@@ -5073,7 +5073,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 </body>
 <!-- 2026-09-06: 静态历史经营分析模块 + 车间产出分析独立页 -->
 <script src="analysis-history.js?v=20261108dark3"></script>
-<script src="analysis-page.js?v=20261108dark2"></script>
+<script src="analysis-page.js?v=20261108dark3"></script>
 <!-- 2026-09-19: 每日制程问题点录入 (数据种子+模块); 先于 ai-widget 加载, 供其上下文读取 -->
 <script src="daily-problems-data.js?v=20261006"></script>
 <script src="daily-problems.js?v=20261006"></script>
@@ -5089,7 +5089,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261108dark3').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261108dark4').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
