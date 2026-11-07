@@ -116,6 +116,24 @@ def document_status(document: dict | None) -> str:
     return str(document.get("status") or quality.get("status") or "partial")
 
 
+def effective_document_status(document: dict | None) -> str:
+    """Re-grade old snapshots whose stored ``complete`` is not backed by coverage.
+
+    Several September/October files say ``complete`` while ``coveredLines`` is
+    0 or 2. They stay immutable on disk, but the health view must not repeat
+    that claim.
+    """
+    status = document_status(document)
+    if not document or status != "complete":
+        return status
+    quality = document.get("quality") or {}
+    mapped = int(quality.get("mappedLines") or 0)
+    covered = int(quality.get("coveredLines") or 0)
+    if mapped < EXPECTED_LINES or covered < 34:
+        return "partial"
+    return status
+
+
 def aggregate_line(points: list[dict], declared_format: str | None = None) -> dict:
     old_format = detect_old_format(points, declared_format)
     normalized = []
@@ -471,13 +489,20 @@ def build_health(shift_archives: dict, invalid_documents: dict, generated_at: st
                         "capturedAt": invalid.get("capturedAt"),
                         "sourceUpdatedAt": invalid.get("sourceUpdatedAt")}
             elif document:
-                status = document_status(document)
+                status = effective_document_status(document)
                 quality = document.get("quality") or {}
+                issues = list(quality.get("issues") or [])
+                if status != document_status(document):
+                    issues.append({
+                        "code": "legacyQualityUnverified",
+                        "severity": "blocking",
+                        "detail": "旧快照 quality.status=complete，但覆盖/线体数不足，已按 partial 显示",
+                    })
                 item = {
                     "status": status,
                     "capturedAt": document.get("capturedAt"),
                     "sourceUpdatedAt": document.get("sourceUpdatedAt"),
-                    "issues": quality.get("issues") or [],
+                    "issues": issues,
                 }
             else:
                 status = "missing"
@@ -530,8 +555,8 @@ def build_analytics(history_dir: Path, generated_at: str | None = None) -> dict:
     for production_date, records in sorted(shift_archives.items()):
         day_document = records.get("day")
         night_document = records.get("night")
-        day_status = document_status(day_document)
-        night_status = document_status(night_document)
+        day_status = effective_document_status(day_document)
+        night_status = effective_document_status(night_document)
         if day_status == "missing" and night_status == "missing":
             continue
         summary = summarize_shift_archives(

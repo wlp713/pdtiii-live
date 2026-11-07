@@ -264,7 +264,13 @@
       dateEl.max = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
     }
     var label = state.host.querySelector("#hopDateLabel");
-    if (label) label.textContent = selected ? selected + " · " + weekday(selected) : "暂无归档";
+    if (label) {
+      var today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+      var latest = latestDataDate();
+      label.textContent = selected
+        ? selected + " · " + weekday(selected) + (selected === latest && selected !== today ? " · 最新归档" : "")
+        : "暂无归档";
+    }
     var badge = function (status, issues) {
       var text = statusLabel(status);
       var more = issueText(issues);
