@@ -5008,7 +5008,8 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     }
     bars = out;
   }
-  setInterval(scan, 300); scan();
+  var dirty = true;
+  setInterval(function () { scan(); dirty = true; }, 800); scan();
 
   function spawn(p, w, first) {
     p.x = first ? Math.random() * w : -4;
@@ -5025,17 +5026,31 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y); ctx.arc(x + w - r, y + r, r, -Math.PI / 2, Math.PI / 2);
     ctx.lineTo(x + r, y + h); ctx.arc(x + r, y + r, r, Math.PI / 2, Math.PI * 1.5); ctx.closePath(); ctx.clip();
   }
+  var sprites = {};  // 磨砂光斑预渲染成小图, 每帧只贴图, 不再每帧新建渐变
+  function glowSprite(gr) {
+    var key = Math.round(gr), sp = sprites[key];
+    if (sp) return sp;
+    sp = document.createElement("canvas"); sp.width = sp.height = Math.ceil(gr * 2 * dpr);
+    var c = sp.getContext("2d"), R = gr * dpr;
+    var g = c.createRadialGradient(R, R, 0, R, R, R);
+    g.addColorStop(0, "rgba(180,218,255,.32)"); g.addColorStop(0.55, "rgba(150,195,250,.13)"); g.addColorStop(1, "rgba(120,180,250,0)");
+    c.fillStyle = g; c.fillRect(0, 0, sp.width, sp.height);
+    return (sprites[key] = sp);
+  }
   function frame(t) {
     requestAnimationFrame(frame);
-    var dt = Math.min(0.05, (t - last) / 1000 || 0.016); last = t;
+    if (t - last < 30) return;                       // 限 30 帧/秒: 沙粒每秒只漂几像素, 肉眼无差别, 功耗减半
+    if (document.hidden) { last = t; return; }
+    var dt = Math.min(0.05, (t - last) / 1000 || 0.033); last = t;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    if (dirty) { ctx.clearRect(0, 0, innerWidth, innerHeight); dirty = false; }  // 整屏清一次, 其余只清各条自己的区域
     for (var i = 0; i < bars.length; i++) {
       var b = bars[i], sc = b.h / 20;
       var ps = pool[b.k] || (pool[b.k] = []);
       var n = Math.max(48, Math.min(180, Math.round(b.w / 3.2)));
       while (ps.length < n) ps.push(spawn({}, b.w, true));
       if (ps.length > n) ps.length = n;
+      ctx.clearRect(b.x - 2, b.y - 2, b.w + 4, b.h + 4);
       ctx.save();
       clipRR(b.x, b.y, b.w, b.h);
       ctx.globalCompositeOperation = "lighter";
@@ -5044,9 +5059,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
       for (var k = 0; k < 3; k++) {
         var gx = b.x - b.h * 3 + ((t / 1000 * 12 * sc + k * span / 3) % span);
         var gy = b.y + b.h * (0.5 + 0.18 * Math.sin(t / 2600 + k * 2.1));
-        var g = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-        g.addColorStop(0, "rgba(180,218,255,.32)"); g.addColorStop(0.55, "rgba(150,195,250,.13)"); g.addColorStop(1, "rgba(120,180,250,0)");
-        ctx.fillStyle = g; ctx.fillRect(gx - gr, b.y, gr * 2, b.h);
+        ctx.drawImage(glowSprite(gr), gx - gr, gy - gr, gr * 2, gr * 2);
       }
       // ② 细沙粒子: 小圆点, 慢慢漂移, 轻微上下摆动 + 缓慢明暗闪烁
       ctx.fillStyle = "rgb(205,228,255)";
@@ -5089,7 +5102,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261108ui').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261108perf1').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
