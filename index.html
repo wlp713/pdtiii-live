@@ -5008,8 +5008,8 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     }
     bars = out;
   }
-  var dirty = true;
-  setInterval(function () { scan(); dirty = true; }, 800); scan();
+  var dirty = true, sig = "";
+  scan();
 
   function spawn(p, w, first) {
     p.x = first ? Math.random() * w : -4;
@@ -5042,6 +5042,9 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     if (t - last < 30) return;                       // 限 30 帧/秒: 沙粒每秒只漂几像素, 肉眼无差别, 功耗减半
     if (document.hidden) { last = t; return; }
     var dt = Math.min(0.05, (t - last) / 1000 || 0.033); last = t;
+    scan();                                          // 每帧跟随进度条真实位置(切车间/滚动/缩放时光效与进度条同步)
+    var s2 = bars.map(function (b) { return b.k + ":" + Math.round(b.x) + "," + Math.round(b.y) + "," + Math.round(b.w); }).join("|");
+    if (s2 !== sig) { sig = s2; dirty = true; }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (dirty) { ctx.clearRect(0, 0, innerWidth, innerHeight); dirty = false; }  // 整屏清一次, 其余只清各条自己的区域
     for (var i = 0; i < bars.length; i++) {
@@ -5102,7 +5105,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261108perf1').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261108perf2').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
