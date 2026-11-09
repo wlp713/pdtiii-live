@@ -5201,6 +5201,12 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     requestAnimationFrame(frame);
     if (t - last < 30) return;                       // 限 30 帧/秒: 沙粒每秒只漂几像素, 肉眼无差别, 功耗减半
     if (document.hidden) { last = t; return; }
+    // 2026-11-09 修穿模: 画布挂在 <html> 上(z-index:50), 会盖在弹窗上方 → 任一弹窗打开时隐藏画布并暂停
+    if (document.querySelector(".detail-modal.open, .ex-modal.open, .modal-overlay.open")) {
+      if (cv.style.visibility !== "hidden") cv.style.visibility = "hidden";
+      last = t; return;
+    }
+    if (cv.style.visibility === "hidden") { cv.style.visibility = ""; dirty = true; }
     var dt = Math.min(0.05, (t - last) / 1000 || 0.033); last = t;
     scan();                                          // 每帧跟随进度条真实位置(切车间/滚动/缩放时光效与进度条同步)
     var s2 = bars.map(function (b) { return b.k + ":" + Math.round(b.x) + "," + Math.round(b.y) + "," + Math.round(b.w); }).join("|");
