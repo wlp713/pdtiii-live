@@ -35,6 +35,18 @@ class HistoryAnalyticsTests(unittest.TestCase):
         self.assertEqual(result["night"]["overtime"], 150)
         self.assertEqual(result["night"]["attainment"], 80.0)
 
+    def test_uph8_uses_eighth_segment_cumulative(self):
+        # 白班第 8 段止 17:00 净 460 分; 夜班第 8 段止 05:30 净 470 分
+        result = aggregate_line([
+            {"h": 430, "actual": 700, "plan": 0}, {"h": 530, "actual": 940, "plan": 0}, {"h": 630, "actual": 1000, "plan": 0},
+            {"h": 1600, "actual": 800, "plan": 0}, {"h": 1700, "actual": 920, "plan": 0}, {"h": 1820, "actual": 1100, "plan": 0},
+        ], "HHMM")
+        self.assertEqual(result["day"]["uph8"], 120.0)
+        self.assertEqual(result["night"]["uph8"], 120.0)
+        # 未开班(产量 0)或缺桶净工时不足 7 小时 → None
+        self.assertIsNone(aggregate_line([{"h": 1700, "actual": 0, "plan": 10}], "HHMM")["day"]["uph8"])
+        self.assertIsNone(aggregate_line([{"h": 1300, "actual": 300, "plan": 10}], "HHMM")["day"]["uph8"])
+
     def test_build_keeps_partial_days_but_marks_them_ineligible(self):
         with tempfile.TemporaryDirectory() as temporary:
             history = Path(temporary)

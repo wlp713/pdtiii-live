@@ -20,6 +20,10 @@ DAY_NORMAL_END = 17 * 60 + 20
 DAY_END = 20 * 60 + 20
 NIGHT_NORMAL_END = 5 * 60 + 50
 NIGHT_END = 7 * 60 + 50
+# 2026-11-09 UPH 8 小时口径: 每班前 8 个时段(与看板 DAY_SEGS/NIGHT_SEGS 一致, 休息不计)结束时的累计 UPH。
+#   白班第 8 段止 17:00(净 460 分), 夜班第 8 段止次日 05:30(净 470 分; 夜班分钟按 +1440 跨天)。
+DAY_SEGS_8 = [(480, 540), (540, 600), (610, 660), (660, 720), (780, 840), (840, 900), (910, 960), (960, 1020)]
+NIGHT_SEGS_8 = [(1230, 1290), (1290, 1350), (1360, 1410), (1410, 1470), (1530, 1590), (1590, 1650), (1650, 1710), (1710, 1770)]
 
 WORKSHOPS = {
     "Pro.1": ["Motor AC", "Motor CL", "Motor WL", "Motor F-Series", "Motor H-Series", "Motor S-Series"],
@@ -143,12 +147,32 @@ def aggregate_line(points: list[dict], declared_format: str | None = None) -> di
         night_plan = night_cut["plan"] if night_cut else 0.0
         last_night = night_points[-1]["minute"]
 
+    day_metric = metric(day_normal, day_overtime, day_plan)
+    night_metric = metric(night_normal, night_overtime, night_plan)
+    day_metric["uph8"] = uph8(day_points, DAY_SEGS_8, 0)
+    night_metric["uph8"] = uph8(night_points, NIGHT_SEGS_8, 1440)
     return {
-        "day": metric(day_normal, day_overtime, day_plan),
-        "night": metric(night_normal, night_overtime, night_plan),
+        "day": day_metric,
+        "night": night_metric,
         "lastDayMinute": last_day,
         "lastNightMinute": last_night,
     }
+
+
+def uph8(points: list[dict], segs: list[tuple], offset: int) -> float | None:
+    """第 8 个时段结束时的累计 UPH = 该点累计产量 / 截至该点的净工时(小时).
+
+    取不晚于第 8 段结束的最后一个桶; 净工时不足 7 小时(数据缺桶)或产量为 0(未开班) → None.
+    """
+    end = segs[-1][1]
+    cut = next((p for p in reversed(points) if p["minute"] + offset <= end), None)
+    if not cut or cut["actual"] <= 0:
+        return None
+    t = cut["minute"] + offset
+    worked = sum(max(0, min(b, t) - a) for a, b in segs)
+    if worked < 420:
+        return None
+    return round(cut["actual"] / (worked / 60), 1)
 
 
 def metric(normal: float, overtime: float, plan: float) -> dict:

@@ -230,6 +230,7 @@
   .spark-arrow { font-size: 8.5px; font-weight: 700; flex-shrink: 0; font-variant-numeric: tabular-nums; }
   .sp-ok { color: var(--green); } .sp-warn { color: var(--orange); } .sp-bad { color: var(--red); }
   .sp-up { color: var(--green); } .sp-down { color: var(--red); } .sp-flat { color: var(--gray); }
+  .spark-val:not(.sp-ok):not(.sp-warn):not(.sp-bad) { color: #e6edf3; }
   .spark-svg { flex: 1; width: 100%; min-height: 0; display: block; }
   .spark-svg-wrap { position: relative; flex: 1; min-height: 24px; margin-top: 2px; }
   .spark-svg-wrap .spark-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -957,6 +958,7 @@
           <div class="trend-seg" role="group">
             <button id="trendModeRateBtnBase" onclick="setTrendMode('rate')">达成率</button>
             <button id="trendModeFirstBtnBase" onclick="setTrendMode('first')">首小时</button>
+            <button id="trendModeUphBtnBase" onclick="setTrendMode('uph')">UPH</button>
           </div>
           <span id="trendModeHintBase" hidden></span>
           <button class="ex-collapse" onclick="toggleModuleBase()" title="收起" style="margin-left:auto;width:18px;height:18px;font-size:10px;padding:0">—</button>
@@ -1014,6 +1016,7 @@
         <div id="trendModeBar" style="display:flex;gap:6px;align-items:center;margin-bottom:4px;flex-wrap:wrap">
           <button class="ex-btn trend-mode-btn" id="trendModeRateBtn" onclick="setTrendMode('rate')" style="font-size:10px;padding:1px 8px">📊 达成率</button>
           <button class="ex-btn trend-mode-btn" id="trendModeFirstBtn" onclick="setTrendMode('first')" style="font-size:10px;padding:1px 8px">⏰ 首小时</button>
+          <button class="ex-btn trend-mode-btn" id="trendModeUphBtn" onclick="setTrendMode('uph')" style="font-size:10px;padding:1px 8px">UPH</button>
           <span id="fhShiftBar" style="display:none;gap:6px;align-items:center">
             <button class="ex-btn trend-mode-btn" id="fhTrendDayBtn" onclick="setFhShift('day')" style="font-size:10px;padding:1px 8px">🌞 白班</button>
             <button class="ex-btn trend-mode-btn" id="fhTrendNightBtn" onclick="setFhShift('night')" style="font-size:10px;padding:1px 8px">🌙 夜班</button>
@@ -4011,7 +4014,7 @@ const TREND_MODE_KEY = "pdtiii_trend_mode_v1";
 // ★ 2026-08-25 用户要求: 不需要点击, 默认显示日达成率 — 每次打开默认 rate, 不持久化上次选择
 let trendMode = "rate";
 function setTrendMode(m) {
-  trendMode = (m === "first") ? "first" : "rate";
+  trendMode = (m === "first" || m === "uph") ? m : "rate";
   // 不再写入 localStorage: 刷新/重新打开后默认回到「达成率」
   const rb = document.getElementById("trendModeRateBtn");
   const fb = document.getElementById("trendModeFirstBtn");
@@ -4046,9 +4049,16 @@ let trendDays = null;
 function trendKeyOf(name) { const k = normName(name); return MAIN_TREND_LINES.find(n => normName(n) === k) || name; }
 function buildTrendDays(analytics) {
   return (analytics.days || []).map(day => {
-    const rec = { date: day.date, lines: {}, nightOnly: {}, first_hour: {} };
+    const rec = { date: day.date, lines: {}, uph: {}, nightOnly: {}, first_hour: {} };
     Object.keys(day.lines || {}).forEach(name => {
       const v = day.lines[name] || {};
+      // 2026-11-09 UPH 趋势(用户要求取 8 小时): 每班第 8 时段结束时的累计 UPH(归档 uph8);
+      //   两班都有 → 按净工时加权(白 460 分 / 夜 470 分) = 两班 8 小时产量合计 ÷ 净工时合计
+      const ud = v.day && v.day.uph8, un = v.night && v.night.uph8;
+      if (ud > 0 || un > 0) {
+        const wd = ud > 0 ? 460 : 0, wn = un > 0 ? 470 : 0;
+        rec.uph[trendKeyOf(name)] = Math.round(((ud || 0) * wd + (un || 0) * wn) / (wd + wn) * 10) / 10;
+      }
       let out = 0, plan = 0, ranDay = false;
       ["day", "night"].forEach(s => {
         const x = v[s];
@@ -4089,7 +4099,7 @@ function getTrendHist() {
   if (!h || !h.length) {
     try { const l = JSON.parse(localStorage.getItem(TREND_HIST_KEY) || "[]"); if (Array.isArray(l) && l.length) h = aliasHistRecs(l); } catch (e) {}
   }
-  h = (h || []).map(d => Object.assign({}, d, { lines: Object.assign({}, d.lines || {}) })).filter(d => d && d.date);
+  h = (h || []).map(d => Object.assign({}, d, { lines: Object.assign({}, d.lines || {}), uph: Object.assign({}, d.uph || {}) })).filter(d => d && d.date);
   // ★ 2026-08-29: 不再按周末过滤 (工厂周六也生产, 历史归档按「当天有数据」判断)
   // ★ 当天实时数据补全: 若最后一天不是今天则追加今日记录; 若是今天但 lines/first_hour 为空(extract提前写入的快照壳)
   //   也从实时数据补齐 — 2026-08-25 修复: merge_first_hour 把当天记录提前写进 __HISTORY__ 导致卡片消失
@@ -4101,10 +4111,18 @@ function getTrendHist() {
     const dayShiftNow = shiftSegAt(bkkMins()).shift === "day";
     if (dayShiftNow && state && state.lines && state.lines.length) {
       const isToday = !!(last && last.date === today);
-      const rec = isToday ? last : { date: today, lines: {}, first_hour: {} };
+      const rec = isToday ? last : { date: today, lines: {}, uph: {}, first_hour: {} };
       // 2026-08-25: 后端新建当天记录可能没有 lines/first_hour 字段(undefined) → 先初始化为对象, 否则赋值抛错被吞
       if (!rec.lines || typeof rec.lines !== "object") rec.lines = {};
+      if (!rec.uph || typeof rec.uph !== "object") rec.uph = {};
       if (!rec.first_hour || typeof rec.first_hour !== "object") rec.first_hour = {};
+      // 2026-11-09 uph 模式: 白班过了第 8 时段(17:00)才有今天的 8 小时 UPH = 17:00 累计产量 ÷ 7h40m
+      if (!Object.keys(rec.uph).length && bkkMins() >= 1020) {
+        state.lines.forEach(l => {
+          const a8 = l && l.name ? valueAt(l.name, 1020, false, 0) : 0;
+          if (a8 > 0) rec.uph[trendKeyOf(l.name)] = Math.round(a8 / (460 / 60) * 10) / 10;
+        });
+      }
       // rate 模式: 当天 lines 为空 → 用 state.lines 的 eff 补齐 (17:00快照后才可能有完整 lines)
       if (!Object.keys(rec.lines || {}).length) {
         state.lines.forEach(l => {
@@ -4149,6 +4167,7 @@ function trendValsOf(d) {
     if (snap && Object.keys(snap).length) return snap;
     return (d.first_hour || {});
   }
+  if (trendMode === "uph") return (d.uph || {});
   return (d.lines || {});
 }
 // 线体名 → 首字母简称 (2026-08-20 15:30: 用户要求只写首字母/系列字母, 小图标一排, 空间留给图表)
@@ -4210,7 +4229,8 @@ function renderTrend() {
   if (ttl) {
     const zh = (typeof lang !== "undefined") ? (lang === "zh") : true;
     // 2026-11-09 UI: 标题只留名称 + 日期范围(范围用淡色小字)
-    const label = trendMode === "first" ? (zh ? "首小时达成率" : "First-Hour Attainment") : (zh ? "每日达成率" : "Daily Attainment");
+    const label = trendMode === "first" ? (zh ? "首小时达成率" : "First-Hour Attainment")
+      : trendMode === "uph" ? (zh ? "每日 UPH · 8 小时" : "Daily UPH · 8h") : (zh ? "每日达成率" : "Daily Attainment");
     const range = hist.length ? String(hist[0].date || "").slice(5) + " – " + String(hist[hist.length - 1].date || "").slice(5) : "";
     ttl.innerHTML = escapeHtml(label) + (range ? "<span class='trend-range'>" + range + "</span>" : "");
   }
@@ -4219,6 +4239,8 @@ function renderTrend() {
   const fb = document.getElementById("trendModeFirstBtn");
   if (rb) rb.style.background = trendMode === "rate" ? "var(--accent)" : "";
   if (fb) fb.style.background = trendMode === "first" ? "var(--accent)" : "";
+  const ub = document.getElementById("trendModeUphBtn");
+  if (ub) ub.style.background = trendMode === "uph" ? "var(--accent)" : "";
   const hint = document.getElementById("trendModeHint");
   if (hint) hint.textContent = trendMode === "first" ? ((typeof lang !== "undefined" && lang === "zh") ? "首小时=8-9点" : "first hour 8-9am") : "";
   // 默认展示线体: rate 模式按 MAIN_TREND_LINES 名单前7条; first 模式直接取最新一天全部 Excel 线体前7条 (2026-08-25)
@@ -4237,8 +4259,11 @@ function renderTrend() {
   } else if (trendMode === "first") {
     lineNamesAll.forEach(n => { if (TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 7) avail.push(n); });
   } else {
-    // 2026-11-09: 按 7 天内出现过的线挑(lineNames), 不再只看最后一天 — 周日只有少数线开工会把 Final A/C/D 挤掉
-    MAIN_TREND_LINES.forEach(n => { if (lineNames.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
+    // 2026-11-09 用户要求: 默认预览 = 看板默认的 8 条主要线体(与主表/小时产出图同一份), 没数据的线显示「–」也保留;
+    //   主表未就绪时退回按 7 天内出现过的线从 MAIN_TREND_LINES 挑
+    const boardMain = (typeof splitLines === "function" && state && state.lines && state.lines.length) ? splitLines().main : [];
+    if (boardMain.length) boardMain.forEach(l => { const k = trendKeyOf(l.name); if (avail.indexOf(k) < 0 && avail.length < 8) avail.push(k); });
+    else MAIN_TREND_LINES.forEach(n => { if (lineNames.indexOf(n) >= 0 && TREND_EXCLUDE.indexOf(n) < 0 && avail.indexOf(n) < 0 && avail.length < 8) avail.push(n); });
   }
   // 2026-08-21 12:01 用户要求: 点击卡片=展开放大(不再删除) → 趋势选择只增不减, 始终补齐主要8条
   // 清理旧状态: 删除之前点击遗留的隐藏选择, 保证主要线体全部恢复显示
@@ -4258,6 +4283,8 @@ function renderTrend() {
     const bfb = document.getElementById("trendModeFirstBtnBase");
     if (brb) brb.classList.toggle("on", trendMode === "rate");
     if (bfb) bfb.classList.toggle("on", trendMode === "first");
+    const bub = document.getElementById("trendModeUphBtnBase");
+    if (bub) bub.classList.toggle("on", trendMode === "uph");
     const bh = document.getElementById("trendModeHintBase");
     if (bh && hint) bh.textContent = hint.textContent;
     drawTrend("chartTrendBase");
@@ -4296,7 +4323,11 @@ function drawTrend(cid) {
   // ★ 2026-11-09 UI 成品化: 卡片 = 线体名 + 最新达成率(状态色) + 环比 | 面积折线 + 每点数据标签 + 100% 目标虚线。
   //   纵轴按卡片自身数据自适应(始终含 100%), 低达成线不再被压在底边; 点/标签用 HTML 叠层, 不随 SVG 拉伸变形。
   //   空心点 = 当天白班归档缺失, 只含夜班(nightOnly)。
-  const stCls = v => (v >= 100 ? "sp-ok" : v >= 90 ? "sp-warn" : "sp-bad");
+  //   uph 模式: 没有统一目标 → 数值不着状态色、不画 100% 线、不带 %; 各线量级不同, 按主要线体顺序排列
+  const isUph = trendMode === "uph";
+  const stCls = v => (isUph ? "" : v >= 100 ? "sp-ok" : v >= 90 ? "sp-warn" : "sp-bad");
+  const unit = isUph ? "" : "%";
+  if (isUph) order.sort((a, b) => names.indexOf(a) - names.indexOf(b));
   const cards = order.map(n => {
     const vals = days.map(d => { const v = Number(trendValsOf(d)[n]); return (isNaN(v) || v <= 0) ? null : v; });
     const hollow = days.map(d => !!(d.nightOnly && d.nightOnly[n]));
@@ -4307,10 +4338,12 @@ function drawTrend(cid) {
     if (lastV != null && prevV != null) {
       const dv = lastV - prevV;
       if (Math.abs(dv) < 0.5) delta = "±0";
-      else { delta = (dv > 0 ? "▲" : "▼") + Math.abs(dv).toFixed(1); dCls = dv > 0 ? "sp-up" : "sp-down"; }
+      else { delta = (dv > 0 ? "▲" : "▼") + (isUph ? Math.round(Math.abs(dv)) : Math.abs(dv).toFixed(1)); dCls = dv > 0 ? "sp-up" : "sp-down"; }
     }
     const real = idx.map(i => vals[i]);
-    const lo = Math.min(85, ...real) - 8, hi = Math.max(105, ...real) + 8;
+    const rMin = real.length ? Math.min(...real) : 100, rMax = real.length ? Math.max(...real) : 100; // 无数据线: 空卡片
+    const lo = isUph ? rMin - Math.max(5, (rMax - rMin) * 0.25) : Math.min(85, rMin) - 8;
+    const hi = isUph ? rMax + Math.max(5, (rMax - rMin) * 0.25) : Math.max(105, rMax) + 8;
     const W = 100, H = 40, px = 7, py = 6;
     const X = i => px + (days.length > 1 ? i / (days.length - 1) : 0.5) * (W - px * 2);
     const Y = v => H - py - (v - lo) / (hi - lo) * (H - py * 2);
@@ -4320,17 +4353,19 @@ function drawTrend(cid) {
     const y100 = Y(100).toFixed(1);
     const marks = idx.map(i => {
       const x = (X(i) / W * 100).toFixed(1), y = (Y(vals[i]) / H * 100).toFixed(1);
-      const up = Y(vals[i]) > 12; // 点靠近顶部 → 标签放下方
+      // 相邻点标签一上一下交错, 防 3 位数(UPH)挤在一起; 贴顶的放下方、贴底的放上方
+      const yy = Y(vals[i]);
+      const up = yy < 12 ? false : yy > H - 12 ? true : (idx.indexOf(i) % 2 === 0);
       return "<i class='sp-dot" + (hollow[i] ? " hollow" : "") + (i === lastI ? " last" : "") + "' style='left:" + x + "%;top:" + y + "%'></i>" +
         "<span class='spark-label" + (i === lastI ? " last" : "") + "' style='left:" + x + "%;top:" + y + "%;transform:translate(-50%," + (up ? "-140%" : "45%") + ")'>" + Math.round(vals[i]) + "</span>";
     }).join("");
     const safe = String(n).replace(/'/g, "");
     return "<div class='spark-card' title='" + safe + "' onclick='toggleTrendLine(this)' data-line='" + safe + "'>" +
       "<div class='spark-head'><span class='spark-name'>" + escapeHtml(shortName(displayName(n))) + "</span>" +
-      "<span class='spark-val " + (lastV != null ? stCls(lastV) : "") + "'>" + (lastV != null ? Math.round(lastV) + "%" : "–") + "</span>" +
+      "<span class='spark-val " + (lastV != null ? stCls(lastV) : "") + "'>" + (lastV != null ? Math.round(lastV) + unit : "–") + "</span>" +
       "<span class='spark-arrow " + dCls + "'>" + delta + "</span></div>" +
       "<div class='spark-svg-wrap'><svg viewBox='0 0 " + W + " " + H + "' preserveAspectRatio='none' class='spark-svg'>" +
-        "<line x1='0' y1='" + y100 + "' x2='" + W + "' y2='" + y100 + "' class='spark-target' vector-effect='non-scaling-stroke'/>" +
+        (isUph ? "" : "<line x1='0' y1='" + y100 + "' x2='" + W + "' y2='" + y100 + "' class='spark-target' vector-effect='non-scaling-stroke'/>") +
         (area ? "<path d='" + area + "' class='spark-area'/>" : "") +
         (pts.length > 1 ? "<polyline points='" + line + "' class='spark-line' vector-effect='non-scaling-stroke'/>" : "") +
       "</svg>" + marks + "</div></div>";
@@ -4587,21 +4622,27 @@ function drawTrendDetailLine() {
   const days = hist.slice(-7); // ★ 2026-08-28: 最多7天
   const padL = 46, padB = 24, padT = 22;
   const cw = W - padL - 16, ch = H - padT - padB;
-  const yMin = 60, yMax = 120; // 与主页卡片一致, 目标线100%固定
+  // 2026-11-09 uph 模式: 纵轴按数据自适应、无 % 无目标线
+  const isUph = trendMode === "uph", unit = isUph ? "" : "%";
+  const uv = days.map(d => Number(trendValsOf(d)[n])).filter(v => v > 0);
+  const uMin = uv.length ? Math.min(...uv) : 0, uMax = uv.length ? Math.max(...uv) : 100;
+  const yMin = isUph ? Math.max(0, Math.floor((uMin - Math.max(10, (uMax - uMin) * 0.3)) / 10) * 10) : 60;
+  const yMax = isUph ? Math.ceil((uMax + Math.max(10, (uMax - uMin) * 0.3)) / 10) * 10 : 120; // 达成率: 与主页卡片一致, 目标线100%固定
   // Y轴刻度
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "11px sans-serif";
   for (let i = 0; i <= 4; i++) {
     const v = yMin + (yMax - yMin) * i / 4;
     const y = padT + ch - (ch * i / 4);
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 12, y); ctx.stroke();
-    ctx.fillText(Math.round(v) + "%", 4, y + 4);
+    ctx.fillText(Math.round(v) + unit, 4, y + 4);
   }
-  const y100 = padT + ch - (ch * 100 / (yMax - yMin)) + (ch * yMin / (yMax - yMin));
-  const y100f = padT + ch - (ch * (100 - yMin) / (yMax - yMin));
-  ctx.strokeStyle = "rgba(63,185,80,.4)"; ctx.setLineDash([4, 3]);
-  ctx.beginPath(); ctx.moveTo(padL, y100f); ctx.lineTo(W - 12, y100f); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = "#3fb950"; ctx.fillText("100% 目标", W - 64, y100f - 5);
+  if (!isUph) {
+    const y100f = padT + ch - (ch * (100 - yMin) / (yMax - yMin));
+    ctx.strokeStyle = "rgba(63,185,80,.4)"; ctx.setLineDash([4, 3]);
+    ctx.beginPath(); ctx.moveTo(padL, y100f); ctx.lineTo(W - 12, y100f); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#3fb950"; ctx.fillText("100% 目标", W - 64, y100f - 5);
+  }
   // X轴日期
   ctx.fillStyle = "#8b949e";
   const xStep = cw / Math.max(days.length - 1, 1);
@@ -4624,8 +4665,8 @@ function drawTrendDetailLine() {
     ctx.textAlign = "center";
     const txtY = y < padT + 16 ? y + 20 : y - 12;
     ctx.strokeStyle = "rgba(13,17,23,.9)"; ctx.lineWidth = 4;
-    ctx.strokeText(Math.round(v) + "%", x, txtY);
-    ctx.fillText(Math.round(v) + "%", x, txtY);
+    ctx.strokeText(Math.round(v) + unit, x, txtY);
+    ctx.fillText(Math.round(v) + unit, x, txtY);
     ctx.textAlign = "left";
   });
   ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
@@ -4636,7 +4677,10 @@ function drawTrendDetailLine() {
 
 // ── 趋势详情: 大图 + 形态切换 (全部线/仅选中/仅≥100%) ──
 function renderDetailTrend(title, modes, src, body, zh) {
-  title.textContent = (trendMode === "first" ? (zh ? "⏰ 首小时达成趋势 · 详细大图" : "⏰ First-Hour Trend · Detailed") : (zh ? "📈 达成率趋势 · 详细大图" : "📈 Rate Trend · Detailed"));
+  title.textContent = (trendMode === "first" ? (zh ? "⏰ 首小时达成趋势 · 详细大图" : "⏰ First-Hour Trend · Detailed")
+    : trendMode === "uph" ? (zh ? "UPH 趋势(8 小时) · 详细大图" : "UPH Trend (8h) · Detailed")
+    : (zh ? "📈 达成率趋势 · 详细大图" : "📈 Rate Trend · Detailed"));
+  if (trendMode === "uph" && trendDetailMode === "over100") trendDetailMode = "all"; // UPH 无 100% 概念
   // ★ 2026-08-28: 最多显示最近7天 (展示层截断, 存储层保留全量)
   const hist = getTrendHist().slice(-7);
   if (!hist.length) {
@@ -4648,7 +4692,7 @@ function renderDetailTrend(title, modes, src, body, zh) {
     ["all", zh ? "全部线体" : "All lines"],
     ["sel", zh ? "仅选中" : "Selected"],
     ["over100", zh ? "仅≥100%" : "Over 100%"]
-  ].map(x => "<button class='detail-mode-btn " + (trendDetailMode === x[0] ? "on" : "") + "' onclick='setTrendDetailMode(\"" + x[0] + "\")'>" + x[1] + "</button>").join("");
+  ].filter(x => !(trendMode === "uph" && x[0] === "over100")).map(x => "<button class='detail-mode-btn " + (trendDetailMode === x[0] ? "on" : "") + "' onclick='setTrendDetailMode(\"" + x[0] + "\")'>" + x[1] + "</button>").join("");
   modes.innerHTML = modesHtml;
   src.textContent = hist.length + " 天快照";
   body.innerHTML = "<div id='detailTrendLines' style='display:flex;flex-wrap:wrap;gap:3px 4px;margin-bottom:8px;flex-shrink:0'></div><canvas id='chartTrendDetail' style='flex:1;min-height:0;width:100%'></canvas>";
@@ -4700,16 +4744,17 @@ function drawTrendDetail() {
   } else if (trendDetailMode === "over100") {
     names = names.filter(n => { const v = Number(trendValsOf(hist[hist.length - 1])[n]); return !isNaN(v) && v >= 100; });
   }
-  let maxV = 100;
+  const isUph = trendMode === "uph", unit = isUph ? "" : "%"; // 2026-11-09 uph: 无 % 无 100% 线
+  let maxV = isUph ? 0 : 100;
   days.forEach(d => { Object.keys(trendValsOf(d)).forEach(n => { const v = Number(trendValsOf(d)[n]); if (!isNaN(v) && v > maxV) maxV = v; }); });
-  maxV = Math.ceil(maxV / 10) * 10;
+  maxV = Math.max(10, Math.ceil(maxV / 10) * 10);
   ctx.strokeStyle = "#21262d"; ctx.fillStyle = "#8b949e"; ctx.font = "10px sans-serif";
   for (let i = 0; i <= 4; i++) {
     const y = padT + ch - (ch * i / 4);
     ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - 10, y); ctx.stroke();
-    ctx.fillText(Math.round(maxV * i / 4) + "%", 3, y + 3);
+    ctx.fillText(Math.round(maxV * i / 4) + unit, 3, y + 3);
   }
-  if (maxV >= 100) {
+  if (!isUph && maxV >= 100) {
     const y100 = padT + ch - (ch * 100 / maxV);
     ctx.strokeStyle = "rgba(63,185,80,.35)"; ctx.setLineDash([4, 3]);
     ctx.beginPath(); ctx.moveTo(padL, y100); ctx.lineTo(W - 10, y100); ctx.stroke();
@@ -4742,7 +4787,7 @@ function drawTrendDetail() {
       const last = pts[pts.length - 1];
       ctx.font = "bold 10px sans-serif";
       // 2026-08-31: 标签值取最后一个有效点, 避免最后一天无数据(0)时误标 0%
-      ctx.fillText(tinyName(n) + " " + Math.round(last[2]) + "%", Math.min(last[0] + 4, W - 52), last[1] - 6);
+      ctx.fillText(tinyName(n) + " " + Math.round(last[2]) + unit, Math.min(last[0] + 4, W - 52), last[1] - 6);
     }
   });
 }
