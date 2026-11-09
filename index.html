@@ -2951,11 +2951,14 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   // 2026-11-09 字号放大(用户要求): 数字撑满柱宽、两侧各留 2px; 全图统一按 3 位数 "888" 定字号, 4 位数等超宽的单独缩
   //   2026-11-09: 横向压窄(0.82)用户反馈像被拉长 → 恢复正常比例
   const SQ = 1;
-  const fitW = (txt, maxW) => { ctx.font = "700 10px sans-serif"; return 10 * maxW / Math.max(1, ctx.measureText(txt).width * SQ); };
+  // 2026-11-09: 通用 sans-serif 在部分中文 Windows 上落到窄体数字, 按柱宽撑满后显得被拉长
+  //   → 与主表数字同字体(Segoe UI / 微软雅黑), 数字比例正常
+  const FF = '"Segoe UI", "Microsoft YaHei", sans-serif';
+  const fitW = (txt, maxW) => { ctx.font = "700 10px " + FF; return 10 * maxW / Math.max(1, ctx.measureText(txt).width * SQ); };
   const fBase = Math.max(8, Math.min(22, fitW("888", bw - 4)));
   const label = (txt, x, y, maxW, f, color) => {
     f = Math.max(6.5, Math.min(f, fitW(txt, maxW)));
-    ctx.font = "700 " + f.toFixed(1) + "px sans-serif";
+    ctx.font = "700 " + f.toFixed(1) + "px " + FF;
     ctx.fillStyle = color;
     ctx.save(); ctx.translate(x, y + f * 0.35); ctx.scale(SQ, 1); ctx.fillText(txt, 0, 0); ctx.restore();
   };
@@ -3485,6 +3488,18 @@ function renderAll() {
 }
 
 // ★ 2026-08-21 14:35 兜底: drawBar/drawEff 抛异常时画占位文本(避免空白"消失"), 不中断刷新链
+// ★ 2026-11-09 修「小时图数字被拉长」: 画布像素尺寸只在 drawBar 时按当时大小设定; 之后布局变了
+//   (趋势模块数据晚到撑开/收起模块/切换车间)而数据没变就不会重画 → 浏览器把旧画面硬拉到新高度,
+//   柱子和数字一起纵向变形(实测 647→732px, 拉长 13%)。图表尺寸一变就按新尺寸重画(每帧最多一次)。
+setTimeout(function () {
+  const cvb = document.getElementById("chartBar");
+  if (!cvb || !window.ResizeObserver) return;
+  let rq = 0;
+  new ResizeObserver(function () {
+    clearTimeout(rq);
+    rq = setTimeout(function () { try { drawBar(viewLines()); } catch (e) { /* 数据未就绪 */ } }, 60);
+  }).observe(cvb);
+}, 0);
 function drawBarSafe(main) {
   try {
     const cv = document.getElementById("chartBar");
