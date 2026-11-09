@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v35'; // 2026-11-09 小时图数字按笔画宽度等比放大贴边
+var CACHE = 'pdtiii-shell-v36'; // 2026-11-09 小时图线少时收窄留白 + 字号封顶 18px
 var CORE = [
   './',
   './index.html',

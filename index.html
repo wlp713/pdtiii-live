@@ -2942,11 +2942,12 @@ function pairRect(ctx, x, y, w, h, r) {
 // ★ 2026-11-09 v2.1 左侧纵轴(时段号): 每个时段固定行高(rows=本班时段数), 所有线体同一时段同一水平线;
 //   行内按该段 max(实际,计划) 满格, 较小者按比例 → 段内对比不变。折叠的前半夜累计段(base+cum)占 1-4 行。
 const PAIR_GAP = 2;
+const PAIR_DG = 4;   // 计划柱与差额列之间的额外空隙
 function pairRowH(ch, rows) { return (ch - PAIR_GAP * (rows - 1)) / rows; }
 function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   const GAP = PAIR_GAP, rowH = pairRowH(ch, rows);
   if (!segs.length || rowH < 8) return false;
-  const xa = x0, xp = x0 + bw + sp, xd = xp + bw + sp + dw / 2;
+  const xa = x0, xp = x0 + bw + sp, xd = xp + bw + sp + PAIR_DG + dw / 2; // 差额列前多留 PAIR_DG, 不贴计划柱
   const zero = segs.every(s => !(s.actual > 0)); // 全天无实际 = 未报/停线 → 差额置灰, 不铺红
   // 2026-11-09 字号放大(用户要求): 数字撑满柱宽、两侧各留 2px; 全图统一按 3 位数 "888" 定字号, 4 位数等超宽的单独缩
   //   2026-11-09: 横向压窄(0.82)用户反馈像被拉长 → 恢复正常比例
@@ -2957,7 +2958,8 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   //   2026-11-09: 按字的实际笔画宽度(不含字符两侧留白)等比放大, 两侧各约 1px 贴边; 上限 22→28px
   const inkW = txt => { const m = ctx.measureText(txt); const w = (m.actualBoundingBoxLeft || 0) + (m.actualBoundingBoxRight || 0); return w > 0 ? w : m.width; };
   const fitW = (txt, maxW) => { ctx.font = "700 10px " + FF; ctx.textAlign = "center"; return 10 * maxW / Math.max(1, inkW(txt) * SQ); };
-  const fBase = Math.max(8, Math.min(28, fitW("888", bw - 3)));
+  //   上限 18px: 线多柱窄时字按柱宽贴边; 线少柱宽时封顶, 不越放越大(用户反馈 28px 太胖太挤)
+  const fBase = Math.max(8, Math.min(18, fitW("888", bw - 3)));
   const label = (txt, x, y, maxW, f, color) => {
     f = Math.max(6.5, Math.min(f, fitW(txt, maxW)));
     ctx.font = "700 " + f.toFixed(1) + "px " + FF;
@@ -3084,9 +3086,10 @@ function drawBar(main) {
       const maxVl = Math.max(1, l.plan || 0, l.actual || 0, _segSum); // 该线自身 plan/actual 与分段总和 的较大者 = 满格基准
       // ★ 2026-11-09 UI v2: 实际 | 计划 | 差额 三列; 无可画分段时退回旧画法
       // 2026-11-09: 柱宽上限 34→46、差额列 32→44, 给大字号留空间; 线多时仍按槽宽等比收窄
-      const DW = Math.max(18, Math.min(44, slot * 0.3)), SP = 2;
-      const pbw = Math.max(8, Math.min(46, (slot - 4 - DW - SP * 2) / 2));
-      const gw = pbw * 2 + SP * 2 + DW;
+      // 2026-11-09: 柱宽上限 46→34、差额列 44→36 — 线少(1-4 条)时柱组居中留白, 不撑满显胖; 线多时按槽宽收窄
+      const DW = Math.max(18, Math.min(36, slot * 0.3)), SP = 2;
+      const pbw = Math.max(8, Math.min(34, (slot - 4 - DW - SP * 2 - PAIR_DG) / 2));
+      const gw = pbw * 2 + SP * 2 + PAIR_DG + DW;
       if (!drawPair(ctx, cx - gw / 2, pbw, SP, DW, segs, rows, ch, padT)) {
         drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
         drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
