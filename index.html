@@ -2826,6 +2826,75 @@ function drawRoundedBar(ctx, x, y, width, height, topColor, bottomColor) {
   ctx.fillRect(x + radius, y, Math.max(0, width - radius * 2), Math.min(1.5, height));
 }
 
+// ★ 2026-11-09 小时产出 UI v2 (样稿 design/hourly_v2.html, 用户确认):
+//   每条线三列 = 实际柱 | 计划柱 | 差额列; 两柱共用同一段骨架(段高=max(实际,计划)) → 段边界平行。
+//   实际柱: 蓝=实际, 红斜纹=欠产缺口, 绿顶=超产; 计划柱: 金; 差额列: 每段 −欠产(红)/+超产(绿)。
+//   柱顶不写汇总(达成率/合计已在左侧列表), 图内只留数据标签; 去掉文字投影, 低配机更省。
+//   返回 false = 无可画分段, 调用方退回旧 drawStacked 兜底。
+let _gapPattern = null;
+function gapPattern(ctx) {
+  if (_gapPattern) return _gapPattern;
+  const c = document.createElement("canvas"); c.width = c.height = 8;
+  const g = c.getContext("2d");
+  g.fillStyle = "rgba(248,81,73,.16)"; g.fillRect(0, 0, 8, 8);
+  g.strokeStyle = "rgba(248,81,73,.55)"; g.lineWidth = 1.5;
+  g.beginPath(); g.moveTo(-2, 10); g.lineTo(10, -2); g.moveTo(-2, 2); g.lineTo(2, -2); g.moveTo(6, 10); g.lineTo(10, 6); g.stroke();
+  return (_gapPattern = ctx.createPattern(c, "repeat"));
+}
+function pairRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function drawPair(ctx, x0, bw, sp, dw, segs, maxV, ch, padT) {
+  const GAP = 2, n = segs.length, avail = ch - GAP * Math.max(0, n - 1);
+  if (!n || avail <= 0) return false;
+  if (!segs.some(s => Math.max(s.plan || 0, s.actual || 0) / maxV * avail >= 0.5)) return false;
+  const xa = x0, xp = x0 + bw + sp, xd = xp + bw + sp + dw / 2;
+  const zero = segs.every(s => !(s.actual > 0)); // 全天无实际 = 未报/停线 → 差额置灰, 不铺红
+  const fBase = Math.min(12, Math.max(7.5, bw * 0.42));
+  const label = (txt, x, y, maxW, f, color) => {
+    while (f > 6.5) { ctx.font = "600 " + f + "px sans-serif"; if (ctx.measureText(txt).width <= maxW) break; f -= 0.5; }
+    ctx.fillStyle = color; ctx.fillText(txt, x, y + f * 0.35);
+  };
+  ctx.textAlign = "center";
+  let y = padT + ch;
+  segs.forEach(s => {
+    const a = s.actual || 0, p = s.plan || 0, h = Math.max(a, p) / maxV * avail;
+    if (h < 0.5) return;
+    const top = y - h, aH = a / maxV * avail, pH = p / maxV * avail, d = Math.round(a) - Math.round(p);
+    // 实际柱
+    ctx.save(); pairRect(ctx, xa, top, bw, h, 3); ctx.clip();
+    ctx.fillStyle = s.ot ? "rgba(240,169,58,.18)" : "rgba(255,255,255,.04)"; ctx.fillRect(xa, top, bw, h);
+    if (!zero && a < p) { ctx.fillStyle = gapPattern(ctx); ctx.fillRect(xa, top, bw, h - aH); }
+    ctx.fillStyle = s.ot ? "#2d7dff" : "#4c9aff"; ctx.fillRect(xa, y - Math.min(aH, pH), bw, Math.min(aH, pH));
+    if (a > p) { ctx.fillStyle = "#3fb950"; ctx.fillRect(xa, top, bw, aH - pH); }
+    ctx.restore();
+    // 计划柱
+    ctx.save(); pairRect(ctx, xp, top, bw, h, 3); ctx.clip();
+    ctx.fillStyle = "rgba(255,255,255,.04)"; ctx.fillRect(xp, top, bw, h);
+    ctx.fillStyle = s.ot ? "#f0b93a" : "#b8923f"; ctx.fillRect(xp, y - pH, bw, pH);
+    ctx.restore();
+    // 加班段: 金框; 当前小时: 蓝框
+    if (s.ot || s.live) {
+      ctx.strokeStyle = s.live ? "#58a6ff" : "rgba(240,185,58,.85)"; ctx.lineWidth = s.live ? 2 : 1.2;
+      pairRect(ctx, xa - 2, top - 2, bw * 2 + sp + 4, h + 4, 4); ctx.stroke();
+    }
+    // 数据标签: 实际 / 计划 / 差额
+    if (h >= 11) {
+      const f = Math.min(fBase, h - 2);
+      if (aH >= 13) label(String(Math.round(a)), xa + bw / 2, y - Math.min(aH, h) / 2, bw - 2, f, "#fff");
+      else label(String(Math.round(a)), xa + bw / 2, top + h / 2, bw - 2, f, zero ? "#6e7a8c" : "#ff9b94");
+      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, 12), h) / 2, bw - 2, f, "#fff8e6");
+      if (d !== 0 && dw > 0) label((d > 0 ? "+" : "−") + Math.abs(d), xd, top + h / 2, dw, f,
+        zero ? "#5d6878" : d < 0 ? "#ff7b72" : "#56d364");
+    }
+    y = top - GAP;
+  });
+  return true;
+}
+
 function drawBar(main) {
   const cv = document.getElementById("chartBar");
   if (!cv) return;
@@ -2867,7 +2936,7 @@ function drawBar(main) {
       return;
     }
   }
-  const padL = 8, padB = 34, padT = 26; // v6.0: 去掉 y 轴刻度/网格 → 左侧空间收回给柱子
+  const padL = 8, padB = 34, padT = segShow ? 8 : 26; // 2026-11-09: 分段模式柱顶不写汇总, 顶部留白收回; v6.0: 去掉 y 轴刻度/网格 → 左侧空间收回给柱子
   const cw = W - padL - 12, ch = H - padT - padB;
   // ★ v6.0 去统一刻度: 不再用全表 maxV(高产量线会把低产线压扁)。改为每条线体以「自身 plan 为目标满格基准」
   //   各自独立缩放 → 所有线体柱顶在同一水平线(自身目标100%), 柱高表达「达成进度」, 真实数量以段/柱顶数据标签为准。
@@ -2893,8 +2962,14 @@ function drawBar(main) {
         _segSum += Math.max(0, Math.max(segs[_si].actual || 0, segs[_si].plan || 0));
       }
       const maxVl = Math.max(1, l.plan || 0, l.actual || 0, _segSum); // 该线自身 plan/actual 与分段总和 的较大者 = 满格基准
-      drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
-      drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
+      // ★ 2026-11-09 UI v2: 实际 | 计划 | 差额 三列; 无可画分段时退回旧画法
+      const DW = Math.max(18, Math.min(32, slot * 0.3)), SP = 2;
+      const pbw = Math.max(8, Math.min(34, (slot - 8 - DW - SP * 2) / 2));
+      const gw = pbw * 2 + SP * 2 + DW;
+      if (!drawPair(ctx, cx - gw / 2, pbw, SP, DW, segs, maxVl, ch, padT)) {
+        drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");
+        drawStacked(ctx, cx + 1.5, bw, segs, l.plan || 0, maxVl, ch, padT, "#d29922", "plan");
+      }
     } else {
       const mL = Math.max(1, l.plan || 0, l.actual || 0); // 非分段: 以自身 plan/actual 较大者为满格
       const aH = Math.max(0, (l.actual || 0) / mL * ch);
