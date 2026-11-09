@@ -268,7 +268,8 @@ def summarize_shift_archives(day_document: dict | None, night_document: dict | N
     # 夜班预期 = 两班线数(来自夜班归档的单班线豁免), 单班线不阻塞夜班
     night_expected = int(night_quality.get("nightExpectedLines") or EXPECTED_LINES)
     unknown = sorted(set((day_quality.get("unknownLines") or []) + (night_quality.get("unknownLines") or [])))
-    day_status = _coverage_status(day_mapped, day_covered, day_fresh, EXPECTED_LINES)
+    day_expected = int(day_quality.get("dayExpectedLines") or EXPECTED_LINES)  # 旧归档无此字段 → 原口径
+    day_status = _coverage_status(day_mapped, day_covered, day_fresh, day_expected)
     night_status = _coverage_status(night_mapped, night_covered, night_fresh, night_expected)
     if day_fresh and night_fresh:
         freshness = "fresh"
@@ -393,13 +394,19 @@ def summarize_snapshot(document: dict) -> dict:
     # 夜班预期 = 实际有夜班捅的线数. 单班线(如 Piston Grinding 无夜班桶)
     # 不计入夜班覆盖要求 → 不会阻塞夜班归档.
     night_expected = sum(1 for item in lines.values() if item.get("lastNightMinute") is not None)
+    # 2026-11-09 白班预期与夜班对称 = 实际有白班桶的线数. 已停用/改名的线(Motor AC→FL, Motor CL)
+    # 完全没有桶, 旧逻辑仍按 39 条要求 → 白班永远 comparable 被跳过, 10-06 起白班归档全部丢失.
+    #   下限 34 条(与 comparable 门槛一致): 源数据大面积缺线时仍按 39 条要求, 不会把残缺日当完整.
+    day_expected = sum(1 for item in lines.values() if item.get("lastDayMinute") is not None)
+    if day_expected < 34:
+        day_expected = EXPECTED_LINES
     archive_date = str(document.get("date") or "")
     updated_at = str(document.get("updatedAt") or "")
     source_day = source_date(document)
     freshness_status = "fresh" if source_day == archive_date else ("stale" if source_day else "unknown")
 
     def coverage_status(covered: int, expected: int) -> str:
-        if freshness_status == "stale":
+        if freshness_status == "stale" or expected <= 0:  # 该班一个桶都没有 → 不算完整
             return "partial"
         exp = expected
         if mapped_count >= exp and covered >= exp:
@@ -408,7 +415,7 @@ def summarize_snapshot(document: dict) -> dict:
             return "comparable"
         return "partial"
 
-    day_status = coverage_status(day_covered, EXPECTED_LINES)
+    day_status = coverage_status(day_covered, day_expected)
     night_status = coverage_status(night_covered, night_expected)
     quality = {
         "mappedLines": mapped_count,
@@ -417,6 +424,7 @@ def summarize_snapshot(document: dict) -> dict:
         "dayCoveredLines": day_covered,
         "nightCoveredLines": night_covered,
         "nightExpectedLines": night_expected,
+        "dayExpectedLines": day_expected,
         "dayStatus": day_status,
         "nightStatus": night_status,
         "sourceDate": source_day,

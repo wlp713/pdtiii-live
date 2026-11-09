@@ -56,6 +56,17 @@ class HistoryAnalyticsTests(unittest.TestCase):
             self.assertEqual(payload["days"][0]["quality"]["expectedLines"], 39)
             self.assertEqual(payload["days"][0]["lines"]["Motor AC"]["day"]["attainment"], 80.0)
 
+    def test_day_complete_when_only_retired_lines_have_no_buckets(self):
+        # 2026-11-09: Motor AC/CL 停用后完全无桶, 不应再阻塞白班归档(10-06 起白班全部被跳过)
+        names = [n for lines in WORKSHOPS.values() for n in lines]
+        hourly = {n: [{"h": 800, "actual": 0, "plan": 0}, {"h": 2020, "actual": 90, "plan": 100}] for n in names[2:]}
+        hourly.update({n: [] for n in names[:2]})
+        doc = {"date": "2026-11-09", "updatedAt": "2026-11-09 20:41:00", "hourlyFormat": "HHMM", "hourly": hourly}
+        self.assertEqual(summarize_snapshot(doc)["quality"]["dayStatus"], "complete")
+        # 大面积缺线仍不算完整
+        few = {n: hourly[n] for n in names[2:12]}
+        self.assertEqual(summarize_snapshot(dict(doc, hourly=few))["quality"]["dayStatus"], "partial")
+
     def test_writer_accepts_string_path_and_creates_static_index(self):
         with tempfile.TemporaryDirectory() as temporary:
             payload = write_analytics(temporary)
