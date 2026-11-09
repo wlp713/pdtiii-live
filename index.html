@@ -2954,13 +2954,17 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   // 2026-11-09: 通用 sans-serif 在部分中文 Windows 上落到窄体数字, 按柱宽撑满后显得被拉长
   //   → 与主表数字同字体(Segoe UI / 微软雅黑), 数字比例正常
   const FF = '"Segoe UI", "Microsoft YaHei", sans-serif';
-  const fitW = (txt, maxW) => { ctx.font = "700 10px " + FF; return 10 * maxW / Math.max(1, ctx.measureText(txt).width * SQ); };
-  const fBase = Math.max(8, Math.min(22, fitW("888", bw - 4)));
+  //   2026-11-09: 按字的实际笔画宽度(不含字符两侧留白)等比放大, 两侧各约 1px 贴边; 上限 22→28px
+  const inkW = txt => { const m = ctx.measureText(txt); const w = (m.actualBoundingBoxLeft || 0) + (m.actualBoundingBoxRight || 0); return w > 0 ? w : m.width; };
+  const fitW = (txt, maxW) => { ctx.font = "700 10px " + FF; ctx.textAlign = "center"; return 10 * maxW / Math.max(1, inkW(txt) * SQ); };
+  const fBase = Math.max(8, Math.min(28, fitW("888", bw - 3)));
   const label = (txt, x, y, maxW, f, color) => {
     f = Math.max(6.5, Math.min(f, fitW(txt, maxW)));
     ctx.font = "700 " + f.toFixed(1) + "px " + FF;
     ctx.fillStyle = color;
-    ctx.save(); ctx.translate(x, y + f * 0.35); ctx.scale(SQ, 1); ctx.fillText(txt, 0, 0); ctx.restore();
+    const m = ctx.measureText(txt);                                   // 按笔画居中(字形两侧留白不对称时不偏)
+    const dx = ((m.actualBoundingBoxLeft || 0) - (m.actualBoundingBoxRight || 0)) / 2;
+    ctx.save(); ctx.translate(x, y + f * 0.35); ctx.scale(SQ, 1); ctx.fillText(txt, dx, 0); ctx.restore();
   };
   ctx.textAlign = "center";
   segs.forEach(s => {
@@ -2988,9 +2992,9 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
     // 数据标签: 实际 / 计划 / 差额
     if (h >= 11 && (a > 0 || p > 0)) { // 实际/计划都为 0(未开始/休息) → 只留空槽不写数
       const f = Math.min(fBase, h * 0.7);
-      if (aH >= f + 4) label(String(Math.round(a)), xa + bw / 2, y - Math.min(aH, h) / 2, bw - 4, f, "#fff");
-      else label(String(Math.round(a)), xa + bw / 2, top + h / 2, bw - 4, f, zero ? "#6e7a8c" : "#ff9b94");
-      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, f + 4), h) / 2, bw - 4, f, "#fff8e6");
+      if (aH >= f + 4) label(String(Math.round(a)), xa + bw / 2, y - Math.min(aH, h) / 2, bw - 3, f, "#fff");
+      else label(String(Math.round(a)), xa + bw / 2, top + h / 2, bw - 3, f, zero ? "#6e7a8c" : "#ff9b94");
+      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, f + 4), h) / 2, bw - 3, f, "#fff8e6");
       if (d !== 0 && dw > 0) label((d > 0 ? "+" : "−") + Math.abs(d), xd, top + h / 2, dw - 2, f,
         zero ? "#5d6878" : d < 0 ? "#ff7b72" : "#56d364");
     }
