@@ -2896,10 +2896,16 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   if (!segs.length || rowH < 8) return false;
   const xa = x0, xp = x0 + bw + sp, xd = xp + bw + sp + dw / 2;
   const zero = segs.every(s => !(s.actual > 0)); // 全天无实际 = 未报/停线 → 差额置灰, 不铺红
-  const fBase = Math.min(12, Math.max(7.5, bw * 0.42));
+  // 2026-11-09 字号放大(用户要求): 数字撑满柱宽、两侧各留 2px; 全图统一按 3 位数 "888" 定字号, 4 位数等超宽的单独缩
+  //   数字横向压窄到 82%(窄体数字效果): 同样柱宽字可大约两成, 线多柱窄时仍看得清
+  const SQ = 0.82;
+  const fitW = (txt, maxW) => { ctx.font = "700 10px sans-serif"; return 10 * maxW / Math.max(1, ctx.measureText(txt).width * SQ); };
+  const fBase = Math.max(8, Math.min(22, fitW("888", bw - 4)));
   const label = (txt, x, y, maxW, f, color) => {
-    while (f > 6.5) { ctx.font = "600 " + f + "px sans-serif"; if (ctx.measureText(txt).width <= maxW) break; f -= 0.5; }
-    ctx.fillStyle = color; ctx.fillText(txt, x, y + f * 0.35);
+    f = Math.max(6.5, Math.min(f, fitW(txt, maxW)));
+    ctx.font = "700 " + f.toFixed(1) + "px sans-serif";
+    ctx.fillStyle = color;
+    ctx.save(); ctx.translate(x, y + f * 0.35); ctx.scale(SQ, 1); ctx.fillText(txt, 0, 0); ctx.restore();
   };
   ctx.textAlign = "center";
   segs.forEach(s => {
@@ -2926,11 +2932,11 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
     }
     // 数据标签: 实际 / 计划 / 差额
     if (h >= 11 && (a > 0 || p > 0)) { // 实际/计划都为 0(未开始/休息) → 只留空槽不写数
-      const f = Math.min(fBase, h - 2);
-      if (aH >= 13) label(String(Math.round(a)), xa + bw / 2, y - Math.min(aH, h) / 2, bw - 2, f, "#fff");
-      else label(String(Math.round(a)), xa + bw / 2, top + h / 2, bw - 2, f, zero ? "#6e7a8c" : "#ff9b94");
-      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, 12), h) / 2, bw - 2, f, "#fff8e6");
-      if (d !== 0 && dw > 0) label((d > 0 ? "+" : "−") + Math.abs(d), xd, top + h / 2, dw, f,
+      const f = Math.min(fBase, h * 0.7);
+      if (aH >= f + 4) label(String(Math.round(a)), xa + bw / 2, y - Math.min(aH, h) / 2, bw - 4, f, "#fff");
+      else label(String(Math.round(a)), xa + bw / 2, top + h / 2, bw - 4, f, zero ? "#6e7a8c" : "#ff9b94");
+      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, f + 4), h) / 2, bw - 4, f, "#fff8e6");
+      if (d !== 0 && dw > 0) label((d > 0 ? "+" : "−") + Math.abs(d), xd, top + h / 2, dw - 2, f,
         zero ? "#5d6878" : d < 0 ? "#ff7b72" : "#56d364");
     }
   });
@@ -3018,8 +3024,9 @@ function drawBar(main) {
       }
       const maxVl = Math.max(1, l.plan || 0, l.actual || 0, _segSum); // 该线自身 plan/actual 与分段总和 的较大者 = 满格基准
       // ★ 2026-11-09 UI v2: 实际 | 计划 | 差额 三列; 无可画分段时退回旧画法
-      const DW = Math.max(18, Math.min(32, slot * 0.3)), SP = 2;
-      const pbw = Math.max(8, Math.min(34, (slot - 8 - DW - SP * 2) / 2));
+      // 2026-11-09: 柱宽上限 34→46、差额列 32→44, 给大字号留空间; 线多时仍按槽宽等比收窄
+      const DW = Math.max(18, Math.min(44, slot * 0.3)), SP = 2;
+      const pbw = Math.max(8, Math.min(46, (slot - 4 - DW - SP * 2) / 2));
       const gw = pbw * 2 + SP * 2 + DW;
       if (!drawPair(ctx, cx - gw / 2, pbw, SP, DW, segs, rows, ch, padT)) {
         drawStacked(ctx, cx - bw - 1.5, bw, segs, l.actual, maxVl, ch, padT, "#58a6ff", "actual");

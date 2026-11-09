@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v30'; // 2026-11-09 弹窗打开时隐藏进度条光粒子(修穿模)
+var CACHE = 'pdtiii-shell-v31'; // 2026-11-09 小时产出数据标签放大: 撑满柱宽
 var CORE = [
   './',
   './index.html',
