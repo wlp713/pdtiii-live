@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v25'; // 2026-11-09 小时产出 UI v2: 实际|计划|差额 三列
+var CACHE = 'pdtiii-shell-v26'; // 2026-11-09 小时产出 v2.1: 左侧时段纵轴, 时段等高对齐
 var CORE = [
   './',
   './index.html',
