@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v32'; // 2026-11-09 趋势加 UPH(8 小时) + 默认看板主要 8 线
+var CACHE = 'pdtiii-shell-v33'; // 2026-11-09 夜班前半夜自录小时桶 + 数字恢复正常比例
 var CORE = [
   './',
   './index.html',

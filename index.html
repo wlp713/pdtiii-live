@@ -2255,6 +2255,55 @@ function snapMins(sn) {
 }
 // 取某线体的小时桶数组。★ 2026-09-04 修复: 数据端 hourly 键名与 lines 名可能不一致
 //   (Frame No.1 带点 vs Frame No1 无点) → 精确查失败时做归一化兜底 (去点/空格/大小写)。
+// ★ 2026-11-09 夜班前半夜小时桶「看板自录」(用户报: 夜班第 2 小时了, 小时图仍是一整段):
+//   数据端从不写 20:30-23:30 小时桶 → 前端没有 21:30/22:30/23:30 边界值, 夜班前 4 段只能合成一段。
+//   做法: 任一开着的看板, 在边界过后首次拿到新数据(updatedAt ≥ 边界, 5 分钟内)时, 把各线累计写进
+//   Firebase 独立节点 pdtiii_night/<班次日>/<h>(不碰数据端 hourly 节点, 不会互相覆盖); 已有则不写。
+//   所有看板读取该节点, 合并成 {h,d,actual,plan} 桶补进 state.hourly → segsOf 现有逻辑自动分出 1-4 段。
+//   另补开班 20:30 = 0 桶, 中途才上线的当晚可按 0→首个边界插值估出前几段, 不再整段合并。
+const NIGHT_FB = "https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii_night/";
+const NIGHT_PRE_BOUNDS = [[1290, 2130], [1350, 2230], [1410, 2330]]; // [边界分钟, 桶号 HHMM]
+let nightDoc = { d: null, at: 0, data: {} };
+async function syncNightBuckets() {
+  const mins = bkkMins();
+  const pre = mins >= NIGHT_START, post = mins < NIGHT_END;
+  if (!pre && !post) return;
+  const d = bkkDateStr(bkkDay0() - (post ? 86400000 : 0));          // 班次日(与 valueAt 的 curDaily 同口径)
+  if (nightDoc.d !== d || Date.now() - nightDoc.at > 60000) {       // 最多每分钟读一次
+    try {
+      const r = await fetch(NIGHT_FB + d + ".json?t=" + Date.now());
+      nightDoc = { d: d, at: Date.now(), data: (r.ok && await r.json()) || {} };
+    } catch (e) { if (nightDoc.d !== d) nightDoc = { d: d, at: Date.now(), data: {} }; }
+  }
+  // 写: 仅前半夜, 数据新鲜且属今天, 边界已过 15 分钟内、节点里还没有
+  const up = String(state.updatedAt || "");
+  if (pre && up.slice(0, 10) === d && state.lines && state.lines.length) {
+    const upMin = Number(up.slice(11, 13)) * 60 + Number(up.slice(14, 16));
+    for (const [b, h] of NIGHT_PRE_BOUNDS) {
+      if (upMin >= b && upMin < b + 5 && !nightDoc.data[h]) {         // 5 分钟内: 晚打开的页面不把迟到的数当边界值
+        const rows = state.lines.filter(l => l && l.name).map(l => ({ n: l.name, a: Number(l.actual) || 0, p: Number(l.plan) || 0 }));
+        nightDoc.data[h] = rows;                                       // 先记本地, 防同一页重复写
+        try { await fetch(NIGHT_FB + d + "/" + h + ".json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rows) }); }
+        catch (e) { delete nightDoc.data[h]; }
+      }
+    }
+  }
+  mergeNightBuckets(d);
+}
+// 把 nightDoc 的桶并进 state.hourly(每次 refresh 后 state.hourly 会被整体替换, 所以每次都要并)
+function mergeNightBuckets(d) {
+  const hs = Object.keys(nightDoc.data || {});
+  if (nightDoc.d !== d || !hs.length) return;
+  const put = (name, h, a, p) => {
+    let arr = hourlyArrOf(name);
+    if (!arr) { arr = []; state.hourly[name] = arr; }
+    for (let i = arr.length - 1; i >= 0; i--) if (Number(arr[i].h) === h) arr.splice(i, 1); // 去掉同号旧桶(09-11 死桶)
+    arr.push({ h: h, d: d, actual: a, plan: p });
+  };
+  const names = {};
+  hs.forEach(h => (nightDoc.data[h] || []).forEach(r => { if (r && r.n) { names[r.n] = 1; put(r.n, Number(h), Number(r.a) || 0, Number(r.p) || 0); } }));
+  Object.keys(names).forEach(n => put(n, 2030, 0, 0));               // 开班 20:30 累计 = 0
+}
 function hourlyArrOf(name) {
   const h = state.hourly || {};
   const direct = h[name];
@@ -2608,8 +2657,8 @@ function segsOf(name, curActual, curPlan, curTarget) {
       //   故对前半夜窗口 [1230,1440) 的桶按分钟放行: 该窗口天然只属夜班, 不会跨班污染;
       //   桶在则说明本夜班确有前半夜数据 → 不折叠, seg1-4 正常分离(与 valueAt 放行口径一致)。
       const _bd = bkkDay0() - (bkkMins() < NIGHT_END ? 86400000 : 0);
-      const _bp = bkkParts(_bd);
-      const _curD = _bp.y + "-" + String(_bp.M).padStart(2, "0") + "-" + String(_bp.D).padStart(2, "0");
+      // ★ 2026-11-09 修复: bkkParts 不含年份字段 y → 旧写法拼出 "undefined-11-09", 新鲜桶也被判过期 → 夜班永远折叠
+      const _curD = bkkDateStr(_bd);
       for (const _sn of preArr) {
         const _m = snapMins(_sn);
         if (_m >= NIGHT_START && _m < 1440) {
@@ -2900,8 +2949,8 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   const xa = x0, xp = x0 + bw + sp, xd = xp + bw + sp + dw / 2;
   const zero = segs.every(s => !(s.actual > 0)); // 全天无实际 = 未报/停线 → 差额置灰, 不铺红
   // 2026-11-09 字号放大(用户要求): 数字撑满柱宽、两侧各留 2px; 全图统一按 3 位数 "888" 定字号, 4 位数等超宽的单独缩
-  //   数字横向压窄到 82%(窄体数字效果): 同样柱宽字可大约两成, 线多柱窄时仍看得清
-  const SQ = 0.82;
+  //   2026-11-09: 横向压窄(0.82)用户反馈像被拉长 → 恢复正常比例
+  const SQ = 1;
   const fitW = (txt, maxW) => { ctx.font = "700 10px sans-serif"; return 10 * maxW / Math.max(1, ctx.measureText(txt).width * SQ); };
   const fBase = Math.max(8, Math.min(22, fitW("888", bw - 4)));
   const label = (txt, x, y, maxW, f, color) => {
@@ -3541,6 +3590,7 @@ async function refresh() {
     // ★ 2026-10-18: 停产日「上一班累计冒充今日产出」守卫（需 state.hourly 就绪后才能跑）
     guardCarryOverLines();
     state.updatedAt = d.updatedAt || null;
+    try { await syncNightBuckets(); } catch (e) { console.warn("[night] sync", e); } // ★ 2026-11-09 夜班前半夜自录桶
     // ★ 2026-09-03 v6.3: 停用 sampleNow 本地采样 — 段计算已不读它(见 valueAt)。
     //   每个浏览器各自攒采样 → 同一 Firebase 数据不同浏览器差分出不同段值, 正是"小时图依赖浏览器"的根源。
     // sampleNow();
