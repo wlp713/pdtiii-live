@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v26'; // 2026-11-09 小时产出 v2.1: 左侧时段纵轴, 时段等高对齐
+var CACHE = 'pdtiii-shell-v27'; // 2026-11-09 交班初 lines 未清零 → 小时图不再把上一班总数画成一段
 var CORE = [
   './',
   './index.html',

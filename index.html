@@ -2512,6 +2512,21 @@ function valueAt(name, t, usePlan, dayOff) {
 // ★ 2026-08-29 v5.22 班次时段(用户拍板口径)+10分钟快照桶: 休息时段不产柱、不计入时段; 快照加密后时段边界值准确
 //   段号 lab = 时段号(1起); live 段 = 当前进行中; 休息中/交班空档 → 无 live 段(全部定格)
 //   时段表见 DAY_SEGS/NIGHT_SEGS (休息已剔除, 如午休 12:00-13:00 直接不在表内)
+// 开班 30 分钟内, lines 实时计划是否仍是上一班终值(数据端未清零)。
+//   上一班终值计划: 夜班 → 今天白班桶(08:00-20:20)最大 plan; 白班 → 昨晚凌晨桶(00:00-08:00)最大 plan。
+function staleShiftStart(name, isNight, cmpMins, curPlan) {
+  const elapsed = cmpMins - (isNight ? NIGHT_START : DAY_START);
+  if (!(elapsed >= 0 && elapsed < 30) || !(Number(curPlan) > 0)) return false;
+  const d = bkkDateStr(bkkDay0() - (isNight ? 0 : 86400000));
+  let prevP = 0;
+  for (const sn of (hourlyArrOf(name) || [])) {
+    if (String(sn.d || "") !== d) continue;
+    const m = snapMins(sn);
+    const inPrev = isNight ? (m >= DAY_START && m <= DAY_END) : (m < NIGHT_END);
+    if (inPrev) prevP = Math.max(prevP, Number(sn.plan) || 0);
+  }
+  return prevP > 0 && Number(curPlan) >= prevP * 0.8;
+}
 function segsOf(name, curActual, curPlan, curTarget) {
   const nowMins = bkkMins(); // ★ v5.42 泰国当前分钟(与设备时区无关)
   const sc = shiftSegAt(nowMins);
@@ -2543,6 +2558,11 @@ function segsOf(name, curActual, curPlan, curTarget) {
   //   (前半夜段=昨天, 后半夜段=今天凌晨), 采样按班次日过滤天然匹配, 与 20:30-24:00 显示口径一致。
   const postMid = isNight && nowMins < NIGHT_END;
   const cmpMins = postMid ? nowMins + 24 * 60 : nowMins;
+  // ★ 2026-11-09 修复(用户报: 夜班刚开始整张图合成一段, 数字=白班总数):
+  //   交班后头几分钟数据端 lines 还没清零, curActual/curPlan 仍是上一班终值(如 Final A 3374/4314 = 20:20 桶)。
+  //   图已切到新班 → 上一班整班产量被当成新班第一段/折叠段。开班 30 分钟内若实时计划 ≥ 上一班终值计划的 80%,
+  //   判定为未清零的旧值 → 本班实时值按 0 处理(数据端清零后自动恢复)。
+  if (staleShiftStart(name, isNight, cmpMins, curPlan)) { curActual = 0; curPlan = 0; }
   // ★ 2026-09-10 彻底修复: 凌晨夜班窗口(0:00-8:00)下, 前半夜(20:30-00:30)各段边界 t∈[1230,1470]
   //   经 dayOff=-1 查按时 t<1440 → tAbs=t, 本应匹配 前一天 20:30/21:30/22:40/23:30 的桶(h=2030..2400)。
   //   若数据端未保留前一天的这些前半夜桶(跨日/重启后只余当天后半夜桶 min≤470),
