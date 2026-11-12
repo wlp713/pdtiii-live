@@ -28,6 +28,10 @@ EXTRA_URL = 'https://dm111-e8a7d-default-rtdb.firebaseio.com/pdtiii_extra.json'
 # 需要补推的线体: 看板显示名 -> SQL LIKE 匹配（MES 实际名可能带多余空格）
 EXTRA_LINES = [
     ('Motor FL CL', 'Motor FL%CL%'),
+    # ★ 2026-11-12: 新增两条球头线(MES 里叫 Piston Balljion / Rod balljion)。
+    #   数据端 sync_db.py 的 MAIN_NAMES 白名单没有它们 → 被 WANT 过滤, 主源里没有, 走旁路补推。
+    ('Piston Balljion', 'Piston Balljion%'),
+    ('Rod balljion', 'Rod balljion%'),
 ]
 
 # 与数据端一致的段边界桶（只写这些，控制体积）
@@ -55,7 +59,7 @@ def fetch_rows(cfg, like):
         cur.execute(
             """SELECT PDT_NAME, TIME_STAMP, PLAN, ACTUAL, DIFF, NG, EFF_STR, SH_IX, MODEL_DPLAN
                FROM pdt_data
-               WHERE PDT_NAME LIKE %s AND TIME_STAMP >= CURDATE()
+               WHERE PDT_NAME LIKE %s AND TIME_STAMP >= CURDATE() AND TIME_STAMP <= NOW()
                ORDER BY TIME_STAMP""", (like,))
         rows = cur.fetchall()
         cur.close()

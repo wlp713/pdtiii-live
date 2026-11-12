@@ -1294,7 +1294,10 @@ function normName(n) { return String(n || "").toLowerCase().replace(/[\s.]+/g, "
 //   下游(表格/小时图/趋势/首小时/AI)全部显示与匹配为 "Motor FL"。
 // 2026-11-07: MES 已把 Motor FL / Motor CL 合并为「Motor FL CL」一条线;
 //   前端按合并后的名字展示, 不再拆成两个会显示 0 的空行.
-const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL CL" };
+const NAME_ALIAS = { "motorac": "Motor FL", "motorflcl": "Motor FL CL",
+  // 2026-11-12: 新增球头线在 MES 里叫 Piston Balljion / Rod balljion(拼写奇怪但就是库里的真名)
+  // 前端早期写法 balljon 保留别名兜底, 任何一处写成旧拼写都能被纠正到真名
+  "pistonballjon": "Piston Balljion", "rodballjon": "Rod balljion" };
 function aliasName(n) { return NAME_ALIAS[normName(n)] || n; }
 function aliasMapKeys(o) {
   if (!o || typeof o !== "object") return o;
@@ -1340,7 +1343,7 @@ const PRO_GROUPS = [
   { pro: "PRO4", label: "PRO4", subs: [
     { ws: "PRO4B", label: "C-Shaft", lines: ["C-Shaft Body A", "C-Shaft Body B", "C-Shaft Body C", "C-Shaft Pin A", "C-Shft Pin B", "C-Shaft Pin C"] },
     { ws: "PRO4F", label: "Frame", lines: ["Frame No.1", "Frame No.2", "Frame No.3", "Frame No.4", "Frame No.5"] },
-    { ws: "PRO4M", label: "Machining", lines: ["Press C-Shaft", "Piston Grinding", "Piston balljon", "Rod balljon", "Rod Pispin"] }
+    { ws: "PRO4M", label: "Machining", lines: ["Press C-Shaft", "Piston Grinding", "Piston Balljion", "Rod balljion", "Rod Pispin"] }
   ] },
   { pro: "PRO5", label: "PRO5", subs: [
     { ws: "PRO5", label: "Honing", lines: ["Frame Honing FL", "Piston honing FL", "Cylinder Honing"] }
