@@ -2711,10 +2711,26 @@ function segsOf(name, curActual, curPlan, curTarget) {
     // ★ 2026-09-14 修复: live(进行中)段负差 = lines 实时值与 hourly 定格桶计划/实际不同步
     //   旧逻辑兜底成 a1/p1(巨大值)把柱子撑爆/压扁。改为负差归 0(不撑爆)。
     const _liveSeg = t1 > cmpMins;
-    if (actual < 0) actual = _liveSeg ? 0 : a1; // 换班清零 → 新班从0累计; live 数据不同步 → 0
-    if (plan < 0) plan = _liveSeg ? 0 : p1; // live 数据不同步 → 0(不撑爆); 非 live 保持换班清零兜底
+    // ★ 2026-11-12 修复「小时图出现 900/2000 巨柱」:
+    //   数据端桶内取「最早/最小」记录, MES 换型/重启时 16:00 桶会抓到换型前的小累计值 → 累计出现小幅回落,
+    //   差分变负后旧逻辑直接兜底成 a1(累计值 2380/1875) → 画成单小时假产量。
+    //   处理: 只有「真正换班清零(跌幅≥50%)」才用 a1; 小幅回落视为脏桶, 归 0 并标 actualSuspect(!)。
+    let actualSuspect = false;
+    const nextT = (k + 1 < table.length) ? table[k + 1][1] : null;
+    const a2 = (nextT != null && nextT <= cmpMins && !_liveSeg) ? valueAt(name, nextT, false, off) : null;
+    if (actual < 0) {
+      if (_liveSeg) actual = 0;
+      else if (a1 < a0 * 0.5) actual = a1;      // 真换班清零: 新班累计
+      else { actual = 0; actualSuspect = true; } // 小幅回落: 脏桶, 不画假巨柱
+    } else if (!_liveSeg && actual > Math.max(plan * 1.5, 1) && a2 != null && a2 < a1 - 0.5) {
+      // 正跳变后下一桶回落 = 补数/坏桶, 不能当成单小时真实产量
+      actual = 0;
+      actualSuspect = true;
+    }
+    if (plan < 0) plan = _liveSeg ? 0 : (p1 < p0 * 0.5 ? p1 : 0);
     segs.push({ h: t1 / 60, lab: k + 1, live: t1 > cmpMins, base: false, pm: false,
-      actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1, ot: segIsOt(isNight, t0, t1) });
+      actual: Math.max(0, actual), plan: Math.max(0, plan), t0: t0, t1: t1,
+      actualSuspect: actualSuspect, ot: segIsOt(isNight, t0, t1) });
   }
   return segs;
 }
@@ -2830,7 +2846,10 @@ function drawStacked(ctx, cx, bw, segs, total, maxV, ch, padT, color, key) {
         ctx.fillStyle = c; ctx.fillText(txt, x, y);
         ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
       };
-      if (s.base || s.pm) {
+      if (key === "actual" && s.actualSuspect) {
+        // 数据异常段: 不写假的 0/累计值, 用 ! 标出来
+        if (perH >= 10) L("!", cx + bw / 2, yAcc + perH / 2 + 4, "bold 12px sans-serif", "#f0b93a");
+      } else if (s.base || s.pm) {
         const lbl = s.cum ? t("shiftCum") : (s.nightBase ? t("nightBase") : (s.pm ? t("pm") : t("am")));
         // v2.1: 标签比柱子宽时会与相邻柱的文字叠成一团 → 放不下就只画数字
         ctx.font = fSml + "px sans-serif";
@@ -5398,7 +5417,7 @@ if (typeof isStalled !== "function" ) {
   location.reload();
 }
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
-  navigator.serviceWorker.register('./sw.js?v=20261108perf2').catch(function () {});
+  navigator.serviceWorker.register('./sw.js?v=20261112seg').catch(function () {});
 }
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
