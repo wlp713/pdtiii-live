@@ -934,6 +934,147 @@
   .legend .lg-gap::before { background: repeating-linear-gradient(135deg, rgba(248,81,73,.9) 0 2px, rgba(248,81,73,.3) 2px 4px); }
   .legend .seg-toggle { color: var(--t3); font-size: 11.5px; }
   .chart-ws-label { font-size: 12px; }
+  /* ═══════════════════════════════════════════════════════════════════════════════
+     v10 KPI 仪表卡 + 卡片行列表 (2026-11-16)
+     ① 数字统一用 Windows 自带工业字体 Bahnschrift(DIN 风格, 窄而硬, 大屏远看清楚), 无则回落 Segoe UI
+     ② KPI: 标签 → 大数字(+小分母) → 状态条; 说明小字改悬浮提示
+     ③ 列表(日常视图): 每条线一张卡片行 + 左侧状态色条 + 序号徽标 + 达成率胶囊 + 进度条 90% 刻度
+     详情(battle)模式 / 「全部线体」紧凑视图保持原样式, 只换数字字体。
+     ═══════════════════════════════════════════════════════════════════════════════ */
+  :root { --num: "Bahnschrift", "DIN Alternate", "Segoe UI", "Microsoft YaHei", sans-serif; --ok: #22c58b; --warn: #f5a524; --bad: #f04848; }
+  .kpi .value, .kpi .value.green, .kpi .value.orange, .kpi .value.red, .kpi .value.blue,
+  .kpi-den, #mainTable td:nth-child(n+4), #mainTable td.rank { font-family: var(--num); }
+  .kpi-val { display: inline-flex; align-items: baseline; gap: 2px; white-space: nowrap; min-width: 0; }
+  .kpi-den { font-size: 12px; font-weight: 600; color: var(--t3); letter-spacing: .2px; }
+  .kpi-meter { display: none; }
+  /* ── 日常大屏 KPI: 高度锁定原 54px(不占列表空间); 左=标签+大数字, 右=状态条 ── */
+  body:not(.battle-mode) .kpi { height: 54px; padding: 5px 18px; flex-direction: row; align-items: stretch; justify-content: flex-start; gap: 18px; overflow: hidden; }
+  body:not(.battle-mode) .kpi-top { flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; flex: 0 0 auto; }
+  body:not(.battle-mode) .kpi .label { font-size: 13px; line-height: 15px; }
+  body:not(.battle-mode) .kpi .sub { display: none; }
+  body:not(.battle-mode) .kpi .value, body:not(.battle-mode) .kpi .value.green, body:not(.battle-mode) .kpi .value.orange,
+  body:not(.battle-mode) .kpi .value.red, body:not(.battle-mode) .kpi .value.blue { font-size: 30px; font-weight: 700; line-height: 30px; letter-spacing: 0; }
+  body:not(.battle-mode) .kpi .value.green { color: var(--ok); }
+  body:not(.battle-mode) .kpi .value.orange { color: var(--warn); }
+  body:not(.battle-mode) .kpi .value.red { color: var(--bad); }
+  body:not(.battle-mode) #kpiRun, body:not(.battle-mode) #kpiFinal, body:not(.battle-mode) #kpiMotor { color: var(--t1); }
+  body:not(.battle-mode) .kpi-den { font-size: 16px; margin-left: 2px; }
+  body:not(.battle-mode) .kpi-meter { display: flex; position: relative; flex: 1 1 auto; align-self: flex-end; height: 6px; margin-bottom: 11px; gap: 4px; }
+  body:not(.battle-mode) .kpi-meter.none { visibility: hidden; }
+  .kpi-meter.bar { background: rgba(160,185,225,.10); border-radius: 3px; }
+  .kpi-meter i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 3px; overflow: hidden; }
+  .kpi-meter i.tick { left: 90%; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 1px; background: rgba(225,235,250,.6); }
+  .kpi-meter b { position: relative; flex: 1; border-radius: 3px; background: rgba(160,185,225,.10); overflow: hidden; }
+  .kpi-meter .on { background: #3b82f6; }
+  .kpi-meter .ok { background: #22c58b; }
+  .kpi-meter .warn { background: #f5a524; }
+  .kpi-meter .bad { background: #f04848; }
+  /* 小特效: 状态条上一道扫光(分段条依次扫过); 低性能/减少动效时关闭 */
+  @keyframes kpiSweep { 0% { transform: translateX(-100%); } 55%, 100% { transform: translateX(350%); } }
+  @keyframes kpiPip { 0% { transform: translateX(-110%); } 22%, 100% { transform: translateX(110%); } }
+  .kpi-meter i.fill::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 30%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent); animation: kpiSweep 4s ease-in-out infinite; }
+  .kpi-meter b.on::after, .kpi-meter b.ok::after, .kpi-meter b.warn::after, .kpi-meter b.bad::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent); transform: translateX(-110%); animation: kpiPip 4s ease-in-out infinite; }
+  .kpi-meter b:nth-child(2)::after { animation-delay: 0.09s; }
+  .kpi-meter b:nth-child(3)::after { animation-delay: 0.18s; }
+  .kpi-meter b:nth-child(4)::after { animation-delay: 0.27s; }
+  .kpi-meter b:nth-child(5)::after { animation-delay: 0.36s; }
+  .kpi-meter b:nth-child(6)::after { animation-delay: 0.45s; }
+  .kpi-meter b:nth-child(7)::after { animation-delay: 0.54s; }
+  .kpi-meter b:nth-child(8)::after { animation-delay: 0.63s; }
+  .kpi-meter b:nth-child(9)::after { animation-delay: 0.72s; }
+  .kpi-meter b:nth-child(10)::after { animation-delay: 0.81s; }
+  .kpi-meter b:nth-child(11)::after { animation-delay: 0.90s; }
+  .kpi-meter b:nth-child(12)::after { animation-delay: 0.99s; }
+  .kpi-meter b:nth-child(13)::after { animation-delay: 1.08s; }
+  .kpi-meter b:nth-child(14)::after { animation-delay: 1.17s; }
+  .kpi-meter b:nth-child(15)::after { animation-delay: 1.26s; }
+  .kpi-meter b:nth-child(16)::after { animation-delay: 1.35s; }
+  body.low-perf .kpi-meter i.fill::after, body.low-perf .kpi-meter b::after { display: none; }
+  @media (prefers-reduced-motion: reduce) { .kpi-meter i.fill::after, .kpi-meter b::after { display: none; } }
+
+  /* ── 列表: 卡片行(日常视图, 非全部线体) ── */
+  body:not(.battle-mode) #mainTable:not(.all-lines) { border-collapse: separate; border-spacing: 0 6px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) th { background: transparent; border-bottom: none; padding: 0 8px; height: 20px;
+    font-size: 12px; font-weight: 600; color: var(--t3); letter-spacing: .6px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) th.sorted { color: #8fc1ff; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) th.col-act-h { color: #8cc4ff; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) th.col-plan-h { color: #c9a95c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td { border-bottom: none; background: rgba(140,170,220,.05); padding-left: 8px; padding-right: 8px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:first-child { border-radius: 10px 0 0 10px; padding-left: 16px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:last-child { border-radius: 0 10px 10px 0; padding-right: 18px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tbody tr:hover td { background: rgba(140,170,220,.09); }
+  /* 状态底色(重新声明, 盖过卡片底) */
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-warn) td { background: rgba(245,158,11,.05); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-bad) td { background: rgba(239,68,68,.08); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-zero) td { background: rgba(139,22,22,.16); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row td { background: rgba(248,81,73,.12); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv1 td { background: rgba(210,153,34,.13); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv2 td { background: rgba(248,81,73,.18); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv3 td { background: rgba(248,81,73,.26); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td { background: rgba(248,81,73,.28); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.no-data td { background: rgba(140,170,220,.022); }
+  /* 左侧状态色条: 绿=达标 / 琥珀=接近 / 红=落后·停滞·停线; 未开班无色条 */
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.hit-row td:first-child { box-shadow: inset 4px 0 0 0 var(--ok); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-warn) td:first-child { box-shadow: inset 4px 0 0 0 var(--warn); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-bad) td:first-child, body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row td:first-child,
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td:first-child { box-shadow: inset 4px 0 0 0 var(--bad); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv1 td:first-child { box-shadow: inset 4px 0 0 0 var(--warn); }
+  /* 序号徽标 */
+  body:not(.battle-mode) #mainTable:not(.all-lines) .rk { display: inline-flex; align-items: center; justify-content: center;
+    min-width: 28px; height: 28px; border-radius: 8px; background: rgba(160,185,225,.08); color: var(--t2); font-size: 15px; font-weight: 600; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row .rk { background: rgba(160,185,225,.04); color: var(--idle); }
+  /* 数字: 工业字体 + 实际值最大 */
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(n+4) { font-weight: 600; letter-spacing: 0; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(4) { font-weight: 700; }
+  body:not(.battle-mode) #mainTable.roomy td:nth-child(4) { font-size: 31px; }
+  body:not(.battle-mode) #mainTable.roomy td:nth-child(5), body:not(.battle-mode) #mainTable.roomy td:nth-child(6), body:not(.battle-mode) #mainTable.roomy td:nth-child(7), body:not(.battle-mode) #mainTable.roomy td:nth-child(8) { font-size: 25px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.col-act.green { color: var(--ok); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.col-act.orange { color: var(--warn); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.col-act.red { color: var(--bad); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.col-plan { color: #aeb8c6; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.neg { color: #f26b6b; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.pos { color: var(--ok); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td.col-plan, body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td.col-act.red, body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td.neg { color: var(--idle); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td.line-name { color: #8a94a5; }
+  /* 达成率胶囊: 去掉整格底色, 只在数字后面垫一块圆角色块 */
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-ok, body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-warn, body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-bad, body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-zero { box-shadow: none; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) .ep { display: inline-block; padding: 4px 12px 3px; border-radius: 9px; line-height: 1.1; min-width: 3.6em; text-align: center; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-ok .ep { background: rgba(34,197,139,.15); color: #3fe0a4; box-shadow: inset 0 0 0 1px rgba(34,197,139,.28); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-warn .ep { background: rgba(245,165,36,.15); color: #ffc15a; box-shadow: inset 0 0 0 1px rgba(245,165,36,.3); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-bad .ep { background: rgba(240,72,72,.16); color: #ff7a7a; box-shadow: inset 0 0 0 1px rgba(240,72,72,.32); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-zero .ep { background: rgba(139,22,22,.25); color: #ff8a8a; }
+  /* 进度条: 宽松视图加粗, 90% 刻度=达标线 */
+  .hbar .p90 { position: absolute; left: 90%; top: 0; bottom: 0; width: 2px; margin-left: -1px; z-index: 3; background: rgba(4,9,18,.75); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) .hbar .p100 { display: none; }
+  body:not(.battle-mode) #mainTable.roomy .hbar { height: 24px; border-radius: 12px; }
+  body:not(.battle-mode) #mainTable.roomy .hbar .act, body:not(.battle-mode) #mainTable.roomy .hbar .gap { border-radius: 12px; }
+  #mainTable tr.idle-row .hbar .p90, #mainTable tr.no-data .hbar .p90, #mainTable tr.planned-off .hbar .p90 { display: none; }
+  #mainTable.all-lines .hbar .p90 { width: 1px; }
+  /* ── 扁平化: 面板/KPI/进度条/胶囊一律纯色块, 去渐变、去投影、去高光线; 动感只留进度条粒子流 + 状态条扫光 ── */
+  .panel, .kpi, .panel:hover, .kpi:hover { background: #0b1321; box-shadow: none; }
+  .kpi, .kpi:hover { background: #0d1626; }
+  .panel, .kpi { border: 1px solid rgba(120,160,220,.13); border-radius: 10px; }
+  .panel:hover, .kpi:hover { border-color: rgba(120,170,235,.24); }
+  body.low-perf .panel, body.low-perf .kpi { box-shadow: none !important; }
+  .panel h2::before { background: #3b82f6; box-shadow: none; }
+  .hbar { background: rgba(150,170,205,.10); box-shadow: none; }
+  .hbar .act { background: #3d86f7; box-shadow: none; }
+  .hbar .gap { box-shadow: none; }
+  .hbar .over-glow { background: #22c58b; opacity: 1; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) .ep { box-shadow: none !important; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-ok .ep { background: rgba(34,197,139,.16); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-warn .ep { background: rgba(245,165,36,.16); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-bad .ep { background: rgba(240,72,72,.17); }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td { background: #111b2c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tbody tr:hover td { background: #16223a; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.idle-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.no-data td { background: #0e1726; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-warn) td { background: linear-gradient(rgba(245,165,36,.075), rgba(245,165,36,.075)) #111b2c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.miss:has(td.eff-bad) td { background: linear-gradient(rgba(240,72,72,.10), rgba(240,72,72,.10)) #111b2c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv2 td { background: linear-gradient(rgba(240,72,72,.16), rgba(240,72,72,.16)) #111b2c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv1 td { background: linear-gradient(rgba(245,165,36,.12), rgba(245,165,36,.12)) #111b2c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv3 td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td { background: linear-gradient(rgba(240,72,72,.26), rgba(240,72,72,.26)) #111b2c; }
 </style>
 <script>
 /* v2 自适应: 以 1920×950(1080p 最大化窗口可用区)为基准, 整页按视口等比缩放。
@@ -995,11 +1136,11 @@
 </div>
 
 <div class="kpis">
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">运行线体</div><div class="kpi-val"><span class="value" id="kpiRun">-</span><span class="kpi-den" id="kpiRunDen"></span></div></div><div class="kpi-meter" id="kpiRunMeter"></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">平均效率</div><div class="kpi-val"><span class="value" id="kpiEff">-</span><span class="kpi-den" id="kpiEffDen"></span></div></div><div class="kpi-meter" id="kpiEffMeter"></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">达成线体 ≥90%</div><div class="kpi-val"><span class="value" id="kpiHit">-</span><span class="kpi-den" id="kpiHitDen"></span></div></div><div class="kpi-meter" id="kpiHitMeter"></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">Final 产量</div><div class="kpi-val"><span class="value blue" id="kpiFinal">-</span><span class="kpi-den" id="kpiFinalDen"></span></div></div><div class="kpi-meter" id="kpiFinalMeter"></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">Motor 产量</div><div class="kpi-val"><span class="value orange" id="kpiMotor">-</span><span class="kpi-den" id="kpiMotorDen"></span></div></div><div class="kpi-meter" id="kpiMotorMeter"></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
@@ -1780,6 +1921,12 @@ function lineNameCls(l) {
 // ★ 2026-09-03 v6.0 去统一刻度: 进度条以「各线体自身目标(plan)为 100% 满格基准」。
 //   蓝条 = 已达成部分(actual), 红条 = 未达成缺口(plan-actual) → 红色=未达成, 蓝色=达成(主题色)。
 //   所有线体在同一水平基准上, 看各自进度而非绝对产量; 超额(actual>plan)时蓝条满格。
+// ★ 2026-11-16 v10: 达成率做成色块胶囊(颜色由所在格 eff-* 决定); 未开班显示 —
+function effPill(l) {
+  if (isIdle(l)) return "—";
+  const v = fmt1(l.eff);
+  return v === "-" ? v : '<span class="ep">' + v + '</span>';
+}
 function hbarHtml(l) {
   const plan = Number(l.plan) || 0;
   const act = Number(l.actual) || 0;
@@ -1796,7 +1943,7 @@ function hbarHtml(l) {
   const bd = isBreakdown(l);
   const bdLabel = bd ? `<div class="bd-label">${breakdownLabel(l)}</div>` : "";
   const hbarCls = bd ? "hbar bd" : "hbar";
-  return `<div class="${hbarCls}"${stalledCls}><div class="p100"></div>` +
+  return `<div class="${hbarCls}"${stalledCls}><div class="p100"></div><div class="p90"></div>` +
     (over ? `<div class="over-glow" style="width:${overW}%"></div>` : (gw > 0 ? `<div class="gap" style="left:${aw}%;width:${gw}%"></div>` : "")) +
     `<div class="act${over ? " over":""}" style="width:${Math.min(100, aw)}%"></div>${bdLabel}</div>`;
 }
@@ -1808,7 +1955,7 @@ function renderTable() {
   const viewSrc = wsSel ? wsLinesOf(wsSel) : main;
   let view = sortLines(viewSrc);
   // ★ 2026-10-29 全部线体视图 → 紧凑行样式(39条一屏铺满)
-  try { const _mt = document.getElementById("mainTable"); if (_mt) _mt.classList.toggle("all-lines", wsSel === "ALL"); } catch (e) {}
+  try { const _mt = document.getElementById("mainTable"); if (_mt) { _mt.classList.toggle("all-lines", wsSel === "ALL"); _mt.classList.toggle("roomy", wsSel !== "ALL" && view.length <= 10); } } catch (e) {}
   const tb = document.querySelector("#mainTable tbody");
   if (!tb) return { main, other, view };
   // ★ 2026-09-04 闪烁优化: 行复用 diff — 不再每次 tb.innerHTML="" 全清重建。
@@ -1845,16 +1992,17 @@ function renderTable() {
       else if (l.noData) cls = "no-data";
       else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
+      else if (hitEff(l.eff)) cls = "hit-row";
       if (tr.className !== cls) tr.className = cls;
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
       const htmls = [
-        String(idx + 1),
+        '<span class="rk">' + (idx + 1) + '</span>',
         dot + displayName(l.name).trim(),
         hbarHtml(l),
         fmt(l.actual),
         fmt(l.plan),
         fmt(l.cb),
-        isIdle(l) ? "—" : fmt1(l.eff),
+        effPill(l),
         isIdle(l) ? "—" : uphTxt(l, now)
       ];
       const clses = ["rank", "line-name " + lineNameCls(l), "bar-cell", actClass(l.eff), "col-plan", signClass(l.cb), effClass(l.eff), "uph-cell"];
@@ -1890,16 +2038,17 @@ function renderTable() {
         else if (l.noData) cls = "no-data";
       else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
+      else if (hitEff(l.eff)) cls = "hit-row";
         if (tr.className !== cls) tr.className = cls;
         const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
-          `<td class="rank">${idx + 1}</td>` +
+          `<td class="rank"><span class="rk">${idx + 1}</span></td>` +
           `<td class="line-name ${lineNameCls(l)}">${dot}${displayName(l.name).trim()}</td>` +
           `<td class="bar-cell">${hbarHtml(l)}</td>` +
           `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
           `<td class="col-plan">${fmt(l.plan)}</td>` +
           `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
-          `<td class="${effClass(l.eff)}">${isIdle(l) ? "—" : fmt1(l.eff)}</td>` +
+          `<td class="${effClass(l.eff)}">${effPill(l)}</td>` +
           `<td class="uph-cell">${isIdle(l) ? "—" : uphTxt(l, now)}</td>`;
         frag.appendChild(tr);
       });
@@ -1943,9 +2092,12 @@ function fitMainTable() {
   // 表头高度(用 getBoundingClientRect 比 clientHeight 稳)
   const headEl = table.tHead;
   const headHeight = headEl ? headEl.getBoundingClientRect().height : 0;
-  const available = Math.floor(wrap.clientHeight - headHeight);
-  if (available < 30) return;
   const count = rows.length;
+  // ★ 2026-11-16 v10 卡片行: border-spacing 纵向间距 × (行数+表头+1) 要扣掉, 否则末行被裁
+  const _bs = String(getComputedStyle(table).borderSpacing || "0").split(" ");
+  const gapY = getComputedStyle(table).borderCollapse === "separate" ? (parseFloat(_bs[1] || _bs[0]) || 0) : 0;
+  const available = Math.floor(wrap.clientHeight - headHeight - gapY * (count + 2));
+  if (available < 30) return;
   // ★ 2026-10-29: 「全部线体」视图(39条)行数多 → 动态收紧最小行高, 让整表仍能一屏铺满不滚动
   const minHeight = count > 30 ? 20 : (count > 20 ? 23 : 26);
   const canFill = available >= count * minHeight;
@@ -2021,24 +2173,41 @@ function setupSort() {
   renderSortArrows();
 }
 
+// ★ 2026-11-16 v10 KPI 仪表卡: 大数字 + 小分母 + 底部状态条(分段=每条线 / 连续=达成比, 90% 处刻度)
+function kpiLvl(e) { return e >= 90 ? "ok" : e >= 80 ? "warn" : "bad"; }
+function kpiSetMeter(id, kind, html) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const c = "kpi-meter " + kind;
+  if (el.className !== c) el.className = c;
+  if (el.innerHTML !== html) el.innerHTML = html;
+}
+function kpiBar(pct, lvl) {
+  return (pct > 0 ? '<i class="fill ' + lvl + '" style="width:' + Math.min(100, pct).toFixed(1) + '%"></i>' : "") + '<i class="tick"></i>';
+}
 function renderKPIs(view) {
   const raw = Array.isArray(view) ? view : [];
   const wsMode = !!wsSel;                      // ★ 2026-09-04: 车间模式(选中车间按钮)
   const setTxt = (el, v) => { if (el && el.textContent !== String(v)) el.textContent = String(v); };
   const setCls = (el, c) => { if (el && el.className !== c) el.className = c; };
+  const $ = id => document.getElementById(id);
   // 2026-11-07: Final/Rotor 已拆成独立小类, 不再在 PRO2R 里剔除 Rotor
   const bLines = raw;
-  const eligLines = bLines.filter(l => (Number(l.actual)||0) > 0); // ★ 改动C(2026-09-10): actual=0=没生产 → 剔除综合达成率+WS Plan(简单粗暴, 按用户要求不再用 isStoppedRun)
-  const running = bLines.filter(l => l.status === "RUNNING" || l.status === "运行");
-  // ★ 2026-09-15 语义对齐: 大数字只数「运行且有产出」的线(与达成线体分母一致, 避免 8 vs 6 打架)
-  //   无产出的运行线(如 WL/F 未开班)不计入; 副标题仍展示「主要 X 条·全部 Y 条」完整口径。
+  const eligLines = bLines.filter(l => (Number(l.actual)||0) > 0); // ★ 改动C(2026-09-10): actual=0=没生产 → 剔除综合达成率+WS Plan
+  const isRun = l => l.status === "RUNNING" || l.status === "运行";
+  const running = bLines.filter(isRun);
+  // ★ 2026-09-15 语义对齐: 大数字只数「运行且有产出」的线(与达成线体分母一致)
   const runProd = running.filter(l => (Number(l.actual) || 0) > 0);
-  const runEl = document.getElementById("kpiRun");
-  setTxt(runEl, runProd.length);
-  const runDen = eligLines.length || 1; // 有产出线数为分母, 避免除零
-  setCls(runEl, "value " + (runProd.length >= Math.ceil(runDen*0.8) ? "green" : runProd.length >= Math.ceil(runDen*0.5) ? "orange" : "red"));
+  setTxt($("kpiRun"), runProd.length);
+  setTxt($("kpiRunDen"), "/" + bLines.length);
+  // 分段条: 每条线一格(与列表同顺序), 在产=亮; 线太多(全部线体)改连续条
+  if (bLines.length && bLines.length <= 16) {
+    kpiSetMeter("kpiRunMeter", "seg", bLines.map(l => '<b class="' + (isRun(l) && (Number(l.actual) || 0) > 0 ? "on" : "") + '" title="' + String(displayName(l.name)).replace(/"/g, "") + '"></b>').join(""));
+  } else {
+    kpiSetMeter("kpiRunMeter", "bar", bLines.length ? '<i class="fill on" style="width:' + (runProd.length / bLines.length * 100).toFixed(1) + '%"></i>' : "");
+  }
   // ★ 2026-09-04: 车间模式下副标题改为车间 n 条·全部 a 条 (默认=主要 m 条·全部 a 条)
-  setTxt(document.getElementById("kpiRunSub"), wsMode
+  setTxt($("kpiRunSub"), wsMode
     ? t("kpiWsRunFmt").replace("{n}", bLines.length).replace("{a}", state.lines.length)
     : t("kpiRunSubFmt").replace("{m}", bLines.length).replace("{a}", state.lines.length));
   // ★ 改动C: 有效率且未停线, 按计划量加权平均 = Σ(actual)/Σ(plan)
@@ -2046,43 +2215,69 @@ function renderKPIs(view) {
   const totAct = pool.reduce((s, l) => s + (Number(l.actual) || 0), 0);
   const totPlan = pool.reduce((s, l) => s + (Number(l.plan) || 0), 0);
   const avgEff = totPlan > 0 ? (totAct / totPlan) * 100 : (pool.length ? pool.reduce((s, l) => s + l.eff, 0) / pool.length : 0);
-  const el = document.getElementById("kpiEff");
-  setTxt(el, avgEff ? avgEff.toFixed(1) + "%" : "-");
-  setCls(el, "value " + (avgEff >= 90 ? "green" : avgEff ? "red" : ""));
-  setTxt(document.getElementById("kpiEffSub"), wsMode ? t("kpiWsEffSub") : t("kpiEffSub"));
+  const el = $("kpiEff");
+  setTxt(el, avgEff ? avgEff.toFixed(1) : "-");
+  setTxt($("kpiEffDen"), avgEff ? "%" : "");
+  // 三档与列表达成率一致: ≥90 绿 / 80-90 琥珀 / <80 红
+  setCls(el, "value " + (!avgEff ? "" : avgEff >= 90 ? "green" : avgEff >= 80 ? "orange" : "red"));
+  kpiSetMeter("kpiEffMeter", "bar", kpiBar(avgEff, kpiLvl(avgEff)));
+  setTxt($("kpiEffSub"), wsMode ? t("kpiWsEffSub") : t("kpiEffSub"));
   // ★ 改动C: 达成线体分母 = 运行中且未停的线数; 已停线不计入达成体系
-  const eligRunning = eligLines.filter(l => l.status === "RUNNING" || l.status === "运行");
+  const eligRunning = eligLines.filter(isRun);
   const hit = eligRunning.filter(l => hitEff(l.eff));
-  const eh = document.getElementById("kpiHit");
-  setTxt(eh, hit.length + "/" + eligRunning.length);
-  // ★ 2026-09-15 按比例着色(与手机端一致): ≥60%绿 / ≥40%橙 / 其余红 — 管理者扫一眼即懂状态
+  const eh = $("kpiHit");
+  setTxt(eh, eligRunning.length ? hit.length : "-");
+  setTxt($("kpiHitDen"), eligRunning.length ? "/" + eligRunning.length : "");
+  // ★ 2026-09-15 按比例着色(与手机端一致): ≥60%绿 / ≥40%橙 / 其余红
   const hitDen = eligRunning.length || 1;
   const hitRatio = hit.length / hitDen;
-  setCls(eh, "value " + (hitRatio >= 0.6 ? "green" : hitRatio >= 0.4 ? "orange" : "red"));
+  setCls(eh, "value " + (!eligRunning.length ? "" : hitRatio >= 0.6 ? "green" : hitRatio >= 0.4 ? "orange" : "red"));
+  // 分段条: 每条在产线一格, 按达成率从高到低 → 绿/琥珀/红 的比例一眼可见
+  const effSorted = eligRunning.slice().sort((x, y) => (Number(y.eff) || 0) - (Number(x.eff) || 0));
+  if (effSorted.length && effSorted.length <= 16) {
+    kpiSetMeter("kpiHitMeter", "seg", effSorted.map(l => '<b class="' + kpiLvl(Number(l.eff) || 0) + '" title="' + String(displayName(l.name)).replace(/"/g, "") + " " + fmt1(l.eff) + '%"></b>').join(""));
+  } else {
+    kpiSetMeter("kpiHitMeter", "bar", effSorted.length ? '<i class="fill ok" style="width:' + (hitRatio * 100).toFixed(1) + '%"></i>' : "");
+  }
   const hitNames = hit.map(l => shortName(l.name)).join(lang === "zh" ? "、" : ", ");
-  setTxt(document.getElementById("kpiHitSub"), hitNames || t("noHit"));
+  setTxt($("kpiHitSub"), hitNames || t("noHit"));
+  const sumOf = (arr, k) => arr.reduce((s, l) => s + (Number(l[k]) || 0), 0);
+  const outCard = (id, out, plan) => {
+    setTxt($(id), out ? fmt(out) : "-");
+    setTxt($(id + "Den"), out && plan ? "/" + fmt(plan) : "");
+    const pct = plan > 0 ? out / plan * 100 : 0;
+    kpiSetMeter(id + "Meter", "bar", kpiBar(pct, kpiLvl(pct)));
+  };
   if (wsMode) {
-    // ★ 2026-09-04 车间模式: 卡4/5 车间通用口径 — 车间累计产出 + 计划量 (★ B/C: 仅 Final 且非停线)
-    const cumSum = eligLines.reduce((s, l) => s + (Number(l.cum) || 0), 0);
-    const planSum = eligLines.reduce((s, l) => s + (Number(l.plan) || 0), 0);
-    setTxt(document.getElementById("kpiFinalLbl"), t("kpiWsOutLbl"));
-    setTxt(document.getElementById("kpiFinalSub"), t("kpiWsOutSub"));
-    setTxt(document.getElementById("kpiMotorLbl"), t("kpiWsPlanLbl"));
-    setTxt(document.getElementById("kpiMotorSub"), t("kpiWsPlanSub"));
-    setTxt(document.getElementById("kpiFinal"), cumSum ? fmt(cumSum) : "-");
-    setTxt(document.getElementById("kpiMotor"), planSum ? fmt(planSum) : "-");
+    // ★ 2026-09-04 车间模式: 卡4/5 车间通用口径 — 车间累计产出 + 计划量
+    const cumSum = sumOf(eligLines, "cum");
+    const planSum = sumOf(eligLines, "plan");
+    setTxt($("kpiFinalLbl"), t("kpiWsOutLbl"));
+    setTxt($("kpiFinalSub"), t("kpiWsOutSub"));
+    setTxt($("kpiMotorLbl"), t("kpiWsPlanLbl"));
+    setTxt($("kpiMotorSub"), t("kpiWsPlanSub"));
+    outCard("kpiFinal", cumSum, planSum);
+    setTxt($("kpiMotor"), planSum ? fmt(planSum) : "-");
+    setTxt($("kpiMotorDen"), "");
+    kpiSetMeter("kpiMotorMeter", "none", "");
   } else {
     // ★ 2026-09-10 改动C: 默认(非车间)视图 KPI 总览同样剔除 actual=0 未生产线(不纳入产出/计划)
     const eligAll = raw.filter(l => (Number(l.actual)||0) > 0);
-    const totalFinal = eligAll.filter(l => FINAL_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
-    const totalMotor = eligAll.filter(l => MOTOR_SET.has(normName(l.name))).reduce((s, l) => s + (Number(l.cum) || 0), 0);
-    setTxt(document.getElementById("kpiFinalLbl"), t("kpiFinal"));
-    setTxt(document.getElementById("kpiFinalSub"), t("kpiFinalSub"));
-    setTxt(document.getElementById("kpiMotorLbl"), t("kpiMotor"));
-    setTxt(document.getElementById("kpiMotorSub"), t("kpiMotorSub"));
-    setTxt(document.getElementById("kpiFinal"), totalFinal ? fmt(totalFinal) : "-");
-    setTxt(document.getElementById("kpiMotor"), totalMotor ? fmt(totalMotor) : "-");
+    const fin = eligAll.filter(l => FINAL_SET.has(normName(l.name)));
+    const mot = eligAll.filter(l => MOTOR_SET.has(normName(l.name)));
+    setTxt($("kpiFinalLbl"), t("kpiFinal"));
+    setTxt($("kpiFinalSub"), t("kpiFinalSub"));
+    setTxt($("kpiMotorLbl"), t("kpiMotor"));
+    setTxt($("kpiMotorSub"), t("kpiMotorSub"));
+    outCard("kpiFinal", sumOf(fin, "cum"), sumOf(fin, "plan"));
+    outCard("kpiMotor", sumOf(mot, "cum"), sumOf(mot, "plan"));
   }
+  // 说明小字不再常显(日常大屏), 改为整卡悬浮提示
+  document.querySelectorAll(".kpis .kpi").forEach(k => {
+    const lb = k.querySelector(".label"), sb = k.querySelector(".sub");
+    const tip = (lb ? lb.textContent : "") + (sb && sb.textContent ? " · " + sb.textContent : "");
+    if (k.title !== tip) k.title = tip;
+  });
 }
 
 // ---- 停滞分级告警 v5.18: 追踪每条主要线 actual 最后变化时刻 → 停滞时长 + 分级 ----
