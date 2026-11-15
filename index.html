@@ -857,6 +857,83 @@
   body:not(.battle-mode) #mod-trend-base { flex: 0 0 29%; }
   body.battle-mode #pages-wrap { flex: 0 0 70%; }
   body.battle-mode #extra-modules { flex: 0 0 30%; }
+  /* ═══════════════════════════════════════════════════════════════════════════════
+     v9 设计规范层 (2026-11-15 精修现有风格, 用户确认方向)
+     原则: ① 一套色板/字号/间距贯穿全页  ② 红色只给"开了班但落后"的真异常
+           ③ 去掉文字发光/毛玻璃(静态底上看不出, 低配机白耗 GPU)  ④ 大屏远看: 数字放大、说明字提亮
+     只追加覆盖, 不改布局结构和 JS 行为; 详情(battle)模式与「全部线体」紧凑视图不放大字号。
+     ═══════════════════════════════════════════════════════════════════════════════ */
+  :root {
+    --t1: #f2f5f9;            /* 主文字 */
+    --t2: #b3bdcb;            /* 次要文字(标签/表头) — 原 #a1a1aa 偏暗, 大屏远看提亮一档 */
+    --t3: #7e8899;            /* 弱文字(说明/单位) */
+    --idle: #5d6676;          /* 未开班/无效 */
+    --hair: rgba(150,175,210,.13);   /* 细分隔线 */
+    --edge: rgba(110,165,235,.16);   /* 面板描边 */
+    --plan: #b8923f;          /* 计划(与小时图金色柱同色) */
+  }
+  /* 面板 / KPI: 去毛玻璃(底是静态渐变, 模糊不出东西), 阴影收一档, 圆角统一 12 */
+  .panel, .kpi {
+    border-radius: 12px; border-color: var(--edge);
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+    box-shadow: 0 8px 22px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .panel:hover, .kpi:hover { border-color: rgba(130,190,255,.28); }
+  /* ── 顶栏: 标题更稳, 时间/连接状态提到可读, 功能按钮降为幽灵按钮(大屏上不抢眼) ── */
+  .header h1 { font-size: 19px; font-weight: 800; letter-spacing: 1px; }
+  .period-label { font-size: 15px; font-weight: 700; color: #8fc1ff; letter-spacing: .3px; }
+  .clock { font-size: 13px; color: var(--t2); font-weight: 600; }
+  .conn-status { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.1); color: var(--t2); font-size: 12px; }
+  .header .btn { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); color: var(--t2); border-radius: 8px; font-size: 12px; }
+  .header .btn:hover { color: var(--t1); border-color: rgba(130,190,255,.45); background: rgba(88,166,255,.08); }
+  /* ── KPI: 数字放大且不发光; 总量类数字统一白色, 颜色只表达状态(效率/达成) ── */
+  .kpi { padding: 4px 14px; }
+  .kpi .label { font-size: 13px; font-weight: 600; color: var(--t2); }
+  .kpi .value, .kpi .value.green, .kpi .value.orange, .kpi .value.red, .kpi .value.blue { font-size: 26px; font-weight: 800; letter-spacing: .2px; text-shadow: none; }
+  #kpiRun, #kpiFinal, #kpiMotor { color: var(--t1); }
+  .kpi .sub { font-size: 11.5px; color: var(--t3); }
+  /* ── 面板标题: 统一 15px, 左侧色条去光晕 ── */
+  .panel h2 { font-size: 15px; font-weight: 700; color: #e6edf5; letter-spacing: .4px; }
+  .panel h2::before { box-shadow: none; height: 14px; }
+  .ws-btn { font-size: 11.5px; padding: 2px 10px; border-radius: 999px; color: var(--t2); border-color: rgba(255,255,255,.1); }
+  .ws-btn .wc { font-size: 10px; }
+  /* ── 主表: 表头提亮; 数字/线体名放大(仅日常 8 线视图); 去掉所有文字发光 ── */
+  #mainTable th { font-size: 12px; font-weight: 600; color: var(--t2); }
+  th.col-act-h { color: #8cc4ff; } th.col-plan-h { color: #c9a95c; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(4),
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(5),
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(6),
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(7),
+  body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(8) { font-size: 22px; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.line-name { font-size: 19px; }
+  body:not(.battle-mode) #mainTable td { border-bottom: 1px solid var(--hair); }
+  .col-act.green, .col-act.orange, .col-act.red,
+  #mainTable td.eff-ok, #mainTable td.eff-warn, #mainTable td.eff-bad, #mainTable td.eff-zero { text-shadow: none; }
+  .col-plan { color: #c4ccd8; }
+  /* 达成率格: 底色块收淡, 让数字本身的颜色说话 */
+  #mainTable td.eff-ok   { box-shadow: inset 0 0 0 999px rgba(16,185,129,.10); }
+  #mainTable td.eff-warn { box-shadow: inset 0 0 0 999px rgba(245,158,11,.11); }
+  #mainTable td.eff-bad  { box-shadow: inset 0 0 0 999px rgba(239,68,68,.12); }
+  /* 欠产行: 整行淡底收一档, 靠左侧色条点名 */
+  #mainTable tr.miss:has(td.eff-bad) td { background: rgba(239,68,68,.07); }
+  #mainTable tr.miss:has(td.eff-warn) td { background: rgba(245,158,11,.05); }
+  /* 进度条: 未达成缺口默认中性灰, 只有欠产行才显红 —— 达标的线不再拖一截红尾巴 */
+  .hbar .gap { background: rgba(150,165,190,.20); }
+  #mainTable tr.miss .hbar .gap, #mainTable tr.stalled-row .hbar .gap, #mainTable tr.breakdown-row .hbar .gap { background: rgba(239,68,68,.42); }
+  .hbar .act { box-shadow: 0 0 8px rgba(59,130,246,.32), inset 0 1px 0 rgba(255,255,255,.25); }
+  /* ★ 未开班行: 整行灰、无红底、无色条、进度条只留空轨 */
+  #mainTable tr.idle-row td { color: var(--idle); background: transparent; box-shadow: none; }
+  #mainTable tr.idle-row td.line-name { color: #8a94a5; }
+  #mainTable tr.idle-row td.col-plan { color: #6f7a8b; }
+  #mainTable tr.idle-row .hbar { background: rgba(120,135,160,.12); box-shadow: none; }
+  #mainTable tr.idle-row .hbar .gap, #mainTable tr.idle-row .hbar .act { display: none; }
+  #mainTable tr.idle-row:hover td { background: rgba(255,255,255,.03); }
+  /* ── 小时图图例: 与画布同色(计划=金, 不是橙), 字号统一 ── */
+  .legend { font-size: 12px; color: var(--t2); gap: 14px; }
+  .legend .lg-plan::before { background: var(--plan); }
+  .legend .lg-gap::before { background: repeating-linear-gradient(135deg, rgba(248,81,73,.9) 0 2px, rgba(248,81,73,.3) 2px 4px); }
+  .legend .seg-toggle { color: var(--t3); font-size: 11.5px; }
+  .chart-ws-label { font-size: 12px; }
 </style>
 <script>
 /* v2 自适应: 以 1920×950(1080p 最大化窗口可用区)为基准, 整页按视口等比缩放。
@@ -918,25 +995,25 @@
 </div>
 
 <div class="kpis">
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">🟢 运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">⚡ 平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">🏆 达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">🔵 Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
-  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">🟠 Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiRun">运行线体</div><div class="value" id="kpiRun">-</div></div><div class="sub" id="kpiRunSub" data-i18n="kpiRunSub">主要 8 条</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiEff">平均效率</div><div class="value" id="kpiEff">-</div></div><div class="sub" id="kpiEffSub" data-i18n="kpiEffSub">主要线体·计划量加权</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" data-i18n="kpiHit">达成线体 ≥90%</div><div class="value" id="kpiHit">-</div></div><div class="sub" id="kpiHitSub" data-i18n="kpiHitSub">达成线体</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiFinalLbl" data-i18n="kpiFinal">Final 产量</div><div class="value blue" id="kpiFinal">-</div></div><div class="sub" id="kpiFinalSub" data-i18n="kpiFinalSub">Final A-D 合计</div></div>
+  <div class="kpi"><div class="kpi-top"><div class="label" id="kpiMotorLbl" data-i18n="kpiMotor">Motor 产量</div><div class="value orange" id="kpiMotor">-</div></div><div class="sub" id="kpiMotorSub" data-i18n="kpiMotorSub">Motor H/S/F/WL 合计</div></div>
 </div>
 
 <div class="main-grid">
   <div class="panel">
     <div class="panel-head">
-      <h2><span data-i18n="panelMainTitle">📋 Main Lines · Output vs Plan</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
+      <h2><span data-i18n="panelMainTitle">主要线体 · 产出对比</span><span id="wsSelLabel" class="ws-sel-label"></span></h2>
       <div class="ws-btns" id="wsBtns"></div>
     </div>
     <div class="table-scroll">
       <table id="mainTable">
         <thead>
           <tr>
-            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">Output</th>
-            <th class="col-act-h" data-sort="actual">Actual</th><th class="col-plan-h" data-sort="plan">Plan</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th>
+            <th>#</th><th data-sort="name" data-i18n="thLine">线体</th><th data-sort="actual" data-i18n="thOutput">进度</th>
+            <th class="col-act-h" data-sort="actual" data-i18n="thAct">实际</th><th class="col-plan-h" data-sort="plan" data-i18n="thPlanCol">计划</th><th data-sort="cb" data-i18n="thDiff">差异</th><th data-sort="eff" data-i18n="thRate">达成率%</th><th data-sort="uph">UPH</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -944,10 +1021,10 @@
     </div>
   </div>
   <div class="panel">
-    <div class="panel-head"><h2 data-i18n="panelChartTitle">📊 每小时产量 / 效率</h2><span id="chartWsLabel" class="chart-ws-label"></span></div>
+    <div class="panel-head"><h2 data-i18n="panelChartTitle">每小时产出</h2><span id="chartWsLabel" class="chart-ws-label"></span></div>
     <div class="chart-col">
       <div class="chart-box">
-        <div class="legend"><span class="lg-actual" data-i18n="lgActual">Actual 实际</span><span class="lg-plan" data-i18n="lgPlan">Plan 实时目标</span><span class="lg-gap" data-i18n="lgGap">Shortfall 欠产缺口</span><span class="lg-over" data-i18n="lgOver">Overtarget 超额</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label></div>
+        <div class="legend"><span class="lg-actual" data-i18n="lgActual">实际</span><span class="lg-plan" data-i18n="lgPlan">计划</span><span class="lg-gap" data-i18n="lgGap">欠产</span><span class="lg-over" data-i18n="lgOver">超产</span><label class="seg-toggle" data-i18n-title="segToggleTitle" title="勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标"><input type="checkbox" id="segToggle"> <span data-i18n="hourlyOut">小时产出</span></label></div>
         <canvas id="chartBar"></canvas>
       </div>
       <!-- ★ 2026-09-30 基础(daily)页专属: 📈 Rate Trend -- 位于小时产出图下方(右栏), 宽度与小时图对齐; 仅基础模式显示; 详情/作战页仍用底部 extra 的 mod-trend, 两者互不影响. 头部+模式按钮单行紧凑, 图表吃满剩余高度 -->
@@ -1118,16 +1195,16 @@ const I18N = {
   zh: {
     docTitle: "生产实时看板", boardTitle: "生产实时看板",
     connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
-    kpiRun: "🟢 运行线体", kpiRunSub: "主要 8 条", kpiEff: "⚡ 平均效率", kpiEffSub: "主要线体·计划量加权",
-    kpiHit: "🏆 达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "🔵 Final 产量", kpiFinalSub: "Final A-D 合计",
-    kpiMotor: "🟠 Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
-    kpiWsOutLbl: "🔵 车间累计产出", kpiWsOutSub: "全部线体 · 今日累计", kpiWsPlanLbl: "🟠 车间计划量", kpiWsPlanSub: "全部线体 · 今日计划",
+    kpiRun: "运行线体", kpiRunSub: "主要 8 条", kpiEff: "平均效率", kpiEffSub: "主要线体·计划量加权",
+    kpiHit: "达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "Final 产量", kpiFinalSub: "Final A-D 合计",
+    kpiMotor: "Motor 产量", kpiMotorSub: "Motor H/S/F/WL 合计",
+    kpiWsOutLbl: "车间累计产出", kpiWsOutSub: "全部线体 · 今日累计", kpiWsPlanLbl: "车间计划量", kpiWsPlanSub: "全部线体 · 今日计划",
     kpiWsEffSub: "车间线体·计划量加权",
-    panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "其他线体",
-    thLine: "线体", thOutput: "Output", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
-    panelChartTitle: "📊 每小时产量 / 效率",
-    lgActual: "Actual 实际", lgPlan: "Plan 实时目标", hourlyOut: "小时产出",
-    lgGap: "Shortfall 欠产缺口", lgOver: "Overtarget 超额",
+    panelMainTitle: "主要线体 · 产出对比", otherLines: "其他线体",
+    thLine: "线体", thOutput: "进度", thAct: "实际", thPlanCol: "计划", thDiff: "差异", thRate: "达成率%", thStatus: "状态",
+    panelChartTitle: "每小时产出",
+    lgActual: "实际", lgPlan: "计划", hourlyOut: "小时产出",
+    lgGap: "欠产", lgOver: "超产",
     segToggleTitle: "勾选后每个时段实际柱与目标柱逐段对齐对比, 段内数字=该时段产量/目标",
     hintSeg: "蓝橙两柱逐段对比 · 红=欠产缺口(实际<目标) · 绿=超额(实际>目标)",
     otSegHint: "加班时段",
@@ -1160,16 +1237,16 @@ const I18N = {
   en: {
     docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
     connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
-    kpiRun: "🟢 Running Lines", kpiRunSub: "Main 8", kpiEff: "⚡ Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
-    kpiHit: "🏆 Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "🔵 Final Output", kpiFinalSub: "Final A-D total",
-    kpiMotor: "🟠 Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
-    kpiWsOutLbl: "🔵 WS Output", kpiWsOutSub: "All lines · cum.", kpiWsPlanLbl: "🟠 WS Plan", kpiWsPlanSub: "All lines · plan",
+    kpiRun: "Running Lines", kpiRunSub: "Main 8", kpiEff: "Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
+    kpiHit: "Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "Final Output", kpiFinalSub: "Final A-D total",
+    kpiMotor: "Motor Output", kpiMotorSub: "Motor H/S/F/WL total",
+    kpiWsOutLbl: "WS Output", kpiWsOutSub: "All lines · cum.", kpiWsPlanLbl: "WS Plan", kpiWsPlanSub: "All lines · plan",
     kpiWsEffSub: "WS lines weighted",
-    panelMainTitle: "📋 Main Lines · Output vs Plan", otherLines: "Other Lines",
-    thLine: "Line", thOutput: "Output", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
-    panelChartTitle: "📊 Hourly Output / Efficiency",
+    panelMainTitle: "Main Lines · Output vs Plan", otherLines: "Other Lines",
+    thLine: "Line", thOutput: "Progress", thAct: "Actual", thPlanCol: "Plan", thDiff: "Diff", thRate: "Rate%", thStatus: "Status",
+    panelChartTitle: "Hourly Output",
     lgActual: "Actual", lgPlan: "Plan (Live)", hourlyOut: "Hourly",
-    lgGap: "Shortfall", lgOver: "Overtarget",
+    lgGap: "Shortfall", lgOver: "Over",
     segToggleTitle: "Align each segment actual vs target; number = output/target of that hour",
     hintSeg: "Blue/Orange bars per segment · Red=shortfall (actual<plan) · Green=overtarget (actual>plan)",
     otSegHint: "OT period",
@@ -1610,6 +1687,13 @@ function isStoppedRun(l) {
 const PLANNED_OFF = [
   { name: "Motor F-Series", from: "2026-08-27", to: "2026-08-28" }
 ];
+// ★ 2026-11-15 v9: 「未开班」= 本班至今 0 产出, 且不是计划停产/停线/服务端停滞/无数据。
+//   数据端对没排班的线也照发计划、状态恒为 RUNNING, 旧版把它们当 0% 欠产铺满红色(周末夜班 8 线 7 红),
+//   真异常被淹没。改为整行置灰排在最后, 红色只留给开了班但落后的线。
+function isIdle(l) {
+  if (!l || isPlannedOff(l) || isBreakdown(l) || isStalled(l) || l.noData) return false;
+  return !(Number(l.actual) > 0);
+}
 function isPlannedOff(l) {
   if (!l || !l.name) return false;
   const t = todayKey();
@@ -1759,6 +1843,7 @@ function renderTable() {
       else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
       else if (l.noData) cls = "no-data";
+      else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
       if (tr.className !== cls) tr.className = cls;
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
@@ -1769,8 +1854,8 @@ function renderTable() {
         fmt(l.actual),
         fmt(l.plan),
         fmt(l.cb),
-        fmt1(l.eff),
-        uphTxt(l, now)
+        isIdle(l) ? "—" : fmt1(l.eff),
+        isIdle(l) ? "—" : uphTxt(l, now)
       ];
       const clses = ["rank", "line-name " + lineNameCls(l), "bar-cell", actClass(l.eff), "col-plan", signClass(l.cb), effClass(l.eff), "uph-cell"];
       Array.from(tr.cells).forEach(function (td, ci) {
@@ -1803,6 +1888,7 @@ function renderTable() {
         else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
         else if (l.noData) cls = "no-data";
+      else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
         if (tr.className !== cls) tr.className = cls;
         const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
@@ -1813,8 +1899,8 @@ function renderTable() {
           `<td class="${actClass(l.eff)}">${fmt(l.actual)}</td>` +
           `<td class="col-plan">${fmt(l.plan)}</td>` +
           `<td class="${signClass(l.cb)}">${fmt(l.cb)}</td>` +
-          `<td class="${effClass(l.eff)}">${fmt1(l.eff)}</td>` +
-          `<td class="uph-cell">${uphTxt(l, now)}</td>`;
+          `<td class="${effClass(l.eff)}">${isIdle(l) ? "—" : fmt1(l.eff)}</td>` +
+          `<td class="uph-cell">${isIdle(l) ? "—" : uphTxt(l, now)}</td>`;
         frag.appendChild(tr);
       });
       // 移除不再显示的旧行(留在 tb 里但不在 view 集合) — ★2026-09-10: !k(无 data-line 的 PRO2R 残留/subhead)也删, 修复切车间不刷新
@@ -3006,10 +3092,11 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
     // 计划柱
     ctx.save(); pairRect(ctx, xp, top, bw, h, 3); ctx.clip();
     ctx.fillStyle = "rgba(255,255,255,.04)"; ctx.fillRect(xp, top, bw, h);
-    ctx.fillStyle = s.ot ? "#f0b93a" : "#b8923f"; ctx.fillRect(xp, y - pH, bw, pH);
+    // 2026-11-15 v9: 未开班(全天无实际)的线计划柱调暗, 不抢在产线的眼(与主表灰行一致)
+    ctx.fillStyle = zero ? "rgba(184,146,63,.30)" : (s.ot ? "#f0b93a" : "#b8923f"); ctx.fillRect(xp, y - pH, bw, pH);
     ctx.restore();
     // 加班段: 金框; 当前小时: 蓝框
-    if (s.ot || s.live) {
+    if (!zero && (s.ot || s.live)) {                                   // 未开班不画当前小时框
       ctx.strokeStyle = s.live ? "#58a6ff" : "rgba(240,185,58,.85)"; ctx.lineWidth = s.live ? 2 : 1.2;
       pairRect(ctx, xa - 2, top - 2, bw * 2 + sp + 4, h + 4, 4); ctx.stroke();
     }
@@ -3018,7 +3105,7 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
       const f = Math.min(fBase, h * 0.7);
       if (aH >= f + 4) label(String(Math.round(a)), xa + bw / 2, y - Math.min(aH, h) / 2, bw - 3, f, "#fff");
       else label(String(Math.round(a)), xa + bw / 2, top + h / 2, bw - 3, f, zero ? "#6e7a8c" : "#ff9b94");
-      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, f + 4), h) / 2, bw - 3, f, "#fff8e6");
+      label(String(Math.round(p)), xp + bw / 2, y - Math.min(Math.max(pH, f + 4), h) / 2, bw - 3, f, zero ? "#8a8170" : "#fff8e6");
       if (d !== 0 && dw > 0) label((d > 0 ? "+" : "−") + Math.abs(d), xd, top + h / 2, dw - 2, f,
         zero ? "#5d6878" : d < 0 ? "#ff7b72" : "#56d364");
     }
@@ -3147,7 +3234,7 @@ function drawBar(main) {
     //   按槽宽逐级降字号 (11→7px), 仍超宽则测宽截断加省略号。
     ctx.fillStyle = "#c9d1d9"; ctx.textAlign = "center";
     const labelMaxW = Math.max(14, slot - 5);
-    let lfs = 11;
+    let lfs = 13; // 2026-11-15 v9: 线体名 11→13px(放不下时下方逐级缩小)
     let label = shortName(displayName(l.name));
     ctx.font = "bold " + lfs + "px sans-serif";
     while (lfs > 7 && ctx.measureText(label).width > labelMaxW) {
@@ -5304,7 +5391,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     var wr = wrap ? wrap.getBoundingClientRect() : null;
     for (var i = 0; i < rows.length; i++) {
       var tr = rows[i];
-      if (/stalled-row|breakdown-row|planned-off|no-data/.test(tr.className)) continue;
+      if (/stalled-row|breakdown-row|planned-off|no-data|idle-row/.test(tr.className)) continue;
       var hb = tr.querySelector(".hbar"), a = hb && hb.querySelector(".act");
       if (!a) continue;
       var r = hb.getBoundingClientRect(), ar = a.getBoundingClientRect();
