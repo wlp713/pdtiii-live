@@ -1076,6 +1076,26 @@
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv2 td { background: linear-gradient(rgba(240,72,72,.16), rgba(240,72,72,.16)) #111b2c; }
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv1 td { background: linear-gradient(rgba(245,165,36,.12), rgba(245,165,36,.12)) #111b2c; }
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv3 td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td { background: linear-gradient(rgba(240,72,72,.26), rgba(240,72,72,.26)) #111b2c; }
+  /* ── 车间切换: 分段控件(一条浅色轨道 + 选中项浅蓝胶囊 + 数量小徽标); 返回键=「‹ PRO4」+ 分隔线; 0 条的分类不显示 ── */
+  .ws-btns, #wsBtns { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 2px; padding: 1px;
+    background: rgba(140,170,220,.06); border: 1px solid rgba(120,160,220,.15); border-radius: 9px; }
+  .ws-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 0; border-radius: 7px;
+    color: var(--t2); font-size: 11.5px; font-weight: 600; padding: 2px 9px; line-height: 1.45; letter-spacing: .2px;
+    transition: background .15s, color .15s, box-shadow .15s; }
+  .ws-btn:hover { background: rgba(140,170,220,.10); color: var(--t1); }
+  .ws-btn.on { background: rgba(61,134,247,.24); color: #eef5ff; box-shadow: inset 0 0 0 1px rgba(96,160,255,.55); font-weight: 700; }
+  .ws-btn.on:hover { background: rgba(61,134,247,.30); }
+  .ws-btn:disabled { display: none; }
+  .ws-btn .wc { font-family: var(--num); font-size: 10.5px; font-weight: 600; line-height: 1; margin-left: 0; opacity: 1;
+    padding: 2px 5px; border-radius: 5px; background: rgba(160,185,225,.09); color: var(--t3); }
+  .ws-btn.on .wc { background: rgba(255,255,255,.16); color: #dce9ff; }
+  .ws-btn.ws-back { position: relative; gap: 3px; min-width: 0; padding: 2px 9px 2px 6px; margin-right: 7px; color: #8fc1ff;
+    background: rgba(61,134,247,.10); }
+  .ws-btn.ws-back:hover { background: rgba(61,134,247,.20); color: #cfe3ff; }
+  .ws-btn.ws-back::after { content: ""; position: absolute; right: -5px; top: 4px; bottom: 4px; width: 1px; background: rgba(150,175,210,.22); }
+  body:not(.battle-mode) .ws-btn { font-size: 12.5px; padding: 2px 11px; }
+  body:not(.battle-mode) .ws-btn.ws-back { padding: 2px 11px 2px 7px; }
+  body:not(.battle-mode) .ws-btn .wc { font-size: 11px; }
 </style>
 <script>
 /* v2 自适应: 以 1920×950(1080p 最大化窗口可用区)为基准, 整页按视口等比缩放。
@@ -1655,7 +1675,7 @@ function buildWsBtns() {
     const back = document.createElement("button");
     back.type = "button";
     back.className = "ws-btn ws-back";
-    back.textContent = "←";
+    back.innerHTML = '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' + p.label;
     back.title = lang === "zh" ? "返回车间列表" : "Back";
     back.addEventListener("click", function () {
       wsSel = null;
@@ -1678,7 +1698,7 @@ function buildWsBtns() {
       box.appendChild(b);
     });
   } else {
-    const defs = [{ key: "ALL", label: lang === "zh" ? "全部" : "ALL" }]
+    const defs = [{ key: "MAIN", label: lang === "zh" ? "主要" : "Main" }, { key: "ALL", label: lang === "zh" ? "全部" : "ALL" }]
       .concat(PRO_GROUPS.map(function (p) { return { key: p.pro, label: p.label }; }))
       .concat([{ key: "OTHER", label: lang === "zh" ? "其他" : "Other" }]);
     defs.forEach(function (d) {
@@ -1686,10 +1706,12 @@ function buildWsBtns() {
       b.type = "button";
       b.className = "ws-btn";
       b.dataset.key = d.key;
-      b.title = d.key === "ALL" ? WS_LABEL.ALL : (d.key === "OTHER" ? WS_LABEL.OTHER : d.key);
+      b.title = d.key === "MAIN" ? (lang === "zh" ? "主要线体" : "Main lines") : d.key === "ALL" ? WS_LABEL.ALL : (d.key === "OTHER" ? WS_LABEL.OTHER : d.key);
       b.innerHTML = d.label + ' <span class="wc">0</span>';
       b.addEventListener("click", function () {
-        if (d.key === "ALL" || d.key === "OTHER") {
+        if (d.key === "MAIN") {
+          wsSel = null;
+        } else if (d.key === "ALL" || d.key === "OTHER") {
           wsSel = d.key;
         } else {
           const p = PRO_GROUPS.find(function (x) { return x.pro === d.key; });
@@ -1711,6 +1733,7 @@ function updateWsBtns() {
   const countOf = {};
   WS_GROUPS.forEach(function (g) { countOf[g.ws] = g.lines.length; });
   countOf.ALL = state.lines.length;
+  countOf.MAIN = state.lines.filter(function (l) { return MAIN_SET.has(normName(l && l.name)); }).length;
   countOf.OTHER = state.lines.filter(function (l) { return !LINE2WS[normName(l && l.name)]; }).length;
   PRO_GROUPS.forEach(function (p) {
     countOf[p.pro] = p.subs.reduce(function (a, sub) { return a + sub.lines.length; }, 0);
@@ -1721,7 +1744,7 @@ function updateWsBtns() {
     if (key) {
       const n = countOf[key] || 0;
       b.querySelector(".wc").textContent = n;
-      b.classList.toggle("on", (key === "ALL" || key === "OTHER") ? wsSel === key : activePro === key);
+      b.classList.toggle("on", key === "MAIN" ? !wsSel : (key === "ALL" || key === "OTHER") ? wsSel === key : activePro === key);
       b.disabled = n === 0;
     } else {
       key = b.dataset.ws;
