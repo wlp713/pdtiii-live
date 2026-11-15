@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v39'; // 2026-11-16 v10 KPI 仪表卡 + 卡片行列表
+var CACHE = 'pdtiii-shell-v40'; // 2026-11-16 删进度条 90% 竖线 + 数字列加宽、字号差收小
 var CORE = [
   './',
   './index.html',

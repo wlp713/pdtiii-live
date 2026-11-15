@@ -1028,8 +1028,12 @@
   /* 数字: 工业字体 + 实际值最大 */
   body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(n+4) { font-weight: 600; letter-spacing: 0; }
   body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(4) { font-weight: 700; }
-  body:not(.battle-mode) #mainTable.roomy td:nth-child(4) { font-size: 31px; }
-  body:not(.battle-mode) #mainTable.roomy td:nth-child(5), body:not(.battle-mode) #mainTable.roomy td:nth-child(6), body:not(.battle-mode) #mainTable.roomy td:nth-child(7), body:not(.battle-mode) #mainTable.roomy td:nth-child(8) { font-size: 25px; }
+  body:not(.battle-mode) #mainTable.roomy td:nth-child(4) { font-size: 27px; }
+  body:not(.battle-mode) #mainTable.roomy td:nth-child(5), body:not(.battle-mode) #mainTable.roomy td:nth-child(6), body:not(.battle-mode) #mainTable.roomy td:nth-child(7), body:not(.battle-mode) #mainTable.roomy td:nth-child(8) { font-size: 24px; }
+  /* 列宽: 进度条让出 5%, 数字列加宽, 4 位数之间留足空隙 (合计 100%) */
+  body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(1) { width: 5%; }  body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(2) { width: 17%; }  body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(3) { width: 19%; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(4) { width: 12%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(5) { width: 12%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(6) { width: 11%; }
+  body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(7) { width: 13%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(8) { width: 11%; }
   body:not(.battle-mode) #mainTable:not(.all-lines) td.col-act.green { color: var(--ok); }
   body:not(.battle-mode) #mainTable:not(.all-lines) td.col-act.orange { color: var(--warn); }
   body:not(.battle-mode) #mainTable:not(.all-lines) td.col-act.red { color: var(--bad); }
@@ -1045,13 +1049,10 @@
   body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-warn .ep { background: rgba(245,165,36,.15); color: #ffc15a; box-shadow: inset 0 0 0 1px rgba(245,165,36,.3); }
   body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-bad .ep { background: rgba(240,72,72,.16); color: #ff7a7a; box-shadow: inset 0 0 0 1px rgba(240,72,72,.32); }
   body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-zero .ep { background: rgba(139,22,22,.25); color: #ff8a8a; }
-  /* 进度条: 宽松视图加粗, 90% 刻度=达标线 */
-  .hbar .p90 { position: absolute; left: 90%; top: 0; bottom: 0; width: 2px; margin-left: -1px; z-index: 3; background: rgba(4,9,18,.75); }
+  /* 进度条: 宽松视图加粗 */
   body:not(.battle-mode) #mainTable:not(.all-lines) .hbar .p100 { display: none; }
   body:not(.battle-mode) #mainTable.roomy .hbar { height: 24px; border-radius: 12px; }
   body:not(.battle-mode) #mainTable.roomy .hbar .act, body:not(.battle-mode) #mainTable.roomy .hbar .gap { border-radius: 12px; }
-  #mainTable tr.idle-row .hbar .p90, #mainTable tr.no-data .hbar .p90, #mainTable tr.planned-off .hbar .p90 { display: none; }
-  #mainTable.all-lines .hbar .p90 { width: 1px; }
   /* ── 扁平化: 面板/KPI/进度条/胶囊一律纯色块, 去渐变、去投影、去高光线; 动感只留进度条粒子流 + 状态条扫光 ── */
   .panel, .kpi, .panel:hover, .kpi:hover { background: #0b1321; box-shadow: none; }
   .kpi, .kpi:hover { background: #0d1626; }
@@ -1943,7 +1944,7 @@ function hbarHtml(l) {
   const bd = isBreakdown(l);
   const bdLabel = bd ? `<div class="bd-label">${breakdownLabel(l)}</div>` : "";
   const hbarCls = bd ? "hbar bd" : "hbar";
-  return `<div class="${hbarCls}"${stalledCls}><div class="p100"></div><div class="p90"></div>` +
+  return `<div class="${hbarCls}"${stalledCls}><div class="p100"></div>` +
     (over ? `<div class="over-glow" style="width:${overW}%"></div>` : (gw > 0 ? `<div class="gap" style="left:${aw}%;width:${gw}%"></div>` : "")) +
     `<div class="act${over ? " over":""}" style="width:${Math.min(100, aw)}%"></div>${bdLabel}</div>`;
 }
