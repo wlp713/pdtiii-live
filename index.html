@@ -1076,6 +1076,8 @@
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv2 td { background: linear-gradient(rgba(240,72,72,.16), rgba(240,72,72,.16)) #111b2c; }
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv1 td { background: linear-gradient(rgba(245,165,36,.12), rgba(245,165,36,.12)) #111b2c; }
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv3 td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td { background: linear-gradient(rgba(240,72,72,.26), rgba(240,72,72,.26)) #111b2c; }
+  /* 线体名列兜底: 不外溢到进度条(字号由 fitLineNames 自动缩小, 到 11px 仍放不下才省略号) */
+  #mainTable td.line-name { overflow: hidden; text-overflow: ellipsis; }
   /* ── 车间切换: 分段控件(一条浅色轨道 + 选中项浅蓝胶囊 + 数量小徽标); 返回键=「‹ PRO4」+ 分隔线; 0 条的分类不显示 ── */
   .ws-btns, #wsBtns { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: 2px; padding: 1px;
     background: rgba(140,170,220,.06); border: 1px solid rgba(120,160,220,.15); border-radius: 9px; }
@@ -2094,9 +2096,41 @@ function renderTable() {
   try { updateChartWsLabel(wsSel, view); } catch (e) {}
   // ★ 2026-09-04 数据表行高自适应布满屏幕 (随面板高度/行数重新均分)
   //   行复用 diff 时行高已在 tr 上保留; 集合/顺序变化后需重算 → 由 fitMainTable 幂等跳过逻辑兜底
+  try { fitLineNames(); } catch (e) {}
   try { scheduleFitMainTable(); } catch (e) {}
   // ★ 2026-09-04 返回当前列表视图(view)，右侧小时产出图跟随同一份线体(同源同排序)
   return { main, other, view };
+}
+
+// ★ 2026-11-16 线体名防碰撞: 名字比列宽长(不同屏幕/字体渲染宽度不同)时按比例缩小字号到刚好放下, 最小 11px;
+//   再放不下才省略号截断(CSS overflow:hidden) — 永远不压到右侧进度条。
+//   先全部复位 → 统一测量 → 统一写入, 同一帧内完成, 不闪烁。scrollWidth/clientWidth 同一单位, 不受整页缩放影响。
+try { document.fonts && document.fonts.ready.then(function () { try { fitLineNames(); } catch (e) {} }); } catch (e) {}
+function fitLineNames() {
+  const cells = Array.from(document.querySelectorAll("#mainTable tbody td.line-name"));
+  if (!cells.length) return;
+  cells.forEach(function (td) { if (td.style.fontSize) td.style.fontSize = ""; });
+  // 文字实际宽度用 Range 取小数精度(scrollWidth 取整, 刚好贴边时测不出溢出); 换算回 CSS px 不受整页缩放影响
+  function measure(td) {
+    const cs = getComputedStyle(td);
+    const pad = (parseFloat(cs.paddingLeft) || 0) + (parseFloat(cs.paddingRight) || 0);
+    const z = td.getBoundingClientRect().width / (td.offsetWidth || 1) || 1;
+    const r = document.createRange(); r.selectNodeContents(td);
+    return { fs: parseFloat(cs.fontSize) || 16, avail: td.clientWidth - pad - 2, need: r.getBoundingClientRect().width / z };  // 留 2px 余量
+  }
+  // 圆点/字距等固定宽度不随字号缩放 → 测-缩最多 6 轮; 每轮先统一测量再统一写入
+  let todo = cells;
+  for (let k = 0; k < 6 && todo.length; k++) {
+    const ms = todo.map(measure);
+    const next = [];
+    todo.forEach(function (td, i) {
+      const m = ms[i];
+      if (m.avail <= 0 || m.need <= m.avail || m.fs <= 11) return;
+      td.style.fontSize = Math.max(11, Math.min(m.fs - 0.5, Math.floor(m.fs * m.avail / m.need * 2) / 2)) + "px";
+      next.push(td);
+    });
+    todo = next;
+  }
 }
 
 // ★ 2026-09-04 数据列表行高自适应=布满屏幕(铺满模块边界):
@@ -2151,11 +2185,11 @@ function scheduleFitMainTable() {
   if (_fitTableTimer) { clearTimeout(_fitTableTimer); _fitTableTimer = 0; }
   _fitTableFrame = requestAnimationFrame(function () {
     // 双 rAF: 第一帧让布局变化(模式切换/折叠/flex)生效, 第二帧拿到新容器高度再均分
-    requestAnimationFrame(function () { fitMainTable(); });
+    requestAnimationFrame(function () { try { fitLineNames(); } catch (e) {} fitMainTable(); });
     // ★ 2026-10-02 兜底: 模式切换后表格重排可能滞后于 rAF(扩展模块 display 切换 + flex 重排),
     //   再加一次延迟重算, 确保『切回基础模式』时容器高度已归位、行高真正铺满;
     //   配合上面的 DOM 实况核对, 已铺满时二次调用零改动、无闪烁。
-    _fitTableTimer = setTimeout(function () { fitMainTable(); }, 120);
+    _fitTableTimer = setTimeout(function () { try { fitLineNames(); } catch (e) {} fitMainTable(); }, 120);
   });
 }
 

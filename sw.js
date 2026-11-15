@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v41'; // 2026-11-16 车间切换改分段控件 + 返回键「‹ PRO4」 + 主要按钮
+var CACHE = 'pdtiii-shell-v42'; // 2026-11-16 线体名防碰撞: 放不下自动缩字号
 var CORE = [
   './',
   './index.html',
