@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v43'; // 2026-11-17 主表数字缩小(实际 24 / 其余 21); 有计划0产出标停线
+var CACHE = 'pdtiii-shell-v44'; // 2026-11-17 主表数字微调大(实际 26 / 其余 22), 1366 宽 5 位数仍留 12px 不相撞
 var CORE = [
   './',
   './index.html',
