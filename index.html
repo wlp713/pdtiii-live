@@ -1028,8 +1028,8 @@
   /* 数字: 工业字体 + 实际值最大 */
   body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(n+4) { font-weight: 600; letter-spacing: 0; }
   body:not(.battle-mode) #mainTable:not(.all-lines) td:nth-child(4) { font-weight: 700; }
-  body:not(.battle-mode) #mainTable.roomy td:nth-child(4) { font-size: 29px; }
-  body:not(.battle-mode) #mainTable.roomy td:nth-child(5), body:not(.battle-mode) #mainTable.roomy td:nth-child(6), body:not(.battle-mode) #mainTable.roomy td:nth-child(7), body:not(.battle-mode) #mainTable.roomy td:nth-child(8) { font-size: 26px; }
+  body:not(.battle-mode) #mainTable.roomy td:nth-child(4) { font-size: 24px; }
+  body:not(.battle-mode) #mainTable.roomy td:nth-child(5), body:not(.battle-mode) #mainTable.roomy td:nth-child(6), body:not(.battle-mode) #mainTable.roomy td:nth-child(7), body:not(.battle-mode) #mainTable.roomy td:nth-child(8) { font-size: 21px; }
   /* 列宽(合计 100%): 进度条保持原宽, 线体名列让出富余, 数字列加宽到 4 位数之间约 50px */
   body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(1) { width: 4.5%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(2) { width: 16%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(3) { width: 25.5%; }
   body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(4) { width: 11%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(5) { width: 11%; } body:not(.battle-mode) #mainTable:not(.all-lines) th:nth-child(6) { width: 10%; }
@@ -1859,7 +1859,12 @@ const PLANNED_OFF = [
 //   真异常被淹没。改为整行置灰排在最后, 红色只留给开了班但落后的线。
 function isIdle(l) {
   if (!l || isPlannedOff(l) || isBreakdown(l) || isStalled(l) || l.noData) return false;
-  return !(Number(l.actual) > 0);
+  return !(Number(l.actual) > 0) && !(Number(l.plan) > 0);
+}
+// ★ 2026-11-17 有计划却 0 产出 = 停线(用户确认), 按停线红行标出; 只有计划也为 0 才算未开班置灰
+function isNoRun(l) {
+  if (!l || isPlannedOff(l) || isBreakdown(l) || isStalled(l) || l.noData) return false;
+  return !(Number(l.actual) > 0) && Number(l.plan) > 0;
 }
 function isPlannedOff(l) {
   if (!l || !l.name) return false;
@@ -1966,8 +1971,9 @@ function hbarHtml(l) {
   // ★ 2026-09-27 UI: 超额(act>plan)时蓝条满格(100%), 100%左侧贴一段绿色渐变=超额; act width 折到 100 内,
   //   超额量用负 left/extra width 表达(仍由 overflow 保证不越界, 绿泽贴在目标线右侧视觉)。
   // ⭐ 2026-09-28 Breakdown 停线通知: ≥5min 时进度条加红边+淡红底, 条内叠放 "⛔ 停线 N分" 标签(时长实时累加)
-  const bd = isBreakdown(l);
-  const bdLabel = bd ? `<div class="bd-label">${breakdownLabel(l)}</div>` : "";
+  const noRun = isNoRun(l);
+  const bd = isBreakdown(l) || noRun;
+  const bdLabel = bd ? `<div class="bd-label">${noRun ? (lang === "zh" ? "⛔ 停线" : "⛔ Not running") : breakdownLabel(l)}</div>` : "";
   const hbarCls = bd ? "hbar bd" : "hbar";
   return `<div class="${hbarCls}"${stalledCls}><div class="p100"></div>` +
     (over ? `<div class="over-glow" style="width:${overW}%"></div>` : (gw > 0 ? `<div class="gap" style="left:${aw}%;width:${gw}%"></div>` : "")) +
@@ -2016,11 +2022,12 @@ function renderTable() {
       else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
       else if (l.noData) cls = "no-data";
+      else if (isNoRun(l)) cls = "breakdown-row";
       else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
       else if (hitEff(l.eff)) cls = "hit-row";
       if (tr.className !== cls) tr.className = cls;
-      const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+      const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l) || isNoRun(l)) ? '<span class="stall-dot"></span>' : "";
       const htmls = [
         '<span class="rk">' + (idx + 1) + '</span>',
         dot + displayName(l.name).trim(),
@@ -2062,11 +2069,12 @@ function renderTable() {
         else if (isBreakdown(l)) cls = "breakdown-row";
       else if (isStalled(l)) cls = "stalled-row lv" + stallLevelOf(l);
         else if (l.noData) cls = "no-data";
+      else if (isNoRun(l)) cls = "breakdown-row";
       else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
       else if (hitEff(l.eff)) cls = "hit-row";
         if (tr.className !== cls) tr.className = cls;
-        const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l)) ? '<span class="stall-dot"></span>' : "";
+        const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l) || isNoRun(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
           `<td class="rank"><span class="rk">${idx + 1}</span></td>` +
           `<td class="line-name ${lineNameCls(l)}">${dot}${displayName(l.name).trim()}</td>` +
