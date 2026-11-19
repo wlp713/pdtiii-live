@@ -124,17 +124,15 @@
         '<span class="mtg-fresh" id="mtgFresh"><i></i><span></span></span><span class="mtg-clock" id="mtgClock"></span>' +
       '</header>' +
       '<div class="mtg-banner" id="mtgBanner"></div>' +
-      '<section class="mtg-box mtg-strip"><div class="ms-left"><div class="mtg-h"><h2 data-mk="hourly"></h2><span class="sp"></span><div class="mtg-lg">' +
-        '<span><i style="background:linear-gradient(90deg,#3b7cf0,#6aa4ff)"></i><span data-mk="lgA"></span></span>' +
-        '<span><i style="background:var(--track)"></i><span data-mk="lgP"></span></span>' +
-        '<span><i style="background:var(--hatch-red)"></i><span data-mk="lgGap"></span></span>' +
-        '<span><i style="background:var(--green)"></i><span data-mk="lgOver"></span></span></div></div><div id="mtgStrip"></div></div>' +
-        '<div class="ms-right"><div class="mtg-h"><h2 data-mk="deptT"></h2><span class="sp"></span><span class="tot r" id="mtgDeptTot"></span></div><div class="mtg-items" id="mtgDept"></div></div></section>' +
-      '<div class="mtg-low">' +
-        '<div class="mtg-h p"><h2 data-mk="probs"></h2><span class="tot r" id="mtgTotL"></span><span class="tot a" id="mtgTotG"></span></div>' +
-        '<div class="mtg-h"><h2 data-mk="issues"></h2><span class="cnt" id="mtgIssCnt"></span></div>' +
-        '<div id="mtgCards" style="display:contents"></div>' +
-        '<section class="mtg-box mi-box"><div class="mtg-items" id="mtgIss"></div></section>' +
+      '<div class="mtg-body">' +
+        '<section class="mtg-box mtg-strip"><div class="mtg-h"><h2 data-mk="hourly"></h2><span class="sp"></span><div class="mtg-lg">' +
+          '<span><i style="background:linear-gradient(90deg,#3b7cf0,#6aa4ff)"></i><span data-mk="lgA"></span></span>' +
+          '<span><i style="background:var(--track)"></i><span data-mk="lgP"></span></span>' +
+          '<span><i style="background:var(--hatch-red)"></i><span data-mk="lgGap"></span></span>' +
+          '<span><i style="background:var(--green)"></i><span data-mk="lgOver"></span></span></div></div><div class="ms-wrap" id="mtgStrip"></div></section>' +
+        '<section class="mtg-box mtg-dept"><div class="mtg-h"><h2 data-mk="deptT"></h2><span class="sp"></span><span class="tot r" id="mtgDeptTot"></span></div><div class="mtg-items md-list" id="mtgDept"></div></section>' +
+        '<div class="mtg-cards" id="mtgCards"></div>' +
+        '<section class="mtg-box mi-box"><div class="mtg-h"><h2 data-mk="issues"></h2><span class="cnt" id="mtgIssCnt"></span></div><div class="mtg-items" id="mtgIss"></div></section>' +
       '</div>';
     document.body.appendChild(el);
     el.addEventListener("click", function (e) {
@@ -169,12 +167,13 @@
     var cmp = night && nowM < 480 ? nowM + 1440 : nowM;
     var fm = function (m) { m = ((m % 1440) + 1440) % 1440; return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2); };
     var inWin = function (t0) { return !scopeH || scopeH.indexOf(Math.floor((t0 % 1440) / 60)) >= 0; };
-    var html = '<div class="ms-grid" style="grid-template-columns:var(--lbl) repeat(' + table.length + ',minmax(0,1fr))"><span></span>';
-    table.forEach(function (sg) {
+    var rowsHtml = [];
+    var head = '<span></span>' + table.map(function (sg) {
       var cur = sg[0] <= cmp && cmp < sg[1];
-      html += '<span class="ms-th' + (cur ? " cur" : inWin(sg[0]) && sg[0] < cmp ? " win" : "") + '">' + fm(sg[0]) + '</span>';
-    });
+      return '<span class="ms-th' + (cur ? " cur" : inWin(sg[0]) && sg[0] < cmp ? " win" : "") + '">' + fm(sg[0]) + '</span>';
+    }).join("");
     finalLines().forEach(function (l) {
+      var html = "", any = false;
       var segs = []; try { segs = segsOf(l.name, l.actual, l.plan, l.target) || []; } catch (e) { segs = []; }
       var byLab = {}; segs.forEach(function (s) { if (s.lab) byLab[s.lab] = s; else if (s.base) byLab.base = s; });
       html += '<span class="ms-ln">' + esc(short(l.name)) + '</span>';
@@ -183,6 +182,7 @@
         if (!s || sg[0] > cmp) { html += '<div class="ms-c todo"></div>'; return; }
         var a = Math.round(s.actual || 0), p = Math.round(s.plan || 0), dif = a - p;
         if (!a && !p) { html += '<div class="ms-c idle">—</div>'; return; }   // 没计划也没产出（停线 / 没开线）：不画红斜纹，免得像欠产
+        any = true;
         var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
         var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(sg[0]) ? " out" : "");
         /* 一格一根条：底轨 = 计划，蓝 = 实际，红斜纹 = 欠产，绿边 = 超产；上 = 差异，下 = 实际 / 计划 */
@@ -190,8 +190,9 @@
           '<div class="ms-b' + (p > 0 && a > p ? " over" : "") + (a < p ? " short" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i></div>' +
           '<span class="ms-v">' + n0(a) + '<em>/' + n0(p) + '</em></span></div>';
       });
+      if (any) rowsHtml.push(html);   // 整班没开线的线不占行（创始人：无 LOSS 的隐藏）
     });
-    box.innerHTML = html + '</div>';
+    box.innerHTML = '<div class="ms-grid" style="grid-template-columns:var(--lbl) repeat(' + table.length + ',minmax(0,1fr));grid-template-rows:auto repeat(' + Math.max(1, rowsHtml.length) + ',minmax(0,1fr))">' + head + rowsHtml.join("") + '</div>';
   }
 
   /* ---------- 问题卡 ---------- */
@@ -234,8 +235,6 @@
     $("mtgSub").innerHTML = "PRO2 FINAL A–D · " + esc(String(d.date).slice(5).replace("-", "/")) + " " + t(d.shift === "NIGHT" ? "night" : "day") + ' · <b class="n">' + winLabel(scopeH) + "</b>";
     var S = summarize(d, scopeH);
 
-    $("mtgTotL").innerHTML = t("loss") + " <b>" + n0(S.tot.l) + "</b>";
-    $("mtgTotG").innerHTML = S.tot.gap > 0 ? t("unexp") + " <b>" + n0(S.tot.gap) + "</b>" : "";
     var deptName = function (k) { for (var i = 0; i < S.lines.length; i++) if (S.lines[i].depts[k]) return nm(S.lines[i].depts[k].d); return k; };
     /* 横条右侧：LOSS 责任部门排行（本范围，四条线合计；没填原因的单列一行黄色斜纹） */
     var drows = S.order.map(function (k) { return { nm: deptName(k), q: S.deptTot[k], c: S.color[k] }; });
@@ -252,9 +251,9 @@
     }), function (h) { return moreTxt(h, true); });
 
     /* 四条线固定 A B C D 从左到右（和横条行序一致） */
-    var cards = $("mtgCards");
-    cards.innerHTML = S.lines.map(function (s) { return cardHtml(s, S); }).join("");
-    S.lines.forEach(function (s) {
+    var cards = $("mtgCards"), shown = S.lines.filter(function (s) { return s.l > 0 || s.gap > 0 || s.groups.length; });
+    cards.innerHTML = shown.length ? shown.map(function (s) { return cardHtml(s, S); }).join("") : '<section class="mtg-box mc"><div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div></section>';
+    shown.forEach(function (s) {
       var box = cards.querySelector('.mtg-items[data-k="' + s.key + '"]');
       if (box) fitList(box, s.groups.map(function (g) { return probRow(g, S); }), function (h) { return moreTxt(h, true); });
     });
