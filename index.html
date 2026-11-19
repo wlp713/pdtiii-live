@@ -13,7 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PDTIII看板">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="meeting.css?v=20261119c">
+<link rel="stylesheet" href="meeting.css?v=20261119d">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <style>
@@ -5700,7 +5700,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     if (t - last < 30) return;                       // 限 30 帧/秒: 沙粒每秒只漂几像素, 肉眼无差别, 功耗减半
     if (document.hidden) { last = t; return; }
     // 2026-11-09 修穿模: 画布挂在 <html> 上(z-index:50), 会盖在弹窗上方 → 任一弹窗打开时隐藏画布并暂停
-    if (document.querySelector(".detail-modal.open, .ex-modal.open, .modal-overlay.open")) {
+    if (document.querySelector(".detail-modal.open, .ex-modal.open, .modal-overlay.open, #mtg:not([hidden])")) {   // #mtg = 两小时检讨会页面(meeting.js)
       if (cv.style.visibility !== "hidden") cv.style.visibility = "hidden";
       last = t; return;
     }
@@ -5774,5 +5774,5 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
 <script src="sqdip-panel.js?v=20261008sqdipsync1"></script>
-<script src="meeting.js?v=20261119c"></script>
+<script src="meeting.js?v=20261119d"></script>
 </html>

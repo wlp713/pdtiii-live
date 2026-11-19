@@ -1,28 +1,30 @@
-/* 两小时检讨会（2026-11-19 v2）
+/* 两小时检讨会（2026-11-19 v3）
    数据：DM 后台每分钟算好写到同一个实时库 /dm_meeting/PRO2（作业长手机填的 LOSS 问题点、PRO2 未关闭异常单、逐小时 LOSS），30 秒读一次。
    ① 看板「未达成原因」模块改读这份数据（renderProblems 开头调 mtgPanel）
    ② 模块右上角 ⛶ → 完整页面 #meeting（不是弹窗；刷新后仍停在本页，返回回看板）
-   ③ 会议大屏：一屏放下、不滚动。左 = 看板小时产出图（只画 FINAL A–D）；中 = 四条线问题点 2×2（主角，LOSS 去向并进卡头）；右 = 升级问题窄栏。
-      放不下的条目折叠成「另 N 条 · X 台」，没填原因的 LOSS 每条线合并成一行固定在卡底。 */
+   ③ 会议大屏：一屏放下、不滚动。顶部横条 = 每小时产出（看板 segsOf 同一份分段数据，时间从左到右，进行中时段发光）；
+      下方 = 四条线问题卡一字排开到底（同一问题合并，放不下折叠成「另 N 条 · X 台」，没填原因的 LOSS 合成一行压卡底）+ 升级问题窄栏。 */
 (function () {
   "use strict";
   var DB = "https://dm111-e8a7d-default-rtdb.firebaseio.com/dm_meeting/PRO2.json";
   var qs = new URLSearchParams(location.search);
   var SRC = qs.get("mtgsrc") || DB;            // ?mtgsrc= 仅供本地用样例数据测试
   var POLL = 30000, STALE = 5 * 60000;
-  var DEPT_COLORS = ["#5b9bff", "#2dd4bf", "#a78bfa", "#f472b6", "#38bdf8", "#e9d5ff", "#94a3b8"];
+  var DEPT_COLORS = ["#6ea1ff", "#3ed1c0", "#b49cff", "#ff8fc4", "#5cc8ff", "#e6d38a", "#9aa6b8"];
   var LINES = ["Final A line", "Final B Line", "Final C line", "Final D line"];
   var T = {
     zh: { title: "两小时检讨会", back: "看板", scopeWin: "本次检讨", scopeAll: "全班", hourly: "每小时产出",
-      probs: "问题点", issues: "升级问题", day: "白班", night: "夜班", winOf: "检讨", loss: "LOSS", unexp: "未说明",
+      probs: "问题点", issues: "升级问题", day: "白班", night: "夜班", loss: "LOSS", unexp: "未说明",
+      lgA: "实际", lgP: "计划", lgGap: "欠产", lgOver: "超产",
       noLoss: "无 LOSS", noIss: "没有未关闭的问题", gapTx: "未填原因", more: "另 {n} 条", moreQ: "{q} 台",
       upd: "更新", stale: "检讨会数据超过 5 分钟没更新，请检查网络或 DM 后台", loading: "正在读取…", fail: "读取失败，30 秒后自动重试",
-      open: "待接单", doing: "处理中", verify: "待确认", over: "超时", min: "分钟", hr: "小时", day0: "天", unit: "台", rate: "达成", hrsFmt: "{h} 点" },
+      open: "待接单", doing: "处理中", verify: "待确认", over: "超时", min: "分钟", hr: "小时", day0: "天", rate: "达成", hrsFmt: "{h} 点" },
     th: { title: "ประชุมทบทวนทุก 2 ชม.", back: "บอร์ด", scopeWin: "รอบนี้", scopeAll: "ทั้งกะ", hourly: "ยอดผลิตรายชั่วโมง",
-      probs: "ปัญหา", issues: "ปัญหาที่ยกระดับ", day: "กะเช้า", night: "กะดึก", winOf: "ทบทวน", loss: "LOSS", unexp: "ยังไม่ระบุ",
+      probs: "ปัญหา", issues: "ปัญหาที่ยกระดับ", day: "กะเช้า", night: "กะดึก", loss: "LOSS", unexp: "ยังไม่ระบุ",
+      lgA: "จริง", lgP: "แผน", lgGap: "ขาด", lgOver: "เกิน",
       noLoss: "ไม่มี LOSS", noIss: "ไม่มีปัญหาค้าง", gapTx: "ยังไม่ระบุสาเหตุ", more: "อีก {n} รายการ", moreQ: "{q} เครื่อง",
       upd: "อัปเดต", stale: "ข้อมูลประชุมไม่อัปเดตเกิน 5 นาที กรุณาตรวจสอบเครือข่ายหรือระบบ DM", loading: "กำลังโหลด…", fail: "โหลดไม่สำเร็จ จะลองใหม่ใน 30 วินาที",
-      open: "รอรับงาน", doing: "กำลังแก้ไข", verify: "รอยืนยัน", over: "เกินเวลา", min: "นาที", hr: "ชม.", day0: "วัน", unit: "เครื่อง", rate: "สำเร็จ", hrsFmt: "{h} น." }
+      open: "รอรับงาน", doing: "กำลังแก้ไข", verify: "รอยืนยัน", over: "เกินเวลา", min: "นาที", hr: "ชม.", day0: "วัน", rate: "สำเร็จ", hrsFmt: "{h} น." }
   };
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
   var st = { lang: ls("mtg_lang") || "zh", scope: ls("mtg_scope") || "win", d: null, err: false };
@@ -122,13 +124,16 @@
         '<span class="mtg-fresh" id="mtgFresh"><i></i><span></span></span><span class="mtg-clock" id="mtgClock"></span>' +
       '</header>' +
       '<div class="mtg-banner" id="mtgBanner"></div>' +
-      '<div class="mtg-grid">' +
-        '<section class="mtg-pane mtg-chart"><div class="mtg-ph"><h2 data-mk="hourly"></h2><span class="sp"></span>' +
-          '<div class="legend"><span class="lg-actual" data-i18n="lgActual">实际</span><span class="lg-plan" data-i18n="lgPlan">计划</span><span class="lg-gap" data-i18n="lgGap">欠产</span></div></div>' +
-          '<div class="mtg-cv"><canvas id="mtgBar"></canvas></div></section>' +
-        '<section class="mtg-main"><div class="mtg-mh"><h2 data-mk="probs"></h2><span class="tot bad" id="mtgTotL"></span><span class="tot warn" id="mtgTotG"></span><div class="mtg-keys" id="mtgKeys"></div></div>' +
-          '<div class="mtg-cards" id="mtgCards"></div></section>' +
-        '<section class="mtg-pane mtg-iss"><div class="mtg-ph"><h2 data-mk="issues"></h2><span class="cnt" id="mtgIssCnt"></span></div><div class="mtg-items" id="mtgIss"></div></section>' +
+      '<section class="mtg-box mtg-strip"><div class="mtg-h"><h2 data-mk="hourly"></h2><span class="sp"></span><div class="mtg-lg">' +
+        '<span><i style="background:linear-gradient(180deg,#5b98ff,#2f6fe0)"></i><span data-mk="lgA"></span></span>' +
+        '<span><i style="background:linear-gradient(180deg,#d4ae58,#a8843a)"></i><span data-mk="lgP"></span></span>' +
+        '<span><i style="background:var(--hatch-red)"></i><span data-mk="lgGap"></span></span>' +
+        '<span><i style="background:var(--green)"></i><span data-mk="lgOver"></span></span></div></div><div id="mtgStrip"></div></section>' +
+      '<div class="mtg-low">' +
+        '<div class="mtg-h p"><h2 data-mk="probs"></h2><span class="tot r" id="mtgTotL"></span><span class="tot a" id="mtgTotG"></span><span class="sp"></span><div class="mtg-lg" id="mtgKeys"></div></div>' +
+        '<div class="mtg-h"><h2 data-mk="issues"></h2><span class="cnt" id="mtgIssCnt"></span></div>' +
+        '<div id="mtgCards" style="display:contents"></div>' +
+        '<section class="mtg-box mi-box"><div class="mtg-items" id="mtgIss"></div></section>' +
       '</div>';
     document.body.appendChild(el);
     el.addEventListener("click", function (e) {
@@ -143,12 +148,12 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && isOpen()) closeMeeting(); });
     if (window.ResizeObserver) {
       var rq = 0;
-      new ResizeObserver(function () { drawChart(); clearTimeout(rq); rq = setTimeout(function () { if (isOpen()) render(); }, 80); }).observe(el.querySelector(".mtg-grid"));
+      new ResizeObserver(function () { clearTimeout(rq); rq = setTimeout(function () { if (isOpen()) render(); }, 80); }).observe(el);
     }
   }
   function isOpen() { var el = $("mtg"); return !!(el && !el.hidden); }
 
-  /* 看板的小时产出图：只画 FINAL A–D，强制「分段小时」模式 */
+  /* ---------- 顶部横条：看板小时分段（segsOf，和看板主页同一份数，进行中时段实时） ---------- */
   function finalLines() {
     try {
       var have = {}, out = state.lines.filter(function (l) { var k = normName(l.name); if (FINAL_SET.has(k)) { have[k] = 1; return true; } return false; });
@@ -156,31 +161,58 @@
       return out.sort(function (a, b) { return normName(a.name).localeCompare(normName(b.name)); });
     } catch (e) { return []; }
   }
-  function drawChart() {
-    if (!isOpen() || typeof drawBar !== "function") return;
-    var cv = $("mtgBar"), old;
-    try { old = segShow; segShow = true; drawBar(finalLines(), cv); } catch (e) { /* 看板数据未就绪 */ } finally { try { segShow = old; } catch (e) {} }
+  function renderStrip(scopeH) {
+    var box = $("mtgStrip"); if (!box) return;
+    var night, table, nowM;
+    try { nowM = bkkMins(); night = shiftSegAt(nowM).shift === "night"; table = night ? NIGHT_SEGS : DAY_SEGS; } catch (e) { box.innerHTML = ""; return; }
+    var cmp = night && nowM < 480 ? nowM + 1440 : nowM;
+    var fm = function (m) { m = ((m % 1440) + 1440) % 1440; return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2); };
+    var inWin = function (t0) { return !scopeH || scopeH.indexOf(Math.floor((t0 % 1440) / 60)) >= 0; };
+    var html = '<div class="ms-grid" style="grid-template-columns:112px repeat(' + table.length + ',minmax(0,1fr))"><span></span>';
+    table.forEach(function (sg) {
+      var cur = sg[0] <= cmp && cmp < sg[1];
+      html += '<span class="ms-th' + (cur ? " cur" : inWin(sg[0]) && sg[0] < cmp ? " win" : "") + '">' + fm(sg[0]) + '</span>';
+    });
+    finalLines().forEach(function (l) {
+      var segs = []; try { segs = segsOf(l.name, l.actual, l.plan, l.target) || []; } catch (e) { segs = []; }
+      var byLab = {}; segs.forEach(function (s) { if (s.lab) byLab[s.lab] = s; else if (s.base) byLab.base = s; });
+      html += '<span class="ms-ln">' + esc(short(l.name)) + '</span>';
+      table.forEach(function (sg, i) {
+        var s = byLab[i + 1] || (i === 0 ? byLab.base : null);
+        if (!s || sg[0] > cmp) { html += '<div class="ms-c todo"></div>'; return; }
+        var a = Math.round(s.actual || 0), p = Math.round(s.plan || 0), dif = a - p;
+        if (!a && !p) { html += '<div class="ms-c idle">—</div>'; return; }   // 没计划也没产出（停线 / 没开线）：不画红斜纹，免得像欠产
+        var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
+        var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(sg[0]) ? " out" : "");
+        html += '<div class="' + cls + '"><div class="ms-bars"><div class="ms-b ms-a' + (p > 0 && a > p ? " over" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i><span>' + n0(a) + '</span></div>' +
+          '<div class="ms-b ms-p"><span>' + n0(p) + '</span></div></div><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span></div>';
+      });
+    });
+    box.innerHTML = html + '</div>';
   }
 
+  /* ---------- 问题卡 ---------- */
   function cardHtml(s, S) {
-    var rate = s.p > 0 ? Math.round(s.a / s.p * 100) : null, rc = rate == null ? "var(--m-ink3)" : rate >= 95 ? "var(--m-ok-t)" : rate >= 85 ? "var(--m-warn-t)" : "var(--m-bad-t)";
+    var rate = s.p > 0 ? Math.round(s.a / s.p * 100) : null, rc = rate == null ? "var(--ink3)" : rate >= 95 ? "var(--green)" : rate >= 85 ? "var(--amber)" : "var(--red)";
     var segs = "";
     if (s.l > 0) {
       var used = 0;
       S.order.forEach(function (k) { if (!s.depts[k]) return; var q = Math.min(s.depts[k].q, s.l - used); if (q <= 0) return; used += q; segs += '<span style="flex:0 0 ' + (q / s.l * 100).toFixed(2) + '%;background:' + S.color[k] + '"></span>'; });
-      var gap = s.l - used;
-      if (gap > 0) segs += '<span class="gap" style="flex:1 1 auto"></span>';
+      if (s.l - used > 0) segs += '<span class="gap" style="flex:1 1 auto"></span>';
     }
-    return '<div class="mtg-ch"><span class="nm">' + esc(short(s.name)) + '</span><span class="ls' + (s.l > 0 ? "" : " zero") + '"><b>' + n0(s.l) + '</b><span>' + t("loss") + '</span></span>' +
-      '<span class="rt" style="color:' + rc + '">' + t("rate") + ' ' + (rate == null ? "—" : rate + "%") + ' · <span class="n">' + n0(s.a) + ' / ' + n0(s.p) + '</span></span>' +
-      '<div class="bar">' + segs + '</div></div>';
+    var head = '<div class="mc-hd"><span class="mc-nm">' + esc(short(s.name)) + '</span><span class="mc-ls' + (s.l > 0 ? "" : " z") + '"><b>' + n0(s.l) + '</b><span>' + t("loss") + '</span></span>' +
+      '<span class="mc-rt">' + t("rate") + ' <b style="color:' + rc + '">' + (rate == null ? "—" : rate + "%") + '</b> · <span class="n">' + n0(s.a) + ' / ' + n0(s.p) + '</span></span></div>' +
+      '<div class="mc-bar">' + segs + '</div>';
+    var gapRow = s.gap > 0 ? '<div class="mp gap"><span class="q">' + n0(s.gap) + '</span><div class="tx"><span class="sw"></span>' + t("gapTx") + '<em>' + hrs(s.gapH) + '</em></div></div>' : "";
+    var body = !s.groups.length && !s.gap ? '<div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div>' : '<div class="mtg-items" data-k="' + esc(s.key) + '"></div>' + gapRow;
+    return '<section class="mtg-box mc">' + head + body + '</section>';
   }
   function probRow(g, S) {
     var p = g.p, tx = st.lang === "zh" ? (p.zh || p.text) : (p.text || p.zh), dk = p.d ? p.d.zh : "";
-    return { q: g.q, html: '<div class="mtg-pi"><span class="q">' + (g.q ? n0(g.q) : "—") + '</span><div class="tx">' + esc(tx || nm(p.t)) + '</div>' +
-      '<div class="mt">' + (p.d ? '<span><i style="background:' + (S.color[dk] || "#94a3b8") + '"></i>' + esc(nm(p.d)) + '</span>' : "") +
+    return { q: g.q, html: '<div class="mp"><span class="q">' + (g.q ? n0(g.q) : "—") + '</span><div class="tx">' + esc(tx || nm(p.t)) + '</div>' +
+      '<div class="mt">' + (p.d ? '<span class="d"><i style="background:' + (S.color[dk] || "#9aa6b8") + '"></i>' + esc(nm(p.d)) + '</span>' : "") +
       '<span>' + esc(nm(p.t)) + '</span>' + (g.equip.length ? '<span>' + esc(g.equip.join(" · ")) + '</span>' : "") +
-      '<span class="hrs">' + hrs(g.hours) + '</span></div></div>' };
+      '<span class="h">' + hrs(g.hours) + '</span></div></div>' };
   }
 
   function render() {
@@ -193,25 +225,21 @@
     $("mtgFresh").lastChild.textContent = d ? t("upd") + " " + hhmm(d.at) : t(st.err ? "fail" : "loading");
     $("mtgBanner").textContent = st.err ? t("fail") : t("stale");
     $("mtgBanner").classList.toggle("show", !!(d && (stale || st.err)));
+    var hours = d ? arr(d.hours) : [], win = d ? windowHours(d) : [], scopeH = st.scope === "win" && win.length ? win : hours;
+    renderStrip(d && st.scope === "win" ? scopeH : null);
     if (!d) return;
-    var hours = arr(d.hours), win = windowHours(d), scopeH = st.scope === "win" && win.length ? win : hours;
     $("mtgSub").innerHTML = "PRO2 FINAL A–D · " + esc(String(d.date).slice(5).replace("-", "/")) + " " + t(d.shift === "NIGHT" ? "night" : "day") + ' · <b class="n">' + winLabel(scopeH) + "</b>";
     var S = summarize(d, scopeH);
 
-    /* 主区头：本范围 LOSS / 未说明 / 部门图例（图例带台数） */
     $("mtgTotL").innerHTML = t("loss") + " <b>" + n0(S.tot.l) + "</b>";
     $("mtgTotG").innerHTML = S.tot.gap > 0 ? t("unexp") + " <b>" + n0(S.tot.gap) + "</b>" : "";
     var deptName = function (k) { for (var i = 0; i < S.lines.length; i++) if (S.lines[i].depts[k]) return nm(S.lines[i].depts[k].d); return k; };
     $("mtgKeys").innerHTML = S.order.map(function (k) { return '<span><i style="background:' + S.color[k] + '"></i>' + esc(deptName(k)) + ' <b>' + n0(S.deptTot[k]) + '</b></span>'; }).join("") +
-      (S.tot.gap > 0 ? '<span><i style="background:var(--m-hatch)"></i>' + t("unexp") + '</span>' : "");
+      (S.tot.gap > 0 ? '<span><i style="background:var(--hatch-amber)"></i>' + t("unexp") + '</span>' : "");
 
-    /* 四条线固定位置 A B / C D（大家记得住位置），卡内：问题点按台数排（同一问题合并），没填原因的合成一行压在卡底 */
+    /* 四条线固定 A B C D 从左到右（和横条行序一致） */
     var cards = $("mtgCards");
-    cards.innerHTML = S.lines.map(function (s) {
-      var gapRow = s.gap > 0 ? '<div class="mtg-pi gap"><span class="q">' + n0(s.gap) + '</span><div class="tx"><span class="sw"></span>' + t("gapTx") + ' <span class="hrs">' + hrs(s.gapH) + '</span></div></div>' : "";
-      var body = !s.groups.length && !s.gap ? '<div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div>' : '<div class="mtg-items" data-k="' + esc(s.key) + '"></div>' + gapRow;
-      return '<section class="mtg-pane mtg-card">' + cardHtml(s, S) + body + '</section>';
-    }).join("");
+    cards.innerHTML = S.lines.map(function (s) { return cardHtml(s, S); }).join("");
     S.lines.forEach(function (s) {
       var box = cards.querySelector('.mtg-items[data-k="' + s.key + '"]');
       if (box) fitList(box, s.groups.map(function (g) { return probRow(g, S); }), function (h) { return moreTxt(h, true); });
@@ -227,9 +255,9 @@
       var age = Math.max(0, Date.now() - (i.at || 0)), isNew = age < 15 * 60000;
       var ago = age < 3600000 ? Math.max(1, Math.round(age / 60000)) + t("min") : age < 48 * 3600000 ? Math.round(age / 3600000) + t("hr") : Math.floor(age / 86400000) + t("day0");
       var tag = i.line ? lineName[i.line] : (i.lineName || "PRO2");
-      return { html: '<div class="mtg-ii' + (isNew ? " new" : "") + '"><span class="lv' + (i.esc ? " on" : "") + '">' + (i.esc ? "L" + i.esc : "—") + '</span>' +
-        '<span class="tx">' + esc(i.title || i.note || nm(i.t)) + '</span><span class="ag' + (i.over ? " over" : "") + '">' + ago + '</span>' +
-        '<span class="mt"><b>' + esc(tag) + '</b><b class="st-' + esc(i.status) + '">' + t(i.status) + '</b>' + (i.over ? '<b style="color:var(--m-bad-t)">' + t("over") + '</b>' : "") + '<span>' + esc(nm(i.d)) + '</span></span></div>' };
+      return { html: '<div class="mi' + (isNew ? " new" : "") + '"><span class="lv' + (i.esc ? " on" : "") + '">' + (i.esc ? "L" + i.esc : "—") + '</span>' +
+        '<span class="tx">' + esc(i.title || i.note || nm(i.t)) + '</span><span class="ag' + (i.over ? " o" : "") + '">' + ago + '</span>' +
+        '<span class="mt"><b>' + esc(tag) + '</b><span class="s-' + esc(i.status) + '">' + t(i.status) + '</span>' + (i.over ? '<span class="o">' + t("over") + '</span>' : "") + '<span>' + esc(nm(i.d)) + '</span></span></div>' };
     }), function (h) { return moreTxt(h, false); });
     document.documentElement.lang = st.lang === "th" ? "th" : document.documentElement.lang;
   }
@@ -239,8 +267,7 @@
     var d = st.d, body = document.getElementById("prob-body"), src = document.getElementById("prob-src");
     if (!d || !body) return false;
     var zh = (typeof lang === "undefined") || lang === "zh", lg = zh ? "zh" : "th";
-    var hours = arr(d.hours), win = windowHours(d), scopeH = win.length ? win : hours, S = summarize(d, scopeH), lineName = {};
-    S.lines.forEach(function (s) { lineName[s.key] = short(s.name); });
+    var hours = arr(d.hours), win = windowHours(d), scopeH = win.length ? win : hours, S = summarize(d, scopeH);
     if (src) src.textContent = "SRC: DM · " + hhmm(d.at);
     var shTxt = d.shift === "NIGHT" ? (zh ? "夜班" : "Night") : (zh ? "白班" : "Day");
     var summary = "<div class='prob-summary'>📋 <b>" + shTxt + " · " + winLabel(scopeH) + "</b> · LOSS <b style='color:var(--red)'>" + n0(S.tot.l) + "</b>" +
@@ -271,13 +298,14 @@
   function sync() {
     build();
     var on = location.hash === "#meeting", el = $("mtg");
-    if (el.hidden === !on) { if (on) { render(); drawChart(); } return; }
+    if (el.hidden === !on) { if (on) render(); return; }
     el.hidden = !on;
     document.body.classList.toggle("mtg-on", on);
-    if (on) { render(); requestAnimationFrame(function () { drawChart(); render(); }); }
+    if (on) { render(); requestAnimationFrame(render); }
   }
   window.openMeeting = openMeeting;
-  window.mtgDrawChart = drawChart;
+  /* 看板每次刷新数据（renderAll）都会调这里：横条跟着看板实时变 */
+  window.mtgDrawChart = function () { if (!isOpen()) return; var d = st.d, win = d ? windowHours(d) : []; renderStrip(d && st.scope === "win" && win.length ? win : null); };
   addEventListener("hashchange", sync);
 
   function load() {
