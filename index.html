@@ -1341,7 +1341,7 @@
           if (lm !== _lm) {
             console.log("[pdtiii] 检测到新版本, 自动刷新");
             _lm = lm;
-            location.replace(location.pathname + "?v=" + Date.now());
+            location.replace(location.pathname + "?v=" + Date.now() + location.hash);   // 带上 #meeting：开会时自动更新不弹回看板
           }
         })
         .catch(function () {});
