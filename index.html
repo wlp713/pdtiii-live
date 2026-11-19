@@ -13,6 +13,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="PDTIII看板">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="meeting.css?v=20261119">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <style>
@@ -1149,7 +1150,6 @@
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <span class="clock" id="clock"></span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
-    <button class="btn" id="meetBtn" data-i18n="meetBtn" onclick="location.href='meeting.html'">📋 两小时检讨</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
@@ -1237,9 +1237,9 @@
         <div class="ex-src" id="prob-src">SRC: -</div>
         <button class="ex-collapse" onclick="toggleModule('mod-problems')" data-i18n-title="collapseTitle">—</button>
       </div>
-      <button class="ex-expand" onclick="openDetail('problems')" title="⛶ 查看全部问题点" data-i18n-title="expandProb">⛶</button>
+      <button class="ex-expand" onclick="window.openMeeting?openMeeting():openDetail('problems')" title="⛶ 两小时检讨会" data-i18n-title="expandProb">⛶</button>
       <div class="ex-body" id="prob-body"></div>
-      <div class="ex-tools"><span class="ex-hint" data-i18n="probExHint">每小时自动更新</span></div>
+      <div class="ex-tools"><span class="ex-hint" data-i18n="probExHint">DM 手机填报 · 1 分钟同步</span></div>
     </section>
 
     <!-- 拖拽手柄: 左右拉伸趋势图宽度, 其他模块自动让位 -->
@@ -1358,7 +1358,7 @@
 // ============ i18n 中英切换 ============
 const I18N = {
   zh: {
-    docTitle: "生产实时看板", boardTitle: "生产实时看板", meetBtn: "📋 两小时检讨",
+    docTitle: "生产实时看板", boardTitle: "生产实时看板",
     connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
     kpiRun: "运行线体", kpiRunSub: "主要 8 条", kpiEff: "平均效率", kpiEffSub: "主要线体·计划量加权",
     kpiHit: "达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "Final 产量", kpiFinalSub: "Final A-D 合计",
@@ -1391,7 +1391,7 @@ const I18N = {
     connFailed: "连接失败", connFailedMsg: "连接失败: {m}", otherLinesFmt: "其他线体 ({n})",
     restPause: "休息时段暂停刷新", connRestPause: "休息暂停刷新",
     modeDaily: "基础", modeDetail: "详情", modeTitle: "切换 基础/详情 模式",
-    collapseTitle: "隐藏此模块", probExHint: "每小时自动更新",
+    collapseTitle: "隐藏此模块", probExHint: "DM 手机填报 · 1 分钟同步",
     cancel: "取消",
     attTitle: "👥 出勤", probTitle: "🚨 未达成原因 · 主要问题点", trendTitle: "📈 达成率趋势分析",
     probLineTh: "线体", probNoData: "暂无问题点 — 每小时自动从桌面Excel同步", srcSnapshot: "SRC: 每日17:00快照",
@@ -1400,7 +1400,7 @@ const I18N = {
     detailClose: "关闭", trendModeAll: "全部线体", trendModeSel: "仅选中", trendModeOver: "仅≥100%",
   },
   en: {
-    docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard", meetBtn: "📋 2-Hour Review",
+    docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
     connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
     kpiRun: "Running Lines", kpiRunSub: "Main 8", kpiEff: "Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
     kpiHit: "Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "Final Output", kpiFinalSub: "Final A-D total",
@@ -1433,7 +1433,7 @@ const I18N = {
     connFailed: "Connection failed", connFailedMsg: "Connection failed: {m}", otherLinesFmt: "Other Lines ({n})",
     restPause: "Refresh paused during break", connRestPause: "Paused (break)",
     modeDaily: "Basic", modeDetail: "Detail", modeTitle: "Toggle Basic/Detail mode",
-    collapseTitle: "Hide module", probExHint: "Auto-updates hourly",
+    collapseTitle: "Hide module", probExHint: "DM mobile entry · 1-min sync",
     cancel: "Cancel",
     attTitle: "👥 Attendance", probTitle: "🚨 Reasons · Key Issues", trendTitle: "📈 Rate Trend",
     probLineTh: "Line", probNoData: "No problems — auto-sync from Excel hourly", srcSnapshot: "SRC: Daily 17:00 snapshot",
@@ -3375,8 +3375,8 @@ function drawPair(ctx, x0, bw, sp, dw, segs, rows, ch, padT) {
   return true;
 }
 
-function drawBar(main) {
-  const cv = document.getElementById("chartBar");
+function drawBar(main, cvArg) {
+  const cv = cvArg || document.getElementById("chartBar");   // cvArg: 检讨会页面复用本图（meeting.js）
   if (!cv) return;
   const dpr = (window.devicePixelRatio || 1) * (window.__ZOOM || 1);
   const W = cv.clientWidth, H = cv.clientHeight || 230;
@@ -3385,7 +3385,7 @@ function drawBar(main) {
   //   最多重试 20 帧(约 330ms), 期间不放弃绘制。
   if (W < 20) {
     if ((drawBar._retry = (drawBar._retry || 0) + 1) <= 20) {
-      requestAnimationFrame(() => drawBar(main));
+      requestAnimationFrame(() => drawBar(main, cvArg));
     } else {
       drawBar._retry = 0;
     }
@@ -3860,6 +3860,7 @@ function renderAll() {
     try { if (typeof renderProblems === "function") renderProblems(); } catch (e) {}
     // ★ 趋势图: 数据刷新时同步重绘 (2026-08-21 修复: 不点线体按钮不刷新) — 只重绘canvas, 不重建按钮DOM
     try { if (typeof drawTrend === "function") drawTrend(); } catch (e) {}
+    try { if (window.mtgDrawChart) mtgDrawChart(); } catch (e) {}   // 检讨会页面的小时图跟着刷新
   } catch (e) {
     console.warn("renderAll error:", e);
   }
@@ -4909,6 +4910,8 @@ function escapeHtml(s) {
   return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 function renderProblems() {
+  // ★ 2026-11-19 LOSS 改手机录入: 有 DM 检讨会数据(meeting.js)就显示 DM 的问题点, 否则沿用 Excel 同步
+  try { if (window.mtgPanel && window.mtgPanel()) return; } catch (e) {}
   // ── ① 嵌入主表格: 已按用户要求移除 (2026-08-20 14:0x) ──
   const ed = getExtraData();
   const problems = ed.problems;
@@ -5771,4 +5774,5 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 </script>
 <!-- SQDIP module is integrated but intentionally has no visible entry. -->
 <script src="sqdip-panel.js?v=20261008sqdipsync1"></script>
+<script src="meeting.js?v=20261119"></script>
 </html>
