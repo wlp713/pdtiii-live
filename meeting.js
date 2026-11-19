@@ -33,6 +33,7 @@
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function n0(x) { return Math.round(Number(x) || 0).toLocaleString("en-US"); }
+  function neg(x) { return Math.round(Number(x) || 0) > 0 ? "−" + n0(x) : n0(x); }   // 损失台数一律写成负数
   function nm(o, lg) { return o ? (o[lg || st.lang] || o.zh || "") : ""; }
   function short(name) { return String(name || "").replace(/\s*line$/i, "").toUpperCase(); }
   function arr(x) { return Array.isArray(x) ? x.filter(Boolean) : x && typeof x === "object" ? Object.keys(x).map(function (k) { return x[k]; }) : []; }
@@ -107,7 +108,7 @@
   }
   function moreTxt(hidden, withQ) {
     var q = hidden.reduce(function (a, r) { return a + (r.q || 0); }, 0);
-    return t("more").replace("{n}", '<b>' + hidden.length + '</b>') + (withQ && q ? " · " + t("moreQ").replace("{q}", '<b>' + n0(q) + '</b>') : "");
+    return t("more").replace("{n}", '<b>' + hidden.length + '</b>') + (withQ && q ? " · " + t("moreQ").replace("{q}", '<b>' + neg(q) + '</b>') : "");
   }
 
   /* ---------- 页面 DOM ---------- */
@@ -205,16 +206,16 @@
       S.order.forEach(function (k) { if (!s.depts[k]) return; var q = Math.min(s.depts[k].q, s.l - used); if (q <= 0) return; used += q; segs += '<span style="flex:0 0 ' + (q / s.l * 100).toFixed(2) + '%;background:' + S.color[k] + '"></span>'; });
       if (s.l - used > 0) segs += '<span class="gap" style="flex:1 1 auto"></span>';
     }
-    var head = '<div class="mc-hd"><span class="mc-nm">' + esc(short(s.name)) + '</span><span class="mc-ls' + (s.l > 0 ? "" : " z") + '"><b>' + n0(s.l) + '</b><span>' + t("loss") + '</span></span>' +
+    var head = '<div class="mc-hd"><span class="mc-nm">' + esc(short(s.name)) + '</span><span class="mc-ls' + (s.l > 0 ? "" : " z") + '"><b>' + neg(s.l) + '</b><span>' + t("loss") + '</span></span>' +
       '<span class="mc-rt">' + t("rate") + ' <b style="color:' + rc + '">' + (rate == null ? "—" : rate + "%") + '</b> · <span class="n">' + n0(s.a) + ' / ' + n0(s.p) + '</span></span></div>' +
       '<div class="mc-bar">' + segs + '</div>';
-    var gapRow = s.gap > 0 ? '<div class="mp gap"><span class="q">' + n0(s.gap) + '</span><div class="tx"><span class="sw"></span>' + t("gapTx") + '<em>' + hrs(s.gapH) + '</em></div></div>' : "";
+    var gapRow = s.gap > 0 ? '<div class="mp gap"><span class="q">' + neg(s.gap) + '</span><div class="tx"><span class="sw"></span>' + t("gapTx") + '<em>' + hrs(s.gapH) + '</em></div></div>' : "";
     var body = !s.groups.length && !s.gap ? '<div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div>' : '<div class="mtg-items" data-k="' + esc(s.key) + '"></div>' + gapRow;
     return '<section class="mtg-box mc">' + head + body + '</section>';
   }
   function probRow(g, S) {
     var p = g.p, tx = st.lang === "zh" ? (p.zh || p.text) : (p.text || p.zh), dk = p.d ? p.d.zh : "";
-    return { q: g.q, html: '<div class="mp"><span class="q">' + (g.q ? n0(g.q) : "—") + '</span><div class="tx">' + esc(tx || nm(p.t)) + '</div>' +
+    return { q: g.q, html: '<div class="mp"><span class="q">' + (g.q ? neg(g.q) : "—") + '</span><div class="tx">' + esc(tx || nm(p.t)) + '</div>' +
       '<div class="mt">' + (p.d ? '<span class="d"><i style="background:' + (S.color[dk] || "#9aa6b8") + '"></i>' + esc(nm(p.d)) + '</span>' : "") +
       '<span>' + esc(nm(p.t)) + '</span>' + (g.equip.length ? '<span>' + esc(g.equip.join(" · ")) + '</span>' : "") +
       '<span class="h">' + hrs(g.hours) + '</span></div></div>' };
@@ -241,14 +242,14 @@
     var drows = S.order.map(function (k) { return { nm: deptName(k), q: S.deptTot[k], c: S.color[k] }; });
     if (S.tot.gap > 0) drows.push({ nm: t("unexp"), q: S.tot.gap, gap: true });
     var dmax = Math.max.apply(null, drows.map(function (r) { return r.q; }).concat([1])), dsum = drows.reduce(function (a, r) { return a + r.q; }, 0) || 1;
-    $("mtgDeptTot").innerHTML = S.tot.l > 0 ? t("loss") + " <b>" + n0(S.tot.l) + "</b>" : "";
+    $("mtgDeptTot").innerHTML = S.tot.l > 0 ? t("loss") + " <b>" + neg(S.tot.l) + "</b>" : "";
     var dbox = $("mtgDept");
     if (!drows.length) dbox.innerHTML = '<div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div>';
     else fitList(dbox, drows.map(function (r) {
       var bg = r.gap ? "var(--hatch-amber)" : r.c;
       return { q: r.q, html: '<div class="md' + (r.gap ? " gap" : "") + '"><span class="nm"><i style="background:' + bg + '"></i>' + esc(r.nm) + '</span>' +
         '<div class="tr"><span style="width:' + (r.q / dmax * 100).toFixed(1) + '%;background:' + bg + '"></span></div>' +
-        '<b>' + n0(r.q) + '</b><em>' + Math.round(r.q / dsum * 100) + '%</em></div>' };
+        '<b>' + neg(r.q) + '</b><em>' + Math.round(r.q / dsum * 100) + '%</em></div>' };
     }), function (h) { return moreTxt(h, true); });
 
     /* 四条线固定 A B C D 从左到右（和横条行序一致） */
@@ -284,18 +285,18 @@
     var hours = arr(d.hours), win = windowHours(d), scopeH = win.length ? win : hours, S = summarize(d, scopeH);
     if (src) src.textContent = "SRC: DM · " + hhmm(d.at);
     var shTxt = d.shift === "NIGHT" ? (zh ? "夜班" : "Night") : (zh ? "白班" : "Day");
-    var summary = "<div class='prob-summary'>📋 <b>" + shTxt + " · " + winLabel(scopeH) + "</b> · LOSS <b style='color:var(--red)'>" + n0(S.tot.l) + "</b>" +
-      (S.tot.gap > 0 ? " · " + (zh ? "未说明" : "Unexplained") + " <b style='color:var(--orange)'>" + n0(S.tot.gap) + "</b>" : "") +
+    var summary = "<div class='prob-summary'>📋 <b>" + shTxt + " · " + winLabel(scopeH) + "</b> · LOSS <b style='color:var(--red)'>" + neg(S.tot.l) + "</b>" +
+      (S.tot.gap > 0 ? " · " + (zh ? "未说明" : "Unexplained") + " <b style='color:var(--orange)'>" + neg(S.tot.gap) + "</b>" : "") +
       " · " + (zh ? "升级问题" : "Escalated") + " <b>" + arr(d.issues).length + "</b></div>";
     var groups = [];
     S.lines.forEach(function (s) { s.groups.forEach(function (g) { groups.push({ s: s, g: g }); }); });
     groups.sort(function (a, b) { return b.g.q - a.g.q; });
     var items = groups.slice(0, 4).map(function (x) {
       var p = x.g.p, tx = zh ? (p.zh || p.text) : (p.text || p.zh);
-      return { line: short(x.s.name), html: "<span class='prob-txt'>" + esc(tx || nm(p.t, lg)) + "</span>" + (x.g.q ? " <b class='prob-imp' style='color:var(--red)'>-" + n0(x.g.q) + (zh ? "台" : "") + "</b>" : "") };
+      return { line: short(x.s.name), html: "<span class='prob-txt'>" + esc(tx || nm(p.t, lg)) + "</span>" + (x.g.q ? " <b class='prob-imp' style='color:var(--red)'>" + neg(x.g.q) + (zh ? "台" : "") + "</b>" : "") };
     });
     if (!items.length) S.lines.filter(function (s) { return s.gap > 0; }).sort(function (a, b) { return b.gap - a.gap; }).slice(0, 4).forEach(function (s) {
-      items.push({ line: short(s.name), html: "<span class='prob-txt' style='color:var(--orange)'>" + (zh ? "有 LOSS 未填原因" : "LOSS without reason") + "</span> <b class='prob-imp' style='color:var(--orange)'>" + n0(s.gap) + (zh ? "台" : "") + "</b>" });
+      items.push({ line: short(s.name), html: "<span class='prob-txt' style='color:var(--orange)'>" + (zh ? "有 LOSS 未填原因" : "LOSS without reason") + "</span> <b class='prob-imp' style='color:var(--orange)'>" + neg(s.gap) + (zh ? "台" : "") + "</b>" });
     });
     var rows = items.map(function (it, i) {
       return "<tr><td class='prob-line'>" + esc(it.line) + "</td><td class='prob-cell'><div class='prob-top'><span class='prob-rank " + (["r1", "r2", "r3"][i] || "") + "'>" + (i + 1) + ".</span>" + it.html + "</div></td></tr>";
