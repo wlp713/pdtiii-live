@@ -37,7 +37,8 @@
   var ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
   var ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.6 2.5L16 9.5"/></svg>';
 
-  /* 本次检讨覆盖的小时：最近一次会（开始后 60 分钟内）或下一次会，到上一次会之间；最后一次会之后看到下班 */
+  /* 本次检讨覆盖的小时 = 当班累计：开班 → 本次会议时刻（最近一次会开始后 60 分钟内算本次，否则看下一次会）；
+     例：15:00 的会看 8–15 点。最后一次会过后看整班。（创始人 2026-11-19 定：LOSS 按当班累计，不是两次会之间） */
   function windowHours(d) {
     var hours = arr(d.hours), slots = arr(d.slots).map(function (s) { var p = String(s.time).split(":"); return +p[0] * 60 + (+p[1] || 0); });
     if (!slots.length) return hours;
@@ -47,9 +48,9 @@
     var ss = slots.map(rel).sort(function (a, b) { return a - b; }), meet = null, i;
     for (i = 0; i < ss.length; i++) if (ss[i] <= nowM && nowM - ss[i] < 60) meet = i;
     if (meet == null) for (i = 0; i < ss.length; i++) if (ss[i] > nowM) { meet = i; break; }
-    if (meet == null) return hours.filter(function (h) { return rel(h * 60) >= ss[ss.length - 1]; });
-    var from = meet > 0 ? ss[meet - 1] : (night ? 20 * 60 : 8 * 60), to = ss[meet];
-    return hours.filter(function (h) { var m = rel(h * 60); return m >= from && m < to; });
+    if (meet == null) return hours;
+    var to = ss[meet];
+    return hours.filter(function (h) { return rel(h * 60) < to; });
   }
   function winLabel(win) { return win.length ? win[0] + ":00–" + ((win[win.length - 1] + 1) % 24) + ":00" : ""; }
 
