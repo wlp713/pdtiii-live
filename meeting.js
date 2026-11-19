@@ -165,7 +165,8 @@
     var night, table, nowM;
     try { nowM = bkkMins(); night = shiftSegAt(nowM).shift === "night"; table = night ? NIGHT_SEGS : DAY_SEGS; } catch (e) { box.innerHTML = ""; return; }
     var cmp = night && nowM < 480 ? nowM + 1440 : nowM;
-    var fm = function (m) { m = ((m % 1440) + 1440) % 1440; return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2); };
+    if (st.d && st.d.shift !== (night ? "NIGHT" : "DAY")) scopeH = null;   // 交班时 DM（20:00）比看板（20:20 后）先切班：班次对不上就不按检讨范围变暗
+    var fm =function (m) { m = ((m % 1440) + 1440) % 1440; return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2); };
     var inWin = function (t0) { return !scopeH || scopeH.indexOf(Math.floor((t0 % 1440) / 60)) >= 0; };
     var rowsHtml = [];
     var head = '<span></span>' + table.map(function (sg) {
