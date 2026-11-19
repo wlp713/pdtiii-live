@@ -184,12 +184,12 @@
         var a = Math.round(s.actual || 0), p = Math.round(s.plan || 0), dif = a - p;
         if (!a && !p) { html += '<div class="ms-c idle">—</div>'; return; }   // 没计划也没产出（停线 / 没开线）：不画红斜纹，免得像欠产
         any = true;
-        var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
+        /* 放大差距的刻度：条左端 = 计划的 70%，右端 = 计划。完成 95% → 蓝 83%、红斜纹 17%，欠产一眼看得出（准确数字写在条里） */
+        var w = p > 0 ? Math.max(a > 0 ? 6 : 0, Math.min(100, (a / p - 0.7) / 0.3 * 100)) : (a > 0 ? 100 : 0);
         var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(sg[0]) ? " out" : "");
-        /* 一格一根条：底轨 = 计划，蓝 = 实际，红斜纹 = 欠产，绿边 = 超产；上 = 差异，下 = 实际 / 计划 */
+        /* 一格一根粗条：底轨 = 计划（条尾写计划数），蓝 = 实际（条里写实际数），红斜纹 = 欠产，绿边 = 超产；上 = 差异 */
         html += '<div class="' + cls + '"><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span>' +
-          '<div class="ms-b' + (p > 0 && a > p ? " over" : "") + (a < p ? " short" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i></div>' +
-          '<span class="ms-v">' + n0(a) + '<em>/' + n0(p) + '</em></span></div>';
+          '<div class="ms-b' + (p > 0 && a > p ? " over" : "") + (a < p ? " short" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i><span class="a">' + n0(a) + '</span><span class="p">' + n0(p) + '</span></div></div>';
       });
       if (any) rowsHtml.push(html);   // 整班没开线的线不占行（创始人：无 LOSS 的隐藏）
     });
