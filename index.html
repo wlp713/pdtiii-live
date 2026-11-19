@@ -1149,6 +1149,7 @@
     <span class="conn-status" id="connStatus" data-i18n="connConnecting"><span class="dot"></span> 连接中…</span>
     <span class="clock" id="clock"></span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
+    <button class="btn" id="meetBtn" data-i18n="meetBtn" onclick="location.href='meeting.html'">📋 两小时检讨</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
     <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
   </div>
@@ -1357,7 +1358,7 @@
 // ============ i18n 中英切换 ============
 const I18N = {
   zh: {
-    docTitle: "生产实时看板", boardTitle: "生产实时看板",
+    docTitle: "生产实时看板", boardTitle: "生产实时看板", meetBtn: "📋 两小时检讨",
     connConnecting: "连接中…", notifOn: "🔔 开启停滞通知", stallBanner: "⚠️ 停滞线体: ",
     kpiRun: "运行线体", kpiRunSub: "主要 8 条", kpiEff: "平均效率", kpiEffSub: "主要线体·计划量加权",
     kpiHit: "达成线体 ≥90%", kpiHitSub: "达成线体", kpiFinal: "Final 产量", kpiFinalSub: "Final A-D 合计",
@@ -1399,7 +1400,7 @@ const I18N = {
     detailClose: "关闭", trendModeAll: "全部线体", trendModeSel: "仅选中", trendModeOver: "仅≥100%",
   },
   en: {
-    docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard",
+    docTitle: "Production Live Dashboard", boardTitle: "Production Live Dashboard", meetBtn: "📋 2-Hour Review",
     connConnecting: "Connecting…", notifOn: "🔔 Enable stall alerts", stallBanner: "⚠️ Breakdown lines: ",
     kpiRun: "Running Lines", kpiRunSub: "Main 8", kpiEff: "Avg. Efficiency", kpiEffSub: "Main lines weighted by plan",
     kpiHit: "Lines ≥90%", kpiHitSub: "Achieved", kpiFinal: "Final Output", kpiFinalSub: "Final A-D total",
