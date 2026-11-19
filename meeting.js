@@ -15,13 +15,13 @@
   var T = {
     zh: { title: "两小时检讨会", back: "看板", scopeWin: "本次检讨", scopeAll: "全班", hourly: "每小时产出",
       probs: "问题点", issues: "升级问题", day: "白班", night: "夜班", loss: "LOSS", unexp: "未说明",
-      lgA: "实际", lgP: "计划", lgGap: "欠产", lgOver: "超产",
+      lgA: "实际", lgP: "计划", lgGap: "欠产", lgOver: "超产", deptT: "LOSS 责任部门",
       noLoss: "无 LOSS", noIss: "没有未关闭的问题", gapTx: "未填原因", more: "另 {n} 条", moreQ: "{q} 台",
       upd: "更新", stale: "检讨会数据超过 5 分钟没更新，请检查网络或 DM 后台", loading: "正在读取…", fail: "读取失败，30 秒后自动重试",
       open: "待接单", doing: "处理中", verify: "待确认", over: "超时", min: "分钟", hr: "小时", day0: "天", rate: "达成", hrsFmt: "{h} 点" },
     th: { title: "ประชุมทบทวนทุก 2 ชม.", back: "บอร์ด", scopeWin: "รอบนี้", scopeAll: "ทั้งกะ", hourly: "ยอดผลิตรายชั่วโมง",
       probs: "ปัญหา", issues: "ปัญหาที่ยกระดับ", day: "กะเช้า", night: "กะดึก", loss: "LOSS", unexp: "ยังไม่ระบุ",
-      lgA: "จริง", lgP: "แผน", lgGap: "ขาด", lgOver: "เกิน",
+      lgA: "จริง", lgP: "แผน", lgGap: "ขาด", lgOver: "เกิน", deptT: "LOSS ตามหน่วยงาน",
       noLoss: "ไม่มี LOSS", noIss: "ไม่มีปัญหาค้าง", gapTx: "ยังไม่ระบุสาเหตุ", more: "อีก {n} รายการ", moreQ: "{q} เครื่อง",
       upd: "อัปเดต", stale: "ข้อมูลประชุมไม่อัปเดตเกิน 5 นาที กรุณาตรวจสอบเครือข่ายหรือระบบ DM", loading: "กำลังโหลด…", fail: "โหลดไม่สำเร็จ จะลองใหม่ใน 30 วินาที",
       open: "รอรับงาน", doing: "กำลังแก้ไข", verify: "รอยืนยัน", over: "เกินเวลา", min: "นาที", hr: "ชม.", day0: "วัน", rate: "สำเร็จ", hrsFmt: "{h} น." }
@@ -124,13 +124,14 @@
         '<span class="mtg-fresh" id="mtgFresh"><i></i><span></span></span><span class="mtg-clock" id="mtgClock"></span>' +
       '</header>' +
       '<div class="mtg-banner" id="mtgBanner"></div>' +
-      '<section class="mtg-box mtg-strip"><div class="mtg-h"><h2 data-mk="hourly"></h2><span class="sp"></span><div class="mtg-lg">' +
-        '<span><i style="background:linear-gradient(180deg,#5b98ff,#2f6fe0)"></i><span data-mk="lgA"></span></span>' +
-        '<span><i style="background:linear-gradient(180deg,#d4ae58,#a8843a)"></i><span data-mk="lgP"></span></span>' +
+      '<section class="mtg-box mtg-strip"><div class="ms-left"><div class="mtg-h"><h2 data-mk="hourly"></h2><span class="sp"></span><div class="mtg-lg">' +
+        '<span><i style="background:linear-gradient(90deg,#3b7cf0,#6aa4ff)"></i><span data-mk="lgA"></span></span>' +
+        '<span><i style="background:var(--track)"></i><span data-mk="lgP"></span></span>' +
         '<span><i style="background:var(--hatch-red)"></i><span data-mk="lgGap"></span></span>' +
-        '<span><i style="background:var(--green)"></i><span data-mk="lgOver"></span></span></div></div><div id="mtgStrip"></div></section>' +
+        '<span><i style="background:var(--green)"></i><span data-mk="lgOver"></span></span></div></div><div id="mtgStrip"></div></div>' +
+        '<div class="ms-right"><div class="mtg-h"><h2 data-mk="deptT"></h2><span class="sp"></span><span class="tot r" id="mtgDeptTot"></span></div><div class="mtg-items" id="mtgDept"></div></div></section>' +
       '<div class="mtg-low">' +
-        '<div class="mtg-h p"><h2 data-mk="probs"></h2><span class="tot r" id="mtgTotL"></span><span class="tot a" id="mtgTotG"></span><span class="sp"></span><div class="mtg-lg" id="mtgKeys"></div></div>' +
+        '<div class="mtg-h p"><h2 data-mk="probs"></h2><span class="tot r" id="mtgTotL"></span><span class="tot a" id="mtgTotG"></span></div>' +
         '<div class="mtg-h"><h2 data-mk="issues"></h2><span class="cnt" id="mtgIssCnt"></span></div>' +
         '<div id="mtgCards" style="display:contents"></div>' +
         '<section class="mtg-box mi-box"><div class="mtg-items" id="mtgIss"></div></section>' +
@@ -168,7 +169,7 @@
     var cmp = night && nowM < 480 ? nowM + 1440 : nowM;
     var fm = function (m) { m = ((m % 1440) + 1440) % 1440; return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2); };
     var inWin = function (t0) { return !scopeH || scopeH.indexOf(Math.floor((t0 % 1440) / 60)) >= 0; };
-    var html = '<div class="ms-grid" style="grid-template-columns:112px repeat(' + table.length + ',minmax(0,1fr))"><span></span>';
+    var html = '<div class="ms-grid" style="grid-template-columns:var(--lbl) repeat(' + table.length + ',minmax(0,1fr))"><span></span>';
     table.forEach(function (sg) {
       var cur = sg[0] <= cmp && cmp < sg[1];
       html += '<span class="ms-th' + (cur ? " cur" : inWin(sg[0]) && sg[0] < cmp ? " win" : "") + '">' + fm(sg[0]) + '</span>';
@@ -184,8 +185,10 @@
         if (!a && !p) { html += '<div class="ms-c idle">—</div>'; return; }   // 没计划也没产出（停线 / 没开线）：不画红斜纹，免得像欠产
         var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
         var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(sg[0]) ? " out" : "");
-        html += '<div class="' + cls + '"><div class="ms-bars"><div class="ms-b ms-a' + (p > 0 && a > p ? " over" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i><span>' + n0(a) + '</span></div>' +
-          '<div class="ms-b ms-p"><span>' + n0(p) + '</span></div></div><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span></div>';
+        /* 一格一根条：底轨 = 计划，蓝 = 实际，红斜纹 = 欠产，绿边 = 超产；上 = 差异，下 = 实际 / 计划 */
+        html += '<div class="' + cls + '"><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span>' +
+          '<div class="ms-b' + (p > 0 && a > p ? " over" : "") + (a < p ? " short" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i></div>' +
+          '<span class="ms-v">' + n0(a) + '<em>/' + n0(p) + '</em></span></div>';
       });
     });
     box.innerHTML = html + '</div>';
@@ -234,8 +237,19 @@
     $("mtgTotL").innerHTML = t("loss") + " <b>" + n0(S.tot.l) + "</b>";
     $("mtgTotG").innerHTML = S.tot.gap > 0 ? t("unexp") + " <b>" + n0(S.tot.gap) + "</b>" : "";
     var deptName = function (k) { for (var i = 0; i < S.lines.length; i++) if (S.lines[i].depts[k]) return nm(S.lines[i].depts[k].d); return k; };
-    $("mtgKeys").innerHTML = S.order.map(function (k) { return '<span><i style="background:' + S.color[k] + '"></i>' + esc(deptName(k)) + ' <b>' + n0(S.deptTot[k]) + '</b></span>'; }).join("") +
-      (S.tot.gap > 0 ? '<span><i style="background:var(--hatch-amber)"></i>' + t("unexp") + '</span>' : "");
+    /* 横条右侧：LOSS 责任部门排行（本范围，四条线合计；没填原因的单列一行黄色斜纹） */
+    var drows = S.order.map(function (k) { return { nm: deptName(k), q: S.deptTot[k], c: S.color[k] }; });
+    if (S.tot.gap > 0) drows.push({ nm: t("unexp"), q: S.tot.gap, gap: true });
+    var dmax = Math.max.apply(null, drows.map(function (r) { return r.q; }).concat([1])), dsum = drows.reduce(function (a, r) { return a + r.q; }, 0) || 1;
+    $("mtgDeptTot").innerHTML = S.tot.l > 0 ? t("loss") + " <b>" + n0(S.tot.l) + "</b>" : "";
+    var dbox = $("mtgDept");
+    if (!drows.length) dbox.innerHTML = '<div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div>';
+    else fitList(dbox, drows.map(function (r) {
+      var bg = r.gap ? "var(--hatch-amber)" : r.c;
+      return { q: r.q, html: '<div class="md' + (r.gap ? " gap" : "") + '"><span class="nm"><i style="background:' + bg + '"></i>' + esc(r.nm) + '</span>' +
+        '<div class="tr"><span style="width:' + (r.q / dmax * 100).toFixed(1) + '%;background:' + bg + '"></span></div>' +
+        '<b>' + n0(r.q) + '</b><em>' + Math.round(r.q / dsum * 100) + '%</em></div>' };
+    }), function (h) { return moreTxt(h, true); });
 
     /* 四条线固定 A B C D 从左到右（和横条行序一致） */
     var cards = $("mtgCards");
