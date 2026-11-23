@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v50'; // 2026-11-23 公告「知道了」改成有边框的按钮
+var CACHE = 'pdtiii-shell-v51'; // 2026-11-23 已看过同时记 cookie(本地存储写满也不再反复弹)
 var CORE = [
   './',
   './index.html',

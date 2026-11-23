@@ -5786,8 +5786,13 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 <script>
 (function () {
   var K = 'dmAppNotice2', n = document.getElementById('dmNote');
-  try { if (localStorage.getItem(K) || location.hash.indexOf('#meeting') === 0) return; } catch (e) { return; }
-  try { localStorage.setItem(K, '1'); } catch (e) {}   // 弹出即记为已看过：公告开着时刷新也不会再弹
+  if (location.hash.indexOf('#meeting') === 0) return;
+  function seen() { try { if (localStorage.getItem(K)) return true; } catch (e) {} return document.cookie.indexOf(K + '=1') >= 0; }
+  // 本地存储可能写满/被禁 → 同时写 cookie 兜底；两处都记不住就不弹，免得每次刷新都弹
+  function mark() { try { localStorage.setItem(K, '1'); } catch (e) {} try { document.cookie = K + '=1; max-age=31536000; path=/; SameSite=Lax'; } catch (e) {} }
+  if (seen()) return;
+  mark();
+  if (!seen()) return;
   function close() { n.hidden = true; }
   n.hidden = false;
   n.querySelector('button').onclick = close;
