@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v45'; // 2026-11-23 DM APP 上线公告(首次打开弹一次)
+var CACHE = 'pdtiii-shell-v46'; // 2026-11-23 上线公告弹出即记已看过, 刷新不再弹
 var CORE = [
   './',
   './index.html',

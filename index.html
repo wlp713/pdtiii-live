@@ -5777,7 +5777,8 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 (function () {
   var K = 'dmAppNotice1', n = document.getElementById('dmNote');
   try { if (localStorage.getItem(K) || location.hash.indexOf('#meeting') === 0) return; } catch (e) { return; }
-  function close() { n.hidden = true; try { localStorage.setItem(K, '1'); } catch (e) {} }
+  try { localStorage.setItem(K, '1'); } catch (e) {}   // 弹出即记为已看过：公告开着时刷新也不会再弹
+  function close() { n.hidden = true; }
   n.hidden = false;
   n.querySelector('button').onclick = close;
   n.querySelector('a').addEventListener('click', close);
