@@ -5700,7 +5700,7 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
     if (t - last < 30) return;                       // 限 30 帧/秒: 沙粒每秒只漂几像素, 肉眼无差别, 功耗减半
     if (document.hidden) { last = t; return; }
     // 2026-11-09 修穿模: 画布挂在 <html> 上(z-index:50), 会盖在弹窗上方 → 任一弹窗打开时隐藏画布并暂停
-    if (document.querySelector(".detail-modal.open, .ex-modal.open, .modal-overlay.open, #mtg:not([hidden])")) {   // #mtg = 两小时检讨会页面(meeting.js)
+    if (document.querySelector(".detail-modal.open, .ex-modal.open, .modal-overlay.open, #mtg:not([hidden]), #dmNote:not([hidden])")) {   // #mtg = 两小时检讨会页面(meeting.js)；#dmNote = DM APP 上线公告
       if (cv.style.visibility !== "hidden") cv.style.visibility = "hidden";
       last = t; return;
     }
