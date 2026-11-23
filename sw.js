@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v44'; // 2026-11-17 主表数字微调大(实际 26 / 其余 22), 1366 宽 5 位数仍留 12px 不相撞
+var CACHE = 'pdtiii-shell-v45'; // 2026-11-23 DM APP 上线公告(首次打开弹一次)
 var CORE = [
   './',
   './index.html',

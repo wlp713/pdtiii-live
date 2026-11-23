@@ -5750,6 +5750,43 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
   requestAnimationFrame(frame);
 })();
 </script>
+<!-- 2026-11-23 DM APP 上线公告：每台设备只弹一次（localStorage 记住）；15 秒无人操作自动关闭，车间电视不会被一直挡住；#meeting 检讨会不弹。 -->
+<style>
+#dmNote{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(8,12,20,.6);font-family:-apple-system,"PingFang SC","Noto Sans Thai","Microsoft YaHei",sans-serif}
+#dmNote[hidden]{display:none}
+#dmNote .g{position:relative;max-width:420px;width:100%;padding:32px 28px 24px;border-radius:16px;background:#141b2a;
+  border:1px solid rgba(255,255,255,.1);color:#fff;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#dmNote h2{margin:0 0 8px;font-size:24px;line-height:1.4}
+#dmNote .th{margin:0 0 6px;font-size:16px;opacity:.8}
+#dmNote p{margin:0 0 24px;font-size:15px;line-height:1.6;opacity:.75}
+#dmNote a{display:block;padding:14px;border-radius:12px;background:#2f7cf6;color:#fff;font-size:17px;font-weight:700;text-decoration:none;line-height:1.4}
+#dmNote button{margin-top:10px;width:100%;padding:12px;border:0;border-radius:12px;background:transparent;color:rgba(255,255,255,.7);font-size:15px;cursor:pointer}
+#dmNote button:hover{color:#fff}
+</style>
+<div id="dmNote" role="dialog" aria-modal="true" aria-labelledby="dmNoteT" hidden>
+  <div class="g">
+    <h2 id="dmNoteT">DM APP 正式上线</h2>
+    <div class="th" lang="th">แอป DM เปิดใช้งานแล้ว</div>
+    <p>生产看板已同步到 DM APP 主页<br><span lang="th">ดูบอร์ดผลผลิตได้ที่หน้าแรกของแอป DM</span></p>
+    <a href="https://dm111-e8a7d.web.app/get/" target="_blank" rel="noopener">下载 DM APP · ดาวน์โหลดแอป DM</a>
+    <button type="button">知道了 · รับทราบ</button>
+  </div>
+</div>
+<script>
+(function () {
+  var K = 'dmAppNotice1', n = document.getElementById('dmNote');
+  try { if (localStorage.getItem(K) || location.hash.indexOf('#meeting') === 0) return; } catch (e) { return; }
+  function close() { n.hidden = true; try { localStorage.setItem(K, '1'); } catch (e) {} }
+  n.hidden = false;
+  n.querySelector('button').onclick = close;
+  n.querySelector('a').addEventListener('click', close);
+  n.addEventListener('click', function (e) { if (e.target === n) close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  n.querySelector('button').focus();
+  setTimeout(close, 15000);
+})();
+</script>
 </body>
 <!-- 2026-09-06: 静态历史经营分析模块 + 车间产出分析独立页 -->
 <script src="analysis-history.js?v=20260911aiarchive2"></script>
