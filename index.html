@@ -5769,19 +5769,22 @@ setInterval(reloadLiveData, 300000);                   // 之后每 5 分钟一�
 #dmNote a{display:block;padding:14px;border-radius:12px;background:#2f7cf6;color:#fff;font-size:17px;font-weight:700;text-decoration:none;line-height:1.4}
 #dmNote button{margin-top:10px;width:100%;padding:12px;border:0;border-radius:12px;background:transparent;color:rgba(255,255,255,.7);font-size:15px;cursor:pointer}
 #dmNote button:hover{color:#fff}
+#dmNote .pw{margin:-8px 0 20px;padding:10px;border-radius:10px;background:rgba(255,255,255,.08);font-size:16px;line-height:1.7}
+#dmNote .pw b{font-size:20px;letter-spacing:2px;color:#ffd166}
 </style>
 <div id="dmNote" role="dialog" aria-modal="true" aria-labelledby="dmNoteT" hidden>
   <div class="g">
     <h2 id="dmNoteT">DM APP 正式上线</h2>
     <div class="th" lang="th">แอป DM เปิดใช้งานแล้ว</div>
     <p>生产看板已同步到 DM APP 主页<br><span lang="th">ดูบอร์ดผลผลิตได้ที่หน้าแรกของแอป DM</span></p>
+    <div class="pw">默认密码 <b>123456</b><br><span lang="th">รหัสผ่านเริ่มต้น</span> <b>123456</b></div>
     <a href="https://dm111-e8a7d.web.app/get/" target="_blank" rel="noopener">下载 DM APP · ดาวน์โหลดแอป DM</a>
     <button type="button">知道了 · รับทราบ</button>
   </div>
 </div>
 <script>
 (function () {
-  var K = 'dmAppNotice1', n = document.getElementById('dmNote');
+  var K = 'dmAppNotice2', n = document.getElementById('dmNote');
   try { if (localStorage.getItem(K) || location.hash.indexOf('#meeting') === 0) return; } catch (e) { return; }
   try { localStorage.setItem(K, '1'); } catch (e) {}   // 弹出即记为已看过：公告开着时刷新也不会再弹
   function close() { n.hidden = true; }
