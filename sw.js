@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v46'; // 2026-11-23 上线公告弹出即记已看过, 刷新不再弹
+var CACHE = 'pdtiii-shell-v47'; // 2026-11-23 Cloudflare 也能发版自动刷新(比对 sw.js 版本号)
 var CORE = [
   './',
   './index.html',

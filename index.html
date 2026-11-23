@@ -1336,6 +1336,12 @@
         .then(function (r) {
           if (!r.ok) return;
           var lm = r.headers.get("last-modified");
+          if (lm) return lm;
+          // 2026-11-23 Cloudflare Pages 不给 Last-Modified/ETag → 退回比对 sw.js 缓存版本号(每次发版都会改)
+          return fetch("sw.js", { cache: "no-store" }).then(function (s) { return s.ok ? s.text() : ""; })
+            .then(function (t) { var m = /CACHE = '([^']+)'/.exec(t); return m && m[1]; });
+        })
+        .then(function (lm) {
           if (!lm) return;
           if (_lm === null) { _lm = lm; return; }
           if (lm !== _lm) {
