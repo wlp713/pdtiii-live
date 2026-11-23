@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v48'; // 2026-11-23 公告加默认密码
+var CACHE = 'pdtiii-shell-v49'; // 2026-11-23 检讨会大屏加 PRO1
 var CORE = [
   './',
   './index.html',

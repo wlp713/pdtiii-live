@@ -1,17 +1,24 @@
 /* 两小时检讨会（2026-11-19 v3）
-   数据：DM 后台每分钟算好写到同一个实时库 /dm_meeting/PRO2（作业长手机填的 LOSS 问题点、PRO2 未关闭异常单、逐小时 LOSS），30 秒读一次。
+   数据：DM 后台每分钟算好写到同一个实时库 /dm_meeting/<车间>（作业长手机填的 LOSS 问题点、本车间未关闭异常单、逐小时 LOSS），30 秒读一次。
+   车间：#meeting = PRO2 Final A–D；#meeting/PRO1 = PRO1 电机 5 条线（2026-11-23 加，顶栏可切换）。看板「未达成原因」模块仍读 PRO2。
    ① 看板「未达成原因」模块改读这份数据（renderProblems 开头调 mtgPanel）
    ② 模块右上角 ⛶ → 完整页面 #meeting（不是弹窗；刷新后仍停在本页，返回回看板）
    ③ 会议大屏：一屏放下、不滚动。顶部横条 = 每小时产出（看板 segsOf 同一份分段数据，时间从左到右，进行中时段发光）；
       下方 = 四条线问题卡一字排开到底（同一问题合并，放不下折叠成「另 N 条 · X 台」，没填原因的 LOSS 合成一行压卡底）+ 升级问题窄栏。 */
 (function () {
   "use strict";
-  var DB = "https://dm111-e8a7d-default-rtdb.firebaseio.com/dm_meeting/PRO2.json";
+  var DB = "https://dm111-e8a7d-default-rtdb.firebaseio.com/dm_meeting/";
   var qs = new URLSearchParams(location.search);
-  var SRC = qs.get("mtgsrc") || DB;            // ?mtgsrc= 仅供本地用样例数据测试
+  var SRC = qs.get("mtgsrc");                  // ?mtgsrc= 仅供本地用样例数据测试（{area} 换成车间）
+  function srcOf(a) { return SRC ? SRC.replace("{area}", a) : DB + a + ".json"; }
   var POLL = 30000, STALE = 5 * 60000;
   var DEPT_COLORS = ["#6ea1ff", "#3ed1c0", "#b49cff", "#ff8fc4", "#5cc8ff", "#e6d38a", "#9aa6b8"];
-  var LINES = ["Final A line", "Final B Line", "Final C line", "Final D line"];
+  /* 各车间上大屏的线，顺序 = 位置（固定，不按数字排）；和 DM 后台 MEET_LINES 一致 */
+  var AREAS = {
+    PRO2: { sub: "PRO2 FINAL A–D", lines: ["Final A line", "Final B Line", "Final C line", "Final D line"] },
+    PRO1: { sub: "PRO1 MOTOR", lines: ["Motor FL CL", "Motor WL", "Motor H-Series", "Motor F-Series", "Motor S-Series"] }
+  };
+  function areaOfHash() { var m = /^#meeting(?:\/(\w+))?$/.exec(location.hash); return m ? (AREAS[(m[1] || "").toUpperCase()] ? m[1].toUpperCase() : "PRO2") : null; }
   var T = {
     zh: { title: "两小时检讨会", back: "看板", scopeWin: "本次检讨", scopeAll: "全班", hourly: "每小时产出",
       probs: "问题点", issues: "升级问题", day: "白班", night: "夜班", loss: "LOSS", unexp: "未说明",
@@ -27,7 +34,8 @@
       open: "รอรับงาน", doing: "กำลังแก้ไข", verify: "รอยืนยัน", over: "เกินเวลา", min: "นาที", hr: "ชม.", day0: "วัน", rate: "สำเร็จ", hrsFmt: "{h} น." }
   };
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
-  var st = { lang: ls("mtg_lang") || "zh", scope: ls("mtg_scope") || "win", d: null, err: false };
+  var st = { lang: ls("mtg_lang") || "zh", scope: ls("mtg_scope") || "win", area: areaOfHash() || "PRO2", data: {}, errs: {}, d: null, err: false };
+  function pick() { st.d = st.data[st.area] || null; st.err = !!st.errs[st.area]; }
   if (!T[st.lang]) st.lang = "zh";
   function t(k) { return T[st.lang][k]; }
   function $(id) { return document.getElementById(id); }
@@ -35,7 +43,7 @@
   function n0(x) { return Math.round(Number(x) || 0).toLocaleString("en-US"); }
   function neg(x) { return Math.round(Number(x) || 0) > 0 ? "−" + n0(x) : n0(x); }   // 损失台数一律写成负数
   function nm(o, lg) { return o ? (o[lg || st.lang] || o.zh || "") : ""; }
-  function short(name) { return String(name || "").replace(/\s*line$/i, "").toUpperCase(); }
+  function short(name) { return String(name || "").replace(/\s*line$/i, "").replace(/^motor\s+/i, "").toUpperCase(); }
   function arr(x) { return Array.isArray(x) ? x.filter(Boolean) : x && typeof x === "object" ? Object.keys(x).map(function (k) { return x[k]; }) : []; }
   function bkk(ts) { return new Date(ts + 7 * 3600000); }   // 工厂时间 UTC+7，与电脑时区无关
   function hhmm(ts) { var d = bkk(ts); return ("0" + d.getUTCHours()).slice(-2) + ":" + ("0" + d.getUTCMinutes()).slice(-2); }
@@ -120,6 +128,7 @@
       '<header class="mtg-top">' +
         '<button class="mtg-back" id="mtgBack">' + ICON_BACK + '<span data-mk="back"></span></button>' +
         '<div class="mtg-title"><h1 data-mk="title"></h1><span class="mtg-sub" id="mtgSub"></span></div><div class="mtg-sp"></div>' +
+        '<div class="mtg-seg" id="mtgArea"><button data-v="PRO1">PRO1</button><button data-v="PRO2">PRO2</button></div>' +
         '<div class="mtg-seg" id="mtgScope"><button data-v="win" data-mk="scopeWin"></button><button data-v="all" data-mk="scopeAll"></button></div>' +
         '<div class="mtg-seg" id="mtgLang"><button data-v="zh">中文</button><button data-v="th">ไทย</button></div>' +
         '<span class="mtg-fresh" id="mtgFresh"><i></i><span></span></span><span class="mtg-clock" id="mtgClock"></span>' +
@@ -140,6 +149,7 @@
       var b = e.target.closest("button"); if (!b) return;
       if (b.id === "mtgBack") return closeMeeting();
       var p = b.parentNode && b.parentNode.id;
+      if (p === "mtgArea") { location.hash = b.dataset.v === "PRO2" ? "meeting" : "meeting/" + b.dataset.v; return; }
       if (p === "mtgLang") { st.lang = b.dataset.v; ls("mtg_lang", st.lang); }
       else if (p === "mtgScope") { st.scope = b.dataset.v; ls("mtg_scope", st.scope); }
       else return;
@@ -156,9 +166,8 @@
   /* ---------- 顶部横条：看板小时分段（segsOf，和看板主页同一份数，进行中时段实时） ---------- */
   function finalLines() {
     try {
-      var have = {}, out = state.lines.filter(function (l) { var k = normName(l.name); if (FINAL_SET.has(k)) { have[k] = 1; return true; } return false; });
-      LINES.forEach(function (n) { if (!have[normName(n)]) out.push(makeMissingLine(n)); });
-      return out.sort(function (a, b) { return normName(a.name).localeCompare(normName(b.name)); });
+      var names = AREAS[st.area].lines, keys = names.map(normName);
+      return keys.map(function (k, i) { return state.lines.filter(function (l) { return normName(l.name) === k; })[0] || makeMissingLine(names[i]); });
     } catch (e) { return []; }
   }
   function renderStrip(scopeH) {
@@ -194,7 +203,7 @@
       });
       if (any) rowsHtml.push(html);   // 整班没开线的线不占行（创始人：无 LOSS 的隐藏）
     });
-    box.innerHTML = '<div class="ms-grid" style="grid-template-columns:var(--lbl) repeat(' + table.length + ',minmax(0,1fr));grid-template-rows:auto repeat(' + Math.max(1, rowsHtml.length) + ',minmax(0,1fr))">' + head + rowsHtml.join("") + '</div>';
+    box.innerHTML = '<div class="ms-grid' + (rowsHtml.length > 4 ? " dense" : "") + '" style="grid-template-columns:var(--lbl) repeat(' + table.length + ',minmax(0,1fr));grid-template-rows:auto repeat(' + Math.max(1, rowsHtml.length) + ',minmax(0,1fr))">' + head + rowsHtml.join("") + '</div>';
   }
 
   /* ---------- 问题卡 ---------- */
@@ -226,6 +235,7 @@
     document.querySelectorAll("#mtg [data-mk]").forEach(function (el) { el.textContent = t(el.getAttribute("data-mk")); });
     document.querySelectorAll("#mtgLang button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === st.lang); });
     document.querySelectorAll("#mtgScope button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === st.scope); });
+    document.querySelectorAll("#mtgArea button").forEach(function (b) { b.classList.toggle("on", b.dataset.v === st.area); });
     var d = st.d, stale = d && Date.now() - d.at > STALE;
     $("mtgFresh").classList.toggle("bad", !!(stale || st.err));
     $("mtgFresh").lastChild.textContent = d ? t("upd") + " " + hhmm(d.at) : t(st.err ? "fail" : "loading");
@@ -234,7 +244,7 @@
     var hours = d ? arr(d.hours) : [], win = d ? windowHours(d) : [], scopeH = st.scope === "win" && win.length ? win : hours;
     renderStrip(d && st.scope === "win" ? scopeH : null);
     if (!d) return;
-    $("mtgSub").innerHTML = "PRO2 FINAL A–D · " + esc(String(d.date).slice(5).replace("-", "/")) + " " + t(d.shift === "NIGHT" ? "night" : "day") + ' · <b class="n">' + winLabel(scopeH) + "</b>";
+    $("mtgSub").innerHTML = AREAS[st.area].sub + " · " + esc(String(d.date).slice(5).replace("-", "/")) + " " + t(d.shift === "NIGHT" ? "night" : "day") + ' · <b class="n">' + winLabel(scopeH) + "</b>";
     var S = summarize(d, scopeH);
 
     var deptName = function (k) { for (var i = 0; i < S.lines.length; i++) if (S.lines[i].depts[k]) return nm(S.lines[i].depts[k].d); return k; };
@@ -260,7 +270,7 @@
       if (box) fitList(box, s.groups.map(function (g) { return probRow(g, S); }), function (h) { return moreTxt(h, true); });
     });
 
-    /* 升级问题：PRO2 未关闭异常单（后台已按 升级级别 → 超时 → 新 排好），一条两行 */
+    /* 升级问题：本车间未关闭异常单（后台已按 升级级别 → 超时 → 新 排好），一条两行 */
     var lineName = {}; S.lines.forEach(function (s) { lineName[s.key] = short(s.name); });
     var iss = arr(d.issues);
     $("mtgIssCnt").textContent = iss.length || "";
@@ -269,7 +279,7 @@
     else fitList(box, iss.map(function (i) {
       var age = Math.max(0, Date.now() - (i.at || 0)), isNew = age < 15 * 60000;
       var ago = age < 3600000 ? Math.max(1, Math.round(age / 60000)) + t("min") : age < 48 * 3600000 ? Math.round(age / 3600000) + t("hr") : Math.floor(age / 86400000) + t("day0");
-      var tag = i.line ? lineName[i.line] : (i.lineName || "PRO2");
+      var tag = i.line ? lineName[i.line] : (i.lineName || st.area);
       return { html: '<div class="mi' + (isNew ? " new" : "") + '"><span class="lv' + (i.esc ? " on" : "") + '">' + (i.esc ? "L" + i.esc : "—") + '</span>' +
         '<span class="tx">' + esc(i.title || i.note || nm(i.t)) + '</span><span class="ag' + (i.over ? " o" : "") + '">' + ago + '</span>' +
         '<span class="mt"><b>' + esc(tag) + '</b><span class="s-' + esc(i.status) + '">' + t(i.status) + '</span>' + (i.over ? '<span class="o">' + t("over") + '</span>' : "") + '<span>' + esc(nm(i.d)) + '</span></span></div>' };
@@ -279,7 +289,7 @@
 
   /* ---------- 看板「未达成原因」模块：改读 DM 数据（看板中文 = 中文；EN = 泰文原文） ---------- */
   window.mtgPanel = function () {
-    var d = st.d, body = document.getElementById("prob-body"), src = document.getElementById("prob-src");
+    var d = st.data.PRO2, body = document.getElementById("prob-body"), src = document.getElementById("prob-src");
     if (!d || !body) return false;
     var zh = (typeof lang === "undefined") || lang === "zh", lg = zh ? "zh" : "th";
     var hours = arr(d.hours), win = windowHours(d), scopeH = win.length ? win : hours, S = summarize(d, scopeH);
@@ -308,11 +318,12 @@
   };
 
   /* ---------- 打开 / 关闭（地址带 #meeting：电视刷新后仍停在本页） ---------- */
-  function openMeeting() { if (location.hash !== "#meeting") location.hash = "meeting"; else sync(); }
-  function closeMeeting() { if (location.hash === "#meeting") history.replaceState(null, "", location.pathname + location.search); sync(); }
+  function openMeeting() { if (!areaOfHash()) location.hash = "meeting"; else sync(); }
+  function closeMeeting() { if (areaOfHash()) history.replaceState(null, "", location.pathname + location.search); sync(); }
   function sync() {
     build();
-    var on = location.hash === "#meeting", el = $("mtg");
+    var a = areaOfHash(), on = !!a, el = $("mtg");
+    if (a && a !== st.area) { st.area = a; pick(); if (!st.data[a]) load(); if (!el.hidden) { render(); return; } }
     if (el.hidden === !on) { if (on) render(); return; }
     el.hidden = !on;
     document.body.classList.toggle("mtg-on", on);
@@ -323,12 +334,17 @@
   window.mtgDrawChart = function () { if (!isOpen()) return; var d = st.d, win = d ? windowHours(d) : []; renderStrip(d && st.scope === "win" && win.length ? win : null); };
   addEventListener("hashchange", sync);
 
+  /* PRO2 一直读（看板「未达成原因」模块要用）；大屏开着别的车间时再读那个车间 */
   function load() {
-    fetch(SRC + (SRC.indexOf("?") >= 0 ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-      .then(function (j) { if (j && j.lines) { st.d = j; st.err = false; } else st.err = true; })
-      .catch(function () { st.err = true; })
-      .then(function () { try { if (typeof renderProblems === "function") renderProblems(); } catch (e) {} if (isOpen()) render(); });
+    var areas = ["PRO2"]; if (isOpen() && st.area !== "PRO2") areas.push(st.area);
+    areas.forEach(function (a) {
+      var u = srcOf(a);
+      fetch(u + (u.indexOf("?") >= 0 ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" })
+        .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+        .then(function (j) { if (j && j.lines) { st.data[a] = j; st.errs[a] = false; } else st.errs[a] = true; })
+        .catch(function () { st.errs[a] = true; })
+        .then(function () { pick(); try { if (a === "PRO2" && typeof renderProblems === "function") renderProblems(); } catch (e) {} if (isOpen() && a === st.area) render(); });
+    });
   }
   function clock() { var c = $("mtgClock"); if (c) { var d = bkk(Date.now()); c.textContent = hhmm(Date.now()) + ":" + ("0" + d.getUTCSeconds()).slice(-2); } }
   build(); sync(); load(); clock();

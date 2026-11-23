@@ -92,6 +92,9 @@ body.mtg-on #bg-aurora, body.mtg-on #bg-aurora *, body.mtg-on #restoreModsBtn { 
 .ms-d { font-family: var(--num); font-size: 24px; font-weight: 600; line-height: 1; }
 .ms-d.r { color: var(--red); } .ms-d.g { color: var(--green); } .ms-d.z { color: var(--ink4); }
 .ms-b { position: relative; height: 28px; border-radius: 6px; overflow: hidden; background: var(--track); display: flex; align-items: center; justify-content: space-between; }
+.ms-b { flex: none; }
+/* 5 条线以上（PRO1）：每行变矮，收紧格子内边距和间距，条高度不被压扁 */
+.ms-grid.dense { gap: 2px 0; } .ms-grid.dense .ms-c { gap: 2px; padding-top: 1px; padding-bottom: 1px; }
 .ms-b.short { background: repeating-linear-gradient(-45deg, rgba(255,92,92,.62) 0 5px, rgba(120,30,30,.55) 5px 10px); }
 .ms-b > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 6px 0 0 6px; background: linear-gradient(180deg, #5c9bff, #2f6fe0); box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
 .ms-b .a, .ms-b .p { position: relative; z-index: 1; font-family: var(--num); font-variant-numeric: tabular-nums; white-space: nowrap; padding: 0 7px; line-height: 28px; }
