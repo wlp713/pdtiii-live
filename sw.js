@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v51'; // 2026-11-23 已看过同时记 cookie(本地存储写满也不再反复弹)
+var CACHE = 'pdtiii-shell-v45'; // 2026-11-24 达成率配色: ≥95绿 / 90-95黄 / <90红 / <70红色实心块
 var CORE = [
   './',
   './index.html',

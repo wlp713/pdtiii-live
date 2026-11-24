@@ -1077,6 +1077,9 @@
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv2 td { background: linear-gradient(rgba(240,72,72,.16), rgba(240,72,72,.16)) #111b2c; }
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv1 td { background: linear-gradient(rgba(245,165,36,.12), rgba(245,165,36,.12)) #111b2c; }
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv3 td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td { background: linear-gradient(rgba(240,72,72,.26), rgba(240,72,72,.26)) #111b2c; }
+  /* 达成率 <70%: 红色实心色块高亮 */
+  body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-crit .ep { background: #e5484d; color: #fff; box-shadow: none; }
+  #mainTable.all-lines td.eff-crit { background: #e5484d !important; color: #fff !important; }
   /* 线体名列兜底: 不外溢到进度条(字号由 fitLineNames 自动缩小, 到 11px 仍放不下才省略号) */
   #mainTable td.line-name { overflow: hidden; text-overflow: ellipsis; }
   /* ── 车间切换: 分段控件(一条浅色轨道 + 选中项浅蓝胶囊 + 数量小徽标); 返回键=「‹ PRO4」+ 分隔线; 0 条的分类不显示 ── */
@@ -1787,16 +1790,18 @@ function hitEff(e) { return e !== null && e !== undefined && !isNaN(e) && e >= 9
 function effClass(e) {
   if (e === null || e === undefined || isNaN(e)) return "";
   // ★ 2026-09-15 四档色: ≥90绿 / 80-89.9橙 / <80红 / 0深红 — 细分警报级别, 真正严重的不被淹没
-  if (e >= 90) return "eff-ok";
-  if (e >= 80) return "eff-warn";
-  if (e > 0) return "eff-bad";
+  // ★ 2026-11-24 用户定: ≥95绿 / 90-95黄 / <90红 / <70红色实心色块高亮 / 0深红
+  if (e >= 95) return "eff-ok";
+  if (e >= 90) return "eff-warn";
+  if (e >= 70) return "eff-bad";
+  if (e > 0) return "eff-bad eff-crit";
   return "eff-zero";
 }
 // ★ 2026-09-27 UI: Actual(实际达成)列按达成等级着色 — 与达成率列同级语义(绿/橙/红), 达实绩一眼可辨
 function actClass(e) {
   if (e === null || e === undefined || isNaN(e)) return "col-act";
-  if (e >= 90) return "col-act green";
-  if (e >= 80) return "col-act orange";
+  if (e >= 95) return "col-act green";
+  if (e >= 90) return "col-act orange";
   return "col-act red";
 }
 function signClass(v) {
@@ -2023,7 +2028,7 @@ function renderTable() {
     // ── 同集合同顺序: 行节点/内联高度全保留, 只更新变化的单元格 ──
     existing.forEach(function (tr, idx) {
       const l = view[idx];
-      const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+      const miss = l.eff !== null && !isNaN(l.eff) && effClass(l.eff) !== "eff-ok";
       let cls = "";
       if (isPlannedOff(l)) cls = "planned-off";
       else if (isBreakdown(l)) cls = "breakdown-row";
@@ -2032,7 +2037,7 @@ function renderTable() {
       else if (isNoRun(l)) cls = "breakdown-row";
       else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
-      else if (hitEff(l.eff)) cls = "hit-row";
+      else if (effClass(l.eff) === "eff-ok") cls = "hit-row";
       if (tr.className !== cls) tr.className = cls;
       const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l) || isNoRun(l)) ? '<span class="stall-dot"></span>' : "";
       const htmls = [
@@ -2070,7 +2075,7 @@ function renderTable() {
           tr = document.createElement("tr");
           tr.setAttribute("data-line", key);
         }
-        const miss = l.eff !== null && !isNaN(l.eff) && !hitEff(l.eff);
+        const miss = l.eff !== null && !isNaN(l.eff) && effClass(l.eff) !== "eff-ok";
         let cls = "";
         if (isPlannedOff(l)) cls = "planned-off";
         else if (isBreakdown(l)) cls = "breakdown-row";
@@ -2079,7 +2084,7 @@ function renderTable() {
       else if (isNoRun(l)) cls = "breakdown-row";
       else if (isIdle(l)) cls = "idle-row";
       else if (miss) cls = "miss";
-      else if (hitEff(l.eff)) cls = "hit-row";
+      else if (effClass(l.eff) === "eff-ok") cls = "hit-row";
         if (tr.className !== cls) tr.className = cls;
         const dot = (isPlannedOff(l) || isBreakdown(l) || isStalled(l) || isNoRun(l)) ? '<span class="stall-dot"></span>' : "";
         tr.innerHTML =
