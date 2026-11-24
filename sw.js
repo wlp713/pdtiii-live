@@ -1,5 +1,5 @@
 /* PDTIII 看板 Service Worker — 离线壳: 缓存页面自身, 数据仍走 Firebase 实时网络 */
-var CACHE = 'pdtiii-shell-v45'; // 2026-11-24 达成率配色: ≥95绿 / 90-95黄 / <90红 / <70红色实心块
+var CACHE = 'pdtiii-shell-v46'; // 2026-11-24 作战模式也显示 <70 红色实心块
 var CORE = [
   './',
   './index.html',

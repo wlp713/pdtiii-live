@@ -1079,7 +1079,7 @@
   body:not(.battle-mode) #mainTable:not(.all-lines) tr.stalled-row.lv3 td, body:not(.battle-mode) #mainTable:not(.all-lines) tr.breakdown-row td { background: linear-gradient(rgba(240,72,72,.26), rgba(240,72,72,.26)) #111b2c; }
   /* 达成率 <70%: 红色实心色块高亮 */
   body:not(.battle-mode) #mainTable:not(.all-lines) td.eff-crit .ep { background: #e5484d; color: #fff; box-shadow: none; }
-  #mainTable.all-lines td.eff-crit { background: #e5484d !important; color: #fff !important; }
+  #mainTable.all-lines td.eff-crit, body.battle-mode #mainTable td.eff-crit { background: #e5484d !important; color: #fff !important; box-shadow: none !important; }
   /* 线体名列兜底: 不外溢到进度条(字号由 fitLineNames 自动缩小, 到 11px 仍放不下才省略号) */
   #mainTable td.line-name { overflow: hidden; text-overflow: ellipsis; }
   /* ── 车间切换: 分段控件(一条浅色轨道 + 选中项浅蓝胶囊 + 数量小徽标); 返回键=「‹ PRO4」+ 分隔线; 0 条的分类不显示 ── */
