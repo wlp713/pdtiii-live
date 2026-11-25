@@ -107,12 +107,19 @@
   }
 
   /* 一屏放下：内容超出就从尾部收起，换成「另 N 条」，绝不出滚动条 */
+  /* 左框按本卡最宽的那个统一宽度：框尽量窄，同卡文字左边又对齐 */
+  function alignQ(box) {
+    var qs = box.querySelectorAll(".qb"), mw = 0, i;
+    for (i = 0; i < qs.length; i++) qs[i].style.minWidth = "";
+    for (i = 0; i < qs.length; i++) mw = Math.max(mw, qs[i].offsetWidth);
+    for (i = 0; i < qs.length; i++) qs[i].style.minWidth = mw + "px";
+  }
   function fitList(box, rows, moreHtml) {
     box.innerHTML = rows.map(function (r) { return r.html; }).join("");
-    box.style.removeProperty("--k");
+    box.style.removeProperty("--k"); alignQ(box);
     if (box.scrollHeight <= box.clientHeight + 1) return;
     /* 先整体缩字（最小 80%，电视上还看得清），还放不下再从尾部收起 */
-    for (var k = 0.95; k >= 0.799 && box.scrollHeight > box.clientHeight + 1; k -= 0.05) box.style.setProperty("--k", k.toFixed(2));
+    for (var k = 0.95; k >= 0.799 && box.scrollHeight > box.clientHeight + 1; k -= 0.05) { box.style.setProperty("--k", k.toFixed(2)); alignQ(box); }
     if (box.scrollHeight <= box.clientHeight + 1) return;
     var foot = document.createElement("div"); foot.className = "mtg-more"; box.appendChild(foot);
     var n = rows.length;
