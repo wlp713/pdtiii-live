@@ -107,12 +107,15 @@
   }
 
   /* 一屏放下：内容超出就从尾部收起，换成「另 N 条」，绝不出滚动条 */
-  /* 左框按本卡最宽的那个统一宽度：框尽量窄，同卡文字左边又对齐 */
+  /* 左列宽度只按 LOSS 数字定（同卡统一、文字左边对齐）；部门名长（如 Model Change）在框里换行，绝不撑宽盖住问题文字 */
   function alignQ(box) {
-    var qs = box.querySelectorAll(".qb"), mw = 0, i;
-    for (i = 0; i < qs.length; i++) qs[i].style.minWidth = "";
-    for (i = 0; i < qs.length; i++) mw = Math.max(mw, qs[i].offsetWidth);
-    for (i = 0; i < qs.length; i++) qs[i].style.minWidth = mw + "px";
+    var qs = box.querySelectorAll(".qb .q"), mw = 34, i;
+    for (i = 0; i < qs.length; i++) mw = Math.max(mw, Math.ceil(qs[i].getBoundingClientRect().width));
+    box.style.setProperty("--qw", (mw + 8) + "px");
+    /* 部门名只在空格处换行：最长的单词放不下时再加宽（封顶 64px，超出裁掉，绝不盖住文字） */
+    var ds = box.querySelectorAll(".qb .d"), dw = mw;
+    for (i = 0; i < ds.length; i++) dw = Math.max(dw, Math.min(56, ds[i].scrollWidth));
+    if (dw > mw) box.style.setProperty("--qw", (dw + 8) + "px");
   }
   function fitList(box, rows, moreHtml) {
     box.innerHTML = rows.map(function (r) { return r.html; }).join("");
