@@ -4,7 +4,7 @@
    ① 看板「未达成原因」模块改读这份数据（renderProblems 开头调 mtgPanel）
    ② 模块右上角 ⛶ → 完整页面 #meeting（不是弹窗；刷新后仍停在本页，返回回看板）
    ③ 会议大屏：一屏放下、不滚动。顶部横条 = 每小时产出（看板 segsOf 同一份分段数据，时间从左到右，进行中时段发光）；
-      下方 = 四条线问题卡一字排开到底（同一问题合并，放不下折叠成「另 N 条 · X 台」，没填原因的 LOSS 合成一行压卡底）+ 升级问题窄栏。 */
+      下方 = 四条线问题卡一字排开到底（每条只写问题点，左框 = LOSS + 部门；同一问题合并，放不下先缩字到 80%，再折叠成「另 N 条 · X 台」，没填原因的 LOSS 合成一行压卡底）+ 升级问题窄栏。 */
 (function () {
   "use strict";
   var DB = "https://dm111-e8a7d-default-rtdb.firebaseio.com/dm_meeting/";
@@ -90,7 +90,7 @@
       if (!s || !inS(p.hour)) return;
       var dk = p.d ? p.d.zh : "";
       if (p.qty && dk) { if (!s.depts[dk]) s.depts[dk] = { d: p.d, q: 0 }; s.depts[dk].q += p.qty; deptTot[dk] = (deptTot[dk] || 0) + p.qty; }
-      var gk = p.line + "|" + (p.text || p.zh || p.type) + "|" + dk, g = gmap[gk];
+      var gk = p.line + "|" + String(p.text || p.zh || p.type || "").trim().replace(/\s+/g, " ").replace(/[。.,，;；!！\s]+$/, "").toLowerCase() + "|" + dk, g = gmap[gk];   // 只差空格 / 句尾标点也算同一问题
       if (!g) { g = gmap[gk] = { p: p, q: 0, hours: [], equip: [] }; s.groups.push(g); }
       g.q += p.qty || 0;
       if (g.hours.indexOf(p.hour) < 0) g.hours.push(p.hour);
@@ -109,6 +109,10 @@
   /* 一屏放下：内容超出就从尾部收起，换成「另 N 条」，绝不出滚动条 */
   function fitList(box, rows, moreHtml) {
     box.innerHTML = rows.map(function (r) { return r.html; }).join("");
+    box.style.removeProperty("--k");
+    if (box.scrollHeight <= box.clientHeight + 1) return;
+    /* 先整体缩字（最小 80%，电视上还看得清），还放不下再从尾部收起 */
+    for (var k = 0.95; k >= 0.799 && box.scrollHeight > box.clientHeight + 1; k -= 0.05) box.style.setProperty("--k", k.toFixed(2));
     if (box.scrollHeight <= box.clientHeight + 1) return;
     var foot = document.createElement("div"); foot.className = "mtg-more"; box.appendChild(foot);
     var n = rows.length;
@@ -218,16 +222,16 @@
     var head = '<div class="mc-hd"><span class="mc-nm">' + esc(short(s.name)) + '</span><span class="mc-ls' + (s.l > 0 ? "" : " z") + '"><b>' + neg(s.l) + '</b><span>' + t("loss") + '</span></span>' +
       '<span class="mc-rt">' + t("rate") + ' <b style="color:' + rc + '">' + (rate == null ? "—" : rate + "%") + '</b> · <span class="n">' + n0(s.a) + ' / ' + n0(s.p) + '</span></span></div>' +
       '<div class="mc-bar">' + segs + '</div>';
-    var gapRow = s.gap > 0 ? '<div class="mp gap"><span class="q">' + neg(s.gap) + '</span><div class="tx"><span class="sw"></span>' + t("gapTx") + '<em>' + hrs(s.gapH) + '</em></div></div>' : "";
+    var gapRow = s.gap > 0 ? '<div class="mp gap"><div class="qb"><span class="q">' + neg(s.gap) + '</span></div><div class="tx"><span class="sw"></span>' + t("gapTx") + '</div></div>' : "";
     var body = !s.groups.length && !s.gap ? '<div class="mtg-clear">' + ICON_OK + t("noLoss") + '</div>' : '<div class="mtg-items" data-k="' + esc(s.key) + '"></div>' + gapRow;
     return '<section class="mtg-box mc">' + head + body + '</section>';
   }
   function probRow(g, S) {
     var p = g.p, tx = st.lang === "zh" ? (p.zh || p.text) : (p.text || p.zh), dk = p.d ? p.d.zh : "";
-    return { q: g.q, html: '<div class="mp"><span class="q">' + (g.q ? neg(g.q) : "—") + '</span><div class="tx">' + esc(tx || nm(p.t)) + '</div>' +
-      '<div class="mt">' + (p.d ? '<span class="d"><i style="background:' + (S.color[dk] || "#9aa6b8") + '"></i>' + esc(nm(p.d)) + '</span>' : "") +
-      '<span>' + esc(nm(p.t)) + '</span>' + (g.equip.length ? '<span>' + esc(g.equip.join(" · ")) + '</span>' : "") +
-      '<span class="h">' + hrs(g.hours) + '</span></div></div>' };
+    /* 创始人：小字（类别 / 设备 / 泰文备注 / 小时）全不要，只写问题点；部门写在左边 LOSS 数字下面，数字做成小框 */
+    return { q: g.q, html: '<div class="mp"><div class="qb"><span class="q">' + (g.q ? neg(g.q) : "—") + '</span>' +
+      (p.d ? '<span class="d" style="color:' + (S.color[dk] || "#9aa6b8") + '">' + esc(nm(p.d)) + '</span>' : "") + '</div>' +
+      '<div class="tx">' + esc(tx || nm(p.t)) + '</div></div>' };
   }
 
   function render() {
