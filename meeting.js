@@ -194,8 +194,8 @@
         var a = Math.round(s.actual || 0), p = Math.round(s.plan || 0), dif = a - p;
         if (!a && !p) { html += '<div class="ms-c idle">—</div>'; return; }   // 没计划也没产出（停线 / 没开线）：不画红斜纹，免得像欠产
         any = true;
-        /* 放大差距的刻度：条左端 = 计划的 70%，右端 = 计划。完成 95% → 蓝 83%、红斜纹 17%，欠产一眼看得出（准确数字写在条里） */
-        var w = p > 0 ? Math.max(a > 0 ? 6 : 0, Math.min(100, (a / p - 0.7) / 0.3 * 100)) : (a > 0 ? 100 : 0);
+        /* 真实比例：蓝 = 实际 ÷ 计划（原来从计划 70% 起画会把 59% 画成一点点，创始人指出看着不对） */
+        var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
         var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(sg[0]) ? " out" : "");
         /* 一格一根粗条：底轨 = 计划（条尾写计划数），蓝 = 实际（条里写实际数），红斜纹 = 欠产，绿边 = 超产；上 = 差异 */
         html += '<div class="' + cls + '"><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span>' +
