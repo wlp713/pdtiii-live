@@ -886,6 +886,11 @@
   .clock { font-size: 13px; color: var(--t2); font-weight: 600; }
   .conn-status { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.1); color: var(--t2); font-size: 12px; }
   .header .btn { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); color: var(--t2); border-radius: 8px; font-size: 12px; }
+  /* 2026-11-26 顶栏「DM meeting」检讨会入口: 蓝色渐变 + 呼吸发光边 (同 DM 后台侧栏「生产看板」入口) */
+  .header #meetBtn { background: linear-gradient(135deg, #1b3a6b, #0f2547); border: 1px solid rgba(96,165,250,.55); color: #fff; font-weight: 700; animation: meet-glow 2.6s ease-in-out infinite; }
+  .header #meetBtn:hover { background: linear-gradient(135deg, #22488a, #13305c); }
+  @keyframes meet-glow { 0%, 100% { box-shadow: 0 0 6px rgba(59,130,246,.35); } 50% { box-shadow: 0 0 18px 2px rgba(59,130,246,.7); } }
+  @media (prefers-reduced-motion: reduce) { .header #meetBtn { animation: none; box-shadow: 0 0 12px rgba(59,130,246,.5); } }
   .header .btn:hover { color: var(--t1); border-color: rgba(130,190,255,.45); background: rgba(88,166,255,.08); }
   /* ── KPI: 数字放大且不发光; 总量类数字统一白色, 颜色只表达状态(效率/达成) ── */
   .kpi { padding: 4px 14px; }
