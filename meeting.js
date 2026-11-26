@@ -193,31 +193,48 @@
     var fm =function (m) { m = ((m % 1440) + 1440) % 1440; return Math.floor(m / 60) + ":" + ("0" + (m % 60)).slice(-2); };
     var inWin = function (t0) { return !scopeH || scopeH.indexOf(Math.floor((t0 % 1440) / 60)) >= 0; };
     var rowsHtml = [];
-    var head = '<span></span>' + table.map(function (sg) {
-      var cur = sg[0] <= cmp && cmp < sg[1];
-      return '<span class="ms-th' + (cur ? " cur" : inWin(sg[0]) && sg[0] < cmp ? " win" : "") + '">' + fm(sg[0]) + '</span>';
+    /* 2026-11-26 列 = DM 整点小时：已结束的小时用 DM 数据（和下方卡片、作业长填 LOSS 是同一份，数字对得上）；
+       正在进行的小时用看板实时段。DM 数据没到 / 交班时班次对不上 → 仍按看板时段画（原逻辑） */
+    var dmOn = !!(st.d && st.d.shift === (night ? "NIGHT" : "DAY") && arr(st.d.hours).length);
+    var dmBy = {}, hrSt = {};
+    if (dmOn) arr(st.d.lines).forEach(function (ln) { var m = {}; arr(ln.h).forEach(function (h) { m[h.hour] = h; hrSt[h.hour] = h.st; }); dmBy[normName(ln.name)] = m; });
+    var cols = dmOn ? arr(st.d.hours).map(function (hr) { return { t0: hr * 60, hr: hr, cur: hrSt[hr] === "cur", past: hrSt[hr] === "done" }; })
+      : table.map(function (sg, i) { return { t0: sg[0], i: i, cur: sg[0] <= cmp && cmp < sg[1], past: sg[0] < cmp }; });
+    var head = '<span></span>' + cols.map(function (c) {
+      return '<span class="ms-th' + (c.cur ? " cur" : c.past && inWin(c.t0) ? " win" : "") + '">' + fm(c.t0) + '</span>';
     }).join("");
     finalLines().forEach(function (l) {
       var html = "", any = false;
       var segs = []; try { segs = segsOf(l.name, l.actual, l.plan, l.target) || []; } catch (e) { segs = []; }
       var byLab = {}; segs.forEach(function (s) { if (s.lab) byLab[s.lab] = s; else if (s.base) byLab.base = s; });
+      var segAt = function (i) { return byLab[i + 1] || (i === 0 ? byLab.base : null); };
+      var liveS = null, liveHr = null;   // 看板正在走的段，及它属于哪个整点
+      table.forEach(function (sg, i) { var s = segAt(i); if (s && s.live && sg[0] <= cmp) { liveS = s; liveHr = Math.floor(sg[0] / 60) % 24; } });
+      var dmH = dmBy[normName(l.name)] || {};
       html += '<span class="ms-ln">' + esc(short(l.name)) + '</span>';
-      table.forEach(function (sg, i) {
-        var s = byLab[i + 1] || (i === 0 ? byLab.base : null);
-        if (!s || sg[0] > cmp) { html += '<div class="ms-c todo"></div>'; return; }
+      cols.forEach(function (c) {
+        var s;
+        if (!dmOn) { s = segAt(c.i); if (s && c.t0 > cmp) s = null; }
+        else {
+          var h = dmH[c.hr] || {};
+          if (h.st === "done") s = { actual: h.a, plan: h.p };
+          else if (h.st === "cur") s = liveS && liveHr === c.hr ? liveS : (h.a != null || h.p != null ? { actual: h.a, plan: h.p, live: true } : null);
+          else s = null;
+        }
+        if (!s) { html += '<div class="ms-c todo"></div>'; return; }
         var a = Math.round(s.actual || 0), p = Math.round(s.plan || 0), dif = a - p;
         if (!a && !p) { html += '<div class="ms-c idle">—</div>'; return; }   // 没计划也没产出（停线 / 没开线）：不画红斜纹，免得像欠产
         any = true;
         /* 真实比例：蓝 = 实际 ÷ 计划（原来从计划 70% 起画会把 59% 画成一点点，创始人指出看着不对） */
         var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
-        var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(sg[0]) ? " out" : "");
+        var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(c.t0) ? " out" : "");
         /* 一格一根粗条：底轨 = 计划（条尾写计划数），蓝 = 实际（条里写实际数），红斜纹 = 欠产，绿边 = 超产；上 = 差异 */
         html += '<div class="' + cls + '"><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span>' +
           '<div class="ms-b' + (p > 0 && a > p ? " over" : "") + (a < p ? " short" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i><span class="a">' + n0(a) + '</span><span class="p">' + n0(p) + '</span></div></div>';
       });
       if (any) rowsHtml.push(html);   // 整班没开线的线不占行（创始人：无 LOSS 的隐藏）
     });
-    box.innerHTML = '<div class="ms-grid' + (rowsHtml.length > 4 ? " dense" : "") + '" style="grid-template-columns:var(--lbl) repeat(' + table.length + ',minmax(0,1fr));grid-template-rows:auto repeat(' + Math.max(1, rowsHtml.length) + ',minmax(0,1fr))">' + head + rowsHtml.join("") + '</div>';
+    box.innerHTML = '<div class="ms-grid' + (rowsHtml.length > 4 ? " dense" : "") + '" style="grid-template-columns:var(--lbl) repeat(' + cols.length + ',minmax(0,1fr));grid-template-rows:auto repeat(' + Math.max(1, rowsHtml.length) + ',minmax(0,1fr))">' + head + rowsHtml.join("") + '</div>';
   }
 
   /* ---------- 问题卡 ---------- */
