@@ -1154,7 +1154,7 @@
     <span class="clock" id="clock"></span>
     <button class="btn" id="notifBtn" style="display:none" data-i18n="notifOn">🔔 开启停滞通知</button>
     <button class="btn" id="anaBtn" title="车间产出分析: 正常 vs 加班时段产出" onclick="window.openAnaPage&&openAnaPage()">🏭 产出分析</button>
-    <button class="btn" id="modeBtn" data-i18n-title="modeTitle">⚔️ 详情</button>
+    <button class="btn" id="meetBtn" title="两小时检讨会 / 2h review meeting" onclick="window.openMeeting&&openMeeting()">DM meeting</button><!-- 2026-11-26: 详情模式已取消, 只保留基础模式; 原「详情」按钮改为检讨会大屏入口 -->
   </div>
 </div>
 
@@ -4301,7 +4301,7 @@ const EXTRA_MANUAL_ATT = "pdtiii_manual_att_v1"; // 出勤纯手动录入 (2026-
 let viewMode = "daily";
 let collapseMap = {};
 
-try { viewMode = localStorage.getItem(EXTRA_VIEW_KEY) || "daily"; } catch (e) {}
+// 2026-11-26: 只保留基础模式 (详情模式取消), 不再读本机保存的模式; 电视上次停在详情也会回到基础
 try { collapseMap = JSON.parse(localStorage.getItem(EXTRA_COLLAPSE_KEY) || "{}") || {}; } catch (e) { collapseMap = {}; }
 // 清理折叠状态: v2 key 全新开始, 底部模块默认全部展开 (防止旧折叠状态造成空白)
 collapseMap = {};
@@ -5358,9 +5358,7 @@ function saveAttModal() {
 // 2026-08-21: 问题点手动录入功能已取消 (数据全部由 extract_problems.py 每小时自动同步)
 
 // ── 模式按钮 ──
-document.getElementById("modeBtn").addEventListener("click", function () {
-  setViewMode(viewMode === "battle" ? "daily" : "battle");
-});
+// 2026-11-26: 详情模式已取消, 模式按钮改为顶栏「DM meeting」(检讨会入口)
 
 // ── 趋势图拖拽手柄: 左右拉伸宽度 (20%~60%), 问题点模块自动让位, 只改宽度不改高度 ──
 const TREND_W_KEY = "pdtiii_trend_w_v1";
