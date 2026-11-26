@@ -26,7 +26,7 @@
       noLoss: "无 LOSS", noIss: "没有未关闭的问题", gapTx: "未填原因", more: "另 {n} 条", moreQ: "{q} 台",
       upd: "更新", stale: "检讨会数据超过 5 分钟没更新，请检查网络或 DM 后台", loading: "正在读取…", fail: "读取失败，30 秒后自动重试",
       open: "待接单", doing: "处理中", verify: "待确认", over: "超时", min: "分钟", hr: "小时", day0: "天", rate: "达成", hrsFmt: "{h} 点" },
-    th: { title: "ประชุมทบทวนทุก 2 ชม.", back: "บอร์ด", scopeWin: "รอบนี้", scopeAll: "ทั้งกะ", hourly: "ยอดผลิตรายชั่วโมง",
+    th: { title: "DM meeting", back: "บอร์ด", scopeWin: "รอบนี้", scopeAll: "ทั้งกะ", hourly: "ยอดผลิตรายชั่วโมง",
       probs: "ปัญหา", issues: "ปัญหาที่ยกระดับ", day: "กะเช้า", night: "กะดึก", loss: "LOSS", unexp: "ยังไม่ระบุ",
       lgA: "จริง", lgP: "แผน", lgGap: "ขาด", lgOver: "เกิน", deptT: "LOSS ตามหน่วยงาน",
       noLoss: "ไม่มี LOSS", noIss: "ไม่มีปัญหาค้าง", gapTx: "ยังไม่ระบุสาเหตุ", more: "อีก {n} รายการ", moreQ: "{q} เครื่อง",
@@ -34,9 +34,9 @@
       open: "รอรับงาน", doing: "กำลังแก้ไข", verify: "รอยืนยัน", over: "เกินเวลา", min: "นาที", hr: "ชม.", day0: "วัน", rate: "สำเร็จ", hrsFmt: "{h} น." }
   };
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
-  var st = { lang: ls("mtg_lang") || "zh", scope: ls("mtg_scope") || "win", area: areaOfHash() || "PRO2", data: {}, errs: {}, d: null, err: false };
+  var st = { lang: ls("mtg_lang") || "th",   /* 2026-11-26 默认泰文（现场看的人多是泰国员工）；点过中文的设备记住选择 */ scope: ls("mtg_scope") || "win", area: areaOfHash() || "PRO2", data: {}, errs: {}, d: null, err: false };
   function pick() { st.d = st.data[st.area] || null; st.err = !!st.errs[st.area]; }
-  if (!T[st.lang]) st.lang = "zh";
+  if (!T[st.lang]) st.lang = "th";
   function t(k) { return T[st.lang][k]; }
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
