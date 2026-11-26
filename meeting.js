@@ -20,7 +20,7 @@
   };
   function areaOfHash() { var m = /^#meeting(?:\/(\w+))?$/.exec(location.hash); return m ? (AREAS[(m[1] || "").toUpperCase()] ? m[1].toUpperCase() : "PRO2") : null; }
   var T = {
-    zh: { title: "两小时检讨会", back: "看板", scopeWin: "本次检讨", scopeAll: "全班", hourly: "每小时产出",
+    zh: { title: "DM meeting", back: "看板", scopeWin: "本次检讨", scopeAll: "全班", hourly: "每小时产出",
       probs: "问题点", issues: "升级问题", day: "白班", night: "夜班", loss: "LOSS", unexp: "未说明",
       lgA: "实际", lgP: "计划", lgGap: "欠产", lgOver: "超产", deptT: "LOSS 责任部门",
       noLoss: "无 LOSS", noIss: "没有未关闭的问题", gapTx: "未填原因", more: "另 {n} 条", moreQ: "{q} 台",
