@@ -1,6 +1,6 @@
 /* 两小时检讨会（2026-11-19 v3）
    数据：DM 后台每分钟算好写到同一个实时库 /dm_meeting/<车间>（作业长手机填的 LOSS 问题点、本车间未关闭异常单、逐小时 LOSS），30 秒读一次。
-   车间：#meeting = PRO2 Final A–D；#meeting/PRO1 = PRO1 电机 5 条线（2026-11-23 加，顶栏可切换）。看板「未达成原因」模块仍读 PRO2。
+   车间：#meeting = PRO2 Final A–D；#meeting/PRO1 = PRO1 电机 5 条线（2026-11-23 加）；#meeting/PRO2S = PRO2 Shipping line（看板 Inspection A–D，2026-11-26 加）；顶栏可切换。看板「未达成原因」模块仍读 PRO2。
    ① 看板「未达成原因」模块改读这份数据（renderProblems 开头调 mtgPanel）
    ② 模块右上角 ⛶ → 完整页面 #meeting（不是弹窗；刷新后仍停在本页，返回回看板）
    ③ 会议大屏：一屏放下、不滚动。顶部横条 = 每小时产出（看板 segsOf 同一份分段数据，时间从左到右，进行中时段发光）；
@@ -16,7 +16,8 @@
   /* 各车间上大屏的线，顺序 = 位置（固定，不按数字排）；和 DM 后台 MEET_LINES 一致 */
   var AREAS = {
     PRO2: { sub: "PRO2 FINAL A–D", lines: ["Final A line", "Final B Line", "Final C line", "Final D line"] },
-    PRO1: { sub: "PRO1 MOTOR", lines: ["Motor FL CL", "Motor WL", "Motor H-Series", "Motor F-Series", "Motor S-Series"] }
+    PRO1: { sub: "PRO1 MOTOR", lines: ["Motor FL CL", "Motor WL", "Motor H-Series", "Motor F-Series", "Motor S-Series"] },
+    PRO2S: { sub: "PRO2 SHIPPING A–D", area: "PRO2", lines: ["Inspection A", "Inspection B", "Inspection C", "Inspection D"] }
   };
   function areaOfHash() { var m = /^#meeting(?:\/(\w+))?$/.exec(location.hash); return m ? (AREAS[(m[1] || "").toUpperCase()] ? m[1].toUpperCase() : "PRO2") : null; }
   var T = {
@@ -142,7 +143,7 @@
       '<header class="mtg-top">' +
         '<button class="mtg-back" id="mtgBack">' + ICON_BACK + '<span data-mk="back"></span></button>' +
         '<div class="mtg-title"><h1 data-mk="title"></h1><span class="mtg-sub" id="mtgSub"></span></div><div class="mtg-sp"></div>' +
-        '<div class="mtg-seg" id="mtgArea"><button data-v="PRO1">PRO1</button><button data-v="PRO2">PRO2</button></div>' +
+        '<div class="mtg-seg" id="mtgArea"><button data-v="PRO1">PRO1</button><button data-v="PRO2">PRO2 Final</button><button data-v="PRO2S">PRO2 Shipping</button></div>' +
         '<div class="mtg-seg" id="mtgScope"><button data-v="win" data-mk="scopeWin"></button><button data-v="all" data-mk="scopeAll"></button></div>' +
         '<div class="mtg-seg" id="mtgLang"><button data-v="zh">中文</button><button data-v="th">ไทย</button></div>' +
         '<span class="mtg-fresh" id="mtgFresh"><i></i><span></span></span><span class="mtg-clock" id="mtgClock"></span>' +
@@ -310,7 +311,7 @@
     else fitList(box, iss.map(function (i) {
       var age = Math.max(0, Date.now() - (i.at || 0)), isNew = age < 15 * 60000;
       var ago = age < 3600000 ? Math.max(1, Math.round(age / 60000)) + t("min") : age < 48 * 3600000 ? Math.round(age / 3600000) + t("hr") : Math.floor(age / 86400000) + t("day0");
-      var tag = i.line ? lineName[i.line] : (i.lineName || st.area);
+      var tag = i.line ? lineName[i.line] : (i.lineName || AREAS[st.area].area || st.area);
       return { html: '<div class="mi' + (isNew ? " new" : "") + '"><span class="lv' + (i.esc ? " on" : "") + '">' + (i.esc ? "L" + i.esc : "—") + '</span>' +
         '<span class="tx">' + esc(i.title || i.note || nm(i.t)) + '</span><span class="ag' + (i.over ? " o" : "") + '">' + ago + '</span>' +
         '<span class="mt"><b>' + esc(tag) + '</b><span class="s-' + esc(i.status) + '">' + t(i.status) + '</span>' + (i.over ? '<span class="o">' + t("over") + '</span>' : "") + '<span>' + esc(nm(i.d)) + '</span></span></div>' };
