@@ -370,11 +370,18 @@
   function load() {
     var areas = ["PRO2"]; if (isOpen() && st.area !== "PRO2") areas.push(st.area);
     areas.forEach(function (a) {
-      var u = srcOf(a);
-      fetch(u + (u.indexOf("?") >= 0 ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" })
-        .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
-        .then(function (j) { if (j && j.lines) { st.data[a] = j; st.errs[a] = false; } else st.errs[a] = true; })
-        .catch(function () { st.errs[a] = true; })
+      var u = srcOf(a), old = st.data[a];
+      var full = function () {
+        return fetch(u + (u.indexOf("?") >= 0 ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" })
+          .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+          .then(function (j) { if (j && j.lines) { st.data[a] = j; st.errs[a] = false; } else st.errs[a] = true; });
+      };
+      /* 省流量（2026-11-27）：DM 每次推送都会换 at。先读 at（约 300 字节），没变就不重下整份（约 13KB）；读不到 at 照旧整份下载 */
+      var job = SRC || !old || st.errs[a] || !old.at ? full() :
+        fetch(DB + a + "/at.json?_=" + Date.now(), { cache: "no-store" })
+          .then(function (r) { if (!r.ok) throw new Error("http " + r.status); return r.json(); })
+          .then(function (at) { if (at !== old.at) return full(); }, full);
+      job.catch(function () { st.errs[a] = true; })
         .then(function () { pick(); try { if (a === "PRO2" && typeof renderProblems === "function") renderProblems(); } catch (e) {} if (isOpen() && a === st.area) render(); });
     });
   }
