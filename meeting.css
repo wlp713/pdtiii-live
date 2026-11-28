@@ -90,6 +90,20 @@ body.mtg-on #bg-aurora, body.mtg-on #bg-aurora *, body.mtg-on #restoreModsBtn { 
 .ms-c.out { opacity: .38; }
 .ms-c.idle { align-items: center; color: var(--ink4); font-family: var(--num); font-size: 16px; }
 .ms-d { font-family: var(--num); font-size: 24px; font-weight: 600; line-height: 1; }
+/* DM 第 146 轮 小火苗（≥98% 过关）/ 爆燃（≥105%）/ 奖杯 */
+.ms-top { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-width: 0; }
+.ms-fire { display: inline-flex; align-items: center; gap: 1px; color: #ff8a1f; font-family: var(--num); font-size: 18px; font-weight: 700; line-height: 1; white-space: nowrap; }
+.ms-fire svg { width: 18px; height: 18px; flex: none; }
+.ms-fire.big { color: #ffc233; font-size: 21px; text-shadow: 0 0 10px rgba(255,194,51,.55); }
+.ms-fire.big svg { width: 24px; height: 24px; filter: drop-shadow(0 0 6px rgba(255,194,51,.75)); }
+.ms-fire.pop { animation: firePop 1s ease-out 1; }
+@keyframes firePop { 0% { transform: scale(.4); opacity: 0; } 45% { transform: scale(1.35); opacity: 1; } 100% { transform: scale(1); } }
+.mc-cup, .mc-best { display: inline-flex; align-items: center; vertical-align: middle; margin-left: 8px; height: 1em; line-height: 1; }   /* 高度锁 1em：图标不撑高卡头 */
+.mc-cup svg { width: 22px; height: 22px; color: #e0a400; }
+.mc-cup.big svg { width: 30px; height: 30px; color: #ffc233; filter: drop-shadow(0 0 8px rgba(255,194,51,.8)); }
+.mc-best { gap: 1px; color: #ff8a1f; font-family: var(--num); font-size: 16px; font-weight: 700; letter-spacing: 0; }
+.mc-best svg { width: 16px; height: 16px; }
+@media (prefers-reduced-motion: reduce) { .ms-fire.pop { animation: none; } }
 .ms-d.r { color: var(--red); } .ms-d.g { color: var(--green); } .ms-d.z { color: var(--ink4); }
 .ms-b { position: relative; height: 28px; border-radius: 6px; overflow: hidden; background: var(--track); display: flex; align-items: center; justify-content: space-between; }
 .ms-b { flex: none; }
@@ -167,7 +181,7 @@ body.mtg-on #bg-aurora, body.mtg-on #bg-aurora *, body.mtg-on #restoreModsBtn { 
   #mtg { --lbl: 66px; }
   #mtg { --gap: 8px; } .mtg-strip, .mtg-dept { padding: 10px 12px; }
   .ms-ln { font-size: 13px; } .ms-th { font-size: 12px; }
-  .ms-c { padding: 3px 4px; gap: 3px; } .ms-d { font-size: 15px; } .ms-b { height: 20px; } .ms-b .a { font-size: 12px; padding: 0 4px; line-height: 20px; } .ms-b .p { display: none; }
+  .ms-c { padding: 3px 4px; gap: 3px; } .ms-d { font-size: 15px; } .ms-fire { font-size: 13px; } .ms-fire svg { width: 13px; height: 13px; } .ms-fire.big svg { width: 16px; height: 16px; } .ms-b { height: 20px; } .ms-b .a { font-size: 12px; padding: 0 4px; line-height: 20px; } .ms-b .p { display: none; }
   .md { grid-template-columns: minmax(40px, auto) minmax(0, 1fr) auto 30px; gap: 0 8px; padding: 4px 0; } .md .nm { font-size: 13px; } .md b { font-size: 16px; } .md em { font-size: 11px; }
   .mc { padding: 10px 10px 8px; } .mc-nm { font-size: 18px; } .mc-ls b { font-size: 30px; } .mc-ls span { display: none; } .mc-rt { font-size: 12px; }
   .mp { gap: 0 6px; padding: 6px 0; } .mp .qb { padding: 2px 4px; } .mp .q { font-size: 15px; } .mp .qb .d { font-size: 10px; } .mp .tx { font-size: 14px; }

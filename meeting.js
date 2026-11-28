@@ -45,7 +45,7 @@
   function neg(x) { return Math.round(Number(x) || 0) > 0 ? "−" + n0(x) : n0(x); }   // 损失台数一律写成负数
   function nm(o, lg) { return o ? (o[lg || st.lang] || o.zh || "") : ""; }
   function short(name) { return String(name || "").replace(/\s*line$/i, "").replace(/^motor\s+/i, "").toUpperCase(); }
-  function arr(x) { return Array.isArray(x) ? x.filter(Boolean) : x && typeof x === "object" ? Object.keys(x).map(function (k) { return x[k]; }) : []; }
+  function arr(x) { return Array.isArray(x) ? x.filter(function (v) { return v != null; }) : x && typeof x === "object" ? Object.keys(x).map(function (k) { return x[k]; }) : []; }
   function bkk(ts) { return new Date(ts + 7 * 3600000); }   // 工厂时间 UTC+7，与电脑时区无关
   function hhmm(ts) { var d = bkk(ts); return ("0" + d.getUTCHours()).slice(-2) + ":" + ("0" + d.getUTCMinutes()).slice(-2); }
   var ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
@@ -73,7 +73,7 @@
   function summarize(d, scopeH) {
     var inS = function (h) { return scopeH.indexOf(h) >= 0; };
     var lines = arr(d.lines).map(function (ln) {
-      var s = { key: ln.key, name: ln.name, p: 0, a: 0, l: 0, gap: 0, gapH: [], depts: {}, groups: [] };
+      var s = { key: ln.key, name: ln.name, p: 0, a: 0, l: 0, gap: 0, gapH: [], depts: {}, groups: [], rate: ln.rate, best: ln.best || 0 };   // rate / best：整班（DM 第 146 轮）
       arr(ln.h).forEach(function (h) {
         if (!inS(h.hour)) return;
         s.p += h.p || 0; s.a += h.a || 0;
@@ -178,6 +178,10 @@
   }
   function isOpen() { var el = $("mtg"); return !!(el && !el.hidden); }
 
+  /* DM 第 146 轮 小火苗 / 奖杯图标；fireSeen = 上次画过的火苗（null = 首次打开，不播动画） */
+  var FLAME = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.5 2c.6 3.2-1 5-2.6 6.8C8.3 10.6 7 12.2 7 14.6A5 5 0 0 0 12 20a5 5 0 0 0 5-5.2c0-2-1-3.5-2-4.6.1 1.5-.5 2.6-1.6 3.1.4-2.6-.1-6.6-.9-11.3z"/></svg>';
+  var CUP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7 3h10v2h3v3a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V18h3v3H8v-3h3v-3.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V5h3zm0 4H6v1a2 2 0 0 0 1 1.7zm10 0v2.7A2 2 0 0 0 18 8V7z"/></svg>';
+  var fireSeen = null;
   /* ---------- 顶部横条：看板小时分段（segsOf，和看板主页同一份数，进行中时段实时） ---------- */
   function finalLines() {
     try {
@@ -187,6 +191,7 @@
   }
   function renderStrip(scopeH) {
     var box = $("mtgStrip"); if (!box) return;
+    var fireNow = {};
     var night, table, nowM;
     try { nowM = bkkMins(); night = shiftSegAt(nowM).shift === "night"; table = night ? NIGHT_SEGS : DAY_SEGS; } catch (e) { box.innerHTML = ""; return; }
     var cmp = night && nowM < 480 ? nowM + 1440 : nowM;
@@ -218,7 +223,7 @@
         if (!dmOn) { s = segAt(c.i); if (s && c.t0 > cmp) s = null; }
         else {
           var h = dmH[c.hr] || {};
-          if (h.st === "done") s = { actual: h.a, plan: h.p };
+          if (h.st === "done") s = { actual: h.a, plan: h.p, f: h.f, fb: h.fb, k: l.name + "|" + c.hr + "|" + h.f };
           else if (h.st === "cur") s = liveS && liveHr === c.hr ? liveS : (h.a != null || h.p != null ? { actual: h.a, plan: h.p, live: true } : null);
           else s = null;
         }
@@ -230,11 +235,15 @@
         var w = p > 0 ? Math.min(100, a / p * 100) : (a > 0 ? 100 : 0);
         var cls = "ms-c" + (s.live ? " cur" : "") + (st.scope === "win" && !s.live && !inWin(c.t0) ? " out" : "");
         /* 一格一根粗条：底轨 = 计划（条尾写计划数），蓝 = 实际（条里写实际数），红斜纹 = 欠产，绿边 = 超产；上 = 差异 */
-        html += '<div class="' + cls + '"><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span>' +
+        /* DM 第 146 轮 小火苗：这一小时 ≥98% 过关 = 🔥×连胜数，≥105% 爆燃（金色大火苗）；刚亮起的闪一下（首次打开不闪） */
+        var fire = s.f ? '<span class="ms-fire' + (s.fb ? " big" : "") + (fireSeen && !fireSeen[s.k] ? " pop" : "") + '">' + FLAME + '<b>×' + s.f + '</b></span>' : "";
+        if (s.f) fireNow[s.k] = 1;
+        html += '<div class="' + cls + '"><div class="ms-top"><span class="ms-d ' + (dif < 0 ? "r" : dif > 0 ? "g" : "z") + '">' + (dif > 0 ? "+" : dif < 0 ? "−" : "") + n0(Math.abs(dif)) + '</span>' + fire + '</div>' +
           '<div class="ms-b' + (p > 0 && a > p ? " over" : "") + (a < p ? " short" : "") + '"><i style="width:' + w.toFixed(1) + '%"></i><span class="a">' + n0(a) + '</span><span class="p">' + n0(p) + '</span></div></div>';
       });
       if (any) rowsHtml.push(html);   // 整班没开线的线不占行（创始人：无 LOSS 的隐藏）
     });
+    fireSeen = fireNow;
     box.innerHTML = '<div class="ms-grid' + (rowsHtml.length > 4 ? " dense" : "") + '" style="grid-template-columns:var(--lbl) repeat(' + cols.length + ',minmax(0,1fr));grid-template-rows:auto repeat(' + Math.max(1, rowsHtml.length) + ',minmax(0,1fr))">' + head + rowsHtml.join("") + '</div>';
   }
 
@@ -247,7 +256,10 @@
       S.order.forEach(function (k) { if (!s.depts[k]) return; var q = Math.min(s.depts[k].q, s.l - used); if (q <= 0) return; used += q; segs += '<span style="flex:0 0 ' + (q / s.l * 100).toFixed(2) + '%;background:' + S.color[k] + '"></span>'; });
       if (s.l - used > 0) segs += '<span class="gap" style="flex:1 1 auto"></span>';
     }
-    var head = '<div class="mc-hd"><span class="mc-nm">' + esc(short(s.name)) + '</span><span class="mc-ls' + (s.l > 0 ? "" : " z") + '"><b>' + neg(s.l) + '</b><span>' + t("loss") + '</span></span>' +
+    /* DM 第 146 轮：整班（已结束的小时）≥98% 奖杯、≥105% 大金杯；本班最高连胜 🔥×N */
+    var cup = s.rate >= 1.05 ? '<span class="mc-cup big">' + CUP + '</span>' : s.rate >= 0.98 ? '<span class="mc-cup">' + CUP + '</span>' : "";
+    var best = s.best ? '<span class="mc-best">' + FLAME + '<b>×' + s.best + '</b></span>' : "";
+    var head = '<div class="mc-hd"><span class="mc-nm">' + esc(short(s.name)) + cup + best + '</span><span class="mc-ls' + (s.l > 0 ? "" : " z") + '"><b>' + neg(s.l) + '</b><span>' + t("loss") + '</span></span>' +
       '<span class="mc-rt">' + t("rate") + ' <b style="color:' + rc + '">' + (rate == null ? "—" : rate + "%") + '</b> · <span class="n">' + n0(s.a) + ' / ' + n0(s.p) + '</span></span></div>' +
       '<div class="mc-bar">' + segs + '</div>';
     var gapRow = s.gap > 0 ? '<div class="mp gap"><div class="qb"><span class="q">' + neg(s.gap) + '</span></div><div class="tx"><span class="sw"></span>' + t("gapTx") + '</div></div>' : "";
